@@ -1,0 +1,53 @@
+name: habesha_hub
+description: Habesha Hub - Finn Habesha bedrifter i nærheten
+
+publish_to: "none"
+
+version: 1.0.3+5
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  firebase_core: ^3.6.0
+  cloud_firestore: ^5.4.4
+  firebase_auth: ^5.3.1
+  firebase_storage: ^12.3.2
+  geolocator: ^10.1.0
+  geocoding: ^3.0.0
+  google_maps_flutter: ^2.5.0
+  cached_network_image: ^3.3.1
+  url_launcher: ^6.2.2
+  shared_preferences: ^2.2.2
+  intl: ^0.18.1
+  uuid: ^4.2.2
+  image_picker: ^1.0.4
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
+
+# App icon configuration
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/icon.png"
+  adaptive_icon_background: "#131313"
+  adaptive_icon_foreground: "assets/images/icon.png"
+  web:
+    generate: false
+  windows:
+    generate: false
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/fonts/

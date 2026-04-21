@@ -1,0 +1,33 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "habesha-hub-7bd1d",
+          "appId": "1:308436707340:android:e6c29336bde4c1239ae629",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "habesha-hub-7bd1d",
+          "configurations": {
+            "android": "1:308436707340:android:e6c29336bde4c1239ae629",
+            "ios": "1:308436707340:ios:015ff7e8e5d97aef9ae629",
+            "macos": "1:308436707340:ios:015ff7e8e5d97aef9ae629",
+            "web": "1:308436707340:web:757a5a02ec6f1ea09ae629",
+            "windows": "1:308436707340:web:0e66ab28bf24a9f59ae629"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}

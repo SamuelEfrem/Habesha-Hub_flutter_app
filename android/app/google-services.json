@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "308436707340",
+    "project_id": "habesha-hub-7bd1d",
+    "storage_bucket": "habesha-hub-7bd1d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:308436707340:android:e6c29336bde4c1239ae629",
+        "android_client_info": {
+          "package_name": "com.example.habesha_hub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApxpljv-UxJox94_eWDzB2pVHDRs1w-w4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:308436707340:android:5e04bd5056e22f909ae629",
+        "android_client_info": {
+          "package_name": "no.habesha.hub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApxpljv-UxJox94_eWDzB2pVHDRs1w-w4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
