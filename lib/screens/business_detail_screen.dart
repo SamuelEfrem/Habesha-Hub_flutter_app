@@ -60,12 +60,20 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
 
   Future<void> _initChat() async {
     final prefs = await SharedPreferences.getInstance();
-    String? uid = prefs.getString('userId');
-    if (uid == null) {
-      uid = const Uuid().v4();
-      await prefs.setString('userId', uid);
+
+    // Sign in anonymously if not logged in — required for Firestore rules
+    User? firebaseUser = FirebaseAuth.instance.currentUser;
+    if (firebaseUser == null) {
+      try {
+        final cred = await FirebaseAuth.instance.signInAnonymously();
+        firebaseUser = cred.user;
+      } catch (_) {}
     }
-    final firebaseUser = FirebaseAuth.instance.currentUser;
+
+    // Use Firebase UID as userId
+    final uid = firebaseUser?.uid ?? const Uuid().v4();
+    await prefs.setString('userId', uid);
+
     final name = firebaseUser?.displayName ??
         prefs.getString('nickname') ??
         languageNotifier.t('guest');
