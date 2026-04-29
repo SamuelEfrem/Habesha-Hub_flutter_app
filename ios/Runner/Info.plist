@@ -50,6 +50,8 @@
 	<string>This app uses your location to show nearby services.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app uses your location to show nearby services.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 
 	
 </dict>
