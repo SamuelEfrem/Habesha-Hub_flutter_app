@@ -5,6 +5,7 @@ import 'dart:convert';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import '../models/business.dart';
+import '../config/secrets.dart';
 
 class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key});
@@ -101,9 +102,8 @@ IMPORTANT: $langInstruction''';
         Uri.parse('https://api.anthropic.com/v1/messages'),
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': const String.fromEnvironment('ANTHROPIC_KEY',
-              defaultValue:
-                  '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'),
+          'x-api-key': Secrets.anthropicKey,
+          'anthropic-version': '2023-06-01',
         },
         body: jsonEncode({
           'model': 'claude-haiku-4-5-20251001',
