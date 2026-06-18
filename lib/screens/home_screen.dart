@@ -1,3 +1,4 @@
+import 'events_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
@@ -9,6 +10,8 @@ import '../utils/language_notifier.dart';
 import '../theme/app_theme.dart';
 import 'business_detail_screen.dart';
 import 'placeholder_screens.dart';
+import 'forum_screen.dart';
+import 'ai_chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -142,8 +145,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             children: [
               _buildHomeTab(t),
               const ExploreScreen(),
-              const ChatListScreen(),
-              const FavoritesScreen(),
+              const EventsScreen(),
+              const ForumScreen(),
               const ProfileScreen(),
             ],
           ),
@@ -172,6 +175,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               const Spacer(),
               // Language switcher — works for guests too
               _buildLangSwitcher(),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const AiChatScreen())),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                      color: kSecondary, shape: BoxShape.circle),
+                  child: const Icon(Icons.auto_awesome_rounded,
+                      color: Color(0xFF1A1200), size: 20),
+                ),
+              ),
             ]),
           ),
 
@@ -214,12 +230,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: ['Norsk', 'ትግርኛ', 'EN'].map((label) {
+        children: ['ትግርኛ', 'አማ', 'EN', 'NO'].map((label) {
           final code = label == 'ትግርኛ'
               ? 'Tigrinya'
-              : label == 'EN'
-                  ? 'English'
-                  : 'Norsk';
+              : label == 'አማ'
+                  ? 'Amharic'
+                  : label == 'EN'
+                      ? 'English'
+                      : 'Norsk';
           final active = lang == code;
           return GestureDetector(
             onTap: () => languageNotifier.setLanguage(code),
@@ -248,10 +266,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final lang = languageNotifier.language;
     // "Finn her" in Tigrinya, "Find here" in English, "Finn her" in Norwegian
     final searchLabel = lang == 'Tigrinya'
-        ? 'ኣብ ቀረባካ ድለ'
-        : lang == 'English'
-            ? 'Find Nearby'
-            : 'Finn her';
+        ? 'ኣብዚ ተዊቕካ ኣብ ጥቃኻ ዘሎ ትካላት ርከብ'
+        : lang == 'Amharic'
+            ? 'በአካባቢ ይፈልጉ'
+            : lang == 'English'
+                ? 'Find Nearby'
+                : 'Finn her';
 
     return Column(children: [
       const SizedBox(height: 8),
@@ -366,9 +386,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         _isSearching
             ? (lang == 'Tigrinya'
                 ? 'ይደልይ ኣሎ...'
-                : lang == 'English'
-                    ? 'Searching...'
-                    : 'Søker...')
+                : lang == 'Amharic'
+                    ? 'በመፈለግ ላይ...'
+                    : lang == 'English'
+                        ? 'Searching...'
+                        : 'Søker...')
             : searchLabel,
         style: tsTitleMd(color: _isSearching ? kSecondary : kOnSurfaceVariant)
             .copyWith(fontSize: 13, letterSpacing: 0.5),
@@ -377,7 +399,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       const SizedBox(height: 4),
       Text(
         _hasSearched && _position != null
-            ? '${_businesses.length} ${lang == "Tigrinya" ? "ትካላት ተረኺቦም" : lang == "English" ? "businesses found" : "bedrifter funnet"}'
+            ? '${_businesses.length} ${lang == "Tigrinya" ? "ትካላት ተረኺቦም" : lang == "Amharic" ? "ድርጅቶች ተገኝተዋል" : lang == "English" ? "businesses found" : "bedrifter funnet"}'
             : (lang == 'Tigrinya'
                 ? 'ኣብዚ ጠዊቅካ ኣብ ቀረባካ ድለ'
                 : lang == 'English'
@@ -478,10 +500,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Text(
               languageNotifier.language == 'Tigrinya'
                   ? 'ኣብቲ ኣብ ላዕሊ ዘሎ ክቢ ብምጥዋቅ ኣብ ጥቃካ ዝሎ ናይ ሓበሻ ትካላት ርኸብ'
-                  : languageNotifier.language == 'English'
-                      ? 'Tap the circle above to find nearby Habesha businesses'
-                      : 'Trykk på sirkelen ovenfor for å finne Habesha bedrifter i nærheten',
-              style: tsBodySm(),
+                  : languageNotifier.language == 'Amharic'
+                      ? 'ከላይ ያለውን ክበብ ጫኑ የሃበሻ ድርጅቶችን ለማግኘት'
+                      : languageNotifier.language == 'English'
+                          ? 'Tap the circle above to find nearby Habesha businesses'
+                          : 'Trykk på sirkelen ovenfor for å finne Habesha bedrifter i nærheten',
               textAlign: TextAlign.center),
         ]),
       ),
@@ -542,8 +565,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final items = [
       {'icon': Icons.home_rounded, 'key': 'home'},
       {'icon': Icons.explore_rounded, 'key': 'explore'},
-      {'icon': Icons.chat_bubble_rounded, 'key': 'chat'},
-      {'icon': Icons.favorite_rounded, 'key': 'favorites'},
+      {'icon': Icons.event_rounded, 'key': 'events'},
+      {'icon': Icons.forum_rounded, 'key': 'forum'},
       {'icon': Icons.person_rounded, 'key': 'profile'},
     ];
     return Container(

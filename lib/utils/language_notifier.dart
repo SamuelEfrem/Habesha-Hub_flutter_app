@@ -7,12 +7,12 @@ class LanguageNotifier extends ChangeNotifier {
   factory LanguageNotifier() => _instance;
   LanguageNotifier._internal();
 
-  String _language = 'Norsk';
+  String _language = 'English';
   String get language => _language;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
-    _language = prefs.getString('language') ?? 'Norsk';
+    _language = prefs.getString('language') ?? 'English';
     AppTranslations.setLanguage(_language);
     notifyListeners();
   }

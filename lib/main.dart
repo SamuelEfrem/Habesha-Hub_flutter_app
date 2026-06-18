@@ -5,12 +5,14 @@ import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'utils/language_notifier.dart';
 import 'theme/app_theme.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'services/notification_service.dart';
 
 void main() async {
-  // Sørger for at Flutter-motoren er klar før vi kjører async-kode
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Setter stilen på statuslinjen og navigasjonslinjen på telefonen
+  await initializeDateFormatting('nb', null);
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
@@ -18,10 +20,8 @@ void main() async {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 
-  // Initialiserer Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  // Laster inn lagret språkvalg (Norsk, Engelsk eller Tigrinya)
+  await NotificationService.initialize();
   await languageNotifier.load();
 
   runApp(const HabeshahubApp());

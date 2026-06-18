@@ -12,6 +12,7 @@ import '../models/business.dart';
 import '../utils/language_notifier.dart';
 import '../theme/app_theme.dart';
 import 'edit_business_screen.dart';
+import 'booking_screen.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final Business business;
@@ -143,11 +144,17 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     final text = _messageController.text.trim();
     if (text.isEmpty || _userId == null) return;
     _messageController.clear();
-    await _db
-        .collection('chats')
-        .doc('${widget.business.id}_$_userId')
-        .collection('messages')
-        .add({
+    final chatRef =
+        _db.collection('chats').doc('${widget.business.id}_$_userId');
+
+    // Opprett chat-dokument hvis det ikke finnes
+    await chatRef.set({
+      'businessId': widget.business.id,
+      'userId': _userId,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    await chatRef.collection('messages').add({
       'text': text,
       'userId': _userId,
       'nickname': _nickname ?? languageNotifier.t('guest'),
@@ -356,6 +363,32 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       _buildHoursCard(),
       const SizedBox(height: 12),
       _buildMenuButton(),
+      const SizedBox(height: 12),
+      if (!_isOwner &&
+          FirebaseAuth.instance.currentUser?.email != 'samuelefriem@gmail.com')
+        GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BookingScreen(business: widget.business),
+            ),
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            decoration: BoxDecoration(
+              color: kSecondary,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.calendar_today_rounded,
+                  color: Color(0xFF1A1200), size: 18),
+              const SizedBox(width: 8),
+              Text('Book tid',
+                  style: tsTitleMd(color: const Color(0xFF1A1200))),
+            ]),
+          ),
+        ),
       const SizedBox(height: 12),
       // Address card
       Container(

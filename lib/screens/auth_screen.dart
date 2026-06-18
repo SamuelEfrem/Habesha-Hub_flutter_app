@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthScreen extends StatefulWidget {
   /// If true, after login return to caller. If false, navigate to home.
@@ -71,6 +72,66 @@ class _AuthScreenState extends State<AuthScreen>
         _loading = false;
       });
     }
+  }
+
+  void _showForgotPassword() {
+    final ctrl = TextEditingController(text: _emailCtrl.text.trim());
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: kSurfaceContainerHigh,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(children: [
+          const Icon(Icons.lock_reset_rounded, color: kSecondary),
+          const SizedBox(width: 10),
+          Text('Tilbakestill passord', style: tsHeadlineSm(color: kSecondary)),
+        ]),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(
+              'Skriv inn e-postadressen din så sender vi en lenke for å tilbakestille passordet.',
+              style: tsBodyLg()),
+          const SizedBox(height: 16),
+          TextField(
+            controller: ctrl,
+            keyboardType: TextInputType.emailAddress,
+            style: tsBodyLg(color: kOnSurface),
+            decoration: const InputDecoration(
+              hintText: 'din@epost.no',
+              prefixIcon: Icon(Icons.email_outlined, color: kSecondary),
+            ),
+          ),
+        ]),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Avbryt', style: tsBodySm()),
+          ),
+          TextButton(
+            onPressed: () async {
+              final email = ctrl.text.trim();
+              if (email.isEmpty) return;
+              Navigator.pop(context);
+              try {
+                await FirebaseAuth.instance
+                    .sendPasswordResetEmail(email: email);
+                if (mounted)
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text('Tilbakestillingslenke sendt til $email'),
+                    backgroundColor: kGreen,
+                  ));
+              } catch (e) {
+                if (mounted)
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text('Feil: sjekk e-postadressen'),
+                    backgroundColor: kRed,
+                  ));
+              }
+            },
+            child: Text('Send lenke', style: tsTitleMd(color: kSecondary)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showResendDialog(String email) {
@@ -193,6 +254,45 @@ class _AuthScreenState extends State<AuthScreen>
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _loading = true;
+      _error = '';
+    });
+    try {
+      final googleSignIn = GoogleSignIn(
+        serverClientId:
+            '308436707340-5f7ns8b9mf594d9mkuc10ops4geuc77n.apps.googleusercontent.com',
+      );
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        setState(() => _loading = false);
+        return;
+      }
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      if (mounted) {
+        if (widget.returnOnLogin)
+          Navigator.pop(context, true);
+        else
+          Navigator.pop(context);
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Google innlogging feilet. Prøv igjen.';
+        _loading = false;
+      });
+      setState(() {
+        _error = 'Feil: $e';
+        _loading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -287,10 +387,55 @@ class _AuthScreenState extends State<AuthScreen>
               ]),
             ),
           ],
-          const SizedBox(height: 28),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () => _showForgotPassword(),
+              child: Text('Glemt passord?', style: tsBodySm(color: kSecondary)),
+            ),
+          ),
+          const SizedBox(height: 12),
           primaryButton(_loading ? '' : 'Logg inn', _loading ? null : _login,
               loading: _loading, icon: Icons.login_rounded),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          Row(children: [
+            Expanded(child: Divider(color: kOutlineVariant.withOpacity(0.3))),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text('eller', style: tsBodySm(color: kOnSurfaceVariant)),
+            ),
+            Expanded(child: Divider(color: kOutlineVariant.withOpacity(0.3))),
+          ]),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: _signInWithGoogle,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: kSurfaceContainerHigh,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: kOutlineVariant.withOpacity(0.3), width: 0.5),
+              ),
+              child:
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Image.network(
+                  'https://www.google.com/favicon.ico',
+                  width: 20,
+                  height: 20,
+                  errorBuilder: (_, __, ___) => const Icon(
+                      Icons.g_mobiledata_rounded,
+                      color: kSecondary,
+                      size: 24),
+                ),
+                const SizedBox(width: 10),
+                Text('Fortsett med Google', style: tsTitleMd()),
+              ]),
+            ),
+          ),
+          const SizedBox(height: 12),
           Center(
               child: TextButton(
             onPressed: () => _tab.animateTo(1),

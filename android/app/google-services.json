@@ -12,7 +12,20 @@
           "package_name": "com.example.habesha_hub"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "308436707340-el9if7162sist9uskeolkdubb237pg46.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.habesha_hub",
+            "certificate_hash": "70db4824f33c5f013d15a0d35febc68b997ce949"
+          }
+        },
+        {
+          "client_id": "308436707340-5f7ns8b9mf594d9mkuc10ops4geuc77n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyApxpljv-UxJox94_eWDzB2pVHDRs1w-w4"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "308436707340-5f7ns8b9mf594d9mkuc10ops4geuc77n.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "308436707340-cr6kqd3q0imlhq1qfi1ps1ae91f7fh4h.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.habeshaHub"
+              }
+            }
+          ]
         }
       }
     },
@@ -31,7 +56,20 @@
           "package_name": "no.habesha.hub"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "308436707340-cb4hiqd8c5ldb6kiiflep7f0qav6dsld.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "no.habesha.hub",
+            "certificate_hash": "70db4824f33c5f013d15a0d35febc68b997ce949"
+          }
+        },
+        {
+          "client_id": "308436707340-5f7ns8b9mf594d9mkuc10ops4geuc77n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyApxpljv-UxJox94_eWDzB2pVHDRs1w-w4"
@@ -39,7 +77,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "308436707340-5f7ns8b9mf594d9mkuc10ops4geuc77n.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "308436707340-cr6kqd3q0imlhq1qfi1ps1ae91f7fh4h.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.habeshaHub"
+              }
+            }
+          ]
         }
       }
     }

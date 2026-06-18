@@ -57,15 +57,19 @@ class _SplashScreenState extends State<SplashScreen>
         // Correct translations
         final tagline = lang == 'Tigrinya'
             ? 'ናይ ሓበሻ ማሕበረሰብኩም ኣብ ኢድኩም'
-            : lang == 'English'
-                ? 'Your Habesha community in your pocket'
-                : 'Ditt Habesha-fellesskap i lomma';
+            : lang == 'Amharic'
+                ? 'የሃበሻ ማህበረሰብዎ በእጅዎ'
+                : lang == 'English'
+                    ? 'Your Habesha community in your pocket'
+                    : 'Ditt Habesha-fellesskap i lomma';
 
         final joinBtn = lang == 'Tigrinya'
             ? 'እቶ'
-            : lang == 'English'
-                ? 'Join Now'
-                : 'Bli med nå';
+            : lang == 'Amharic'
+                ? 'አሁን ይቀላቀሉ'
+                : lang == 'English'
+                    ? 'Join Now'
+                    : 'Bli med nå';
 
         return Scaffold(
           backgroundColor: kSurface,
@@ -162,13 +166,17 @@ class _SplashScreenState extends State<SplashScreen>
                     const Spacer(flex: 3),
 
                     // Language selector on splash
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      _langBtn('🇬🇧', 'English', 'English', lang),
-                      const SizedBox(width: 10),
-                      _langBtn('🇪🇷', 'ትግርኛ', 'Tigrinya', lang),
-                      const SizedBox(width: 10),
-                      _langBtn('🇳🇴', 'Norsk', 'Norsk', lang),
-                    ]),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        _langBtn('🇬🇧', 'English', 'English', lang),
+                        _langBtn('🇪🇷', 'ትግርኛ', 'Tigrinya', lang),
+                        _langBtn('🇪🇹', 'አማርኛ', 'Amharic', lang),
+                        _langBtn('🇳🇴', 'Norsk', 'Norsk', lang),
+                      ],
+                    ),
 
                     const SizedBox(height: 24),
 

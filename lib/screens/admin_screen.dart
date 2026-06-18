@@ -1,3 +1,4 @@
+import 'admin_register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -6,10 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/app_theme.dart';
 import '../models/business.dart';
 import 'edit_business_screen.dart';
+import 'booking_screen.dart';
 
-// ─────────────────────────────────────────────────────────────
-// VIKTIG: Legg til e-postene til admin-brukere her
-// ─────────────────────────────────────────────────────────────
 const List<String> _adminEmails = [
   'samuelefriem@gmail.com',
 ];
@@ -19,16 +18,11 @@ bool get _isAdmin {
   return _adminEmails.contains(email);
 }
 
-// ─────────────────────────────────────────────────────────────
-// Admin-knapp — legg denne inn i ProfileScreen nederst
-// Vises kun for admins
-// ─────────────────────────────────────────────────────────────
 class AdminButton extends StatelessWidget {
   const AdminButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Use StreamBuilder on auth state so button appears immediately after login
     return StreamBuilder(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
@@ -72,9 +66,7 @@ class AdminButton extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: kRed,
-                      borderRadius: BorderRadius.circular(100),
-                    ),
+                        color: kRed, borderRadius: BorderRadius.circular(100)),
                     child: Text('$count',
                         style: tsLabel(color: Colors.white)
                             .copyWith(fontSize: 11)),
@@ -92,9 +84,6 @@ class AdminButton extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// ADMIN SCREEN
-// ─────────────────────────────────────────────────────────────
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
 
@@ -110,9 +99,8 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tab = TabController(length: 4, vsync: this);
+    _tab = TabController(length: 6, vsync: this);
 
-    // Security check
     if (!_isAdmin) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pop(context);
@@ -150,6 +138,8 @@ class _AdminScreenState extends State<AdminScreen>
             Tab(text: 'GODKJENT'),
             Tab(text: 'AVVIST'),
             Tab(text: 'MELDINGER'),
+            Tab(text: 'BOOKINGER'),
+            Tab(text: 'LEGG TIL'),
           ],
         ),
       ),
@@ -160,15 +150,14 @@ class _AdminScreenState extends State<AdminScreen>
           _BusinessList(status: 'approved', db: _db),
           _BusinessList(status: 'rejected', db: _db),
           _ContactMessagesList(db: _db),
+          const BookingListScreen(),
+          const AdminRegisterScreen(),
         ],
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Business list for each status tab
-// ─────────────────────────────────────────────────────────────
 class _BusinessList extends StatelessWidget {
   final String status;
   final FirebaseFirestore db;
@@ -178,7 +167,6 @@ class _BusinessList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      // No orderBy to avoid requiring Firestore composite index
       stream: db.collection('businesses').snapshots(),
       builder: (context, snap) {
         if (!snap.hasData) {
@@ -187,22 +175,18 @@ class _BusinessList extends StatelessWidget {
                   color: kSecondary, strokeWidth: 1.5));
         }
 
-        // Filter client-side — handles missing status field (old data = pending)
         final docs = snap.data!.docs.where((doc) {
           final data = doc.data() as Map<String, dynamic>;
           final s = data['status'] as String?;
-          if (status == 'pending') {
-            // Show pending OR documents with no status field
-            return s == null || s == 'pending';
-          }
+          if (status == 'pending') return s == null || s == 'pending';
           return s == status;
         }).toList();
-        // Sort by createdAt client-side
+
         docs.sort((a, b) {
-          final aData = a.data() as Map<String, dynamic>;
-          final bData = b.data() as Map<String, dynamic>;
-          final aTime = aData['createdAt'] as Timestamp?;
-          final bTime = bData['createdAt'] as Timestamp?;
+          final aTime =
+              (a.data() as Map<String, dynamic>)['createdAt'] as Timestamp?;
+          final bTime =
+              (b.data() as Map<String, dynamic>)['createdAt'] as Timestamp?;
           if (aTime == null && bTime == null) return 0;
           if (aTime == null) return 1;
           if (bTime == null) return -1;
@@ -211,30 +195,28 @@ class _BusinessList extends StatelessWidget {
 
         if (docs.isEmpty) {
           return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  status == 'pending'
-                      ? Icons.hourglass_empty_rounded
-                      : status == 'approved'
-                          ? Icons.check_circle_outline_rounded
-                          : Icons.cancel_outlined,
-                  color: kOnSurfaceVariant,
-                  size: 56,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  status == 'pending'
-                      ? 'Ingen ventende bedrifter'
-                      : status == 'approved'
-                          ? 'Ingen godkjente bedrifter'
-                          : 'Ingen avviste bedrifter',
-                  style: tsBodySm(),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(
+                status == 'pending'
+                    ? Icons.hourglass_empty_rounded
+                    : status == 'approved'
+                        ? Icons.check_circle_outline_rounded
+                        : Icons.cancel_outlined,
+                color: kOnSurfaceVariant,
+                size: 56,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                status == 'pending'
+                    ? 'Ingen ventende bedrifter'
+                    : status == 'approved'
+                        ? 'Ingen godkjente bedrifter'
+                        : 'Ingen avviste bedrifter',
+                style: tsBodySm(),
+                textAlign: TextAlign.center,
+              ),
+            ]),
           );
         }
 
@@ -260,9 +242,6 @@ class _BusinessList extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Admin Card — approve / reject / delete
-// ─────────────────────────────────────────────────────────────
 class _AdminCard extends StatelessWidget {
   final Business business;
   final String docId;
@@ -287,11 +266,9 @@ class _AdminCard extends StatelessWidget {
     });
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          newStatus == 'approved'
-              ? '✓ ${business.name} godkjent og publisert!'
-              : '✗ ${business.name} avvist.',
-        ),
+        content: Text(newStatus == 'approved'
+            ? '✓ ${business.name} godkjent og publisert!'
+            : '✗ ${business.name} avvist.'),
         backgroundColor: newStatus == 'approved' ? kGreen : kRed,
       ));
     }
@@ -307,13 +284,11 @@ class _AdminCard extends StatelessWidget {
             style: tsBodyLg()),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Avbryt', style: tsBodySm()),
-          ),
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('Avbryt', style: tsBodySm())),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('Slett', style: tsTitleMd(color: kRed)),
-          ),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text('Slett', style: tsTitleMd(color: kRed))),
         ],
       ),
     );
@@ -344,109 +319,84 @@ class _AdminCard extends StatelessWidget {
           width: 0.5,
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Image ────────────────────────────────
-          if (business.imageUrl.isNotEmpty)
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Image.network(
-                business.imageUrl,
-                height: 140,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  height: 80,
-                  color: kSurfaceContainerHigh,
-                  child: const Center(
-                      child: Icon(Icons.image_not_supported_rounded,
-                          color: kOnSurfaceVariant)),
-                ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        if (business.imageUrl.isNotEmpty)
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Image.network(
+              business.imageUrl,
+              height: 140,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                height: 80,
+                color: kSurfaceContainerHigh,
+                child: const Center(
+                    child: Icon(Icons.image_not_supported_rounded,
+                        color: kOnSurfaceVariant)),
               ),
             ),
-
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Name + Category ───────────────────
-                Row(children: [
-                  Expanded(
-                    child: Text(business.name, style: tsHeadlineSm()),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: kSecondary.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: Text(business.category, style: tsLabel()),
-                  ),
-                ]),
-                const SizedBox(height: 8),
-
-                // ── Description ───────────────────────
-                Text(business.description,
-                    style: tsBodySm(),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 12),
-
-                // ── Info rows ─────────────────────────
-                _infoRow(Icons.location_on_rounded, business.address),
-                _infoRow(Icons.phone_rounded, business.phone),
-                _infoRow(Icons.person_rounded, '$ownerName  •  $ownerEmail'),
-
-                // ── Opening hours ─────────────────────
-                if (business.openingHours.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: kSurfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      children: business.openingHours.entries
-                          .map((e) => Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
-                                child: Row(children: [
-                                  Expanded(
-                                      child: Text(e.key, style: tsBodySm())),
-                                  Text(e.value,
-                                      style: tsBodySm(
-                                          color: e.value == 'Stengt'
-                                              ? kRed
-                                              : kOnSurface)
-                                        ..copyWith(
-                                            fontWeight: FontWeight.w600)),
-                                ]),
-                              ))
-                          .toList(),
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 16),
-
-                // ── Action buttons ────────────────────
-                // Admin actions — approve/reject/edit/delete
-                _AdminActions(
-                  business: business,
-                  docId: docId,
-                  status: status,
-                  onUpdate: (s) => _updateStatus(context, s),
-                  onDelete: () => _delete(context),
-                ),
-              ],
-            ),
           ),
-        ],
-      ),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Expanded(child: Text(business.name, style: tsHeadlineSm())),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: kSecondary.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Text(business.category, style: tsLabel()),
+              ),
+            ]),
+            const SizedBox(height: 8),
+            Text(business.description,
+                style: tsBodySm(),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 12),
+            _infoRow(Icons.location_on_rounded, business.address),
+            _infoRow(Icons.phone_rounded, business.phone),
+            _infoRow(Icons.person_rounded, '$ownerName  •  $ownerEmail'),
+            if (business.openingHours.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                    color: kSurfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(10)),
+                child: Column(
+                  children: business.openingHours.entries
+                      .map((e) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Row(children: [
+                              Expanded(child: Text(e.key, style: tsBodySm())),
+                              Text(e.value,
+                                  style: tsBodySm(
+                                      color: e.value == 'Stengt'
+                                          ? kRed
+                                          : kOnSurface)),
+                            ]),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            _AdminActions(
+              business: business,
+              docId: docId,
+              status: status,
+              onUpdate: (s) => _updateStatus(context, s),
+              onDelete: () => _delete(context),
+            ),
+          ]),
+        ),
+      ]),
     );
   }
 
@@ -460,25 +410,8 @@ class _AdminCard extends StatelessWidget {
                   style: tsBodySm(), overflow: TextOverflow.ellipsis)),
         ]),
       );
-
-  Widget _actionBtn(IconData icon, String label, Color color) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 11),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withOpacity(0.3), width: 0.5),
-        ),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(icon, color: color, size: 15),
-          const SizedBox(width: 5),
-          Text(label, style: tsTitleMd(color: color).copyWith(fontSize: 12)),
-        ]),
-      );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Admin action buttons row
-// ─────────────────────────────────────────────────────────────
 class _AdminActions extends StatelessWidget {
   final Business business;
   final String docId;
@@ -497,7 +430,6 @@ class _AdminActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      // Row 1: approve/reject
       Row(children: [
         if (status == 'pending') ...[
           Expanded(
@@ -527,7 +459,6 @@ class _AdminActions extends StatelessWidget {
         ],
       ]),
       const SizedBox(height: 8),
-      // Row 2: edit button (admin can always edit)
       GestureDetector(
         onTap: () async {
           await Navigator.push(
@@ -578,9 +509,6 @@ class _AdminActions extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Contact Messages List — shows messages from users
-// ─────────────────────────────────────────────────────────────
 class _ContactMessagesList extends StatelessWidget {
   final FirebaseFirestore db;
   const _ContactMessagesList({required this.db});
@@ -611,145 +539,149 @@ class _ContactMessagesList extends StatelessWidget {
               ]));
         }
         return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: docs.length,
-            itemBuilder: (context, i) {
-              final data = docs[i].data() as Map<String, dynamic>;
-              final replied = data['replied'] == true;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                    color: kSurfaceContainer,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                        color: replied
-                            ? kGreen.withOpacity(0.2)
-                            : kSecondary.withOpacity(0.2),
-                        width: 0.5)),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+          padding: const EdgeInsets.all(16),
+          itemCount: docs.length,
+          itemBuilder: (context, i) {
+            final data = docs[i].data() as Map<String, dynamic>;
+            final replied = data['replied'] == true;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: kSurfaceContainer,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: replied
+                      ? kGreen.withOpacity(0.2)
+                      : kSecondary.withOpacity(0.2),
+                  width: 0.5,
+                ),
+              ),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: replied
+                              ? kGreen.withOpacity(0.1)
+                              : kSecondary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: Text(replied ? 'BESVART' : 'NY',
+                            style: tsLabel(color: replied ? kGreen : kSecondary)
+                                .copyWith(fontSize: 9)),
+                      ),
+                      const Spacer(),
+                      if (data['createdAt'] != null)
+                        Text(
+                          DateFormat('dd.MM HH:mm').format(
+                              (data['createdAt'] as Timestamp).toDate()),
+                          style:
+                              tsLabel(color: kOnSurfaceVariant.withOpacity(0.5))
+                                  .copyWith(fontSize: 9),
+                        ),
+                    ]),
+                    const SizedBox(height: 10),
+                    Row(children: [
+                      const Icon(Icons.person_rounded,
+                          color: kSecondary, size: 14),
+                      const SizedBox(width: 6),
+                      Text(data['name'] ?? 'Ukjent', style: tsTitleMd()),
+                    ]),
+                    if ((data['email'] ?? '').isNotEmpty) ...[
+                      const SizedBox(height: 4),
                       Row(children: [
-                        Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                                color: replied
-                                    ? kGreen.withOpacity(0.1)
-                                    : kSecondary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(100)),
-                            child: Text(replied ? 'BESVART' : 'NY',
-                                style: tsLabel(
-                                        color: replied ? kGreen : kSecondary)
-                                    .copyWith(fontSize: 9))),
-                        const Spacer(),
-                        if (data['createdAt'] != null)
-                          Text(
-                              DateFormat('dd.MM HH:mm').format(
-                                  (data['createdAt'] as Timestamp).toDate()),
-                              style: tsLabel(
-                                      color: kOnSurfaceVariant.withOpacity(0.5))
-                                  .copyWith(fontSize: 9)),
-                      ]),
-                      const SizedBox(height: 10),
-                      Row(children: [
-                        const Icon(Icons.person_rounded,
+                        const Icon(Icons.email_outlined,
                             color: kSecondary, size: 14),
                         const SizedBox(width: 6),
-                        Text(data['name'] ?? 'Ukjent', style: tsTitleMd()),
+                        Text(data['email'] ?? '', style: tsBodySm()),
                       ]),
-                      if ((data['email'] ?? '').isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Row(children: [
-                          const Icon(Icons.email_outlined,
-                              color: kSecondary, size: 14),
-                          const SizedBox(width: 6),
-                          Text(data['email'] ?? '', style: tsBodySm()),
-                        ]),
-                      ],
-                      const SizedBox(height: 10),
-                      Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                              color: kSurfaceContainerHigh,
-                              borderRadius: BorderRadius.circular(10)),
-                          child:
-                              Text(data['message'] ?? '', style: tsBodyLg())),
-                      const SizedBox(height: 12),
-                      Row(children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () async {
-                              final email = data['email'] ?? '';
-                              final name = data['name'] ?? 'Bruker';
-                              final message = data['message'] ?? '';
-                              if (email.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Ingen e-post registrert')));
-                                return;
-                              }
-                              // Open Gmail web with pre-filled reply
-                              final subject = Uri.encodeComponent(
-                                  'Svar fra Habesha Hub - $name');
-                              final body = Uri.encodeComponent(
-                                  'Hei $name,\n\nTakk for din henvendelse:\n"$message"\n\nSvar:\n\n---\nHabesha Hub\nsamuelefriem@gmail.com');
-                              // Try Gmail web app first (works on all platforms)
-                              final gmailUrl = Uri.parse(
-                                  'https://mail.google.com/mail/?view=cm&to=$email&su=$subject&body=$body');
-                              final mailtoUrl = Uri.parse(
-                                  'mailto:$email?subject=$subject&body=$body');
-                              if (await canLaunchUrl(gmailUrl)) {
-                                await launchUrl(gmailUrl,
-                                    mode: LaunchMode.externalApplication);
-                              } else if (await canLaunchUrl(mailtoUrl)) {
-                                await launchUrl(mailtoUrl);
-                              }
-                              // Mark as replied
-                              await docs[i].reference.update({'replied': true});
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                  color: kSecondary.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                      color: kSecondary.withOpacity(0.3),
-                                      width: 0.5)),
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.reply_rounded,
-                                        color: kSecondary, size: 16),
-                                    const SizedBox(width: 6),
-                                    Text('Svar i Gmail',
-                                        style: tsTitleMd(color: kSecondary)
-                                            .copyWith(fontSize: 12)),
-                                  ]),
+                    ],
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                          color: kSurfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(10)),
+                      child: Text(data['message'] ?? '', style: tsBodyLg()),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () async {
+                            final email = data['email'] ?? '';
+                            final name = data['name'] ?? 'Bruker';
+                            final message = data['message'] ?? '';
+                            if (email.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content:
+                                          Text('Ingen e-post registrert')));
+                              return;
+                            }
+                            final subject = Uri.encodeComponent(
+                                'Svar fra Habesha Hub - $name');
+                            final body = Uri.encodeComponent(
+                                'Hei $name,\n\nTakk for din henvendelse:\n"$message"\n\nSvar:\n\n---\nHabesha Hub\nsamuelefriem@gmail.com');
+                            final gmailUrl = Uri.parse(
+                                'https://mail.google.com/mail/?view=cm&to=$email&su=$subject&body=$body');
+                            final mailtoUrl = Uri.parse(
+                                'mailto:$email?subject=$subject&body=$body');
+                            if (await canLaunchUrl(gmailUrl)) {
+                              await launchUrl(gmailUrl,
+                                  mode: LaunchMode.externalApplication);
+                            } else if (await canLaunchUrl(mailtoUrl)) {
+                              await launchUrl(mailtoUrl);
+                            }
+                            await docs[i].reference.update({'replied': true});
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: kSecondary.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                  color: kSecondary.withOpacity(0.3),
+                                  width: 0.5),
                             ),
+                            child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.reply_rounded,
+                                      color: kSecondary, size: 16),
+                                  const SizedBox(width: 6),
+                                  Text('Svar i Gmail',
+                                      style: tsTitleMd(color: kSecondary)
+                                          .copyWith(fontSize: 12)),
+                                ]),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () => docs[i].reference.delete(),
-                          child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 14),
-                              decoration: BoxDecoration(
-                                  color: kRed.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                      color: kRed.withOpacity(0.3),
-                                      width: 0.5)),
-                              child: const Icon(Icons.delete_outline_rounded,
-                                  color: kRed, size: 18)),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => docs[i].reference.delete(),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 14),
+                          decoration: BoxDecoration(
+                            color: kRed.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                                color: kRed.withOpacity(0.3), width: 0.5),
+                          ),
+                          child: const Icon(Icons.delete_outline_rounded,
+                              color: kRed, size: 18),
                         ),
-                      ]),
+                      ),
                     ]),
-              );
-            });
+                  ]),
+            );
+          },
+        );
       },
     );
   }

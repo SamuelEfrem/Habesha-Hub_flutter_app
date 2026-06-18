@@ -1,3 +1,4 @@
+import 'admin_chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -31,65 +32,144 @@ class _ExploreScreenState extends State<ExploreScreen> {
   bool _isSearching = false;
   bool _hasSearched = false;
 
-  final _countries = [
+  final _continents = [
     {
-      'name': 'Norge',
-      'flag': '🇳🇴',
-      'cities': [
-        'Oslo',
-        'Bergen',
-        'Stavanger',
-        'Trondheim',
-        'Drammen',
-        'Tønsberg'
+      'name': 'Africa',
+      'emoji': '🌍',
+      'countries': [
+        {
+          'name': 'Uganda',
+          'flag': '🇺🇬',
+          'label': 'country_uganda',
+          'cities': ['Kampala', 'Entebbe', 'Jinja']
+        },
+        {
+          'name': 'Etiopia',
+          'flag': '🇪🇹',
+          'label': 'country_etiopia',
+          'cities': ['Addis Ababa', 'Dire Dawa', 'Gondar']
+        },
+        {
+          'name': 'Eritrea',
+          'flag': '🇪🇷',
+          'label': 'country_eritrea',
+          'cities': ['Asmara', 'Keren', 'Massawa']
+        },
+        {
+          'name': 'Egypt',
+          'flag': '🇪🇬',
+          'label': 'country_egypt',
+          'cities': ['Cairo', 'Alexandria', 'Giza']
+        },
+        {
+          'name': 'Kenya',
+          'flag': '🇰🇪',
+          'label': 'country_kenya',
+          'cities': ['Nairobi', 'Mombasa', 'Kisumu']
+        },
       ]
     },
     {
-      'name': 'Uganda',
-      'flag': '🇺🇬',
-      'cities': ['Kampala', 'Entebbe', 'Jinja']
+      'name': 'Europe',
+      'emoji': '🌍',
+      'countries': [
+        {
+          'name': 'Norge',
+          'flag': '🇳🇴',
+          'label': 'country_norge',
+          'cities': ['Oslo', 'Bergen', 'Stavanger', 'Trondheim']
+        },
+        {
+          'name': 'Sverige',
+          'flag': '🇸🇪',
+          'label': 'country_sverige',
+          'cities': ['Stockholm', 'Göteborg', 'Malmö']
+        },
+        {
+          'name': 'Danmark',
+          'flag': '🇩🇰',
+          'label': 'country_danmark',
+          'cities': ['København', 'Aarhus', 'Odense']
+        },
+        {
+          'name': 'UK',
+          'flag': '🇬🇧',
+          'label': 'country_uk',
+          'cities': ['London', 'Manchester', 'Birmingham']
+        },
+        {
+          'name': 'Tyskland',
+          'flag': '🇩🇪',
+          'label': 'country_tyskland',
+          'cities': ['Berlin', 'Hamburg', 'München']
+        },
+        {
+          'name': 'Nederland',
+          'flag': '🇳🇱',
+          'label': 'country_nederland',
+          'cities': ['Amsterdam', 'Rotterdam', 'Den Haag']
+        },
+        {
+          'name': 'Frankrike',
+          'flag': '🇫🇷',
+          'label': 'country_frankrike',
+          'cities': ['Paris', 'Lyon', 'Marseille']
+        },
+        {
+          'name': 'Belgia',
+          'flag': '🇧🇪',
+          'label': 'country_belgia',
+          'cities': ['Brussel', 'Antwerpen', 'Gent']
+        },
+        {
+          'name': 'Sveits',
+          'flag': '🇨🇭',
+          'label': 'country_sveits',
+          'cities': ['Zürich', 'Genève', 'Basel']
+        },
+        {
+          'name': 'Italia',
+          'flag': '🇮🇹',
+          'label': 'country_italia',
+          'cities': ['Roma', 'Milano', 'Napoli']
+        },
+      ]
     },
     {
-      'name': 'Eritrea',
-      'flag': '🇪🇷',
-      'cities': ['Asmara', 'Keren', 'Massawa']
-    },
-    {
-      'name': 'Etiopia',
-      'flag': '🇪🇹',
-      'cities': ['Addis Ababa', 'Dire Dawa', 'Gondar']
-    },
-    {
-      'name': 'Sverige',
-      'flag': '🇸🇪',
-      'cities': ['Stockholm', 'Göteborg', 'Malmö']
-    },
-    {
-      'name': 'Nederland',
-      'flag': '🇳🇱',
-      'cities': ['Amsterdam', 'Rotterdam', 'Den Haag']
-    },
-    {
-      'name': 'Frankrike',
-      'flag': '🇫🇷',
-      'cities': ['Paris', 'Lyon', 'Marseille']
-    },
-    {
-      'name': 'Sveits',
-      'flag': '🇨🇭',
-      'cities': ['Zürich', 'Genève', 'Basel']
-    },
-    {
-      'name': 'Tyskland',
-      'flag': '🇩🇪',
-      'cities': ['Berlin', 'Hamburg', 'München']
+      'name': 'Amerika',
+      'emoji': '🌎',
+      'countries': [
+        {
+          'name': 'USA',
+          'flag': '🇺🇸',
+          'label': 'country_usa',
+          'cities': ['New York', 'Washington DC', 'Los Angeles', 'Minneapolis']
+        },
+        {
+          'name': 'Canada',
+          'flag': '🇨🇦',
+          'label': 'country_canada',
+          'cities': ['Toronto', 'Ottawa', 'Vancouver']
+        },
+      ]
     },
   ];
 
+  String _selectedContinent = '';
+  List<Map<String, Object>> get _countries {
+    if (_selectedContinent.isEmpty) return [];
+    final cont = _continents.firstWhere((c) => c['name'] == _selectedContinent,
+        orElse: () => {'countries': []});
+    return List<Map<String, Object>>.from(cont['countries'] as List);
+  }
+
   List<String> get _cities {
     final c = _countries.firstWhere((c) => c['name'] == _selectedCountry,
-        orElse: () => {'cities': <String>[]});
-    return List<String>.from(c['cities'] as List);
+        orElse: () =>
+            {'name': '', 'flag': '', 'label': '', 'cities': <String>[]});
+    final cities = c['cities'];
+    if (cities == null) return [];
+    return List<String>.from(cities as List);
   }
 
   Future<void> _search() async {
@@ -102,14 +182,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
       final snap = await _db.collection('businesses').get();
       final all =
           snap.docs.map((d) => Business.fromFirestore(d.data(), d.id)).toList();
-
       final filtered = all.where((b) {
-        // Only show approved businesses
         if (b.status != 'approved') return false;
-
         final addr = b.address.toLowerCase();
-
-        // Match country — very loose matching
         final matchesCountry = (_selectedCountry == 'Uganda' &&
                 (addr.contains('uganda') ||
                     addr.contains('kampala') ||
@@ -135,16 +210,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     addr.contains('sverige') ||
                     addr.contains('stockholm'))) ||
             addr.contains(_selectedCountry.toLowerCase());
-
         if (!matchesCountry) return false;
-
-        // If a specific city is selected, also filter by city
-        if (_selectedCity.isNotEmpty) {
+        if (_selectedCity.isNotEmpty)
           return addr.contains(_selectedCity.toLowerCase());
-        }
         return true;
       }).toList();
-
       setState(() {
         _results = filtered;
         _isSearching = false;
@@ -168,135 +238,179 @@ class _ExploreScreenState extends State<ExploreScreen> {
           backgroundColor: kSurface,
           body: SafeArea(
               child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(t('explore_title'),
-                          style: tsHeadlineMd(color: kSecondary)),
-                      Text(t('explore_desc'), style: tsBodySm()),
-                    ]),
-              ),
-              SizedBox(
-                height: 90,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _countries.length,
-                  itemBuilder: (_, i) {
-                    final c = _countries[i];
-                    final sel = _selectedCountry == c['name'];
-                    return GestureDetector(
-                      onTap: () => setState(() {
-                        _selectedCountry = c['name'] as String;
-                        _selectedCity = '';
-                        _search();
-                        _hasSearched = false;
-                      }),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        margin: const EdgeInsets.only(right: 10),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: sel
-                              ? kPrimaryContainer.withOpacity(0.3)
-                              : kSurfaceContainer,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: sel ? kSecondary : Colors.transparent,
-                              width: 0.5),
-                        ),
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(c['flag'] as String,
-                                  style: const TextStyle(fontSize: 26)),
-                              const SizedBox(height: 4),
-                              Text(c['name'] as String,
-                                  style: tsLabel(
-                                      color: sel
-                                          ? kSecondary
-                                          : kOnSurfaceVariant
-                                              .withOpacity(0.6))),
-                            ]),
-                      ),
-                    );
-                  },
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(t('explore_title'),
+                            style: tsHeadlineMd(color: kSecondary)),
+                        Text(t('explore_desc'), style: tsBodySm()),
+                      ]),
                 ),
-              ),
-              if (_selectedCountry.isNotEmpty) ...[
-                const SizedBox(height: 8),
+                // Kontinent-valg
                 SizedBox(
-                  height: 36,
+                  height: 60,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _cities.length + 1,
+                    itemCount: _continents.length,
                     itemBuilder: (_, i) {
-                      final city = i == 0 ? t('all_cities') : _cities[i - 1];
-                      final sel = i == 0
-                          ? _selectedCity.isEmpty
-                          : _selectedCity == _cities[i - 1];
+                      final cont = _continents[i];
+                      final sel = _selectedContinent == cont['name'];
                       return GestureDetector(
                         onTap: () => setState(() {
-                          _selectedCity = i == 0 ? '' : _cities[i - 1];
+                          _selectedContinent = cont['name'] as String;
+                          _selectedCountry = '';
+                          _selectedCity = '';
                           _hasSearched = false;
                         }),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.only(right: 8),
+                          margin: const EdgeInsets.only(right: 10),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 7),
+                              horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(
                             color: sel ? kSecondary : kSurfaceContainer,
-                            borderRadius: BorderRadius.circular(100),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text(city,
-                              style: tsLabel(
-                                  color: sel
-                                      ? const Color(0xFF342800)
-                                      : kOnSurfaceVariant)),
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            Text(cont['emoji'] as String,
+                                style: const TextStyle(fontSize: 20)),
+                            const SizedBox(width: 8),
+                            Text(cont['name'] as String,
+                                style: tsLabel(
+                                    color: sel
+                                        ? const Color(0xFF342800)
+                                        : kOnSurfaceVariant)),
+                          ]),
                         ),
                       );
                     },
                   ),
                 ),
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: goldButton(
-                    '${t('search_in')} $_selectedCountry${_selectedCity.isNotEmpty ? " / $_selectedCity" : ""}',
-                    _isSearching ? null : _search,
-                    loading: _isSearching,
+                const SizedBox(height: 8),
+
+                // Land-valg
+                if (_selectedContinent.isNotEmpty)
+                  SizedBox(
+                    height: 90,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _countries.length,
+                      itemBuilder: (_, i) {
+                        final c = _countries[i];
+                        final sel = _selectedCountry == c['name'];
+                        return GestureDetector(
+                          onTap: () => setState(() {
+                            _selectedCountry = c['name'] as String;
+                            _selectedCity = '';
+                            _search();
+                            _hasSearched = false;
+                          }),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: const EdgeInsets.only(right: 10),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: sel
+                                  ? kPrimaryContainer.withOpacity(0.3)
+                                  : kSurfaceContainer,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: sel ? kSecondary : Colors.transparent,
+                                  width: 0.5),
+                            ),
+                            child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(c['flag'] as String,
+                                      style: const TextStyle(fontSize: 26)),
+                                  const SizedBox(height: 4),
+                                  Text(t(c['label'] as String),
+                                      style: tsLabel(
+                                          color: sel
+                                              ? kSecondary
+                                              : kOnSurfaceVariant
+                                                  .withOpacity(0.6))),
+                                ]),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
-              const SizedBox(height: 12),
-              Expanded(
-                child: !_hasSearched
-                    ? Center(
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                            const Text('🌍', style: TextStyle(fontSize: 56)),
-                            const SizedBox(height: 16),
-                            Text(t('select_country'),
-                                style: tsTitleLg(),
-                                textAlign: TextAlign.center),
-                          ]))
-                    : _results.isEmpty
-                        ? Center(
-                            child: Text(t('no_businesses_country'),
-                                style: tsBodySm()))
-                        : RefreshIndicator(
-                            color: kSecondary,
-                            backgroundColor: kSurfaceContainer,
-                            onRefresh: _search,
-                            child: ListView.builder(
+
+                if (_selectedCountry.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 36,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _cities.length + 1,
+                      itemBuilder: (_, i) {
+                        final city = i == 0 ? t('all_cities') : _cities[i - 1];
+                        final sel = i == 0
+                            ? _selectedCity.isEmpty
+                            : _selectedCity == _cities[i - 1];
+                        return GestureDetector(
+                          onTap: () => setState(() {
+                            _selectedCity = i == 0 ? '' : _cities[i - 1];
+                            _hasSearched = false;
+                          }),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 7),
+                            decoration: BoxDecoration(
+                                color: sel ? kSecondary : kSurfaceContainer,
+                                borderRadius: BorderRadius.circular(100)),
+                            child: Text(city,
+                                style: tsLabel(
+                                    color: sel
+                                        ? const Color(0xFF342800)
+                                        : kOnSurfaceVariant)),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: goldButton(
+                        '${t('search_in')} ${t('country_${_selectedCountry.toLowerCase()}')}${_selectedCity.isNotEmpty ? " / $_selectedCity" : ""}',
+                        _isSearching ? null : _search,
+                        loading: _isSearching),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                Expanded(
+                  child: !_hasSearched
+                      ? Center(
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                              const Text('🌍', style: TextStyle(fontSize: 56)),
+                              const SizedBox(height: 16),
+                              Text(t('select_country'),
+                                  style: tsTitleLg(),
+                                  textAlign: TextAlign.center),
+                            ]))
+                      : _results.isEmpty
+                          ? Center(
+                              child: Text(t('no_businesses_country'),
+                                  style: tsBodySm()))
+                          : RefreshIndicator(
+                              color: kSecondary,
+                              backgroundColor: kSurfaceContainer,
+                              onRefresh: _search,
+                              child: ListView.builder(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 20),
                                 itemCount: _results.length,
@@ -314,11 +428,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                       business: b,
                                                       userLat: 0,
                                                       userLng: 0))));
-                                }),
-                          ),
-              ),
-            ],
-          )),
+                                },
+                              ),
+                            ),
+                ),
+              ])),
         );
       },
     );
@@ -377,71 +491,69 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           backgroundColor: kSurface,
           body: SafeArea(
               child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                child: Text(t('favorites_title'),
-                    style: tsHeadlineMd(color: kSecondary)),
-              ),
-              Expanded(
-                child: _loading
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                            color: kSecondary, strokeWidth: 1.5))
-                    : RefreshIndicator(
-                        color: kSecondary,
-                        backgroundColor: kSurfaceContainer,
-                        onRefresh: _load,
-                        child: _favorites.isEmpty
-                            ? ListView(children: [
-                                SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.55,
-                                  child: Center(
-                                      child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                        const Icon(
-                                            Icons.favorite_border_rounded,
-                                            size: 64,
-                                            color: kOnSurfaceVariant),
-                                        const SizedBox(height: 16),
-                                        Text(t('no_favorites'),
-                                            style: tsTitleLg(),
-                                            textAlign: TextAlign.center),
-                                        const SizedBox(height: 8),
-                                        Text(t('tap_heart'),
-                                            style: tsBodySm(),
-                                            textAlign: TextAlign.center),
-                                      ])),
-                                )
-                              ])
-                            : ListView.builder(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                itemCount: _favorites.length,
-                                itemBuilder: (_, i) {
-                                  final b = _favorites[i];
-                                  return BusinessCard(
-                                      business: b,
-                                      userLat: 0,
-                                      userLng: 0,
-                                      onFavoriteChanged: _load,
-                                      onTap: () => Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (_) =>
-                                                  BusinessDetailScreen(
-                                                      business: b,
-                                                      userLat: 0,
-                                                      userLng: 0))));
-                                }),
-                      ),
-              ),
-            ],
-          )),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                    child: Text(t('favorites_title'),
+                        style: tsHeadlineMd(color: kSecondary))),
+                Expanded(
+                  child: _loading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                              color: kSecondary, strokeWidth: 1.5))
+                      : RefreshIndicator(
+                          color: kSecondary,
+                          backgroundColor: kSurfaceContainer,
+                          onRefresh: _load,
+                          child: _favorites.isEmpty
+                              ? ListView(children: [
+                                  SizedBox(
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              0.55,
+                                      child: Center(
+                                          child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                            const Icon(
+                                                Icons.favorite_border_rounded,
+                                                size: 64,
+                                                color: kOnSurfaceVariant),
+                                            const SizedBox(height: 16),
+                                            Text(t('no_favorites'),
+                                                style: tsTitleLg(),
+                                                textAlign: TextAlign.center),
+                                            const SizedBox(height: 8),
+                                            Text(t('tap_heart'),
+                                                style: tsBodySm(),
+                                                textAlign: TextAlign.center),
+                                          ])))
+                                ])
+                              : ListView.builder(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20),
+                                  itemCount: _favorites.length,
+                                  itemBuilder: (_, i) {
+                                    final b = _favorites[i];
+                                    return BusinessCard(
+                                        business: b,
+                                        userLat: 0,
+                                        userLng: 0,
+                                        onFavoriteChanged: _load,
+                                        onTap: () => Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) =>
+                                                    BusinessDetailScreen(
+                                                        business: b,
+                                                        userLat: 0,
+                                                        userLng: 0))));
+                                  }),
+                        ),
+                ),
+              ])),
         );
       },
     );
@@ -449,7 +561,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 }
 
 // ═══════════════════════════════════════════════════════════
-// CHAT LIST SCREEN — FIX: real-time stream, shows all chats
+// CHAT LIST SCREEN
 // ═══════════════════════════════════════════════════════════
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -460,17 +572,47 @@ class ChatListScreen extends StatefulWidget {
 class _ChatListScreenState extends State<ChatListScreen> {
   final _db = FirebaseFirestore.instance;
   String? _userId;
+  bool _isOwner = false;
+  List<Business> _myBusinesses = [];
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUser();
+    _load();
   }
 
-  Future<void> _loadUser() async {
+  Future<void> _load() async {
+    setState(() => _loading = true);
     final prefs = await SharedPreferences.getInstance();
-    final uid = prefs.getString('userId');
-    if (mounted) setState(() => _userId = uid);
+    final user = FirebaseAuth.instance.currentUser;
+    final uid = user?.uid ?? prefs.getString('userId') ?? '';
+    setState(() => _userId = uid);
+
+    if (user != null && !user.isAnonymous) {
+      // Admin ser alle chatter
+      final adminEmails = ['samuelefriem@gmail.com'];
+      final isAdmin = adminEmails.contains(user.email);
+
+      final snap = isAdmin
+          ? await _db.collection('businesses').get()
+          : await _db
+              .collection('businesses')
+              .where('ownerId', isEqualTo: user.uid)
+              .get();
+      final businesses =
+          snap.docs.map((d) => Business.fromFirestore(d.data(), d.id)).toList();
+      setState(() {
+        _myBusinesses = businesses;
+        _isOwner = businesses.isNotEmpty;
+        _loading = false;
+      });
+    } else {
+      setState(() {
+        _isOwner = false;
+        _loading = false;
+      });
+    }
   }
 
   @override
@@ -483,108 +625,214 @@ class _ChatListScreenState extends State<ChatListScreen> {
           backgroundColor: kSurface,
           body: SafeArea(
               child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                child: Text(t('messages_title'),
-                    style: tsHeadlineMd(color: kSecondary)),
-              ),
-              Expanded(
-                child: _userId == null
-                    ? _buildNoUser(t)
-                    // Real-time stream of ALL chats — filter by userId client-side
-                    : StreamBuilder<QuerySnapshot>(
-                        stream: _db.collection('chats').snapshots(),
-                        builder: (_, snap) {
-                          if (!snap.hasData) {
-                            return const Center(
-                                child: CircularProgressIndicator(
-                                    color: kSecondary, strokeWidth: 1.5));
-                          }
-                          // Only show chats where this user participated
-                          final userChats = snap.data!.docs
-                              .where((d) =>
-                                  d.id.contains('_$_userId') ||
-                                  d.id.startsWith('${_userId}_'))
-                              .toList();
-
-                          if (userChats.isEmpty) {
-                            return Center(
-                                child: Padding(
-                              padding: const EdgeInsets.all(40),
-                              child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                        Icons.chat_bubble_outline_rounded,
-                                        size: 64,
-                                        color: kOnSurfaceVariant),
-                                    const SizedBox(height: 16),
-                                    Text(t('no_chats'),
-                                        style: tsTitleLg(),
-                                        textAlign: TextAlign.center),
-                                    const SizedBox(height: 8),
-                                    Text('Gå til en bedrift og start en chat!',
-                                        style: tsBodySm(),
-                                        textAlign: TextAlign.center),
-                                  ]),
-                            ));
-                          }
-
-                          return ListView.builder(
-                              itemCount: userChats.length,
-                              itemBuilder: (_, i) {
-                                final chatId = userChats[i].id;
-                                // chatId format: "{businessId}_{userId}"
-                                final businessId =
-                                    chatId.replaceAll('_$_userId', '');
-                                return _ChatTile(
-                                  key: ValueKey(chatId),
-                                  db: _db,
-                                  businessId: businessId,
-                                  chatId: chatId,
-                                );
-                              });
-                        }),
-              ),
-            ],
-          )),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                    child: Text(t('messages_title'),
+                        style: tsHeadlineMd(color: kSecondary))),
+                Expanded(
+                  child: _loading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                              color: kSecondary, strokeWidth: 1.5))
+                      : _isOwner
+                          ? _buildOwnerView(t)
+                          : _buildUserView(t),
+                ),
+              ])),
         );
       },
     );
   }
 
-  Widget _buildNoUser(String Function(String) t) {
-    return Center(
-        child: Padding(
-      padding: const EdgeInsets.all(40),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        const Icon(Icons.chat_bubble_outline_rounded,
-            size: 64, color: kOnSurfaceVariant),
-        const SizedBox(height: 16),
-        Text('Start en chat med en bedrift',
-            style: tsTitleLg(), textAlign: TextAlign.center),
-        const SizedBox(height: 8),
-        Text('Du velger kallenavn første gang du skriver en melding.',
-            style: tsBodySm(), textAlign: TextAlign.center),
-      ]),
-    ));
+  Widget _buildOwnerView(String Function(String) t) {
+    return ListView.builder(
+      itemCount: _myBusinesses.length,
+      itemBuilder: (_, i) {
+        final business = _myBusinesses[i];
+        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+            child: Row(children: [
+              const Icon(Icons.storefront_rounded, color: kSecondary, size: 16),
+              const SizedBox(width: 8),
+              Text(business.name, style: tsTitleMd(color: kSecondary)),
+            ]),
+          ),
+          StreamBuilder<QuerySnapshot>(
+            stream: _db.collection('chats').snapshots(),
+            builder: (_, snap) {
+              if (!snap.hasData) return const SizedBox();
+              final chats = snap.data!.docs
+                  .where((d) => d.id.startsWith('${business.id}_'))
+                  .toList();
+              if (chats.isEmpty) {
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Text('Ingen meldinger ennå',
+                      style: tsBodySm(color: kOnSurfaceVariant)),
+                );
+              }
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: chats.length,
+                itemBuilder: (_, j) => _OwnerChatTile(
+                    db: _db, business: business, chatId: chats[j].id),
+              );
+            },
+          ),
+          const Divider(color: Colors.white10),
+        ]);
+      },
+    );
+  }
+
+  Widget _buildUserView(String Function(String) t) {
+    if (_userId == null || _userId!.isEmpty) {
+      return Center(
+          child: Padding(
+              padding: const EdgeInsets.all(40),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.chat_bubble_outline_rounded,
+                        size: 64, color: kOnSurfaceVariant),
+                    const SizedBox(height: 16),
+                    Text('Start en chat med en bedrift',
+                        style: tsTitleLg(), textAlign: TextAlign.center),
+                    const SizedBox(height: 8),
+                    Text('Gå til en bedrift og trykk på chat-fanen.',
+                        style: tsBodySm(), textAlign: TextAlign.center),
+                  ])));
+    }
+    return StreamBuilder<QuerySnapshot>(
+      stream: _db.collection('chats').snapshots(),
+      builder: (_, snap) {
+        if (!snap.hasData)
+          return const Center(
+              child: CircularProgressIndicator(
+                  color: kSecondary, strokeWidth: 1.5));
+        final userChats =
+            snap.data!.docs.where((d) => d.id.endsWith('_$_userId')).toList();
+        if (userChats.isEmpty) {
+          return Center(
+              child: Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.chat_bubble_outline_rounded,
+                            size: 64, color: kOnSurfaceVariant),
+                        const SizedBox(height: 16),
+                        Text(t('no_chats'),
+                            style: tsTitleLg(), textAlign: TextAlign.center),
+                        const SizedBox(height: 8),
+                        Text('Gå til en bedrift og start en chat!',
+                            style: tsBodySm(), textAlign: TextAlign.center),
+                      ])));
+        }
+        return ListView.builder(
+          itemCount: userChats.length,
+          itemBuilder: (_, i) {
+            final chatId = userChats[i].id;
+            final businessId = chatId.replaceAll('_$_userId', '');
+            return _UserChatTile(
+                db: _db,
+                businessId: businessId,
+                chatId: chatId,
+                userId: _userId!);
+          },
+        );
+      },
+    );
   }
 }
 
-/// Separate stateless-like widget for each chat row
-class _ChatTile extends StatelessWidget {
+class _OwnerChatTile extends StatelessWidget {
   final FirebaseFirestore db;
-  final String businessId;
+  final Business business;
   final String chatId;
 
-  const _ChatTile({
-    super.key,
-    required this.db,
-    required this.businessId,
-    required this.chatId,
-  });
+  const _OwnerChatTile(
+      {required this.db, required this.business, required this.chatId});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: db
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .orderBy('createdAt', descending: true)
+          .limit(1)
+          .snapshots(),
+      builder: (_, msgSnap) {
+        String lastMsg = '...', timeStr = '', senderName = 'Bruker';
+        if (msgSnap.hasData && msgSnap.data!.docs.isNotEmpty) {
+          final data = msgSnap.data!.docs.first.data() as Map<String, dynamic>;
+          lastMsg = data['text'] ?? '...';
+          senderName = data['nickname'] ?? 'Bruker';
+          final ts = data['createdAt'] as Timestamp?;
+          if (ts != null) timeStr = DateFormat('HH:mm').format(ts.toDate());
+        }
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+          decoration: BoxDecoration(
+              color: kSurfaceContainer,
+              borderRadius: BorderRadius.circular(14)),
+          child: ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: CircleAvatar(
+                radius: 24,
+                backgroundColor: kSurfaceContainerHigh,
+                child: Text(
+                    senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
+                    style: tsTitleMd(color: kSecondary))),
+            title: Text(senderName, style: tsTitleMd()),
+            subtitle: Text(lastMsg,
+                style: tsBodySm(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
+            trailing:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text(timeStr,
+                  style: tsLabel(color: kOnSurfaceVariant.withOpacity(0.5))
+                      .copyWith(fontSize: 9)),
+              const SizedBox(height: 4),
+              const Icon(Icons.arrow_forward_ios_rounded,
+                  color: kSecondary, size: 12),
+            ]),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AdminChatScreen(
+                    business: business,
+                    chatId: chatId,
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _UserChatTile extends StatelessWidget {
+  final FirebaseFirestore db;
+  final String businessId, chatId, userId;
+
+  const _UserChatTile(
+      {required this.db,
+      required this.businessId,
+      required this.chatId,
+      required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -594,8 +842,6 @@ class _ChatTile extends StatelessWidget {
         if (!bSnap.hasData || !bSnap.data!.exists) return const SizedBox();
         final b = Business.fromFirestore(
             bSnap.data!.data() as Map<String, dynamic>, bSnap.data!.id);
-
-        // Real-time last message
         return StreamBuilder<QuerySnapshot>(
           stream: db
               .collection('chats')
@@ -605,8 +851,7 @@ class _ChatTile extends StatelessWidget {
               .limit(1)
               .snapshots(),
           builder: (_, msgSnap) {
-            String lastMsg = '...';
-            String timeStr = '';
+            String lastMsg = '...', timeStr = '';
             if (msgSnap.hasData && msgSnap.data!.docs.isNotEmpty) {
               final data =
                   msgSnap.data!.docs.first.data() as Map<String, dynamic>;
@@ -614,43 +859,40 @@ class _ChatTile extends StatelessWidget {
               final ts = data['createdAt'] as Timestamp?;
               if (ts != null) timeStr = DateFormat('HH:mm').format(ts.toDate());
             }
-
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
               decoration: BoxDecoration(
-                color: kSurfaceContainer,
-                borderRadius: BorderRadius.circular(14),
-              ),
+                  color: kSurfaceContainer,
+                  borderRadius: BorderRadius.circular(14)),
               child: ListTile(
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 leading: CircleAvatar(
-                  radius: 26,
-                  backgroundColor: kSurfaceContainerHigh,
-                  backgroundImage:
-                      b.imageUrl.isNotEmpty ? NetworkImage(b.imageUrl) : null,
-                  child: b.imageUrl.isEmpty
-                      ? const Icon(Icons.storefront_rounded, color: kSecondary)
-                      : null,
-                ),
+                    radius: 26,
+                    backgroundColor: kSurfaceContainerHigh,
+                    backgroundImage:
+                        b.imageUrl.isNotEmpty ? NetworkImage(b.imageUrl) : null,
+                    child: b.imageUrl.isEmpty
+                        ? const Icon(Icons.storefront_rounded,
+                            color: kSecondary)
+                        : null),
                 title: Text(b.name, style: tsTitleMd()),
                 subtitle: Text(lastMsg,
                     style: tsBodySm(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
                 trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(timeStr,
-                        style:
-                            tsLabel(color: kOnSurfaceVariant.withOpacity(0.5))
-                                .copyWith(fontSize: 9)),
-                    const SizedBox(height: 4),
-                    const Icon(Icons.arrow_forward_ios_rounded,
-                        color: kSecondary, size: 12),
-                  ],
-                ),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(timeStr,
+                          style:
+                              tsLabel(color: kOnSurfaceVariant.withOpacity(0.5))
+                                  .copyWith(fontSize: 9)),
+                      const SizedBox(height: 4),
+                      const Icon(Icons.arrow_forward_ios_rounded,
+                          color: kSecondary, size: 12),
+                    ]),
                 onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -722,14 +964,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _save() async {
-    // FIX: Save language even for guests — no nickname required
     final name = _nicknameCtrl.text.trim();
     final prefs = await SharedPreferences.getInstance();
     if (name.isNotEmpty) {
       await prefs.setString('nickname', name);
       await _user?.updateDisplayName(name);
     }
-    // Language always applies — works for guests too
     await languageNotifier.setLanguage(_selectedLang);
     setState(() => _saved = true);
     await Future.delayed(const Duration(seconds: 2));
@@ -746,24 +986,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
         content: Text('Er du sikker på at du vil logge ut?', style: tsBodyLg()),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Avbryt', style: tsBodySm()),
-          ),
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('Avbryt', style: tsBodySm())),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('Logg ut', style: tsTitleMd(color: kRed)),
-          ),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text('Logg ut', style: tsTitleMd(color: kRed))),
         ],
       ),
     );
     if (confirm != true) return;
-
     await FirebaseAuth.instance.signOut();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('nickname');
     await prefs.remove('favorites');
     await languageNotifier.setLanguage('Norsk');
-
     if (mounted) {
       setState(() {
         _user = null;
@@ -772,17 +1008,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _myBusinesses = [];
       });
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Du er logget ut', style: tsBodySm(color: kOnSurface)),
+          content: Text('Du er logget ut', style: tsBodySm(color: kOnSurface)),
+          backgroundColor: kSurfaceContainerHigh));
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    final t = languageNotifier.t;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
         backgroundColor: kSurfaceContainerHigh,
-      ));
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(t('delete_account'), style: tsHeadlineSm(color: kRed)),
+        content: Text(t('delete_account_confirm'), style: tsBodyLg()),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(t('cancel'), style: tsBodySm())),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(t('delete_account'), style: tsTitleMd(color: kRed))),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .delete();
+      await user.delete();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      if (mounted) {
+        setState(() {
+          _user = null;
+          _nicknameCtrl.text = '';
+          _myBusinesses = [];
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Konto slettet', style: tsBodySm(color: kOnSurface)),
+          backgroundColor: kSurfaceContainerHigh,
+        ));
+      }
+    } catch (e) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Feil: Logg inn på nytt og prøv igjen.',
+              style: tsBodySm(color: kOnSurface)),
+          backgroundColor: kRed,
+        ));
     }
   }
 
   Future<void> _login() async {
     final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(builder: (_) => const AuthScreen(returnOnLogin: true)),
-    );
+        context,
+        MaterialPageRoute(
+            builder: (_) => const AuthScreen(returnOnLogin: true)));
     if (result == true) _load();
   }
 
@@ -798,7 +1084,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           body: SafeArea(
             child: SingleChildScrollView(
               child: Column(children: [
-                // ── Header ────────────────────────────────
                 Container(
                   width: double.infinity,
                   color: kSurfaceContainerLow,
@@ -810,17 +1095,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const Spacer(),
                         if (isLoggedIn)
                           Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: kSurfaceContainerHigh,
-                              border: Border.all(
-                                  color: kSecondary.withOpacity(0.3)),
-                            ),
-                            child: const Icon(Icons.share_rounded,
-                                color: kOnSurface, size: 16),
-                          ),
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: kSurfaceContainerHigh,
+                                  border: Border.all(
+                                      color: kSecondary.withOpacity(0.3))),
+                              child: const Icon(Icons.share_rounded,
+                                  color: kOnSurface, size: 16)),
                       ]),
                     ),
                     const SizedBox(height: 20),
@@ -829,99 +1112,86 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         width: 120,
                         height: 120,
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: kSecondary, width: 2.5),
-                          boxShadow: [
-                            BoxShadow(
-                                color: kSecondary.withOpacity(0.2),
-                                blurRadius: 20,
-                                spreadRadius: 2)
-                          ],
-                        ),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: kSecondary, width: 2.5),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: kSecondary.withOpacity(0.2),
+                                  blurRadius: 20,
+                                  spreadRadius: 2)
+                            ]),
                         child: ClipOval(
-                          child: Image.asset('assets/images/icon.png',
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                  color: kSurfaceContainerHigh,
-                                  child: const Icon(Icons.person_rounded,
-                                      size: 56, color: kSecondary))),
-                        ),
+                            child: Image.asset('assets/images/icon.png',
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                    color: kSurfaceContainerHigh,
+                                    child: const Icon(Icons.person_rounded,
+                                        size: 56, color: kSecondary)))),
                       ),
                       if (isLoggedIn)
                         Positioned(
-                          bottom: 4,
-                          right: 4,
-                          child: Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              color: kSecondary,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                  color: kSurfaceContainerLow, width: 2),
-                            ),
-                            child: const Icon(Icons.edit_rounded,
-                                size: 14, color: Color(0xFF1A1200)),
-                          ),
-                        ),
+                            bottom: 4,
+                            right: 4,
+                            child: Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                    color: kSecondary,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: kSurfaceContainerLow, width: 2)),
+                                child: const Icon(Icons.edit_rounded,
+                                    size: 14, color: Color(0xFF1A1200)))),
                     ]),
                     const SizedBox(height: 12),
                     Text(
-                      _nicknameCtrl.text.isEmpty
-                          ? (isLoggedIn ? 'Bruker' : 'Gjest')
-                          : _nicknameCtrl.text,
-                      style: tsHeadlineMd(),
-                    ),
+                        _nicknameCtrl.text.isEmpty
+                            ? (isLoggedIn ? 'Bruker' : 'Gjest')
+                            : _nicknameCtrl.text,
+                        style: tsHeadlineMd()),
                     const SizedBox(height: 4),
                     Text(
-                      isLoggedIn
-                          ? (_user?.email ?? '')
-                          : 'Logg inn for å få full tilgang',
-                      style:
-                          tsBodySm(color: kOnSurfaceVariant.withOpacity(0.6)),
-                      textAlign: TextAlign.center,
-                    ),
+                        isLoggedIn
+                            ? (_user?.email ?? '')
+                            : 'Logg inn for å få full tilgang',
+                        style:
+                            tsBodySm(color: kOnSurfaceVariant.withOpacity(0.6)),
+                        textAlign: TextAlign.center),
                     if (isLoggedIn) ...[
                       const SizedBox(height: 10),
                       Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            _chip(Icons.location_on_rounded, 'Oslo, Norway'),
-                          ]),
+                            _chip(Icons.location_on_rounded, 'Oslo, Norway')
+                          ])
                     ],
                     const SizedBox(height: 20),
                   ]),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ── Login prompt if guest ──────────────
                         if (!isLoggedIn) ...[
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: kSurfaceContainer,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                  color: kSecondary.withOpacity(0.2),
-                                  width: 0.5),
-                            ),
+                                color: kSurfaceContainer,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                    color: kSecondary.withOpacity(0.2),
+                                    width: 0.5)),
                             child: Column(children: [
                               Row(children: [
                                 const Icon(Icons.login_rounded,
                                     color: kSecondary, size: 20),
                                 const SizedBox(width: 10),
                                 Text(t('login_register'),
-                                    style: tsTitleMd(color: kSecondary)),
+                                    style: tsTitleMd(color: kSecondary))
                               ]),
                               const SizedBox(height: 8),
-                              Text(
-                                t('login_for_business'),
-                                style: tsBodySm(),
-                              ),
+                              Text(t('login_for_business'), style: tsBodySm()),
                               const SizedBox(height: 14),
                               goldButton(t('login'), _login,
                                   icon: Icons.login_rounded),
@@ -929,8 +1199,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 24),
                         ],
-
-                        // ── Nickname ──────────────────────────
                         Text(t('nickname').toUpperCase(), style: tsLabel()),
                         const SizedBox(height: 8),
                         TextField(
@@ -961,13 +1229,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
-
-                        // ── Language ──────────────────────────
                         Row(children: [
                           const Icon(Icons.translate_rounded,
                               color: kSecondary, size: 18),
                           const SizedBox(width: 8),
-                          Text('Language', style: tsHeadlineSm()),
+                          Text('Language', style: tsHeadlineSm())
                         ]),
                         const SizedBox(height: 14),
                         ...[
@@ -984,6 +1250,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             'sub': 'Tigrinya'
                           },
                           {
+                            'code': 'Amharic',
+                            'label': 'አማርኛ',
+                            'flag': '🇪🇹',
+                            'sub': 'Amharic'
+                          },
+                          {
                             'code': 'Norsk',
                             'label': 'Norsk',
                             'flag': '🇳🇴',
@@ -994,7 +1266,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           return GestureDetector(
                             onTap: () {
                               setState(() => _selectedLang = lang['code']!);
-                              // Apply immediately — no Save needed for language
                               languageNotifier.setLanguage(lang['code']!);
                             },
                             child: AnimatedContainer(
@@ -1003,11 +1274,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 14),
                               decoration: BoxDecoration(
-                                color: sel
-                                    ? kPrimaryContainer
-                                    : kSurfaceContainerHigh,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
+                                  color: sel
+                                      ? kPrimaryContainer
+                                      : kSurfaceContainerHigh,
+                                  borderRadius: BorderRadius.circular(10)),
                               child: Row(children: [
                                 Text(lang['flag']!,
                                     style: const TextStyle(fontSize: 20)),
@@ -1026,51 +1296,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 if (sel) ...[
                                   const SizedBox(width: 8),
                                   const Icon(Icons.check_circle_rounded,
-                                      color: kSecondary, size: 20),
+                                      color: kSecondary, size: 20)
                                 ],
                               ]),
                             ),
                           );
                         }),
-
                         const SizedBox(height: 24),
-
-                        // ── Register Business Banner ───────────
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                kPrimaryContainer,
-                                kPrimaryContainer.withOpacity(0.6)
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                              gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    kPrimaryContainer,
+                                    kPrimaryContainer.withOpacity(0.6)
+                                  ]),
+                              borderRadius: BorderRadius.circular(16)),
                           child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: kSecondary.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(100),
-                                    border: Border.all(
-                                        color: kSecondary.withOpacity(0.4),
-                                        width: 0.5),
-                                  ),
-                                  child: Text('GROWTH OPPORTUNITY',
-                                      style: tsLabel()),
-                                ),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                        color: kSecondary.withOpacity(0.2),
+                                        borderRadius:
+                                            BorderRadius.circular(100),
+                                        border: Border.all(
+                                            color: kSecondary.withOpacity(0.4),
+                                            width: 0.5)),
+                                    child: Text(t('growth_opportunity'),
+                                        style: tsLabel())),
                                 const SizedBox(height: 12),
-                                Text('Bring your vision to the community.',
-                                    style: tsHeadlineSm()),
+                                Text(t('bring_vision'), style: tsHeadlineSm()),
                                 const SizedBox(height: 6),
-                                Text(
-                                    'List your business and connect with thousands of Habesha users worldwide.',
+                                Text(t('list_business_desc'),
                                     style: tsBodySm(
                                         color: kOnSurface.withOpacity(0.7))),
                                 const SizedBox(height: 16),
@@ -1084,13 +1346,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 20, vertical: 12),
                                     decoration: BoxDecoration(
-                                      color: kSecondary,
-                                      borderRadius: BorderRadius.circular(100),
-                                    ),
+                                        color: kSecondary,
+                                        borderRadius:
+                                            BorderRadius.circular(100)),
                                     child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Text('Register Your Business',
+                                          Text(t('register_business'),
                                               style: tsTitleMd(
                                                   color:
                                                       const Color(0xFF1A1200))),
@@ -1104,10 +1366,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ]),
                         ),
-
                         const SizedBox(height: 24),
-
-                        // ── My Businesses (if logged in and has businesses) ──
                         if (isLoggedIn) ...[
                           Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1117,13 +1376,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       color: kSecondary, size: 18),
                                   const SizedBox(width: 8),
                                   Text(t('my_businesses'),
-                                      style: tsHeadlineSm()),
+                                      style: tsHeadlineSm())
                                 ]),
                                 GestureDetector(
-                                  onTap: _loadMyBusinesses,
-                                  child: const Icon(Icons.refresh_rounded,
-                                      color: kSecondary, size: 18),
-                                ),
+                                    onTap: _loadMyBusinesses,
+                                    child: const Icon(Icons.refresh_rounded,
+                                        color: kSecondary, size: 18)),
                               ]),
                           const SizedBox(height: 4),
                           Text(t('businesses_registered_desc'),
@@ -1135,38 +1393,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     color: kSecondary, strokeWidth: 1.5))
                           else if (_myBusinesses.isEmpty)
                             Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: kSurfaceContainer,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(t('no_businesses_yet'),
-                                  style: tsBodySm(),
-                                  textAlign: TextAlign.center),
-                            )
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                    color: kSurfaceContainer,
+                                    borderRadius: BorderRadius.circular(12)),
+                                child: Text(t('no_businesses_yet'),
+                                    style: tsBodySm(),
+                                    textAlign: TextAlign.center))
                           else
                             ..._myBusinesses
                                 .map((b) => _businessRow(b, context)),
                           const SizedBox(height: 24),
                         ],
-
-                        // ── Admin Panel (only for admins) ──────
                         const AdminButton(),
                         const SizedBox(height: 12),
-
-                        // ── Help & Support ─────────────────────
                         _menuRow(Icons.help_outline_rounded, t('help_support'),
                             () => _showHelp()),
                         const SizedBox(height: 12),
-
-                        // ── Logout / Login ─────────────────────
-                        if (isLoggedIn)
+                        if (isLoggedIn) ...[
                           _menuRow(Icons.logout_rounded, t('logout'), _logout,
-                              color: kRed)
-                        else
+                              color: kRed),
+                          const SizedBox(height: 12),
+                          _menuRow(Icons.delete_forever_rounded,
+                              t('delete_account'), _deleteAccount,
+                              color: kRed),
+                        ] else
                           _menuRow(Icons.login_rounded, t('login'), _login,
                               color: kSecondary),
-
                         const SizedBox(height: 40),
                       ]),
                 ),
@@ -1201,22 +1454,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text(b.name, style: tsTitleMd()),
         subtitle: Row(children: [
           Text('${b.category} • ', style: tsBodySm()),
-          // Status badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: b.isPremium
-                  ? kSecondary.withOpacity(0.15)
-                  : kGreen.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(100),
-            ),
+                color: b.isPremium
+                    ? kSecondary.withOpacity(0.15)
+                    : kGreen.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(100)),
             child: Text(
-              b.isPremium
-                  ? languageNotifier.t('premium')
-                  : languageNotifier.t('active'),
-              style: tsLabel(color: b.isPremium ? kSecondary : kGreen)
-                  .copyWith(fontSize: 8),
-            ),
+                b.isPremium
+                    ? languageNotifier.t('premium')
+                    : languageNotifier.t('active'),
+                style: tsLabel(color: b.isPremium ? kSecondary : kGreen)
+                    .copyWith(fontSize: 8)),
           ),
         ]),
         trailing: const Icon(Icons.arrow_forward_ios_rounded,
@@ -1248,17 +1498,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Center(
                 child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                  color: kOutlineVariant,
-                  borderRadius: BorderRadius.circular(2)),
-            )),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                        color: kOutlineVariant,
+                        borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 20),
             Row(children: [
               const Icon(Icons.help_rounded, color: kSecondary, size: 24),
               const SizedBox(width: 10),
-              Text('Help & Support', style: tsHeadlineMd(color: kSecondary)),
+              Text('Help & Support', style: tsHeadlineMd(color: kSecondary))
             ]),
             const SizedBox(height: 20),
             _faq('Hva er Habesha Hub?',
@@ -1288,7 +1537,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const Icon(Icons.email_outlined,
                           color: kSecondary, size: 15),
                       const SizedBox(width: 8),
-                      Text('samuelefriem@gmail.com', style: tsBodySm()),
+                      Text('samuelefriem@gmail.com', style: tsBodySm())
                     ]),
                   ]),
             ),
@@ -1314,9 +1563,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           collapsedIconColor: kOnSurfaceVariant,
           children: [
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Text(a, style: tsBodySm()),
-            )
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(a, style: tsBodySm()))
           ],
         ),
       );
@@ -1329,7 +1577,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(icon, color: kSecondary, size: 12),
           const SizedBox(width: 5),
-          Text(label, style: tsLabel(color: kOnSurfaceVariant)),
+          Text(label, style: tsLabel(color: kOnSurfaceVariant))
         ]),
       );
 
@@ -1409,9 +1657,7 @@ class _ContactScreenState extends State<ContactScreen> {
   Future<void> _send() async {
     if (_nameCtrl.text.isEmpty || _msgCtrl.text.isEmpty) return;
     setState(() => _sending = true);
-    // Save to contact_messages so admin can see and reply in chat
-    final docRef =
-        await FirebaseFirestore.instance.collection('contact_messages').add({
+    await FirebaseFirestore.instance.collection('contact_messages').add({
       'name': _nameCtrl.text.trim(),
       'message': _msgCtrl.text.trim(),
       'email': _emailCtrl.text.trim(),
@@ -1419,13 +1665,12 @@ class _ContactScreenState extends State<ContactScreen> {
       'replied': false,
       'adminEmail': 'samuelefriem@gmail.com',
     });
-    // Also send email notification via mailto
     final subject =
-        Uri.encodeComponent('Ny henvendelse fra \${_nameCtrl.text.trim()}');
+        Uri.encodeComponent('Ny henvendelse fra ${_nameCtrl.text.trim()}');
     final body = Uri.encodeComponent(
-        'Fra: \${_nameCtrl.text.trim()}\nE-post: \${_emailCtrl.text.trim()}\n\nMelding:\n\${_msgCtrl.text.trim()}');
-    final url = Uri.parse(
-        'mailto:samuelefriem@gmail.com?subject=\$subject&body=\$body');
+        'Fra: ${_nameCtrl.text.trim()}\nE-post: ${_emailCtrl.text.trim()}\n\nMelding:\n${_msgCtrl.text.trim()}');
+    final url =
+        Uri.parse('mailto:samuelefriem@gmail.com?subject=$subject&body=$body');
     if (await canLaunchUrl(url)) await launchUrl(url);
     setState(() {
       _sending = false;
