@@ -5,8 +5,6 @@ import 'dart:convert';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import '../models/business.dart';
-import '../config/secrets.dart';
-
 
 class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key});
