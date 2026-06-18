@@ -36,7 +36,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
       welcome =
           'Hello! I\'m the Habesha Hub AI assistant. Ask me anything about businesses, bookings, or the Habesha community!';
     } else if (lang == 'Amharic') {
-      welcome = 'ሰላም! እኔ የሃበሻ ሃብ AI ረዳት ነኝ። ስለ ድርጅቶች፣ ቀጠሮ፣ ወይም ስለ ሃበሻ ማህበረሰብ ይጠይቁኝ!';
+      welcome =
+          'ሰላም! እኔ የሃበሻ ሃብ AI ረዳት ነኝ። ስለ ድርጅቶች፣ ቀጠሮ፣ ወይም ስለ ሃበሻ ማህበረሰብ ይጠይቁኝ!';
     } else {
       welcome =
           'Hei! Jeg er Habesha Hub AI-assistent. Spør meg om bedrifter, booking, eller alt om Habesha-fellesskapet!';
@@ -100,9 +101,9 @@ IMPORTANT: $langInstruction''';
         Uri.parse('https://api.anthropic.com/v1/messages'),
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key':
-              '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',
-          'anthropic-version': '2023-06-01',
+          'x-api-key': const String.fromEnvironment('ANTHROPIC_KEY',
+              defaultValue:
+                  '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'),
         },
         body: jsonEncode({
           'model': 'claude-haiku-4-5-20251001',
@@ -330,7 +331,7 @@ IMPORTANT: $langInstruction''';
         'ናይ መርዓ ቦታ ኣርእዮኒ',
         'ናይ ጸጉሪ ሳሎን ኣበይ ኣሎ?',
       ];
-      if (lang == 'Amharic')
+    if (lang == 'Amharic')
       return [
         'በካምፓላ ፎቶግራፈር ፈልግ',
         'የሃበሻ ምግብ ቤት የት አለ?',
