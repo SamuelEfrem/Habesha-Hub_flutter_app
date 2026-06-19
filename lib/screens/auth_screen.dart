@@ -57,7 +57,7 @@ class _AuthScreenState extends State<AuthScreen>
       //   });
       //   if (mounted) _showResendDialog(cred.user!.email ?? '');
       //   return;
-      // }
+      // }q
       if (mounted) {
         if (widget.returnOnLogin) {
           Navigator.pop(context, true);
