@@ -22,8 +22,16 @@ void main() async {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await NotificationService.initialize();
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (e) {
+    print('Firebase init error: $e');
+  }
+  try {
+    await NotificationService.initialize();
+  } catch (e) {
+    print('Notification init error: $e');
+  }
   await languageNotifier.load();
 
   runApp(const HabeshahubApp());
