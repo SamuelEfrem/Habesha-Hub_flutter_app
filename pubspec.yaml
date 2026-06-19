@@ -3,7 +3,8 @@ description: Habesha Hub - Finn Habesha bedrifter i nærheten
 
 publish_to: "none"
 
-version: 1.0.6+12
+version: 1.0.7+13
+
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
