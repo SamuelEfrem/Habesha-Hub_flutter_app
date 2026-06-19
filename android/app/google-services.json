@@ -66,6 +66,14 @@
           }
         },
         {
+          "client_id": "308436707340-lfhbc13b9bqbcke6s30fd6s2h3d90lko.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "no.habesha.hub",
+            "certificate_hash": "9335efdd9ccf28ca04fb16da069fad7dce463911"
+          }
+        },
+        {
           "client_id": "308436707340-5f7ns8b9mf594d9mkuc10ops4geuc77n.apps.googleusercontent.com",
           "client_type": 3
         }

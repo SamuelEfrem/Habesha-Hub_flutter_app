@@ -111,11 +111,11 @@ class _AdminChatScreenState extends State<AdminChatScreen> {
                 child: TextField(
                   controller: _messageController,
                   style: tsBodyLg(color: kOnSurface),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                       hintText: 'Svar bruker...',
                       filled: false,
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
+                      contentPadding: EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12)),
                   onSubmitted: (_) => _sendMessage(),
                 ),

@@ -22,8 +22,8 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
   String _address = '';
   double _lat = 0;
   double _lng = 0;
-  String _phone = '';
-  String _imageUrl = '';
+  final String _phone = '';
+  final String _imageUrl = '';
 
   String _selectedCategory = 'Restaurant';
   String _description = '';
@@ -262,7 +262,7 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
               Switch(
                 value: _isPremium,
                 onChanged: (v) => setState(() => _isPremium = v),
-                activeColor: const Color(0xFFD4AF37),
+                activeThumbColor: const Color(0xFFD4AF37),
               ),
             ]),
             Row(children: [
@@ -273,7 +273,7 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
               Switch(
                 value: _isOpen,
                 onChanged: (v) => setState(() => _isOpen = v),
-                activeColor: const Color(0xFFD4AF37),
+                activeThumbColor: const Color(0xFFD4AF37),
               ),
             ]),
             if (_error.isNotEmpty) ...[

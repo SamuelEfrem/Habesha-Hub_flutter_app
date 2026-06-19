@@ -13,6 +13,7 @@ import '../utils/language_notifier.dart';
 import '../theme/app_theme.dart';
 import 'edit_business_screen.dart';
 import 'booking_screen.dart';
+import 'package:share_plus/share_plus.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final Business business;
@@ -78,12 +79,13 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     final name = firebaseUser?.displayName ??
         prefs.getString('nickname') ??
         languageNotifier.t('guest');
-    if (mounted)
+    if (mounted) {
       setState(() {
         _userId = uid;
         _nickname = name;
         _chatLoading = false;
       });
+    }
   }
 
   Future<void> _loadRatingState() async {
@@ -169,15 +171,17 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   Future<void> _openMaps() async {
     final url = Uri.parse(
         'https://www.google.com/maps/dir/?api=1&destination=${widget.business.lat},${widget.business.lng}&travelmode=driving');
-    if (await canLaunchUrl(url))
+    if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
   }
 
   Future<void> _openOsmMaps() async {
     final url = Uri.parse(
         'https://www.openstreetmap.org/?mlat=${widget.business.lat}&mlon=${widget.business.lng}&zoom=16');
-    if (await canLaunchUrl(url))
+    if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
   }
 
   Future<void> _callBusiness() async {
@@ -188,8 +192,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   Future<void> _openMenuPdf() async {
     if (widget.business.pdfMenuUrl == null) return;
     final url = Uri.parse(widget.business.pdfMenuUrl!);
-    if (await canLaunchUrl(url))
+    if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
   }
 
   Future<void> _uploadMenuImage() async {
@@ -217,9 +222,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       }
     } catch (e) {
       setState(() => _uploadingMenu = false);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
@@ -246,7 +252,18 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       pinned: true,
       backgroundColor: kSurfaceContainer,
       iconTheme: const IconThemeData(color: kSecondary),
-      actions: const [],
+      actions: [
+        GestureDetector(
+          onTap: () {
+            Share.share(
+                '${widget.business.name} - ${widget.business.category}\n${widget.business.address}\n\nFinn på Habesha Hub!');
+          },
+          child: const Padding(
+            padding: EdgeInsets.all(12),
+            child: Icon(Icons.share_rounded, color: kSecondary),
+          ),
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(fit: StackFit.expand, children: [
           Image.network(widget.business.imageUrl,
@@ -425,8 +442,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
               if (site != null && site.isNotEmpty) {
                 final url =
                     Uri.parse(site.startsWith('http') ? site : 'https://$site');
-                if (await canLaunchUrl(url))
+                if (await canLaunchUrl(url)) {
                   await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text(t('no_website'),
@@ -931,10 +949,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
             const SizedBox(width: 10),
             Text(t('premium_partner'), style: tsHeadlineSm(color: kSecondary)),
             const Spacer(),
-            Opacity(
+            const Opacity(
                 opacity: 0.08,
-                child: const Icon(Icons.verified_rounded,
-                    color: kSecondary, size: 64)),
+                child:
+                    Icon(Icons.verified_rounded, color: kSecondary, size: 64)),
           ]),
           const SizedBox(height: 10),
           Text(t('premium_desc'), style: tsBodySm()),
@@ -955,10 +973,11 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
 
   Widget _buildChatTab() {
     final t = languageNotifier.t;
-    if (_chatLoading)
+    if (_chatLoading) {
       return const Center(
           child:
               CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+    }
     return Column(children: [
       Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -979,12 +998,13 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                   .limit(100)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData)
+                if (!snapshot.hasData) {
                   return const Center(
                       child: CircularProgressIndicator(
                           color: kSecondary, strokeWidth: 1.5));
+                }
                 final docs = snapshot.data!.docs;
-                if (docs.isEmpty)
+                if (docs.isEmpty) {
                   return Center(
                       child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -995,6 +1015,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                         Text(t('no_messages'),
                             style: tsBodySm(), textAlign: TextAlign.center),
                       ]));
+                }
                 return ListView.builder(
                     controller: _scrollController,
                     reverse: true,
@@ -1018,7 +1039,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
             Container(
                 width: 36,
                 height: 36,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                     color: kSurfaceContainerHigh, shape: BoxShape.circle),
                 child: const Icon(Icons.add_rounded,
                     color: kOnSurfaceVariant, size: 20)),

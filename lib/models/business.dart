@@ -158,7 +158,9 @@ class Business {
 
     if (entry == null) return isOpen;
     if (entry.value.toLowerCase() == 'stengt' ||
-        entry.value.toLowerCase() == 'closed') return false;
+        entry.value.toLowerCase() == 'closed') {
+      return false;
+    }
 
     // Parse time range "HH:mm - HH:mm"
     final parts = entry.value.split(' - ');

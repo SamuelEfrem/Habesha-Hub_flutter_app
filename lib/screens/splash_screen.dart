@@ -27,6 +27,9 @@ class _SplashScreenState extends State<SplashScreen>
             parent: _ctrl,
             curve: const Interval(0, 0.7, curve: Curves.easeOutCubic)));
     _ctrl.forward();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) _enter();
+    });
   }
 
   @override

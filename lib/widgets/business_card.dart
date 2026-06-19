@@ -38,17 +38,19 @@ class _BusinessCardState extends State<BusinessCard> {
   Future<void> _checkFav() async {
     final prefs = await SharedPreferences.getInstance();
     final favs = prefs.getStringList('favorites') ?? [];
-    if (mounted)
+    if (mounted) {
       setState(() => _isFavorite = favs.contains(widget.business.id));
+    }
   }
 
   Future<void> _toggleFav() async {
     final prefs = await SharedPreferences.getInstance();
     final favs = prefs.getStringList('favorites') ?? [];
-    if (_isFavorite)
+    if (_isFavorite) {
       favs.remove(widget.business.id);
-    else
+    } else {
       favs.add(widget.business.id);
+    }
     await prefs.setStringList('favorites', favs);
     setState(() => _isFavorite = !_isFavorite);
     widget.onFavoriteChanged?.call();
@@ -259,7 +261,7 @@ class _BusinessCardState extends State<BusinessCard> {
             children: [
               Expanded(
                 child: Text(widget.business.name,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontFamily: kFontHeadline,
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
@@ -315,7 +317,7 @@ class _BusinessCardState extends State<BusinessCard> {
               ),
               const Spacer(),
               Text(_ctaLabel(),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: kFontBody,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,

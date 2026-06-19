@@ -114,17 +114,19 @@ class _AuthScreenState extends State<AuthScreen>
               try {
                 await FirebaseAuth.instance
                     .sendPasswordResetEmail(email: email);
-                if (mounted)
+                if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text('Tilbakestillingslenke sendt til $email'),
                     backgroundColor: kGreen,
                   ));
+                }
               } catch (e) {
-                if (mounted)
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                     content: Text('Feil: sjekk e-postadressen'),
                     backgroundColor: kRed,
                   ));
+                }
               }
             },
             child: Text('Send lenke', style: tsTitleMd(color: kSecondary)),
@@ -162,9 +164,10 @@ class _AuthScreenState extends State<AuthScreen>
                           password: _passwordCtrl.text.trim());
                   await cred2.user?.sendEmailVerification();
                   await FirebaseAuth.instance.signOut();
-                  if (mounted)
+                  if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                         content: Text('Ny bekreftelseslenke sendt!')));
+                  }
                 } catch (_) {}
               },
               child: Text('Send på nytt', style: tsTitleMd(color: kSecondary))),
@@ -276,10 +279,11 @@ class _AuthScreenState extends State<AuthScreen>
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
       if (mounted) {
-        if (widget.returnOnLogin)
+        if (widget.returnOnLogin) {
           Navigator.pop(context, true);
-        else
+        } else {
           Navigator.pop(context);
+        }
       }
     } catch (e) {
       setState(() {
@@ -301,7 +305,7 @@ class _AuthScreenState extends State<AuthScreen>
         backgroundColor: kSurface,
         elevation: 0,
         iconTheme: const IconThemeData(color: kSecondary),
-        title: Text('Habesha Hub',
+        title: const Text('Habesha Hub',
             style: TextStyle(
               fontFamily: kFontHeadline,
               color: kSecondary,

@@ -26,8 +26,7 @@ class BusinessService {
         .map((doc) => Business.fromFirestore(doc.data(), doc.id))
         .where((b) {
       // Allow if no status field (old data) OR status is 'approved'
-      final raw = snap.docs.firstWhere((d) => d.id == b.id).data()
-          as Map<String, dynamic>;
+      final raw = snap.docs.firstWhere((d) => d.id == b.id).data();
       final status = raw['status'] as String?;
       return status == null || status == 'approved';
     }).toList();

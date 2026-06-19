@@ -65,8 +65,9 @@ class _EventsScreenState extends State<EventsScreen>
                     stream: FirebaseAuth.instance.authStateChanges(),
                     builder: (_, snap) {
                       final email = snap.data?.email ?? '';
-                      if (email != 'samuelefriem@gmail.com')
+                      if (email != 'samuelefriem@gmail.com') {
                         return const SizedBox.shrink();
+                      }
                       return GestureDetector(
                         onTap: () => _showCreateEvent(context, t),
                         child: Container(
@@ -135,10 +136,11 @@ class _EventsScreenState extends State<EventsScreen>
                 child: StreamBuilder<QuerySnapshot>(
                   stream: _db.collection('events').orderBy('date').snapshots(),
                   builder: (_, snap) {
-                    if (!snap.hasData)
+                    if (!snap.hasData) {
                       return const Center(
                           child: CircularProgressIndicator(
                               color: kSecondary, strokeWidth: 1.5));
+                    }
                     var docs = snap.data!.docs;
                     if (_selectedCategory != 'Alle') {
                       docs = docs
@@ -262,8 +264,9 @@ class _EventsScreenState extends State<EventsScreen>
                       child: child!,
                     ),
                   );
-                  if (picked != null)
+                  if (picked != null) {
                     setModalState(() => selectedDate = picked);
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.all(14),
@@ -285,9 +288,9 @@ class _EventsScreenState extends State<EventsScreen>
               TextField(
                   controller: locationCtrl,
                   style: tsBodyLg(color: kOnSurface),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                       hintText: 'Kampala, Uganda',
-                      prefixIcon: const Icon(Icons.location_on_rounded,
+                      prefixIcon: Icon(Icons.location_on_rounded,
                           color: kSecondary))),
               const SizedBox(height: 16),
               Text(t('event_description'), style: tsLabel()),
@@ -309,8 +312,9 @@ class _EventsScreenState extends State<EventsScreen>
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    if (titleCtrl.text.isEmpty || locationCtrl.text.isEmpty)
+                    if (titleCtrl.text.isEmpty || locationCtrl.text.isEmpty) {
                       return;
+                    }
                     await _db.collection('events').add({
                       'title': titleCtrl.text.trim(),
                       'description': descCtrl.text.trim(),

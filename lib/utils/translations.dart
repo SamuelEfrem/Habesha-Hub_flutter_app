@@ -1338,5 +1338,63 @@ class AppTranslations {
       'English': 'Canada',
       'Amharic': 'ካናዳ'
     },
+    'onboard_1_title': {
+      'Norsk': 'Velkommen til Habesha Hub',
+      'English': 'Welcome to Habesha Hub',
+      'Tigrinya': 'እንቋዕ ናብ ሓበሻ ሃብ መጻእካ',
+      'Amharic': 'እንኳን ወደ ሃበሻ ሃብ በደህና መጡ'
+    },
+    'onboard_1_desc': {
+      'Norsk':
+          'Finn etiopiske og eritreiske bedrifter nær deg og over hele verden',
+      'English':
+          'Find Ethiopian and Eritrean businesses near you and worldwide',
+      'Tigrinya': 'ናይ ኢትዮጵያን ኤርትራን ትካላት ኣብ ቀረባካን ዓለም ለኸን ርኸብ',
+      'Amharic': 'የኢትዮጵያ እና ኤርትራ ድርጅቶችን በአካባቢዎ እና በዓለም ዙሪያ ያግኙ'
+    },
+    'onboard_2_title': {
+      'Norsk': 'Utforsk restauranter og butikker',
+      'English': 'Explore restaurants and shops',
+      'Tigrinya': 'ቤት መግብን ድኳናትን ድለ',
+      'Amharic': 'ምግብ ቤቶችን እና መደብሮችን ያስሱ'
+    },
+    'onboard_2_desc': {
+      'Norsk':
+          'Bla gjennom hundrevis av Habesha-bedrifter sortert etter kategori og sted',
+      'English':
+          'Browse hundreds of Habesha businesses sorted by category and location',
+      'Tigrinya': 'ብዙሓት ናይ ሓበሻ ትካላት ብዓይነትን ቦታን ደሊ',
+      'Amharic': 'በምድብ እና ቦታ የተደራጁ በመቶዎች የሚቆጠሩ የሃበሻ ድርጅቶችን ያስሱ'
+    },
+    'onboard_3_title': {
+      'Norsk': 'Chat og book direkte',
+      'English': 'Chat and book directly',
+      'Tigrinya': 'ቻት ግበርን ቦኪ ግበርን',
+      'Amharic': 'ቀጥታ ያውሩ እና ቀጠሮ ይያዙ'
+    },
+    'onboard_3_desc': {
+      'Norsk': 'Send melding til bedrifter og bestill time direkte i appen',
+      'English': 'Message businesses and book appointments directly in the app',
+      'Tigrinya': 'ናብ ትካላት መልእኽቲ ስደድን ቀጠሮ ሓዝን',
+      'Amharic': 'ለድርጅቶች መልዕክት ይላኩ እና ቀጠሮ ይያዙ'
+    },
+    'skip': {
+      'Norsk': 'Hopp over',
+      'English': 'Skip',
+      'Tigrinya': 'ሕለፍ',
+      'Amharic': 'ዝለል'
+    },
+    'get_started': {
+      'Norsk': 'Kom i gang',
+      'English': 'Get Started',
+      'Tigrinya': 'ጀምር',
+      'Amharic': 'ጀምር'
+    },
+    'next': {
+      'Norsk': 'Neste',
+      'English': 'Next',
+      'Tigrinya': 'ቀጺሉ',
+      'Amharic': 'ቀጣይ'
+    },
   };
 }

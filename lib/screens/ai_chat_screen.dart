@@ -5,6 +5,7 @@ import 'dart:convert';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import '../models/business.dart';
+import '../config/secrets.dart';
 
 class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key});
@@ -66,10 +67,12 @@ class _AiChatScreenState extends State<AiChatScreen> {
     });
 
     _scrollToBottom();
+    print('Starting AI request...');
 
     try {
       // Get businesses from Firestore
       final businesses = await _getBusinesses();
+      print('Got ${businesses.length} businesses');
       final businessContext = businesses
           .map((b) =>
               'Navn: ${b.name}, Kategori: ${b.category}, Adresse: ${b.address}, Beskrivelse: ${b.description}, Telefon: ${b.phone}')
@@ -101,7 +104,7 @@ IMPORTANT: $langInstruction''';
         Uri.parse('https://api.anthropic.com/v1/messages'),
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': const String.fromEnvironment('ANTHROPIC_KEY'),
+          'x-api-key': Secrets.anthropicKey,
           'anthropic-version': '2023-06-01',
         },
         body: jsonEncode({
@@ -121,6 +124,8 @@ IMPORTANT: $langInstruction''';
       );
 
       if (response.statusCode == 200) {
+        print('API Status: ${response.statusCode}');
+        print('API Body: ${response.body}');
         final data = jsonDecode(response.body);
         final reply = data['content'][0]['text'] as String;
         setState(() => _messages.add(_ChatMessage(text: reply, isUser: false)));
@@ -136,6 +141,7 @@ IMPORTANT: $langInstruction''';
             )));
       }
     } catch (e) {
+      print('AI Error: $e');
       final lang = languageNotifier.language;
       setState(() => _messages.add(_ChatMessage(
             text: lang == 'English'
@@ -148,6 +154,7 @@ IMPORTANT: $langInstruction''';
 
     setState(() => _loading = false);
     _scrollToBottom();
+    ;
   }
 
   void _scrollToBottom() {
@@ -323,27 +330,30 @@ IMPORTANT: $langInstruction''';
   }
 
   List<String> _suggestions(String lang) {
-    if (lang == 'Tigrinya')
+    if (lang == 'Tigrinya') {
       return [
         'ኣብ ካምፓላ ፎቶግራፈር ርኸበለይ',
         'ናይ ሓበሻ ቤት መግቢ ኣበይ ኣሎ?',
         'ናይ መርዓ ቦታ ኣርእዮኒ',
         'ናይ ጸጉሪ ሳሎን ኣበይ ኣሎ?',
       ];
-    if (lang == 'Amharic')
+    }
+    if (lang == 'Amharic') {
       return [
         'በካምፓላ ፎቶግራፈር ፈልግ',
         'የሃበሻ ምግብ ቤት የት አለ?',
         'የሰርግ ቦታ ምክር',
         'የፀጉር ሳሎን ፈልግ',
       ];
-    if (lang == 'English')
+    }
+    if (lang == 'English') {
       return [
         'Find photographer in Kampala',
         'Best Habesha restaurant',
         'Wedding venue recommendations',
         'Hair salon near me',
       ];
+    }
     return [
       'Finn kameraman i Kampala',
       'Beste etiopiske restaurant',
@@ -401,9 +411,9 @@ IMPORTANT: $langInstruction''';
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: kSurfaceContainerHigh,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(18),
             topRight: Radius.circular(18),
             bottomRight: Radius.circular(18),

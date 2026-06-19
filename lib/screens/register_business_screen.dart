@@ -344,8 +344,8 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         RichText(
-            text: TextSpan(style: tsHeadlineMd(), children: [
-          const TextSpan(text: 'Establish Your\n'),
+            text: TextSpan(style: tsHeadlineMd(), children: const [
+          TextSpan(text: 'Establish Your\n'),
           TextSpan(
               text: 'Digital Heritage.',
               style: TextStyle(color: kSecondary, fontStyle: FontStyle.italic)),

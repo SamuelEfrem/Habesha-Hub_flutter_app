@@ -7,6 +7,8 @@ import 'utils/language_notifier.dart';
 import 'theme/app_theme.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'services/notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,8 +47,24 @@ class HabeshahubApp extends StatelessWidget {
           theme: habeshaTheme(),
 
           // Starter appen på Splash Screen
-          home: const SplashScreen(),
+          home: const AppEntry(),
         );
+      },
+    );
+  }
+}
+
+class AppEntry extends StatelessWidget {
+  const AppEntry({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<SharedPreferences>(
+      future: SharedPreferences.getInstance(),
+      builder: (_, snap) {
+        if (!snap.hasData) return const SizedBox();
+        final done = snap.data!.getBool('onboarding_done') ?? false;
+        return done ? const SplashScreen() : const OnboardingScreen();
       },
     );
   }

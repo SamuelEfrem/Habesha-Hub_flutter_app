@@ -165,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             child: Row(children: [
-              Text('Habesha Hub',
+              const Text('Habesha Hub',
                   style: TextStyle(
                       fontFamily: kFontHeadline,
                       fontSize: 22,

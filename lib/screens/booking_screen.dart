@@ -334,10 +334,11 @@ class BookingListScreen extends StatelessWidget {
                     .orderBy('createdAt', descending: true)
                     .snapshots(),
             builder: (_, snap) {
-              if (!snap.hasData)
+              if (!snap.hasData) {
                 return const Center(
                     child: CircularProgressIndicator(
                         color: kSecondary, strokeWidth: 1.5));
+              }
               final docs = snap.data!.docs;
               if (docs.isEmpty) {
                 return Center(

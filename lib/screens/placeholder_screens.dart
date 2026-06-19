@@ -28,6 +28,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   final _db = FirebaseFirestore.instance;
   String _selectedCountry = '';
   String _selectedCity = '';
+  String _searchQuery = '';
   List<Business> _results = [];
   bool _isSearching = false;
   bool _hasSearched = false;
@@ -211,12 +212,21 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     addr.contains('stockholm'))) ||
             addr.contains(_selectedCountry.toLowerCase());
         if (!matchesCountry) return false;
-        if (_selectedCity.isNotEmpty)
+        if (_selectedCity.isNotEmpty) {
           return addr.contains(_selectedCity.toLowerCase());
+        }
         return true;
       }).toList();
+      var finalResults = filtered;
+      if (_searchQuery.isNotEmpty) {
+        finalResults = filtered.where((b) =>
+          b.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          b.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          b.category.toLowerCase().contains(_searchQuery.toLowerCase())
+        ).toList();
+      }
       setState(() {
-        _results = filtered;
+        _results = finalResults;
         _isSearching = false;
         _hasSearched = true;
       });
@@ -240,15 +250,30 @@ class _ExploreScreenState extends State<ExploreScreen> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                // Søkefelt
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(t('explore_title'),
-                            style: tsHeadlineMd(color: kSecondary)),
-                        Text(t('explore_desc'), style: tsBodySm()),
-                      ]),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: kSurfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: TextField(
+                      style: tsBodyLg(color: kOnSurface),
+                      onChanged: (v) => setState(() => _searchQuery = v),
+                      decoration: InputDecoration(
+                        hintText: t('search_hint'),
+                        hintStyle:
+                            tsBodySm(color: kOnSurfaceVariant.withOpacity(0.5)),
+                        prefixIcon: const Icon(Icons.search_rounded,
+                            color: kSecondary, size: 22),
+                        filled: false,
+                        border: InputBorder.none,
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
                 ),
                 // Kontinent-valg
                 SizedBox(
@@ -711,10 +736,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return StreamBuilder<QuerySnapshot>(
       stream: _db.collection('chats').snapshots(),
       builder: (_, snap) {
-        if (!snap.hasData)
+        if (!snap.hasData) {
           return const Center(
               child: CircularProgressIndicator(
                   color: kSecondary, strokeWidth: 1.5));
+        }
         final userChats =
             snap.data!.docs.where((d) => d.id.endsWith('_$_userId')).toList();
         if (userChats.isEmpty) {
@@ -1055,12 +1081,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ));
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Feil: Logg inn på nytt og prøv igjen.',
               style: tsBodySm(color: kOnSurface)),
           backgroundColor: kRed,
         ));
+      }
     }
   }
 

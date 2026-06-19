@@ -112,7 +112,7 @@ ThemeData habeshaTheme() => ThemeData(
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: kSecondary, width: 1)),
-        hintStyle: TextStyle(
+        hintStyle: const TextStyle(
             fontFamily: kFontBody, fontSize: 12, color: kOnSurfaceVariant),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

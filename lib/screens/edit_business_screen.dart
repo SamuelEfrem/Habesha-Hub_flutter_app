@@ -164,8 +164,8 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
         // Keep status as-is (don't reset to pending on edit)
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('✓ Bedrift oppdatert!'),
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('✓ Bedrift oppdatert!'),
           backgroundColor: kGreen,
         ));
         Navigator.pop(context, true); // return true = reload needed
