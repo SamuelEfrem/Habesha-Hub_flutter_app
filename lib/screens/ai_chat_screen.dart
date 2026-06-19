@@ -5,7 +5,7 @@ import 'dart:convert';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import '../models/business.dart';
-//import '../config/secrets.dart';
+import '../config/secrets.dart';
 
 class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key});
@@ -104,7 +104,7 @@ IMPORTANT: $langInstruction''';
         Uri.parse('https://api.anthropic.com/v1/messages'),
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': const String.fromEnvironment('ANTHROPIC_KEY', defaultValue: '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'),
+          'x-api-key': Secrets.anthropicKey,
           'anthropic-version': '2023-06-01',
         },
         body: jsonEncode({
