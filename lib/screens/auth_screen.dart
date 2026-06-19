@@ -48,17 +48,16 @@ class _AuthScreenState extends State<AuthScreen>
         email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text.trim(),
       );
-      // FIX: Block login if email not verified
-      if (cred.user != null && !cred.user!.emailVerified) {
-        await FirebaseAuth.instance.signOut();
-        setState(() {
-          _loading = false;
-          _error = 'E-posten er ikke bekreftet. Sjekk innboksen din.';
-        });
-        // Show resend option
-        if (mounted) _showResendDialog(cred.user!.email ?? '');
-        return;
-      }
+      // Email verification disabled for demo/review
+      // if (cred.user != null && !cred.user!.emailVerified) {
+      //   await FirebaseAuth.instance.signOut();
+      //   setState(() {
+      //     _loading = false;
+      //     _error = 'E-posten er ikke bekreftet. Sjekk innboksen din.';
+      //   });
+      //   if (mounted) _showResendDialog(cred.user!.email ?? '');
+      //   return;
+      // }
       if (mounted) {
         if (widget.returnOnLogin) {
           Navigator.pop(context, true);
