@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 class Business {
   final String id;
   final String name;
@@ -184,11 +186,14 @@ class Business {
 
   double distanceTo(double userLat, double userLng) {
     const R = 6371.0;
-    final dLat = _toRad(lat - userLat);
-    final dLng = _toRad(lng - userLng);
-    final a = _sin2(dLat / 2) +
-        _cos(_toRad(userLat)) * _cos(_toRad(lat)) * _sin2(dLng / 2);
-    final c = 2 * _atan2(_sqrt(a), _sqrt(1 - a));
+    final dLat = (lat - userLat) * math.pi / 180;
+    final dLng = (lng - userLng) * math.pi / 180;
+    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(userLat * math.pi / 180) *
+            math.cos(lat * math.pi / 180) *
+            math.sin(dLng / 2) *
+            math.sin(dLng / 2);
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
     return R * c;
   }
 
@@ -197,15 +202,6 @@ class Business {
     if (d < 1) return '${(d * 1000).toStringAsFixed(0)} m unna';
     return '${d.toStringAsFixed(1)} km unna';
   }
-
-  static double _toRad(double deg) => deg * 3.14159265358979 / 180;
-  static double _sin2(double x) => _sin(x) * _sin(x);
-  static double _sin(double x) => x - x * x * x / 6;
-  static double _cos(double x) => 1 - x * x / 2;
-  static double _sqrt(double x) => x <= 0 ? 0 : x * (1 - x / 2 + x * x / 8);
-  static double _atan2(double y, double x) =>
-      x > 0 ? _atan(y / x) : (x < 0 ? _atan(y / x) + 3.14159 : 1.5708);
-  static double _atan(double x) => x - x * x * x / 3 + x * x * x * x * x / 5;
 }
 
 const List<String> businessCategories = [
