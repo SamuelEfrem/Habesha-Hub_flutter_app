@@ -3,7 +3,6 @@ description: Habesha Hub - Finn Habesha bedrifter i nærheten
 
 publish_to: "none"
 
-
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
@@ -31,6 +30,9 @@ dependencies:
   firebase_messaging: ^15.0.0
   flutter_local_notifications: ^17.0.0
   share_plus: ^10.0.0
+  video_player: ^2.8.6
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.1
 
 dev_dependencies:
   flutter_test:

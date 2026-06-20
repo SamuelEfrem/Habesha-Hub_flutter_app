@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,6 +17,7 @@ import '../theme/app_theme.dart';
 import 'edit_business_screen.dart';
 import 'booking_screen.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:video_player/video_player.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final Business business;
@@ -44,6 +48,11 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   String? _nickname;
   bool _chatLoading = true;
   bool _uploadingMenu = false;
+  String? _localImageUrl;
+  List<String> _localGalleryImages = [];
+  String? _localVideoUrl;
+  bool _uploadingGallery = false;
+  bool _uploadingVideo = false;
   double _userRating = 0;
   bool _ratingSubmitted = false;
   int _ratingCount = 0;
@@ -54,6 +63,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     _tabController = TabController(length: 2, vsync: this);
     _initChat();
     _loadRatingState();
+    _localGalleryImages = List.from(widget.business.galleryImages);
     if (widget.openChat) {
       WidgetsBinding.instance
           .addPostFrameCallback((_) => _tabController.animateTo(1));
@@ -96,9 +106,15 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     if (mounted && doc.exists) {
       final data = doc.data() as Map<String, dynamic>;
       final count = (data['ratingCount'] ?? 0) as int;
+      final gallery = data['galleryImages'] != null
+          ? List<String>.from(data['galleryImages'])
+          : <String>[];
+      final video = data['promoVideoUrl']?.toString();
       setState(() {
         _ratingSubmitted = rated;
         _ratingCount = count;
+        _localGalleryImages = gallery;
+        if (video != null) _localVideoUrl = video;
       });
     }
   }
@@ -229,6 +245,110 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     }
   }
 
+  Future<void> _uploadProfileImage() async {
+    final picker = ImagePicker();
+    final picked =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (picked == null) return;
+    setState(() => _uploadingMenu = true);
+    try {
+      final file = File(picked.path);
+      final ref = FirebaseStorage.instance.ref(
+          'businesses/${widget.business.id}/profile_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await ref.putFile(file);
+      final url = await ref.getDownloadURL();
+      await _db
+          .collection('businesses')
+          .doc(widget.business.id)
+          .update({'imageUrl': url});
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Profilbilde oppdatert!',
+                style: tsBodySm(color: kOnSurface)),
+            backgroundColor: kGreen));
+        setState(() {
+          _uploadingMenu = false;
+          _localImageUrl = url;
+        });
+      }
+    } catch (e) {
+      setState(() => _uploadingMenu = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Feil: $e')));
+      }
+    }
+  }
+
+  Future<void> _uploadGalleryImage() async {
+    if (_localGalleryImages.length >= 5) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Maks 5 bilder!', style: tsBodySm(color: kOnSurface)),
+          backgroundColor: kRed));
+      return;
+    }
+    final picker = ImagePicker();
+    final picked =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (picked == null) return;
+    setState(() => _uploadingGallery = true);
+    try {
+      final file = File(picked.path);
+      final ref = FirebaseStorage.instance.ref(
+          'businesses/${widget.business.id}/gallery_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await ref.putFile(file);
+      final url = await ref.getDownloadURL();
+      final newList = [..._localGalleryImages, url];
+      await _db
+          .collection('businesses')
+          .doc(widget.business.id)
+          .update({'galleryImages': newList});
+      if (mounted) {
+        setState(() {
+          _localGalleryImages = newList;
+          _uploadingGallery = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content:
+                Text('Bilde lagt til!', style: tsBodySm(color: kOnSurface)),
+            backgroundColor: kGreen));
+      }
+    } catch (e) {
+      setState(() => _uploadingGallery = false);
+    }
+  }
+
+    Future<void> _uploadPromoVideo() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickVideo(
+        source: ImageSource.gallery, maxDuration: const Duration(seconds: 30));
+    if (picked == null) return;
+    setState(() => _uploadingVideo = true);
+    try {
+      final file = File(picked.path);
+      final ref = FirebaseStorage.instance.ref(
+          'businesses/${widget.business.id}/promo_${DateTime.now().millisecondsSinceEpoch}.mp4');
+      await ref.putFile(file);
+      final url = await ref.getDownloadURL();
+      await _db
+          .collection('businesses')
+          .doc(widget.business.id)
+          .update({'promoVideoUrl': url});
+      if (mounted) {
+        setState(() {
+          _localVideoUrl = url;
+          _uploadingVideo = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content:
+                Text('Video lastet opp!', style: tsBodySm(color: kOnSurface)),
+            backgroundColor: kGreen));
+      }
+    } catch (e) {
+      setState(() => _uploadingVideo = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -266,7 +386,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       ],
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(fit: StackFit.expand, children: [
-          Image.network(widget.business.imageUrl,
+          Image.network(
+              '${_localImageUrl ?? widget.business.imageUrl}?v=${DateTime.now().millisecondsSinceEpoch}',
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
                   color: kSurfaceContainerHigh,
@@ -375,8 +496,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     return ListView(padding: const EdgeInsets.all(20), children: [
       if (!_isOwner) _buildRatingWidget(),
       if (!_isOwner) const SizedBox(height: 12),
-      if (_isOwner && widget.business.isPremium) _buildOwnerControls(),
-      if (_isOwner && widget.business.isPremium) const SizedBox(height: 12),
+      if (_isOwner) _buildOwnerControls(),
+      if (_isOwner) const SizedBox(height: 12),
       _buildHoursCard(),
       const SizedBox(height: 12),
       _buildMenuButton(),
@@ -475,6 +596,14 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
               : t('no_description'),
           style: tsBodyLg(color: kOnSurfaceVariant)),
       const SizedBox(height: 24),
+      if (_localGalleryImages.isNotEmpty) ...[
+        _buildGallery(),
+        const SizedBox(height: 24),
+      ],
+      if (_localVideoUrl != null || widget.business.promoVideoUrl != null) ...[
+        _buildVideoPlayer(),
+        const SizedBox(height: 24),
+      ],
       _buildOfflineMap(),
       const SizedBox(height: 24),
       if (widget.business.isPremium) ...[
@@ -534,76 +663,139 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
 
   Widget _buildOwnerControls() {
     final t = languageNotifier.t;
-    return Row(children: [
-      Expanded(
-          child: GestureDetector(
-        onTap: () async {
-          final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => EditBusinessScreen(
-                      business: widget.business, docId: widget.business.id)));
-          if (result == true && mounted) Navigator.pop(context);
-        },
+    return Column(children: [
+      GestureDetector(
+        onTap: _uploadProfileImage,
         child: Container(
+          width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
               color: kSurfaceContainer,
               borderRadius: BorderRadius.circular(12),
-              border:
-                  Border.all(color: kSecondary.withOpacity(0.3), width: 0.5)),
+              border: Border.all(color: kSecondary.withOpacity(0.3), width: 0.5)),
           child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            const Icon(Icons.edit_rounded, color: kSecondary, size: 16),
+            const Icon(Icons.add_a_photo_rounded, color: kSecondary, size: 16),
             const SizedBox(width: 6),
-            Text(t('edit'),
+            Text('Oppdater profilbilde',
                 style: tsTitleMd(color: kSecondary).copyWith(fontSize: 13)),
           ]),
         ),
-      )),
-      const SizedBox(width: 10),
-      Expanded(
+      ),
+      const SizedBox(height: 10),
+      Row(children: [
+        Expanded(
           child: GestureDetector(
-        onTap: () async {
-          final confirm = await showDialog<bool>(
-              context: context,
-              builder: (_) => AlertDialog(
-                    backgroundColor: kSurfaceContainerHigh,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)),
-                    title: Text(t('delete_business'), style: tsHeadlineSm()),
-                    content: Text(t('are_you_sure'), style: tsBodyLg()),
-                    actions: [
-                      TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: Text(t('cancel'), style: tsBodySm())),
-                      TextButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child:
-                              Text(t('delete'), style: tsTitleMd(color: kRed))),
-                    ],
-                  ));
-          if (confirm == true) {
-            await _db.collection('businesses').doc(widget.business.id).delete();
-            if (mounted) Navigator.pop(context);
-          }
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-              color: kRed.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: kRed.withOpacity(0.3), width: 0.5)),
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            const Icon(Icons.delete_outline_rounded, color: kRed, size: 16),
-            const SizedBox(width: 6),
-            Text(t('delete_business'),
-                style: tsTitleMd(color: kRed).copyWith(fontSize: 13)),
-          ]),
+            onTap: _uploadingGallery ? null : _uploadGalleryImage,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                  color: kSurfaceContainer,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: kSecondary.withOpacity(0.3), width: 0.5)),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                if (_uploadingGallery)
+                  const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2))
+                else
+                  const Icon(Icons.photo_library_rounded, color: kSecondary, size: 16),
+                const SizedBox(width: 6),
+                Text('Galleri (${_localGalleryImages.length}/5)',
+                    style: tsTitleMd(color: kSecondary).copyWith(fontSize: 12)),
+              ]),
+            ),
+          ),
         ),
-      )),
+        const SizedBox(width: 10),
+        Expanded(
+          child: GestureDetector(
+            onTap: _uploadingVideo ? null : _uploadPromoVideo,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                  color: kSurfaceContainer,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: kSecondary.withOpacity(0.3), width: 0.5)),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                if (_uploadingVideo)
+                  const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2))
+                else
+                  const Icon(Icons.videocam_rounded, color: kSecondary, size: 16),
+                const SizedBox(width: 6),
+                Text(_localVideoUrl != null ? 'Video' : 'Legg til video',
+                    style: tsTitleMd(color: kSecondary).copyWith(fontSize: 12)),
+              ]),
+            ),
+          ),
+        ),
+      ]),
+      const SizedBox(height: 10),
+      Row(children: [
+        Expanded(
+            child: GestureDetector(
+          onTap: () async {
+            final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => EditBusinessScreen(
+                        business: widget.business, docId: widget.business.id)));
+            if (result == true && mounted) Navigator.pop(context);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+                color: kSurfaceContainer,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: kSecondary.withOpacity(0.3), width: 0.5)),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.edit_rounded, color: kSecondary, size: 16),
+              const SizedBox(width: 6),
+              Text(t('edit'),
+                  style: tsTitleMd(color: kSecondary).copyWith(fontSize: 13)),
+            ]),
+          ),
+        )),
+        const SizedBox(width: 10),
+        Expanded(
+            child: GestureDetector(
+          onTap: () async {
+            final confirm = await showDialog<bool>(
+                context: context,
+                builder: (_) => AlertDialog(
+                      backgroundColor: kSurfaceContainerHigh,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
+                      title: Text(t('delete_business'), style: tsHeadlineSm()),
+                      content: Text(t('are_you_sure'), style: tsBodyLg()),
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text(t('cancel'), style: tsBodySm())),
+                        TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: Text(t('delete'), style: tsTitleMd(color: kRed))),
+                      ],
+                    ));
+            if (confirm == true) {
+              await _db.collection('businesses').doc(widget.business.id).delete();
+              if (mounted) Navigator.pop(context);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+                color: kRed.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: kRed.withOpacity(0.3), width: 0.5)),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.delete_outline_rounded, color: kRed, size: 16),
+              const SizedBox(width: 6),
+              Text(t('delete_business'),
+                  style: tsTitleMd(color: kRed).copyWith(fontSize: 13)),
+            ]),
+          ),
+        )),
+      ]),
     ]);
   }
-
   Widget _buildHoursCard() {
     final t = languageNotifier.t;
     return Container(
@@ -852,71 +1044,72 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     final lat = widget.business.lat;
     final lng = widget.business.lng;
     final ok = lat != 0 && lng != 0;
-    return GestureDetector(
-        onTap: _openOsmMaps,
-        child: Container(
-            height: 180,
-            decoration: BoxDecoration(
-                color: const Color(0xFF1A2035),
-                borderRadius: BorderRadius.circular(12),
-                border:
-                    Border.all(color: kSecondary.withOpacity(0.1), width: 0.5)),
-            clipBehavior: Clip.hardEdge,
-            child: Stack(children: [
-              if (ok)
-                Positioned.fill(
-                    child: Image.network(
-                        'https://tile.openstreetmap.org/15/${_lon2tile(lng, 15)}/${_lat2tile(lat, 15)}.png',
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _mapPlaceholder())),
-              if (!ok) _mapPlaceholder(),
-              Container(
-                  decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                    Colors.black.withOpacity(0.15),
-                    Colors.black.withOpacity(0.45)
-                  ]))),
-              Center(
-                  child: Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                          color: kPrimaryContainer,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                                color: kPrimaryContainer.withOpacity(0.5),
-                                blurRadius: 16,
-                                spreadRadius: 4)
-                          ]),
-                      child: const Icon(Icons.location_on_rounded,
-                          color: kSecondary, size: 28))),
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: kSecondary.withOpacity(0.1), width: 0.5)),
+      clipBehavior: Clip.hardEdge,
+      child: ok
+          ? Stack(children: [
+              FlutterMap(
+                options: MapOptions(
+                  initialCenter: LatLng(lat, lng),
+                  initialZoom: 15,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+                  ),
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'no.habesha.hub',
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: LatLng(lat, lng),
+                        width: 48,
+                        height: 48,
+                        child: Container(
+                          decoration: BoxDecoration(
+                              color: kPrimaryContainer,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                    color: kPrimaryContainer.withOpacity(0.5),
+                                    blurRadius: 16,
+                                    spreadRadius: 4)
+                              ]),
+                          child: const Icon(Icons.location_on_rounded,
+                              color: kSecondary, size: 28),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
               Positioned(
-                  bottom: 4,
-                  left: 8,
-                  child: Text('© OpenStreetMap',
-                      style: tsLabel().copyWith(
-                          fontSize: 7, color: Colors.white.withOpacity(0.4)))),
-              Positioned(
-                  bottom: 10,
-                  right: 12,
+                bottom: 10,
+                right: 12,
+                child: GestureDetector(
+                  onTap: _openOsmMaps,
                   child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.65),
-                          borderRadius: BorderRadius.circular(100)),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        const Icon(Icons.open_in_new_rounded,
-                            color: kSecondary, size: 11),
-                        const SizedBox(width: 4),
-                        Text(t('open_map'),
-                            style: tsLabel().copyWith(fontSize: 9)),
-                      ]))),
-            ])));
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.65),
+                        borderRadius: BorderRadius.circular(100)),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.open_in_new_rounded, color: kSecondary, size: 11),
+                      const SizedBox(width: 4),
+                      Text(t('open_map'), style: tsLabel().copyWith(fontSize: 9)),
+                    ]),
+                  ),
+                ),
+              ),
+            ])
+          : _mapPlaceholder(),
+    );
   }
 
   int _lon2tile(double lon, int z) => ((lon + 180) / 360 * (1 << z)).floor();
@@ -951,25 +1144,83 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
             const Spacer(),
             const Opacity(
                 opacity: 0.08,
-                child:
-                    Icon(Icons.verified_rounded, color: kSecondary, size: 64)),
+                child: Icon(Icons.verified_rounded, color: kSecondary, size: 64)),
           ]),
           const SizedBox(height: 10),
           Text(t('premium_desc'), style: tsBodySm()),
           const SizedBox(height: 14),
-          ...[
-            t('verified_business'),
-            t('priority_booking'),
-            t('digital_menu')
-          ].map((item) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(children: [
-                const Icon(Icons.check_circle_rounded, color: kGreen, size: 16),
-                const SizedBox(width: 10),
-                Text(item, style: tsLabel(color: kOnSurface.withOpacity(0.7))),
-              ]))),
+          ...[t('verified_business'), t('priority_booking'), t('digital_menu')]
+              .map((item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(children: [
+                    const Icon(Icons.check_circle_rounded, color: kGreen, size: 16),
+                    const SizedBox(width: 10),
+                    Text(item, style: tsLabel(color: kOnSurface.withOpacity(0.7))),
+                  ]))),
         ]));
   }
+
+  Widget _buildGallery() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Galleri', style: tsHeadlineSm(color: kSecondary)),
+      const SizedBox(height: 12),
+      SizedBox(
+        height: 120,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: _localGalleryImages.length,
+          itemBuilder: (_, i) => Container(
+            width: 120,
+            margin: const EdgeInsets.only(right: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: kSurfaceContainerHigh,
+            ),
+            clipBehavior: Clip.hardEdge,
+            child: Stack(children: [
+              Image.network(_localGalleryImages[i], fit: BoxFit.cover, width: 120, height: 120),
+              if (_isOwner)
+                Positioned(
+                  top: 4, right: 4,
+                  child: GestureDetector(
+                    onTap: () async {
+                      final newList = List<String>.from(_localGalleryImages)..removeAt(i);
+                      await _db.collection('businesses').doc(widget.business.id).update({'galleryImages': newList});
+                      setState(() => _localGalleryImages = newList);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(color: kRed, borderRadius: BorderRadius.circular(100)),
+                      child: const Icon(Icons.close_rounded, color: Colors.white, size: 12),
+                    ),
+                  ),
+                ),
+            ]),
+          ),
+        ),
+      ),
+    ]);
+  }
+
+  Widget _buildVideoPlayer() {
+    final url = _localVideoUrl ?? widget.business.promoVideoUrl;
+    if (url == null) return const SizedBox();
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Video', style: tsHeadlineSm(color: kSecondary)),
+      const SizedBox(height: 12),
+      Container(
+        height: 200,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: _VideoPlayerWidget(url: url),
+      ),
+    ]);
+  }
+
+    
 
   Widget _buildChatTab() {
     final t = languageNotifier.t;
@@ -1132,5 +1383,132 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+}
+
+class _VideoPlayerWidget extends StatefulWidget {
+  final String url;
+  const _VideoPlayerWidget({required this.url});
+
+  @override
+  State<_VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
+}
+
+class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+      ..initialize().then((_) {
+        if (mounted) setState(() => _initialized = true);
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_initialized) {
+      return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2));
+    }
+    return Stack(alignment: Alignment.center, children: [
+      AspectRatio(aspectRatio: _controller.value.aspectRatio, child: VideoPlayer(_controller)),
+      GestureDetector(
+        onTap: () => setState(() => _controller.value.isPlaying ? _controller.pause() : _controller.play()),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+          child: Icon(
+            _controller.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+            color: Colors.white, size: 32,
+          ),
+        ),
+      ),
+      Positioned(
+        bottom: 8,
+        right: 8,
+        child: GestureDetector(
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => _FullscreenVideoPage(controller: _controller)));
+          },
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+            child: const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 24),
+          ),
+        ),
+      ),
+    ]);
+  }
+}
+
+class _FullscreenVideoPage extends StatefulWidget {
+  final VideoPlayerController controller;
+  const _FullscreenVideoPage({required this.controller});
+
+  @override
+  State<_FullscreenVideoPage> createState() => _FullscreenVideoPageState();
+}
+
+class _FullscreenVideoPageState extends State<_FullscreenVideoPage> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    widget.controller.play();
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(alignment: Alignment.center, children: [
+        Center(
+          child: AspectRatio(
+            aspectRatio: widget.controller.value.aspectRatio,
+            child: VideoPlayer(widget.controller),
+          ),
+        ),
+        Positioned(
+          top: 40,
+          left: 16,
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+              child: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+            ),
+          ),
+        ),
+        GestureDetector(
+          onTap: () => setState(() => widget.controller.value.isPlaying ? widget.controller.pause() : widget.controller.play()),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+            child: Icon(
+              widget.controller.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              color: Colors.white, size: 40,
+            ),
+          ),
+        ),
+      ]),
+    );
   }
 }

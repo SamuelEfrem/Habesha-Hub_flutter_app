@@ -15,6 +15,8 @@ class Business {
   final bool isOpen;
   final bool isPremium;
   final String? pdfMenuUrl;
+  final List<String> galleryImages;
+  final String? promoVideoUrl;
   final Map<String, String> openingHours;
   // Owner info
   final String ownerId;
@@ -39,6 +41,8 @@ class Business {
     required this.isOpen,
     required this.isPremium,
     this.pdfMenuUrl,
+    this.galleryImages = const [],
+    this.promoVideoUrl,
     required this.openingHours,
     this.ownerId = '',
     this.ownerEmail = '',
@@ -68,6 +72,10 @@ class Business {
       ownerName: data['ownerName']?.toString() ?? '',
       status: data['status']?.toString() ?? 'approved',
       website: data['website']?.toString(),
+      galleryImages: data['galleryImages'] != null
+          ? List<String>.from(data['galleryImages'])
+          : [],
+      promoVideoUrl: data['promoVideoUrl']?.toString(),
       openingHours: data['openingHours'] != null && data['openingHours'] is Map
           ? Map<String, String>.from(
               (data['openingHours'] as Map).map(
@@ -99,6 +107,8 @@ class Business {
       'ownerName': ownerName,
       'status': status,
       'website': website,
+      'galleryImages': galleryImages,
+      'promoVideoUrl': promoVideoUrl,
     };
   }
 
