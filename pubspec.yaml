@@ -1,6 +1,8 @@
 name: habesha_hub
 description: Habesha Hub - Finn Habesha bedrifter i nærheten
 
+version: 2.0.0+20
+
 publish_to: "none"
 
 environment:

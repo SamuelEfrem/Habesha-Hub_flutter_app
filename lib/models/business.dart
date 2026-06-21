@@ -25,6 +25,7 @@ class Business {
   // Status
   final String status;
   final String? website;
+  final String country;
 
   Business({
     required this.id,
@@ -49,6 +50,7 @@ class Business {
     this.ownerName = '',
     this.status = 'approved',
     this.website,
+    this.country = '',
   });
 
   factory Business.fromFirestore(Map<String, dynamic> data, String id) {
@@ -107,6 +109,7 @@ class Business {
       'ownerName': ownerName,
       'status': status,
       'website': website,
+      'country': country,
       'galleryImages': galleryImages,
       'promoVideoUrl': promoVideoUrl,
     };

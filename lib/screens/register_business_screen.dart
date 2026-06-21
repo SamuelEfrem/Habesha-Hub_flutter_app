@@ -27,6 +27,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
   final _websiteCtrl = TextEditingController();
 
   String _category = 'Restaurant';
+  String _country = '';
   bool _saving = false;
   bool _done = false;
   bool _geocoding = false;
@@ -48,6 +49,10 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
     {'name': 'Frisør', 'icon': Icons.content_cut_rounded},
     {'name': 'Club', 'icon': Icons.music_note_rounded},
     {'name': 'Klinikk', 'icon': Icons.local_hospital_rounded},
+    {'name': 'Fotograf', 'icon': Icons.camera_alt_rounded},
+    {'name': 'Musikk', 'icon': Icons.queue_music_rounded},
+    {'name': 'Dekorasjon', 'icon': Icons.celebration_rounded},
+    {'name': 'Taxi', 'icon': Icons.local_taxi_rounded},
     {'name': 'Annet', 'icon': Icons.storefront_rounded},
   ];
 
@@ -175,8 +180,8 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         'ownerEmail': user.email ?? '',
         'openingHours': _buildOpeningHours(),
         'website': _websiteCtrl.text.trim(),
+        'country': _country,
         'status': 'pending', // ← must be approved by admin
-        'createdAt': FieldValue.serverTimestamp(),
       });
       setState(() {
         _saving = false;
@@ -414,6 +419,27 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       children: [
         Text('Kontaktinformasjon', style: tsHeadlineSm()),
         const SizedBox(height: 24),
+
+        Text('LAND', style: tsLabel()),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: _country.isEmpty ? null : _country,
+          dropdownColor: kSurfaceContainer,
+          style: tsBodyLg(color: kOnSurface),
+          decoration: const InputDecoration(
+            prefixIcon: Icon(Icons.flag_rounded, color: kSecondary),
+            hintText: 'Velg land',
+          ),
+          validator: (v) => v == null || v.isEmpty ? 'Påkrevd' : null,
+          items: [
+            'Uganda', 'Etiopia', 'Eritrea', 'Egypt', 'Kenya',
+            'Norge', 'Sverige', 'Danmark', 'UK', 'Tyskland',
+            'Nederland', 'Frankrike', 'Belgia', 'Sveits', 'Italia',
+            'USA', 'Canada',
+          ].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+          onChanged: (v) => setState(() => _country = v ?? ''),
+        ),
+        const SizedBox(height: 16),
 
         Text('BESKRIVELSE', style: tsLabel()),
         const SizedBox(height: 8),

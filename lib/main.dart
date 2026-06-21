@@ -70,7 +70,7 @@ class AppEntry extends StatelessWidget {
     return FutureBuilder<SharedPreferences>(
       future: SharedPreferences.getInstance(),
       builder: (_, snap) {
-        if (!snap.hasData) return const SizedBox();
+        if (!snap.hasData) return const Scaffold(backgroundColor: Color(0xFF131313));
         final done = snap.data!.getBool('onboarding_done') ?? false;
         return done ? const SplashScreen() : const OnboardingScreen();
       },

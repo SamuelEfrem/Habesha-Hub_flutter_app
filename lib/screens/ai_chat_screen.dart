@@ -104,7 +104,7 @@ IMPORTANT: $langInstruction''';
         Uri.parse('https://api.anthropic.com/v1/messages'),
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': const String.fromEnvironment('ANTHROPIC_KEY', defaultValue: ''),
+          'x-api-key': Secrets.anthropicKey,
           'anthropic-version': '2023-06-01',
         },
         body: jsonEncode({
