@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           .distanceTo(pos.latitude, pos.longitude)
           .compareTo(b.distanceTo(pos.latitude, pos.longitude)));
       setState(() {
-        _businesses = snapshot;
+        _businesses = snapshot.where((b) => b.distanceTo(pos.latitude, pos.longitude) <= 50).toList();
         _hasSearched = true;
         _isSearching = false;
       });

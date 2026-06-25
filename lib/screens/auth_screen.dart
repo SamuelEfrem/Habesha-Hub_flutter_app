@@ -2,7 +2,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
-// import 'package:google_sign_in/google_sign_in.dart'; // Disabled for App Store
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AuthScreen extends StatefulWidget {
   final bool returnOnLogin;
@@ -43,8 +44,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         password: _passwordCtrl.text.trim(),
       );
       if (mounted) {
-        if (widget.returnOnLogin) Navigator.pop(context, true);
-        else Navigator.pop(context);
+        if (widget.returnOnLogin) { Navigator.pop(context, true); } else { Navigator.pop(context); }
       }
     } on FirebaseAuthException catch (e) {
       setState(() { _error = _authError(e.code); _loading = false; });
@@ -52,10 +52,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   }
 
   Future<void> _register() async {
-    if (_nameCtrl.text.trim().isEmpty) {
-      setState(() => _error = 'Skriv inn navn');
-      return;
-    }
+    if (_nameCtrl.text.trim().isEmpty) { setState(() => _error = 'Skriv inn navn'); return; }
     setState(() { _loading = true; _error = ''; });
     try {
       final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -83,8 +80,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  if (widget.returnOnLogin) Navigator.pop(context, true);
-                  else Navigator.pop(context);
+                  if (widget.returnOnLogin) { Navigator.pop(context, true); } else { Navigator.pop(context); }
                 },
                 child: Text('OK, forstått', style: tsTitleMd(color: kSecondary)),
               ),
@@ -94,6 +90,42 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       }
     } on FirebaseAuthException catch (e) {
       setState(() { _error = _authError(e.code); _loading = false; });
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() { _loading = true; _error = ''; });
+    try {
+      final googleSignIn = GoogleSignIn(serverClientId: '308436707340-5f7ns8b9mf594d9mkuc10ops4geuc77n.apps.googleusercontent.com');
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) { setState(() => _loading = false); return; }
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      if (mounted) {
+        if (widget.returnOnLogin) { Navigator.pop(context, true); } else { Navigator.pop(context); }
+      }
+    } catch (e) {
+      setState(() { _error = 'Google innlogging feilet. Prøv igjen.'; _loading = false; });
+    }
+  }
+
+  Future<void> _signInWithApple() async {
+    setState(() { _loading = true; _error = ''; });
+    try {
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+      );
+      final oauthCredential = OAuthProvider('apple.com').credential(
+        idToken: appleCredential.identityToken,
+        accessToken: appleCredential.authorizationCode,
+      );
+      await FirebaseAuth.instance.signInWithCredential(oauthCredential);
+      if (mounted) {
+        if (widget.returnOnLogin) { Navigator.pop(context, true); } else { Navigator.pop(context); }
+      }
+    } catch (e) {
+      setState(() { _error = 'Apple innlogging feilet. Prøv igjen.'; _loading = false; });
     }
   }
 
@@ -170,6 +202,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   }
 
   Widget _buildLogin() {
+    final isIOS = Theme.of(context).platform == TargetPlatform.iOS;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -207,6 +240,42 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         Align(alignment: Alignment.centerRight, child: TextButton(onPressed: _showForgotPassword, child: Text('Glemt passord?', style: tsBodySm(color: kSecondary)))),
         const SizedBox(height: 12),
         primaryButton(_loading ? '' : 'Logg inn', _loading ? null : _login, loading: _loading, icon: Icons.login_rounded),
+        const SizedBox(height: 12),
+        Row(children: [
+          Expanded(child: Divider(color: kOutlineVariant.withOpacity(0.3))),
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Text('eller', style: tsBodySm(color: kOnSurfaceVariant))),
+          Expanded(child: Divider(color: kOutlineVariant.withOpacity(0.3))),
+        ]),
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: _signInWithGoogle,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            decoration: BoxDecoration(color: kSurfaceContainerHigh, borderRadius: BorderRadius.circular(12), border: Border.all(color: kOutlineVariant.withOpacity(0.3), width: 0.5)),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Image.network('https://www.google.com/favicon.ico', width: 20, height: 20, errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata_rounded, color: kSecondary, size: 24)),
+              const SizedBox(width: 10),
+              Text('Fortsett med Google', style: tsTitleMd()),
+            ]),
+          ),
+        ),
+        if (isIOS) ...[
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: _signInWithApple,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                const Icon(Icons.apple_rounded, color: Colors.white, size: 22),
+                const SizedBox(width: 10),
+                Text('Fortsett med Apple', style: tsTitleMd(color: Colors.white)),
+              ]),
+            ),
+          ),
+        ],
         const SizedBox(height: 12),
         Center(child: TextButton(onPressed: () => _tab.animateTo(1), child: Text('Har du ikke konto? Registrer deg', style: tsBodySm(color: kSecondary)))),
       ]),
