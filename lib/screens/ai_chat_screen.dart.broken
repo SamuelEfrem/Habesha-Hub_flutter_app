@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
-import '../config/secrets.dart';
 import '../models/business.dart';
+import '../config/secrets.dart';
 
 class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key});
@@ -125,9 +125,9 @@ IMPORTANT: $langInstruction''';
 
       if (response.statusCode == 200) {
         print('API Status: ${response.statusCode}');
-        print('API Body: ${response.body}');
+        print(response.statusCode.toString());
+        print(response.body);
         final data = jsonDecode(response.body);
-        final reply = data['content'][0]['text'] as String;
         setState(() => _messages.add(_ChatMessage(text: reply, isUser: false)));
       } else {
         setState(() => _messages.add(_ChatMessage(
@@ -136,9 +136,9 @@ IMPORTANT: $langInstruction''';
                   : lang == 'English'
                       ? 'Sorry, I couldn\'t connect. Please try again.'
                       : 'Beklager, kunne ikke koble til. Prøv igjen.',
-              isUser: false,
-              isError: true,
+              isUser: false, isError: true,
             )));
+      }
       }
     } catch (e) {
       print('AI Error: $e');

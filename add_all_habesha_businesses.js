@@ -1,6 +1,6 @@
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
-const serviceAccount = require('./habesha-hub-7bd1d-firebase-adminsdk-fbsvc-bccf6f981d.json');
+const serviceAccount = require('C:/Users/samue/Desktop/habesha-hub-7bd1d-firebase-adminsdk-fbsvc-783a8d4517.json');
 
 initializeApp({ credential: cert(serviceAccount) });
 
