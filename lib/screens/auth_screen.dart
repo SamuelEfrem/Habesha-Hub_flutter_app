@@ -248,7 +248,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         ]),
         const SizedBox(height: 12),
         if (Theme.of(context).platform != TargetPlatform.iOS)
-          onTap: _signInWithGoogle,
+        GestureDetector(
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 14),
