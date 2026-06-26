@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
@@ -227,7 +227,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             suffixIcon: GestureDetector(onTap: () => setState(() => _obscure = !_obscure), child: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: kOnSurfaceVariant)),
           ),
           onSubmitted: (_) => _login(),
-        ),
+        if (Theme.of(context).platform != TargetPlatform.iOS)
         if (_error.isNotEmpty) ...[
           const SizedBox(height: 12),
           Container(
@@ -247,7 +247,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           Expanded(child: Divider(color: kOutlineVariant.withOpacity(0.3))),
         ]),
         const SizedBox(height: 12),
-        GestureDetector(
+        if (Theme.of(context).platform != TargetPlatform.iOS)
           onTap: _signInWithGoogle,
           child: Container(
             width: double.infinity,
