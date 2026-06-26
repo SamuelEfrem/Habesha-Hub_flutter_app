@@ -227,7 +227,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             suffixIcon: GestureDetector(onTap: () => setState(() => _obscure = !_obscure), child: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: kOnSurfaceVariant)),
           ),
           onSubmitted: (_) => _login(),
-        if (Theme.of(context).platform != TargetPlatform.iOS)
+        ),
         if (_error.isNotEmpty) ...[
           const SizedBox(height: 12),
           Container(
