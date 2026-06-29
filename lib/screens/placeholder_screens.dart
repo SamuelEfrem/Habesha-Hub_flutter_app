@@ -1,4 +1,4 @@
-﻿import 'admin_chat_screen.dart';
+import 'admin_chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -39,9 +39,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
       'emoji': '🌍',
       'countries': [
         {'name': 'Uganda', 'flag': '🇺🇬', 'label': 'country_uganda', 'cities': ['Kampala', 'Entebbe', 'Jinja']},
-        {'name': 'Etiopia', 'flag': '🇪🇹', 'label': 'country_etiopia', 'cities': ['Addis Ababa', 'Dire Dawa', 'Gondar']},
-        {'name': 'Eritrea', 'flag': '🇪🇷', 'label': 'country_eritrea', 'cities': ['Asmara', 'Keren', 'Massawa']},
-        {'name': 'Egypt', 'flag': '🇪🇬', 'label': 'country_egypt', 'cities': ['Cairo', 'Alexandria', 'Giza']},
+        {'name': 'Angola', 'flag': '🇦🇴', 'label': 'country_angola', 'cities': ['Luanda', 'Huambo', 'Benguela']},
+        {'name': 'South Sudan', 'flag': '🇸🇸', 'label': 'country_south_sudan', 'cities': ['Juba', 'Wau', 'Malakal']},
+        {'name': 'Rwanda', 'flag': '🇷🇼', 'label': 'country_rwanda', 'cities': ['Kigali', 'Butare', 'Gisenyi']},
         {'name': 'Kenya', 'flag': '🇰🇪', 'label': 'country_kenya', 'cities': ['Nairobi', 'Mombasa', 'Kisumu']},
       ]
     },
@@ -49,20 +49,20 @@ class _ExploreScreenState extends State<ExploreScreen> {
       'name': 'Europe',
       'emoji': '🌍',
       'countries': [
-        {'name': 'Norge', 'flag': '🇳🇴', 'label': 'country_norge', 'cities': ['Oslo', 'Bergen', 'Stavanger', 'Trondheim']},
-        {'name': 'Sverige', 'flag': '🇸🇪', 'label': 'country_sverige', 'cities': ['Stockholm', 'Göteborg', 'Malmö']},
-        {'name': 'Danmark', 'flag': '🇩🇰', 'label': 'country_danmark', 'cities': ['København', 'Aarhus', 'Odense']},
-        {'name': 'UK', 'flag': '🇬🇧', 'label': 'country_uk', 'cities': ['London', 'Manchester', 'Birmingham']},
-        {'name': 'Tyskland', 'flag': '🇩🇪', 'label': 'country_tyskland', 'cities': ['Berlin', 'Hamburg', 'München']},
-        {'name': 'Nederland', 'flag': '🇳🇱', 'label': 'country_nederland', 'cities': ['Amsterdam', 'Rotterdam', 'Den Haag']},
-        {'name': 'Frankrike', 'flag': '🇫🇷', 'label': 'country_frankrike', 'cities': ['Paris', 'Lyon', 'Marseille']},
-        {'name': 'Belgia', 'flag': '🇧🇪', 'label': 'country_belgia', 'cities': ['Brussel', 'Antwerpen', 'Gent']},
-        {'name': 'Sveits', 'flag': '🇨🇭', 'label': 'country_sveits', 'cities': ['Zürich', 'Genève', 'Basel']},
-        {'name': 'Italia', 'flag': '🇮🇹', 'label': 'country_italia', 'cities': ['Roma', 'Milano', 'Napoli']},
+        {'name': 'Norway', 'flag': '🇳🇴', 'label': 'country_norge', 'cities': ['Oslo', 'Bergen', 'Stavanger', 'Trondheim']},
+        {'name': 'Sweden', 'flag': '🇸🇪', 'label': 'country_sverige', 'cities': ['Stockholm', 'Göteborg', 'Malmö']},
+        {'name': 'Denmark', 'flag': '🇩🇰', 'label': 'country_danmark', 'cities': ['København', 'Aarhus', 'Odense']},
+        {'name': 'UK', 'flag': '🇬🇧', 'label': 'country_uk', 'cities': ['London', 'Manchester', 'Birmingham', 'Leeds']},
+        {'name': 'Germany', 'flag': '🇩🇪', 'label': 'country_tyskland', 'cities': ['Berlin', 'Hamburg', 'München']},
+        {'name': 'Netherlands', 'flag': '🇳🇱', 'label': 'country_nederland', 'cities': ['Amsterdam', 'Rotterdam', 'Den Haag']},
+        {'name': 'France', 'flag': '🇫🇷', 'label': 'country_frankrike', 'cities': ['Paris', 'Lyon', 'Marseille']},
+        {'name': 'Belgium', 'flag': '🇧🇪', 'label': 'country_belgia', 'cities': ['Brussel', 'Antwerpen', 'Gent']},
+        {'name': 'Switzerland', 'flag': '🇨🇭', 'label': 'country_sveits', 'cities': ['Zürich', 'Genève', 'Basel']},
+        {'name': 'Italy', 'flag': '🇮🇹', 'label': 'country_italia', 'cities': ['Roma', 'Milano', 'Napoli']},
       ]
     },
     {
-      'name': 'Amerika',
+      'name': 'Americas',
       'emoji': '🌎',
       'countries': [
         {'name': 'USA', 'flag': '🇺🇸', 'label': 'country_usa', 'cities': ['New York', 'Washington DC', 'Los Angeles', 'Minneapolis']},
@@ -194,7 +194,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                           Text(c['flag'] as String, style: const TextStyle(fontSize: 26)),
                           const SizedBox(height: 4),
-                          Text(t(c['label'] as String), style: tsLabel(color: sel ? kSecondary : kOnSurfaceVariant.withOpacity(0.6))),
+                          Text(c['name'] as String, style: tsLabel(color: sel ? kSecondary : kOnSurfaceVariant.withOpacity(0.8))),
                         ]),
                       ),
                     );
@@ -231,10 +231,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: ['Alle', 'Restaurant', 'Kafé', 'Butikk', 'Frisør', 'Club', 'Klinikk', 'Fotograf', 'Musikk', 'Dekorasjon', 'Taxi', 'Annet'].map((cat) {
-                    final sel = cat == 'Alle' ? _selectedCategory.isEmpty : _selectedCategory == cat;
+                  children: ['All', 'Restaurant', 'Cafe', 'Shop', 'Barber', 'Club', 'Clinic', 'Photographer', 'Music', 'Dekorasjon', 'Taxi', 'Annet'].map((cat) {
+                    final sel = cat == 'All' ? _selectedCategory.isEmpty : _selectedCategory == cat;
                     return GestureDetector(
-                      onTap: () { setState(() => _selectedCategory = cat == 'Alle' ? '' : cat); if (_hasSearched) _filterResults(); },
+                      onTap: () { setState(() => _selectedCategory = cat == 'All' ? '' : cat); if (_hasSearched) _filterResults(); },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         margin: const EdgeInsets.only(right: 8),

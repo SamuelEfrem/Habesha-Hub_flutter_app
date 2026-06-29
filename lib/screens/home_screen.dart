@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late AnimationController _pulseAnim;
 
   int _currentTab = 0;
-  String _selectedCategory = 'Alle';
+  String _selectedCategory = 'All';
   Position? _position;
   String _searchQuery = '';
   bool _hasSearched = false;
@@ -34,13 +34,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<Business> _businesses = [];
 
   final _categories = [
-    {'key': 'Alle', 'emoji': '🏠'},
+    {'key': 'All', 'emoji': '🏠'},
     {'key': 'Restaurant', 'emoji': '🍽️'},
-    {'key': 'Butikk', 'emoji': '🛒'},
-    {'key': 'Kafé', 'emoji': '☕'},
-    {'key': 'Frisør', 'emoji': '💇'},
+    {'key': 'Shop', 'emoji': '🛒'},
+    {'key': 'Cafe', 'emoji': '☕'},
     {'key': 'Club', 'emoji': '🎵'},
-    {'key': 'Klinikk', 'emoji': '🏥'},
+    {'key': 'Clinic', 'emoji': '🏥'},
+    {'key': 'Barber', 'emoji': '✂'},
   ];
 
   // Translate category using translations.dart keys
@@ -119,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   List<Business> get _filtered {
     var list = _businesses;
-    if (_selectedCategory != 'Alle') {
+    if (_selectedCategory != 'All') {
       list = list.where((b) => b.category == _selectedCategory).toList();
     }
     if (_searchQuery.isNotEmpty) {
