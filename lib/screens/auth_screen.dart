@@ -93,6 +93,24 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
+  Future<void> _registerWithEmail() async {
+    final email = _emailCtrl.text.trim();
+    final password = _passwordCtrl.text.trim();
+    if (email.isEmpty || password.isEmpty) {
+      setState(() => _error = 'Please enter email and password.');
+      return;
+    }
+    setState(() { _loading = true; _error = ''; });
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
+      if (mounted) {
+        if (widget.returnOnLogin) { Navigator.pop(context, true); } else { Navigator.pop(context); }
+      }
+    } catch (e) {
+      setState(() { _error = e.toString(); _loading = false; });
+    }
+  }
+
   Future<void> _signInWithGoogle() async {
     setState(() { _loading = true; _error = ''; });
     try {
@@ -240,6 +258,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         Align(alignment: Alignment.centerRight, child: TextButton(onPressed: _showForgotPassword, child: Text('Glemt passord?', style: tsBodySm(color: kSecondary)))),
         const SizedBox(height: 12),
         primaryButton(_loading ? '' : 'Logg inn', _loading ? null : _login, loading: _loading, icon: Icons.login_rounded),
+        const SizedBox(height: 8),
+        Center(child: TextButton(
+          onPressed: _loading ? null : _registerWithEmail,
+          child: RichText(text: TextSpan(children: [
+            TextSpan(text: 'New user? ', style: tsBodySm(color: kOnSurfaceVariant)),
+            TextSpan(text: 'Register', style: tsBodySm(color: kSecondary)),
+          ])),
+        )),
         const SizedBox(height: 12),
         Row(children: [
           Expanded(child: Divider(color: kOutlineVariant.withOpacity(0.3))),
