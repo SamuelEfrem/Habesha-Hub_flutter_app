@@ -43,6 +43,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
         {'name': 'South Sudan', 'flag': '🇸🇸', 'label': 'country_south_sudan', 'cities': ['Juba', 'Wau', 'Malakal']},
         {'name': 'Rwanda', 'flag': '🇷🇼', 'label': 'country_rwanda', 'cities': ['Kigali', 'Butare', 'Gisenyi']},
         {'name': 'Kenya', 'flag': '🇰🇪', 'label': 'country_kenya', 'cities': ['Nairobi', 'Mombasa', 'Kisumu']},
+        {'name': 'Ethiopia', 'flag': '🇪🇹', 'label': 'country_ethiopia', 'cities': ['Addis Ababa', 'Dire Dawa', 'Mekelle']},
+        {'name': 'Eritrea', 'flag': '🇪🇷', 'label': 'country_eritrea', 'cities': ['Asmara', 'Massawa', 'Keren']},
+        {'name': 'Egypt', 'flag': '🇪🇬', 'label': 'country_egypt', 'cities': ['Cairo', 'Alexandria', 'Giza']},
+        {'name': 'Angola', 'flag': '🇦🇴', 'label': 'country_angola', 'cities': ['Luanda', 'Huambo', 'Benguela']},
+        {'name': 'South Sudan', 'flag': '🇸🇸', 'label': 'country_south_sudan', 'cities': ['Juba', 'Wau', 'Malakal']},
+        {'name': 'Rwanda', 'flag': '🇷🇼', 'label': 'country_rwanda', 'cities': ['Kigali', 'Butare', 'Gisenyi']},
       ]
     },
     {
