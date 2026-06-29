@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
@@ -64,10 +67,7 @@ class _EventsScreenState extends State<EventsScreen>
                   StreamBuilder(
                     stream: FirebaseAuth.instance.authStateChanges(),
                     builder: (_, snap) {
-                      final email = snap.data?.email ?? '';
-                      if (email != 'samuelefriem@gmail.com') {
-                        return const SizedBox.shrink();
-                      }
+                      if (snap.data == null) return const SizedBox.shrink();
                       return GestureDetector(
                         onTap: () => _showCreateEvent(context, t),
                         child: Container(
@@ -185,6 +185,7 @@ class _EventsScreenState extends State<EventsScreen>
     final descCtrl = TextEditingController();
     final locationCtrl = TextEditingController();
     final imageCtrl = TextEditingController();
+    File? pickedImage;
     String selectedCat = 'Kultur';
     DateTime selectedDate = DateTime.now().add(const Duration(days: 7));
 
@@ -301,12 +302,23 @@ class _EventsScreenState extends State<EventsScreen>
                   style: tsBodyLg(color: kOnSurface),
                   decoration: InputDecoration(hintText: t('describe_need'))),
               const SizedBox(height: 16),
-              Text(t('event_image_url'), style: tsLabel()),
+              Text('Event Image', style: tsLabel()),
               const SizedBox(height: 8),
-              TextField(
-                  controller: imageCtrl,
-                  style: tsBodyLg(color: kOnSurface),
-                  decoration: const InputDecoration(hintText: 'https://...')),
+              StatefulBuilder(
+                builder: (ctx2, setImg) => GestureDetector(
+                  onTap: () async {
+                    final p = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 70);
+                    if (p != null) { pickedImage = File(p.path); setModalState(() {}); }
+                  },
+                  child: Container(
+                    height: 140, width: double.infinity,
+                    decoration: BoxDecoration(color: kSurfaceContainerHigh, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.3))),
+                    child: pickedImage != null
+                      ? ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.file(pickedImage!, fit: BoxFit.cover, width: double.infinity, height: 140))
+                      : const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.add_photo_alternate_rounded, color: kSecondary, size: 36), SizedBox(height: 8), Text('Tap to add image', style: TextStyle(color: kSecondary))])),
+                  ),
+                ),
+              ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
@@ -315,17 +327,28 @@ class _EventsScreenState extends State<EventsScreen>
                     if (titleCtrl.text.isEmpty || locationCtrl.text.isEmpty) {
                       return;
                     }
-                    await _db.collection('events').add({
-                      'title': titleCtrl.text.trim(),
-                      'description': descCtrl.text.trim(),
-                      'category': selectedCat,
-                      'location': locationCtrl.text.trim(),
-                      'date': Timestamp.fromDate(selectedDate),
-                      'imageUrl': imageCtrl.text.trim(),
-                      'interestedCount': 0,
-                      'createdAt': FieldValue.serverTimestamp(),
-                    });
-                    if (ctx.mounted) Navigator.pop(ctx);
+                    try {
+                      String imageUrl = '';
+                      if (pickedImage != null) {
+                        final ref = FirebaseStorage.instance.ref().child('events/\${DateTime.now().millisecondsSinceEpoch}.jpg');
+                        await ref.putFile(pickedImage!);
+                        imageUrl = await ref.getDownloadURL();
+                      }
+                      await _db.collection('events').add({
+                        'title': titleCtrl.text.trim(),
+                        'description': descCtrl.text.trim(),
+                        'category': selectedCat,
+                        'location': locationCtrl.text.trim(),
+                        'date': Timestamp.fromDate(selectedDate),
+                        'imageUrl': imageUrl,
+                        'interestedCount': 0,
+                        'createdBy': FirebaseAuth.instance.currentUser?.uid ?? '',
+                        'createdAt': FieldValue.serverTimestamp(),
+                      });
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    } catch (e) {
+                      print('Event error: ' + e.toString());
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: kSecondary,
@@ -364,6 +387,7 @@ class _EventCard extends StatelessWidget {
         final isUpcoming = date != null && date.isAfter(DateTime.now());
         final isAdmin = FirebaseAuth.instance.currentUser?.email ==
             'samuelefriem@gmail.com';
+        final isOwner = FirebaseAuth.instance.currentUser?.uid == data['createdBy'];
 
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
@@ -375,14 +399,22 @@ class _EventCard extends StatelessWidget {
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (hasImage)
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Image.network(data['imageUrl'],
-                    height: 160,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const SizedBox()),
+              GestureDetector(
+                onTap: () => showDialog(context: context, builder: (_) => Dialog(
+                  backgroundColor: Colors.transparent,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: InteractiveViewer(child: Image.network(data['imageUrl'], fit: BoxFit.contain)),
+                  ),
+                )),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: Image.network(data['imageUrl'],
+                      height: 160,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox()),
+                ),
               )
             else
               Container(
@@ -467,7 +499,7 @@ class _EventCard extends StatelessWidget {
                                     .copyWith(fontSize: 12)),
                           ),
                         ),
-                      if (isAdmin) ...[
+                      if (isAdmin || isOwner) ...[
                         const SizedBox(width: 8),
                         GestureDetector(
                           onTap: () async =>
