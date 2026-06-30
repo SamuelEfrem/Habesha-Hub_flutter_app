@@ -167,6 +167,7 @@ class _EventsScreenState extends State<EventsScreen>
                       itemBuilder: (_, i) {
                         final data = docs[i].data() as Map<String, dynamic>;
                         return _EventCard(
+                            key: ValueKey(docs[i].id),
                             docId: docs[i].id, data: data, db: _db);
                       },
                     );
@@ -373,7 +374,7 @@ class _EventCard extends StatelessWidget {
   final Map<String, dynamic> data;
   final FirebaseFirestore db;
 
-  const _EventCard({required this.docId, required this.data, required this.db});
+  const _EventCard({super.key, required this.docId, required this.data, required this.db});
 
   @override
   Widget build(BuildContext context) {
