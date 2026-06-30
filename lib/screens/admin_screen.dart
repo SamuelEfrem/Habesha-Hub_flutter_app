@@ -158,15 +158,38 @@ class _AdminScreenState extends State<AdminScreen>
   }
 }
 
-class _BusinessList extends StatelessWidget {
+class _BusinessList extends StatefulWidget {
   final String status;
   final FirebaseFirestore db;
-
   const _BusinessList({required this.status, required this.db});
+  @override
+  State<_BusinessList> createState() => _BusinessListState();
+}
+
+class _BusinessListState extends State<_BusinessList> {
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
+    final status = widget.status;
+    final db = widget.db;
+    return Column(children: [
+      Padding(
+        padding: const EdgeInsets.all(12),
+        child: TextField(
+          style: tsBodyLg(color: kOnSurface),
+          decoration: InputDecoration(
+            hintText: 'Søk bedrift...',
+            prefixIcon: const Icon(Icons.search_rounded, color: kSecondary),
+            filled: true,
+            fillColor: kSurfaceContainer,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+          ),
+          onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+        ),
+      ),
+      Expanded(
+        child: StreamBuilder<QuerySnapshot>(
       stream: db.collection('businesses').snapshots(),
       builder: (context, snap) {
         if (!snap.hasData) {
@@ -174,12 +197,16 @@ class _BusinessList extends StatelessWidget {
               child: CircularProgressIndicator(
                   color: kSecondary, strokeWidth: 1.5));
         }
-
         final docs = snap.data!.docs.where((doc) {
           final data = doc.data() as Map<String, dynamic>;
           final s = data['status'] as String?;
-          if (status == 'pending') return s == null || s == 'pending';
-          return s == status;
+          bool statusMatch;
+          if (status == 'pending') statusMatch = s == null || s == 'pending';
+          else statusMatch = s == status;
+          if (!statusMatch) return false;
+          if (_searchQuery.isEmpty) return true;
+          final name = (data['name'] as String? ?? '').toLowerCase();
+          return name.contains(_searchQuery);
         }).toList();
 
         docs.sort((a, b) {
@@ -238,7 +265,9 @@ class _BusinessList extends StatelessWidget {
           },
         );
       },
-    );
+    ),
+      ),
+    ]);
   }
 }
 
