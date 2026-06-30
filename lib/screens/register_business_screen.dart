@@ -169,7 +169,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         'description': _descCtrl.text.trim(),
         'address': _addrCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
-        'imageUrl': _imgCtrl.text.trim(),
+        'imageUrl': '',
         'lat': _lat ?? 59.9139, // fallback: Oslo center
         'lng': _lng ?? 10.7522,
         'rating': 0.0,
