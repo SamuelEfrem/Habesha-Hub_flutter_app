@@ -12,6 +12,10 @@ import 'package:uuid/uuid.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../models/business.dart';
+import 'admin_chat_screen.dart';
+import 'guest_chat_screen.dart';
+import 'business_inbox_screen.dart';
+import 'booking_screen.dart';
 import '../utils/language_notifier.dart';
 import '../theme/app_theme.dart';
 import 'edit_business_screen.dart';
@@ -376,7 +380,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         GestureDetector(
           onTap: () {
             Share.share(
-                '${widget.business.name} - ${widget.business.category}\n${widget.business.address}\n\nFinn på Habesha Hub!');
+                '${widget.business.name} - ${widget.business.category}\n${widget.business.address}\n\nFind on Habesha Hub! Download: https://habesha-hub.no/download.html');
           },
           child: const Padding(
             padding: EdgeInsets.all(12),
@@ -555,8 +559,15 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           childAspectRatio: 2,
           children: [
             actionSquare(Icons.map_rounded, t('map'), _openMaps),
-            actionSquare(Icons.chat_bubble_rounded, t('chat_tab'),
-                () => _tabController.animateTo(1)),
+            actionSquare(Icons.chat_bubble_rounded, t('chat_tab'), () {
+              final user = FirebaseAuth.instance.currentUser;
+              final isOwner = user?.uid == widget.business.ownerId;
+              if (isOwner) {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => BusinessInboxScreen(business: widget.business)));
+              } else {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => GuestChatScreen(business: widget.business)));
+              }
+            }),
             actionSquare(Icons.phone_rounded, t('call'), _callBusiness),
             actionSquare(Icons.language_rounded, t('web'), () async {
               final site = widget.business.website;

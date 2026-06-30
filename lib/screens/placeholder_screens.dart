@@ -1,5 +1,6 @@
 import 'admin_chat_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -404,6 +405,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     setState(() => _loading = true);
     final prefs = await SharedPreferences.getInstance();
     final user = FirebaseAuth.instance.currentUser;
+    print('ChatList _load: user=\${user?.email} uid=\${user?.uid}');
     final uid = user?.uid ?? prefs.getString('userId') ?? '';
     setState(() => _userId = uid);
     if (user != null && !user.isAnonymous) {
@@ -412,6 +414,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ? await _db.collection('businesses').get()
           : await _db.collection('businesses').where('ownerId', isEqualTo: user.uid).get();
       final businesses = snap.docs.map((d) => Business.fromFirestore(d.data(), d.id)).toList();
+      print('ChatList: found \${businesses.length} businesses for user \${user.uid}');
       setState(() { _myBusinesses = businesses; _isOwner = businesses.isNotEmpty; _loading = false; });
     } else {
       setState(() { _isOwner = false; _loading = false; });
@@ -830,6 +833,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ..._myBusinesses.map((b) => _businessRow(b, context)),
                   const SizedBox(height: 24),
                 ],
+                GestureDetector(
+                  onTap: () => Share.share('Check out Habesha Hub!\n\nFind Ethiopian & Eritrean businesses near you.\n\nDownload now: https://habesha-hub.no/download.html'),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
+                    child: Row(children: [
+                      const Icon(Icons.share_rounded, color: kSecondary, size: 20),
+                      const SizedBox(width: 12),
+                      Text('Share Habesha Hub', style: tsTitleMd()),
+                      const Spacer(),
+                      const Icon(Icons.chevron_right_rounded, color: kSecondary, size: 20),
+                    ]),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 const AdminButton(),
                 const SizedBox(height: 12),
                 _menuRow(Icons.help_outline_rounded, t('help_support'), () => _showHelp()),
