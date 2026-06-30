@@ -390,13 +390,61 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       ],
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(fit: StackFit.expand, children: [
-          Image.network(
+          GestureDetector(
+            onTap: () {
+              final url = _localImageUrl ?? widget.business.imageUrl;
+              if (url.isNotEmpty) {
+                showDialog(context: context, builder: (_) => Dialog(
+                  backgroundColor: Colors.transparent,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: InteractiveViewer(child: Image.network(url, fit: BoxFit.contain)),
+                  ),
+                ));
+              }
+            },
+            child: Image.network(
               '${_localImageUrl ?? widget.business.imageUrl}?v=${DateTime.now().millisecondsSinceEpoch}',
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
                   color: kSurfaceContainerHigh,
                   child: const Icon(Icons.storefront_rounded,
                       size: 80, color: kSecondary))),
+          ),
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                final url = _localImageUrl ?? widget.business.imageUrl;
+                if (url.isNotEmpty) {
+                  showDialog(context: context, builder: (_) => Dialog(
+                    backgroundColor: Colors.transparent,
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: InteractiveViewer(child: Image.network(url, fit: BoxFit.contain)),
+                    ),
+                  ));
+                }
+              },
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                final url = _localImageUrl ?? widget.business.imageUrl;
+                if (url.isNotEmpty) {
+                  showDialog(context: context, builder: (_) => Dialog(
+                    backgroundColor: Colors.transparent,
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: InteractiveViewer(child: Image.network(url, fit: BoxFit.contain)),
+                    ),
+                  ));
+                }
+              },
+              child: Container(color: Colors.transparent),
+            ),
+          ),
           DecoratedBox(
               decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -406,6 +454,27 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                 Colors.transparent,
                 kSurface.withOpacity(0.95)
               ]))),
+          // Fullscreen tap overlay - must be last in Stack
+          Positioned(
+            top: 0, left: 0, right: 0,
+            height: 180,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                final url = _localImageUrl ?? widget.business.imageUrl;
+                if (url.isNotEmpty) {
+                  showDialog(context: context, builder: (_) => Dialog(
+                    backgroundColor: Colors.transparent,
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: InteractiveViewer(child: Image.network(url, fit: BoxFit.contain)),
+                    ),
+                  ));
+                }
+              },
+              child: Container(color: Colors.transparent),
+            ),
+          ),
           Positioned(
               bottom: 16,
               left: 16,
@@ -1189,7 +1258,16 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
             ),
             clipBehavior: Clip.hardEdge,
             child: Stack(children: [
-              Image.network(_localGalleryImages[i], fit: BoxFit.cover, width: 120, height: 120),
+              GestureDetector(
+                onTap: () => showDialog(context: context, builder: (_) => Dialog(
+                  backgroundColor: Colors.transparent,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: InteractiveViewer(child: Image.network(_localGalleryImages[i], fit: BoxFit.contain)),
+                  ),
+                )),
+                child: Image.network(_localGalleryImages[i], fit: BoxFit.cover, width: 120, height: 120),
+              ),
               if (_isOwner)
                 Positioned(
                   top: 4, right: 4,
