@@ -1077,7 +1077,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       return GestureDetector(
         onTap: () async {
           final url = Uri.parse(
-              'mailto:samuelefriem@gmail.com?subject=Premium+menu+upload');
+              'mailto:support@habesha-hub.no?subject=Premium+menu+upload');
           if (await canLaunchUrl(url)) await launchUrl(url);
         },
         child: Container(

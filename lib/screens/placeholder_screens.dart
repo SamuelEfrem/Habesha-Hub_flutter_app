@@ -47,9 +47,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
         {'name': 'Ethiopia', 'flag': '🇪🇹', 'label': 'country_ethiopia', 'cities': ['Addis Ababa', 'Dire Dawa', 'Mekelle']},
         {'name': 'Eritrea', 'flag': '🇪🇷', 'label': 'country_eritrea', 'cities': ['Asmara', 'Massawa', 'Keren']},
         {'name': 'Egypt', 'flag': '🇪🇬', 'label': 'country_egypt', 'cities': ['Cairo', 'Alexandria', 'Giza']},
-        {'name': 'Angola', 'flag': '🇦🇴', 'label': 'country_angola', 'cities': ['Luanda', 'Huambo', 'Benguela']},
-        {'name': 'South Sudan', 'flag': '🇸🇸', 'label': 'country_south_sudan', 'cities': ['Juba', 'Wau', 'Malakal']},
-        {'name': 'Rwanda', 'flag': '🇷🇼', 'label': 'country_rwanda', 'cities': ['Kigali', 'Butare', 'Gisenyi']},
       ]
     },
     {
@@ -899,19 +896,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: kOutlineVariant, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 20),
-            Row(children: [const Icon(Icons.help_rounded, color: kSecondary, size: 24), const SizedBox(width: 10), Text('Help & Support', style: tsHeadlineMd(color: kSecondary))]),
+            Row(children: [const Icon(Icons.help_rounded, color: kSecondary, size: 24), const SizedBox(width: 10), Text(languageNotifier.t('help_support'), style: tsHeadlineMd(color: kSecondary))]),
             const SizedBox(height: 20),
-            _faq('Hva er Habesha Hub?', 'Habesha Hub er en gratis plattform for å finne etiopiske og eritreiske bedrifter i nærheten og over hele verden.'),
-            _faq('Trenger jeg konto?', 'Nei! Du kan bla gjennom bedrifter, søke og chatte som gjest.'),
-            _faq('Hvordan registrerer jeg bedrift?', 'Gå til Profil → Register Your Business. Bedriften godkjennes innen 1-2 virkedager.'),
+            _faq(languageNotifier.t('faq_what_q'), languageNotifier.t('faq_what_a')),
+            _faq(languageNotifier.t('faq_account_q'), languageNotifier.t('faq_account_a')),
+            _faq(languageNotifier.t('faq_register_q'), languageNotifier.t('faq_register_a')),
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: kSurfaceContainerHigh, borderRadius: BorderRadius.circular(12)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Kontakt oss', style: tsTitleMd(color: kSecondary)),
+                Text(languageNotifier.t('contact_us'), style: tsTitleMd(color: kSecondary)),
                 const SizedBox(height: 10),
-                Row(children: [const Icon(Icons.email_outlined, color: kSecondary, size: 15), const SizedBox(width: 8), Text('samuelefriem@gmail.com', style: tsBodySm())]),
+                GestureDetector(
+                  onTap: () async {
+                    final url = Uri.parse('mailto:support@habesha-hub.no');
+                    if (await canLaunchUrl(url)) await launchUrl(url);
+                  },
+                  child: Row(children: [const Icon(Icons.email_outlined, color: kSecondary, size: 15), const SizedBox(width: 8), Text('support@habesha-hub.no', style: tsBodySm(color: kSecondary))]),
+                ),
               ]),
             ),
             const SizedBox(height: 16),
@@ -992,11 +995,11 @@ class _ContactScreenState extends State<ContactScreen> {
     setState(() => _sending = true);
     await FirebaseFirestore.instance.collection('contact_messages').add({
       'name': _nameCtrl.text.trim(), 'message': _msgCtrl.text.trim(), 'email': _emailCtrl.text.trim(),
-      'createdAt': FieldValue.serverTimestamp(), 'replied': false, 'adminEmail': 'samuelefriem@gmail.com',
+      'createdAt': FieldValue.serverTimestamp(), 'replied': false, 'adminEmail': 'support@habesha-hub.no',
     });
     final subject = Uri.encodeComponent('Ny henvendelse fra ${_nameCtrl.text.trim()}');
     final body = Uri.encodeComponent('Fra: ${_nameCtrl.text.trim()}\nE-post: ${_emailCtrl.text.trim()}\n\nMelding:\n${_msgCtrl.text.trim()}');
-    final url = Uri.parse('mailto:samuelefriem@gmail.com?subject=$subject&body=$body');
+    final url = Uri.parse('mailto:support@habesha-hub.no?subject=$subject&body=$body');
     if (await canLaunchUrl(url)) await launchUrl(url);
     setState(() { _sending = false; _sent = true; });
   }
