@@ -254,7 +254,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: goldButton(
-                  '${t('search_in')} ${t('country_${_selectedCountry.toLowerCase()}')}${_selectedCity.isNotEmpty ? " / $_selectedCity" : ""}',
+                  '${t('search_in')} $_selectedCountry${_selectedCity.isNotEmpty ? " / $_selectedCity" : ""}',
                   _isSearching ? null : _search, loading: _isSearching),
               ),
             ],
