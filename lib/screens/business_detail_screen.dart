@@ -125,6 +125,15 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
 
   Future<void> _submitRating(double stars) async {
     if (_ratingSubmitted) return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Du må logge inn for å rate', style: tsBodySm(color: kOnSurface)),
+        backgroundColor: kRed,
+        behavior: SnackBarBehavior.floating,
+      ));
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
     final doc =
         await _db.collection('businesses').doc(widget.business.id).get();
