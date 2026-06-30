@@ -131,6 +131,30 @@ class AppTranslations {
       'English': 'Clinic',
       'Amharic': 'ክሊኒክ'
     },
+    'cat_photographer': {
+      'Norsk': 'Fotograf',
+      'Tigrinya': 'ፎቶግራፈር',
+      'English': 'Photographer',
+      'Amharic': 'ፎቶግራፈር'
+    },
+    'cat_music': {
+      'Norsk': 'Musikk',
+      'Tigrinya': 'ሙዚቃ',
+      'English': 'Music',
+      'Amharic': 'ሙዚቃ'
+    },
+    'cat_decoration': {
+      'Norsk': 'Dekorasjon',
+      'Tigrinya': 'ጌጥ',
+      'English': 'Decoration',
+      'Amharic': 'ጌጣጌጥ'
+    },
+    'cat_taxi': {
+      'Norsk': 'Taxi',
+      'Tigrinya': 'ታክሲ',
+      'English': 'Taxi',
+      'Amharic': 'ታክሲ'
+    },
     'other': {
       'Norsk': 'Annet',
       'Tigrinya': 'ካልእ',

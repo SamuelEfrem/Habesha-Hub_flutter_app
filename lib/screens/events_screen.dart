@@ -331,7 +331,7 @@ class _EventsScreenState extends State<EventsScreen>
                     try {
                       String imageUrl = '';
                       if (pickedImage != null) {
-                        final ref = FirebaseStorage.instance.ref().child('events/\${DateTime.now().millisecondsSinceEpoch}.jpg');
+                        final ref = FirebaseStorage.instance.ref().child('events/' + DateTime.now().millisecondsSinceEpoch.toString() + '.jpg');
                         await ref.putFile(pickedImage!);
                         imageUrl = await ref.getDownloadURL();
                       }

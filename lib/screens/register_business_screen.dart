@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/language_notifier.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geocoding/geocoding.dart';
@@ -42,18 +43,36 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
     {'days': 'Søndag', 'open': '11:00', 'close': '15:00', 'closed': 'true'},
   ];
 
+  String _catDisplayName(String key) {
+    const keyMap = {
+      'Restaurant': 'restaurant',
+      'Shop': 'shop',
+      'Cafe': 'cafe',
+      'Barber': 'barber',
+      'Club': 'club',
+      'Clinic': 'clinic',
+      'Photographer': 'cat_photographer',
+      'Music': 'cat_music',
+      'Decoration': 'cat_decoration',
+      'Taxi': 'cat_taxi',
+      'Other': 'other',
+    };
+    final tKey = keyMap[key];
+    if (tKey == null) return key;
+    return languageNotifier.t(tKey);
+  }
   final _cats = [
     {'name': 'Restaurant', 'icon': Icons.restaurant_rounded},
-    {'name': 'Butikk', 'icon': Icons.shopping_bag_rounded},
-    {'name': 'Kafé', 'icon': Icons.local_cafe_rounded},
-    {'name': 'Frisør', 'icon': Icons.content_cut_rounded},
+    {'name': 'Shop', 'icon': Icons.shopping_bag_rounded},
+    {'name': 'Cafe', 'icon': Icons.local_cafe_rounded},
+    {'name': 'Barber', 'icon': Icons.content_cut_rounded},
     {'name': 'Club', 'icon': Icons.music_note_rounded},
-    {'name': 'Klinikk', 'icon': Icons.local_hospital_rounded},
-    {'name': 'Fotograf', 'icon': Icons.camera_alt_rounded},
-    {'name': 'Musikk', 'icon': Icons.queue_music_rounded},
-    {'name': 'Dekorasjon', 'icon': Icons.celebration_rounded},
+    {'name': 'Clinic', 'icon': Icons.local_hospital_rounded},
+    {'name': 'Photographer', 'icon': Icons.camera_alt_rounded},
+    {'name': 'Music', 'icon': Icons.queue_music_rounded},
+    {'name': 'Decoration', 'icon': Icons.celebration_rounded},
     {'name': 'Taxi', 'icon': Icons.local_taxi_rounded},
-    {'name': 'Annet', 'icon': Icons.storefront_rounded},
+    {'name': 'Other', 'icon': Icons.storefront_rounded},
   ];
 
   @override
@@ -400,7 +419,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                   Icon(cat['icon'] as IconData,
                       color: sel ? kSecondary : kOnSurfaceVariant, size: 16),
                   const SizedBox(width: 8),
-                  Text(cat['name'] as String,
+                  Text(_catDisplayName(cat['name'] as String),
                       style:
                           tsLabel(color: sel ? kSecondary : kOnSurfaceVariant)),
                 ]),
