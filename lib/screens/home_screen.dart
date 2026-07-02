@@ -12,6 +12,7 @@ import 'business_detail_screen.dart';
 import 'placeholder_screens.dart';
 import 'forum_screen.dart';
 import 'ai_chat_screen.dart';
+import 'flights_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -210,6 +211,37 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 SliverToBoxAdapter(child: _buildShazamSection(t)),
                 const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
+                // Flights banner
+                SliverToBoxAdapter(
+                  child: GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FlightsScreen())),
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF004D40), Color(0xFF00897B)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(children: [
+                        const Text('✈️', style: TextStyle(fontSize: 32)),
+                        const SizedBox(width: 12),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(t('flights_title'), style: tsTitleMd(color: Colors.white)),
+                          Text(t('flights_subtitle'), style: tsBodySm(color: Colors.white70)),
+                        ])),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(100)),
+                          child: Text(t('flights_search'), style: tsLabel(color: Colors.white)),
+                        ),
+                      ]),
+                    ),
+                  ),
+                ),
                 if (_hasSearched) ...[
                   // Category chips
                   SliverToBoxAdapter(child: _buildCategoryChips()),

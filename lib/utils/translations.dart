@@ -179,11 +179,191 @@ class AppTranslations {
       'English': 'Tips',
       'Amharic': 'ምክር'
     },
+    'flights_title': {
+      'Norsk': 'Finn billige fly',
+      'Tigrinya': 'ሕሱር ነፈርቲ ርኸብ',
+      'English': 'Find Cheap Flights',
+      'Amharic': 'ርካሽ በረራዎችን ፈልግ'
+    },
+    'flights_subtitle': {
+      'Norsk': 'Søk fly over hele verden — beste priser garantert',
+      'Tigrinya': 'ኣብ ምሉእ ዓለም ነፈርቲ ድለ — እቲ ዝበለጸ ዋጋ ዋሕሲ',
+      'English': 'Search flights worldwide — best prices guaranteed',
+      'Amharic': 'በዓለም ሁሉ በረራዎችን ፈልጉ — ምርጥ ዋጋዎች ዋስትና ተሰጥቷል'
+    },
+    'flights_popular': {
+      'Norsk': 'Populære ruter',
+      'Tigrinya': 'ልሙዳት መስመራት',
+      'English': 'Popular Routes',
+      'Amharic': 'ታዋቂ መስመሮች'
+    },
+    'flights_search': {
+      'Norsk': 'Søk fly nå',
+      'Tigrinya': 'ሕጂ ነፈርቲ ድለ',
+      'English': 'Search Flights Now',
+      'Amharic': 'አሁን በረራዎችን ፈልግ'
+    },
+    'flights_tips': {
+      'Norsk': 'Tips',
+      'Tigrinya': 'ምኽርታት',
+      'English': 'Tips',
+      'Amharic': 'ምክሮች'
+    },
+    'flights_tip1': {
+      'Norsk': '✅ Book 2-3 måneder i forveien for beste priser',
+      'Tigrinya': '✅ ቅድሚ 2-3 ወርሒ ሕዝ ንዝበለጸ ዋጋ',
+      'English': '✅ Book 2-3 months in advance for best prices',
+      'Amharic': '✅ ለምርጥ ዋጋ 2-3 ወር አስቀድሞ ቦታ ያዙ'
+    },
+    'flights_tip2': {
+      'Norsk': '✅ Tirsdag og onsdag er billigste dager å fly',
+      'Tigrinya': '✅ ሰሉስን ረቡዕን ብዝሒ ዝለዓለ ዋጋ ዘለዎ መዓልታት',
+      'English': '✅ Tuesday & Wednesday are cheapest days to fly',
+      'Amharic': '✅ ማክሰኞ እና ረቡዕ ርካሽ ቀናት ናቸው'
+    },
+    'flights_tip3': {
+      'Norsk': '✅ Sammenlign priser med fleksible datoer',
+      'Tigrinya': '✅ ዋጋታት ምስ ተለዋዋጢ ዕለታት ኣወዳድር',
+      'English': '✅ Compare prices with flexible dates',
+      'Amharic': '✅ ተለዋዋጭ ቀናት ጋር ዋጋዎችን ያወዳድሩ'
+    },
+    'route_oslo_addis': {
+      'Norsk': '🇳🇴 Oslo → 🇪🇹 Addis Abeba',
+      'Tigrinya': '🇳🇴 ኦስሎ → 🇪🇹 ኣዲስ ኣበባ',
+      'English': '🇳🇴 Oslo → 🇪🇹 Addis Abeba',
+      'Amharic': '🇳🇴 ኦስሎ → 🇪🇹 አዲስ አበባ'
+    },
+    'route_oslo_asmara': {
+      'Norsk': '🇳🇴 Oslo → 🇪🇷 Asmara',
+      'Tigrinya': '🇳🇴 ኦስሎ → 🇪🇷 ኣስመራ',
+      'English': '🇳🇴 Oslo → 🇪🇷 Asmara',
+      'Amharic': '🇳🇴 ኦስሎ → 🇪🇷 አስመራ'
+    },
+    'route_stockholm_addis': {
+      'Norsk': '🇸🇪 Stockholm → 🇪🇹 Addis Abeba',
+      'Tigrinya': '🇸🇪 ስቶክሆልም → 🇪🇹 ኣዲስ ኣበባ',
+      'English': '🇸🇪 Stockholm → 🇪🇹 Addis Abeba',
+      'Amharic': '🇸🇪 ስቶክሆልም → 🇪🇹 አዲስ አበባ'
+    },
+    'route_london_addis': {
+      'Norsk': '🇬🇧 London → 🇪🇹 Addis Abeba',
+      'Tigrinya': '🇬🇧 ለንደን → 🇪🇹 ኣዲስ ኣበባ',
+      'English': '🇬🇧 London → 🇪🇹 Addis Abeba',
+      'Amharic': '🇬🇧 ለንደን → 🇪🇹 አዲስ አበባ'
+    },
+    'route_kampala_addis': {
+      'Norsk': '🇺🇬 Kampala → 🇪🇹 Addis Abeba',
+      'Tigrinya': '🇺🇬 ካምፓላ → 🇪🇹 ኣዲስ ኣበባ',
+      'English': '🇺🇬 Kampala → 🇪🇹 Addis Abeba',
+      'Amharic': '🇺🇬 ካምፓላ → 🇪🇹 አዲስ አበባ'
+    },
+    'route_world_africa': {
+      'Norsk': '🌍 Hele verden → Afrika',
+      'Tigrinya': '🌍 ምሉእ ዓለም → ኣፍሪቃ',
+      'English': '🌍 Worldwide → Africa',
+      'Amharic': '🌍 ዓለም ሁሉ → አፍሪካ'
+    },
+    'flights_tip4': {
+      'Norsk': '✅ Ethiopian Airlines har ofte beste priser til Afrika',
+      'Tigrinya': '✅ ኢትዮጵያን ኤርላይንስ ናብ ኣፍሪቃ ዝበለጸ ዋጋ ኣለዎ',
+      'English': '✅ Ethiopian Airlines often has best Africa prices',
+      'Amharic': '✅ ኢትዮጵያ አየር መንገድ ለአፍሪካ ምርጥ ዋጋ አለው'
+    },
     'cat_hotel': {
       'Norsk': 'Hotell/Hostel',
       'Tigrinya': 'ሆቴል/ሆስቴል',
       'English': 'Hotel/Hostel',
       'Amharic': 'ሆቴል/ሆስቴል'
+    },
+    'flights_title': {
+      'Norsk': 'Finn billige fly',
+      'Tigrinya': 'ሕሱር ነፈርቲ ርኸብ',
+      'English': 'Find Cheap Flights',
+      'Amharic': 'ርካሽ በረራዎችን ፈልግ'
+    },
+    'flights_subtitle': {
+      'Norsk': 'Søk fly over hele verden — beste priser garantert',
+      'Tigrinya': 'ኣብ ምሉእ ዓለም ነፈርቲ ድለ — እቲ ዝበለጸ ዋጋ ዋሕሲ',
+      'English': 'Search flights worldwide — best prices guaranteed',
+      'Amharic': 'በዓለም ሁሉ በረራዎችን ፈልጉ — ምርጥ ዋጋዎች ዋስትና ተሰጥቷል'
+    },
+    'flights_popular': {
+      'Norsk': 'Populære ruter',
+      'Tigrinya': 'ልሙዳት መስመራት',
+      'English': 'Popular Routes',
+      'Amharic': 'ታዋቂ መስመሮች'
+    },
+    'flights_search': {
+      'Norsk': 'Søk fly nå',
+      'Tigrinya': 'ሕጂ ነፈርቲ ድለ',
+      'English': 'Search Flights Now',
+      'Amharic': 'አሁን በረራዎችን ፈልግ'
+    },
+    'flights_tips': {
+      'Norsk': 'Tips',
+      'Tigrinya': 'ምኽርታት',
+      'English': 'Tips',
+      'Amharic': 'ምክሮች'
+    },
+    'flights_tip1': {
+      'Norsk': '✅ Book 2-3 måneder i forveien for beste priser',
+      'Tigrinya': '✅ ቅድሚ 2-3 ወርሒ ሕዝ ንዝበለጸ ዋጋ',
+      'English': '✅ Book 2-3 months in advance for best prices',
+      'Amharic': '✅ ለምርጥ ዋጋ 2-3 ወር አስቀድሞ ቦታ ያዙ'
+    },
+    'flights_tip2': {
+      'Norsk': '✅ Tirsdag og onsdag er billigste dager å fly',
+      'Tigrinya': '✅ ሰሉስን ረቡዕን ብዝሒ ዝለዓለ ዋጋ ዘለዎ መዓልታት',
+      'English': '✅ Tuesday & Wednesday are cheapest days to fly',
+      'Amharic': '✅ ማክሰኞ እና ረቡዕ ርካሽ ቀናት ናቸው'
+    },
+    'flights_tip3': {
+      'Norsk': '✅ Sammenlign priser med fleksible datoer',
+      'Tigrinya': '✅ ዋጋታት ምስ ተለዋዋጢ ዕለታት ኣወዳድር',
+      'English': '✅ Compare prices with flexible dates',
+      'Amharic': '✅ ተለዋዋጭ ቀናት ጋር ዋጋዎችን ያወዳድሩ'
+    },
+    'route_oslo_addis': {
+      'Norsk': '🇳🇴 Oslo → 🇪🇹 Addis Abeba',
+      'Tigrinya': '🇳🇴 ኦስሎ → 🇪🇹 ኣዲስ ኣበባ',
+      'English': '🇳🇴 Oslo → 🇪🇹 Addis Abeba',
+      'Amharic': '🇳🇴 ኦስሎ → 🇪🇹 አዲስ አበባ'
+    },
+    'route_oslo_asmara': {
+      'Norsk': '🇳🇴 Oslo → 🇪🇷 Asmara',
+      'Tigrinya': '🇳🇴 ኦስሎ → 🇪🇷 ኣስመራ',
+      'English': '🇳🇴 Oslo → 🇪🇷 Asmara',
+      'Amharic': '🇳🇴 ኦስሎ → 🇪🇷 አስመራ'
+    },
+    'route_stockholm_addis': {
+      'Norsk': '🇸🇪 Stockholm → 🇪🇹 Addis Abeba',
+      'Tigrinya': '🇸🇪 ስቶክሆልም → 🇪🇹 ኣዲስ ኣበባ',
+      'English': '🇸🇪 Stockholm → 🇪🇹 Addis Abeba',
+      'Amharic': '🇸🇪 ስቶክሆልም → 🇪🇹 አዲስ አበባ'
+    },
+    'route_london_addis': {
+      'Norsk': '🇬🇧 London → 🇪🇹 Addis Abeba',
+      'Tigrinya': '🇬🇧 ለንደን → 🇪🇹 ኣዲስ ኣበባ',
+      'English': '🇬🇧 London → 🇪🇹 Addis Abeba',
+      'Amharic': '🇬🇧 ለንደን → 🇪🇹 አዲስ አበባ'
+    },
+    'route_kampala_addis': {
+      'Norsk': '🇺🇬 Kampala → 🇪🇹 Addis Abeba',
+      'Tigrinya': '🇺🇬 ካምፓላ → 🇪🇹 ኣዲስ ኣበባ',
+      'English': '🇺🇬 Kampala → 🇪🇹 Addis Abeba',
+      'Amharic': '🇺🇬 ካምፓላ → 🇪🇹 አዲስ አበባ'
+    },
+    'route_world_africa': {
+      'Norsk': '🌍 Hele verden → Afrika',
+      'Tigrinya': '🌍 ምሉእ ዓለም → ኣፍሪቃ',
+      'English': '🌍 Worldwide → Africa',
+      'Amharic': '🌍 ዓለም ሁሉ → አፍሪካ'
+    },
+    'flights_tip4': {
+      'Norsk': '✅ Ethiopian Airlines har ofte beste priser til Afrika',
+      'Tigrinya': '✅ ኢትዮጵያን ኤርላይንስ ናብ ኣፍሪቃ ዝበለጸ ዋጋ ኣለዎ',
+      'English': '✅ Ethiopian Airlines often has best Africa prices',
+      'Amharic': '✅ ኢትዮጵያ አየር መንገድ ለአፍሪካ ምርጥ ዋጋ አለው'
     },
     'cat_hotel': {
       'Norsk': 'Hotell/Hostel',
