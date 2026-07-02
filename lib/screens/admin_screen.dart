@@ -490,6 +490,27 @@ class _AdminActions extends StatelessWidget {
         ],
       ]),
       const SizedBox(height: 8),
+      // Premium toggle
+      GestureDetector(
+        onTap: () {
+          FirebaseFirestore.instance.collection('businesses').doc(docId).update({'isPremium': !business.isPremium});
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: business.isPremium ? kSecondary.withOpacity(0.1) : kSurfaceContainerHigh,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: business.isPremium ? kSecondary : kOutlineVariant, width: 0.5),
+          ),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(business.isPremium ? Icons.star_rounded : Icons.star_outline_rounded, color: kSecondary, size: 16),
+            const SizedBox(width: 6),
+            Text(business.isPremium ? '⭐ Remove Premium' : '⭐ Set as Premium', style: tsLabel(color: kSecondary)),
+          ]),
+        ),
+      ),
+      const SizedBox(height: 8),
       GestureDetector(
         onTap: () async {
           await Navigator.push(
