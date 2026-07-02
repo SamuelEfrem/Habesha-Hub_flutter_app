@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'travel_help_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 
@@ -74,6 +75,23 @@ class FlightsScreen extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: kSecondary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Travel help button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TravelHelpScreen())),
+                      icon: const Icon(Icons.support_agent_rounded, color: kSecondary),
+                      label: Text(t('travel_help_btn'), style: tsTitleMd(color: kSecondary)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(color: kSecondary),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
