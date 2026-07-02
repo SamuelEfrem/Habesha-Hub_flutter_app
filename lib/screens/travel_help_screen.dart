@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
+import '../services/notification_service.dart';
 
 class TravelHelpScreen extends StatefulWidget {
   const TravelHelpScreen({super.key});
@@ -28,9 +29,12 @@ class _TravelHelpScreenState extends State<TravelHelpScreen> {
   final _destinations = ['Ethiopia', 'Eritrea', 'Uganda', 'Kenya', 'Other'];
 
   Future<void> _submit() async {
-    if (_selectedService.isEmpty || _nameCtrl.text.isEmpty || _emailCtrl.text.isEmpty) return;
+    if (_selectedService.isEmpty || _nameCtrl.text.isEmpty || _emailCtrl.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill in name and email'), backgroundColor: kRed));
+      return;
+    }
     setState(() => _sending = true);
-
+    try {
     await _db.collection('travel_requests').add({
       'service': _selectedService,
       'name': _nameCtrl.text.trim(),
@@ -45,7 +49,14 @@ class _TravelHelpScreenState extends State<TravelHelpScreen> {
       'createdAt': FieldValue.serverTimestamp(),
     });
 
+    // Notification will be added later
+
     setState(() { _sending = false; _sent = true; });
+    } catch (e) {
+      print('Travel request error: ' + e.toString());
+      setState(() => _sending = false);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ' + e.toString()), backgroundColor: kRed));
+    }
   }
 
   @override
