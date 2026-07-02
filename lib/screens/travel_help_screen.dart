@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,7 +50,19 @@ class _TravelHelpScreenState extends State<TravelHelpScreen> {
       'createdAt': FieldValue.serverTimestamp(),
     });
 
-    // Notification will be added later
+    // Send notification if user is logged in
+    if (FirebaseAuth.instance.currentUser != null) {
+      try {
+        await NotificationService.sendNotificationToUser(
+          userId: 'W3z67R3wiXUVvcPFDS0oxgfaDlj1',
+          title: 'New Travel Request! 🌍',
+          body: _nameCtrl.text.trim() + ' needs help with: ' + _selectedService,
+          data: {'type': 'travel_request'},
+        );
+      } catch (e) {
+        print('Notification error: ' + e.toString());
+      }
+    }
 
     setState(() { _sending = false; _sent = true; });
     } catch (e) {
@@ -91,6 +104,22 @@ class _TravelHelpScreenState extends State<TravelHelpScreen> {
             style: tsBodyLg(), textAlign: TextAlign.center),
         const SizedBox(height: 8),
         Text('support@habesha-hub.no', style: tsTitleMd(color: kSecondary)),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () async {
+            final url = Uri.parse('https://wa.me/4797374482?text=Hello%20Habesha%20Hub%2C%20I%20just%20sent%20a%20travel%20request...');
+            if (await canLaunchUrl(url)) await launchUrl(url, mode: LaunchMode.externalApplication);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(color: const Color(0xFF25D366), borderRadius: BorderRadius.circular(12)),
+            child: const Row(mainAxisSize: MainAxisSize.min, children: [
+              Text('📱', style: TextStyle(fontSize: 18)),
+              SizedBox(width: 8),
+              Text('Also chat on WhatsApp', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            ]),
+          ),
+        ),
         const SizedBox(height: 32),
         ElevatedButton(
           onPressed: () => Navigator.pop(context),

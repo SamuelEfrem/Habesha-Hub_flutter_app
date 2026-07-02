@@ -730,7 +730,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
 
           // Comment list
           StreamBuilder<QuerySnapshot>(
-            stream: _db.collection('businesses').doc(widget.business.id).collection('reviews').orderBy('createdAt', descending: true).limit(20).snapshots(),
+            stream: _db.collection('businesses').doc(widget.business.id).collection('reviews').limit(20).snapshots(),
             builder: (_, snap) {
               if (!snap.hasData || snap.data!.docs.isEmpty) {
                 return Padding(

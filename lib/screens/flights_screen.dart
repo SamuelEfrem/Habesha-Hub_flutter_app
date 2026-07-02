@@ -82,6 +82,25 @@ class FlightsScreen extends StatelessWidget {
 
                   const SizedBox(height: 12),
 
+                  // WhatsApp button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final url = Uri.parse(Uri.encodeFull('https://wa.me/4796988155?text=' + (languageNotifier.language == 'Tigrinya' ? 'ሰላም ሃበሻ ሃብ፡ ብዛዕባ ነፈርቲ ቡኪንግ ሓገዝ የድልየኒ...' : languageNotifier.language == 'Amharic' ? 'ሰላም ሃበሻ ሃብ፡ ስለ ትኬት ቦታ ማስያዝ እርዳታ ያስፈልገኛል...' : languageNotifier.language == 'Norsk' ? 'Hei Habesha Hub, jeg trenger hjelp med flybestilling...' : 'Hello Habesha Hub, I need help with a flight booking...')));
+                        if (await canLaunchUrl(url)) await launchUrl(url, mode: LaunchMode.externalApplication);
+                      },
+                      icon: const Text('📱', style: TextStyle(fontSize: 18)),
+                      label: Text('Chat on WhatsApp', style: tsTitleMd(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF25D366),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
                   // Travel help button
                   SizedBox(
                     width: double.infinity,
