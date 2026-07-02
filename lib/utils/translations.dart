@@ -179,6 +179,18 @@ class AppTranslations {
       'English': 'Tips',
       'Amharic': 'ምክር'
     },
+    'cat_hotel': {
+      'Norsk': 'Hotell/Hostel',
+      'Tigrinya': 'ሆቴል/ሆስቴል',
+      'English': 'Hotel/Hostel',
+      'Amharic': 'ሆቴል/ሆስቴል'
+    },
+    'cat_hotel': {
+      'Norsk': 'Hotell/Hostel',
+      'Tigrinya': 'ሆቴል/ሆስቴል',
+      'English': 'Hotel/Hostel',
+      'Amharic': 'ሆቴል/ሆስቴል'
+    },
     'cat_photographer': {
       'Norsk': 'Fotograf',
       'Tigrinya': 'ፎቶግራፈር',

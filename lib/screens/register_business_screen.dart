@@ -44,7 +44,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
   ];
 
   String _catDisplayName(String key) {
-    const keyMap = {
+    final keyMap = {
       'Restaurant': 'restaurant',
       'Shop': 'shop',
       'Cafe': 'cafe',
@@ -55,6 +55,8 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       'Music': 'cat_music',
       'Decoration': 'cat_decoration',
       'Taxi': 'cat_taxi',
+      'Hotel': 'cat_hotel',
+      'Hotel': 'cat_hotel',
       'Other': 'other',
     };
     final tKey = keyMap[key];
@@ -72,6 +74,8 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
     {'name': 'Music', 'icon': Icons.queue_music_rounded},
     {'name': 'Decoration', 'icon': Icons.celebration_rounded},
     {'name': 'Taxi', 'icon': Icons.local_taxi_rounded},
+    {'name': 'Hotel', 'icon': Icons.bed_rounded},
+    {'name': 'Hotel', 'icon': Icons.bed_rounded},
     {'name': 'Other', 'icon': Icons.storefront_rounded},
   ];
 

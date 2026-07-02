@@ -41,13 +41,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     {'key': 'Club', 'emoji': '🎵'},
     {'key': 'Clinic', 'emoji': '🏥'},
     {'key': 'Barber', 'emoji': '✂'},
+
+    {'key': 'Hotel', 'emoji': '🏨'},
     {'key': 'Other', 'emoji': '📦'},
   ];
 
   // Translate category using translations.dart keys
   String _catLabel(String key) {
     // Map Norwegian category name to translation key
-    const keyMap = {
+    final keyMap = {
       'All': 'all',
       'Restaurant': 'restaurant',
       'Shop': 'shop',
@@ -55,6 +57,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       'Barber': 'barber',
       'Club': 'club',
       'Clinic': 'clinic',
+      'Hotel': 'cat_hotel',
+      'Hotel': 'cat_hotel',
       'Other': 'other',
     };
     final tKey = keyMap[key];

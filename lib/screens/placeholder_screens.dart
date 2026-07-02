@@ -26,7 +26,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   final _db = FirebaseFirestore.instance;
 
   String _explorecat(String key) {
-    const keyMap = {
+    final keyMap = {
       'All': 'all',
       'Restaurant': 'restaurant',
       'Cafe': 'cafe',
@@ -38,6 +38,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
       'Music': 'cat_music',
       'Decoration': 'cat_decoration',
       'Taxi': 'cat_taxi',
+      'Hotel': 'cat_hotel',
+      'Hotel': 'cat_hotel',
       'Other': 'other',
     };
     final tKey = keyMap[key];
@@ -255,7 +257,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: ['All', 'Restaurant', 'Cafe', 'Shop', 'Barber', 'Club', 'Clinic', 'Photographer', 'Music', 'Decoration', 'Taxi', 'Other'].map((cat) {
+                  children: ['All', 'Restaurant', 'Cafe', 'Shop', 'Barber', 'Club', 'Clinic', 'Hotel', 'Photographer', 'Music', 'Decoration', 'Taxi', 'Other'].map((cat) {
                     final sel = cat == 'All' ? _selectedCategory.isEmpty : _selectedCategory == cat;
                     return GestureDetector(
                       onTap: () { setState(() => _selectedCategory = cat == 'All' ? '' : cat); if (_hasSearched) _filterResults(); },

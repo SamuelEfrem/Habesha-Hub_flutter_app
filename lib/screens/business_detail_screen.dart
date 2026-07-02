@@ -14,6 +14,7 @@ import 'dart:io';
 import '../models/business.dart';
 import 'admin_chat_screen.dart';
 import 'guest_chat_screen.dart';
+import 'hotel_booking_screen.dart';
 import 'business_inbox_screen.dart';
 import 'booking_screen.dart';
 import '../utils/language_notifier.dart';
@@ -646,6 +647,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                 Navigator.push(context, MaterialPageRoute(builder: (_) => GuestChatScreen(business: widget.business)));
               }
             }),
+            if (widget.business.category == 'Hotel')
+              actionSquare(Icons.hotel, 'Book Room', () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => HotelBookingScreen(business: widget.business)));
+              }),
             actionSquare(Icons.phone_rounded, t('call'), _callBusiness),
             actionSquare(Icons.language_rounded, t('web'), () async {
               final site = widget.business.website;
