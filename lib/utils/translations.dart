@@ -131,6 +131,54 @@ class AppTranslations {
       'English': 'Clinic',
       'Amharic': 'ክሊኒክ'
     },
+    'cat_wedding': {
+      'Norsk': 'Bryllup',
+      'Tigrinya': 'ሰርሐ ሰሚዐ',
+      'English': 'Wedding',
+      'Amharic': 'ሰርግ'
+    },
+    'cat_food': {
+      'Norsk': 'Mat',
+      'Tigrinya': 'መግቢ',
+      'English': 'Food',
+      'Amharic': 'ምግብ'
+    },
+    'cat_culture': {
+      'Norsk': 'Kultur',
+      'Tigrinya': 'ባህሊ',
+      'English': 'Culture',
+      'Amharic': 'ባህል'
+    },
+    'cat_business': {
+      'Norsk': 'Business',
+      'Tigrinya': 'ቢዝነስ',
+      'English': 'Business',
+      'Amharic': 'ቢዝነስ'
+    },
+    'cat_sport': {
+      'Norsk': 'Sport',
+      'Tigrinya': 'ስፖርት',
+      'English': 'Sport',
+      'Amharic': 'ስፖርት'
+    },
+    'cat_job': {
+      'Norsk': 'Jobb',
+      'Tigrinya': 'ስራሕ',
+      'English': 'Job',
+      'Amharic': 'ሥራ'
+    },
+    'cat_general': {
+      'Norsk': 'Generelt',
+      'Tigrinya': 'ሓፈሻዊ',
+      'English': 'General',
+      'Amharic': 'አጠቃላይ'
+    },
+    'cat_tips': {
+      'Norsk': 'Tips',
+      'Tigrinya': 'ምኽሪ',
+      'English': 'Tips',
+      'Amharic': 'ምክር'
+    },
     'cat_photographer': {
       'Norsk': 'Fotograf',
       'Tigrinya': 'ፎቶግራፈር',

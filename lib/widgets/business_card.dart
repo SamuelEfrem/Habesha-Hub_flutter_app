@@ -181,7 +181,7 @@ class _BusinessCardState extends State<BusinessCard> {
         Positioned(
           top: 12,
           right: 12,
-          child: openBadge(widget.business.isOpen),
+          child: openBadge(widget.business.isOpenNow),
         ),
 
         // Top left: Menu + Favorite icons

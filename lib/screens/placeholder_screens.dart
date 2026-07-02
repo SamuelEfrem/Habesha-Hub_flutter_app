@@ -24,6 +24,26 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   final _db = FirebaseFirestore.instance;
+
+  String _explorecat(String key) {
+    const keyMap = {
+      'All': 'all',
+      'Restaurant': 'restaurant',
+      'Cafe': 'cafe',
+      'Shop': 'shop',
+      'Barber': 'barber',
+      'Club': 'club',
+      'Clinic': 'clinic',
+      'Photographer': 'cat_photographer',
+      'Music': 'cat_music',
+      'Decoration': 'cat_decoration',
+      'Taxi': 'cat_taxi',
+      'Other': 'other',
+    };
+    final tKey = keyMap[key];
+    if (tKey == null) return key;
+    return languageNotifier.t(tKey);
+  }
   String _selectedCountry = '';
   String _selectedCity = '';
   String _searchQuery = '';
@@ -235,7 +255,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: ['All', 'Restaurant', 'Cafe', 'Shop', 'Barber', 'Club', 'Clinic', 'Photographer', 'Music', 'Dekorasjon', 'Taxi', 'Annet'].map((cat) {
+                  children: ['All', 'Restaurant', 'Cafe', 'Shop', 'Barber', 'Club', 'Clinic', 'Photographer', 'Music', 'Decoration', 'Taxi', 'Other'].map((cat) {
                     final sel = cat == 'All' ? _selectedCategory.isEmpty : _selectedCategory == cat;
                     return GestureDetector(
                       onTap: () { setState(() => _selectedCategory = cat == 'All' ? '' : cat); if (_hasSearched) _filterResults(); },
@@ -244,7 +264,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         margin: const EdgeInsets.only(right: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                         decoration: BoxDecoration(color: sel ? kSecondary : kSurfaceContainer, borderRadius: BorderRadius.circular(100)),
-                        child: Text(cat, style: tsLabel(color: sel ? const Color(0xFF342800) : kOnSurfaceVariant)),
+                        child: Text(_explorecat(cat), style: tsLabel(color: sel ? const Color(0xFF342800) : kOnSurfaceVariant)),
                       ),
                     );
                   }).toList(),

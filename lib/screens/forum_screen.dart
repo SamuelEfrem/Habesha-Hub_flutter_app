@@ -17,14 +17,14 @@ class ForumScreen extends StatefulWidget {
 
 class _ForumScreenState extends State<ForumScreen> {
   final _db = FirebaseFirestore.instance;
-  String _selectedCategory = 'Alle';
+  String _selectedCategory = 'All';
 
   final _categories = [
-    {'key': 'Alle', 'emoji': '🌍', 'label': 'all'},
-    {'key': 'Bryllup', 'emoji': '💒', 'label': 'cat_wedding'},
-    {'key': 'Jobb', 'emoji': '💼', 'label': 'cat_job'},
-    {'key': 'Mat', 'emoji': '🍽️', 'label': 'cat_food'},
-    {'key': 'Generelt', 'emoji': '💬', 'label': 'cat_general'},
+    {'key': 'All', 'emoji': '🌍', 'label': 'all'},
+    {'key': 'Wedding', 'emoji': '💒', 'label': 'cat_wedding'},
+    {'key': 'Job', 'emoji': '💼', 'label': 'cat_job'},
+    {'key': 'Food', 'emoji': '🍽️', 'label': 'cat_food'},
+    {'key': 'General', 'emoji': '💬', 'label': 'cat_general'},
     {'key': 'Tips', 'emoji': '💡', 'label': 'cat_tips'},
   ];
 
@@ -102,7 +102,7 @@ class _ForumScreenState extends State<ForumScreen> {
                   builder: (_, snap) {
                     if (!snap.hasData) return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
                     var docs = snap.data!.docs;
-                    if (_selectedCategory != 'Alle') {
+                    if (_selectedCategory != 'All') {
                       docs = docs.where((d) => (d.data() as Map<String, dynamic>)['category'] == _selectedCategory).toList();
                     }
                     if (docs.isEmpty) {
@@ -139,7 +139,7 @@ class _ForumScreenState extends State<ForumScreen> {
 
     final titleCtrl = TextEditingController();
     final bodyCtrl = TextEditingController();
-    String selectedCat = 'Generelt';
+    String selectedCat = 'General';
     File? selectedImage;
     bool isUploading = false;
 
@@ -174,7 +174,7 @@ class _ForumScreenState extends State<ForumScreen> {
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8, runSpacing: 8,
-                children: _categories.where((c) => c['key'] != 'Alle').map((cat) {
+                children: _categories.where((c) => c['key'] != 'All').map((cat) {
                   final sel = selectedCat == cat['key'];
                   return GestureDetector(
                     onTap: () => setModalState(() => selectedCat = cat['key']!),

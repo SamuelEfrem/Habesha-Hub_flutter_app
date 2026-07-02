@@ -113,8 +113,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         _isSearching = false;
       });
       _listAnim.forward(from: 0);
-    } catch (_) {
+    } catch (e) {
+      print('GPS Error: ' + e.toString());
       setState(() => _isSearching = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Location error: ' + e.toString()),
+          backgroundColor: kRed,
+        ));
+      }
     }
   }
 

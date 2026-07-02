@@ -18,14 +18,14 @@ class _EventsScreenState extends State<EventsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tab;
   final _db = FirebaseFirestore.instance;
-  String _selectedCategory = 'Alle';
+  String _selectedCategory = 'All';
 
   final _categories = [
-    {'key': 'Alle', 'emoji': '🌍', 'label': 'all'},
-    {'key': 'Bryllup', 'emoji': '💒', 'label': 'cat_wedding'},
-    {'key': 'Musikk', 'emoji': '🎵', 'label': 'cat_music'},
-    {'key': 'Mat', 'emoji': '🍽️', 'label': 'cat_food'},
-    {'key': 'Kultur', 'emoji': '🎭', 'label': 'cat_culture'},
+    {'key': 'All', 'emoji': '🌍', 'label': 'all'},
+    {'key': 'Wedding', 'emoji': '💒', 'label': 'cat_wedding'},
+    {'key': 'Music', 'emoji': '🎵', 'label': 'cat_music'},
+    {'key': 'Food', 'emoji': '🍽️', 'label': 'cat_food'},
+    {'key': 'Culture', 'emoji': '🎭', 'label': 'cat_culture'},
     {'key': 'Business', 'emoji': '💼', 'label': 'cat_business'},
     {'key': 'Sport', 'emoji': '⚽', 'label': 'cat_sport'},
   ];
@@ -142,7 +142,7 @@ class _EventsScreenState extends State<EventsScreen>
                               color: kSecondary, strokeWidth: 1.5));
                     }
                     var docs = snap.data!.docs;
-                    if (_selectedCategory != 'Alle') {
+                    if (_selectedCategory != 'All') {
                       docs = docs
                           .where((d) =>
                               (d.data() as Map<String, dynamic>)['category'] ==
@@ -187,7 +187,7 @@ class _EventsScreenState extends State<EventsScreen>
     final locationCtrl = TextEditingController();
     final imageCtrl = TextEditingController();
     File? pickedImage;
-    String selectedCat = 'Kultur';
+    String selectedCat = 'Culture';
     DateTime selectedDate = DateTime.now().add(const Duration(days: 7));
 
     showModalBottomSheet(
@@ -229,7 +229,7 @@ class _EventsScreenState extends State<EventsScreen>
                 spacing: 8,
                 runSpacing: 8,
                 children:
-                    _categories.where((c) => c['key'] != 'Alle').map((cat) {
+                    _categories.where((c) => c['key'] != 'All').map((cat) {
                   final sel = selectedCat == cat['key'];
                   return GestureDetector(
                     onTap: () => setModalState(() => selectedCat = cat['key']!),
