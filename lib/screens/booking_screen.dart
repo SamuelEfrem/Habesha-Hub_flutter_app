@@ -416,12 +416,20 @@ class _BookingCard extends StatelessWidget {
           const SizedBox(width: 6),
           Text(data['nickname'] ?? 'Gjest', style: tsBodySm()),
           const SizedBox(width: 16),
-          if (date != null) ...[
-            const Icon(Icons.calendar_today_rounded,
-                color: kSecondary, size: 14),
+          if (data['type'] == 'hotel') ...[
+            const Icon(Icons.nights_stay_rounded, color: kSecondary, size: 14),
             const SizedBox(width: 6),
-            Text('${DateFormat('dd. MMM').format(date)} kl. ${data['time']}',
-                style: tsBodySm()),
+            Text('${data['nights'] ?? 1} nights, ${data['guests'] ?? 1} guests', style: tsBodySm()),
+          ] else if (date != null) ...[
+            const Icon(Icons.calendar_today_rounded, color: kSecondary, size: 14),
+            const SizedBox(width: 6),
+            Text(DateFormat('dd. MMM').format(date) + ' kl. ' + (data['time'] ?? ''), style: tsBodySm()),
+          ],
+          if (data['type'] == 'hotel' && data['checkIn'] != null) ...[
+            const SizedBox(width: 10),
+            const Icon(Icons.calendar_today_rounded, color: kSecondary, size: 14),
+            const SizedBox(width: 4),
+            Text(DateFormat('dd.MM').format((data['checkIn'] as Timestamp).toDate()) + ' → ' + DateFormat('dd.MM').format((data['checkOut'] as Timestamp).toDate()), style: tsBodySm()),
           ],
         ]),
         const SizedBox(height: 8),

@@ -65,6 +65,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   @override
   void initState() {
     super.initState();
+    _incrementViewCount();
     _tabController = TabController(length: 2, vsync: this);
     _initChat();
     _loadRatingState();
@@ -163,6 +164,15 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         behavior: SnackBarBehavior.floating,
       ));
     }
+  }
+
+  Future<void> _incrementViewCount() async {
+    final user = FirebaseAuth.instance.currentUser;
+    // Don't count owner's own views
+    if (user?.uid == widget.business.ownerId) return;
+    await _db.collection('businesses').doc(widget.business.id).update({
+      'viewCount': FieldValue.increment(1),
+    });
   }
 
   bool get _isOwner {
@@ -648,7 +658,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
               }
             }),
             if (widget.business.category == 'Hotel')
-              actionSquare(Icons.hotel, 'Book Room', () {
+              actionSquare(Icons.hotel, languageNotifier.language == 'Tigrinya' ? 'ቡክ መሕደሪ' : languageNotifier.language == 'Amharic' ? 'ክፍል ያዝ' : languageNotifier.language == 'Norsk' ? 'Book rom' : 'Book Room', () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => HotelBookingScreen(business: widget.business)));
               }),
             actionSquare(Icons.phone_rounded, t('call'), _callBusiness),
@@ -694,6 +704,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         _buildGallery(),
         const SizedBox(height: 24),
       ],
+      if (_isOwner) ...[
+        _buildStatsWidget(),
+        const SizedBox(height: 24),
+      ],
       if (_localVideoUrl != null || widget.business.promoVideoUrl != null) ...[
         _buildVideoPlayer(),
         const SizedBox(height: 24),
@@ -710,6 +724,62 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     ]);
   }
 
+
+
+  Widget _buildStatsWidget() {
+    final t = languageNotifier.t;
+    return StreamBuilder<DocumentSnapshot>(
+      stream: _db.collection('businesses').doc(widget.business.id).snapshots(),
+      builder: (_, snap) {
+        if (!snap.hasData) return const SizedBox();
+        final data = snap.data!.data() as Map<String, dynamic>? ?? {};
+        final views = data['viewCount'] ?? 0;
+        final bookings = data['bookingCount'] ?? 0;
+        final reviews = data['reviewCount'] ?? 0;
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: kSurfaceContainer,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: kSecondary.withOpacity(0.2)),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              const Icon(Icons.bar_chart_rounded, color: kSecondary, size: 20),
+              const SizedBox(width: 8),
+              Text('Business Statistics', style: tsTitleMd(color: kSecondary)),
+            ]),
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(child: _statCard('👁', views.toString(), 'Views')),
+              const SizedBox(width: 10),
+              Expanded(child: _statCard('📅', bookings.toString(), 'Bookings')),
+              const SizedBox(width: 10),
+              Expanded(child: _statCard('⭐', reviews.toString(), 'Reviews')),
+            ]),
+          ]),
+        );
+      },
+    );
+  }
+
+  Widget _statCard(String emoji, String value, String label) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: kSurface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: kSecondary.withOpacity(0.1)),
+      ),
+      child: Column(children: [
+        Text(emoji, style: const TextStyle(fontSize: 22)),
+        const SizedBox(height: 4),
+        Text(value, style: tsHeadlineSm(color: kSecondary)),
+        Text(label, style: tsBodySm(color: kOnSurfaceVariant)),
+      ]),
+    );
+  }
 
   Widget _buildReviewsSection() {
     final t = languageNotifier.t;
@@ -786,6 +856,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                   'nickname': user.displayName ?? 'User',
                   'comment': commentCtrl.text.trim(),
                   'createdAt': FieldValue.serverTimestamp(),
+                });
+                await _db.collection('businesses').doc(widget.business.id).update({
+                  'reviewCount': FieldValue.increment(1),
                 });
                 commentCtrl.clear();
               },

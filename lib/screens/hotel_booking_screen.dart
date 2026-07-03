@@ -84,7 +84,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
         backgroundColor: kSurfaceContainer,
         iconTheme: const IconThemeData(color: kSecondary),
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Hotel Booking', style: tsTitleMd(color: kSecondary)),
+          Text(t('hotel_booking'), style: tsTitleMd(color: kSecondary)),
           Text(widget.business.name, style: tsBodySm(color: kOnSurfaceVariant)),
         ]),
       ),
@@ -92,11 +92,11 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
           ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               const Icon(Icons.check_circle_rounded, color: kGreen, size: 64),
               const SizedBox(height: 16),
-              Text('Booking request sent!', style: tsHeadlineSm()),
+              Text(t('booking_sent'), style: tsHeadlineSm()),
               const SizedBox(height: 8),
-              Text('The host will contact you soon.', style: tsBodySm()),
+              Text(t('host_contact'), style: tsBodySm()),
               const SizedBox(height: 24),
-              TextButton(onPressed: () => Navigator.pop(context), child: Text('Go back', style: tsTitleMd(color: kSecondary))),
+              TextButton(onPressed: () => Navigator.pop(context), child: Text(t('go_back'), style: tsTitleMd(color: kSecondary))),
             ]))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -120,7 +120,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                 const SizedBox(height: 24),
 
                 // Check-in
-                Text('CHECK-IN', style: tsLabel()),
+                Text(t('check_in'), style: tsLabel()),
                 const SizedBox(height: 8),
                 GestureDetector(
                   onTap: () async {
@@ -140,7 +140,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                 const SizedBox(height: 16),
 
                 // Check-out
-                Text('CHECK-OUT', style: tsLabel()),
+                Text(t('check_out'), style: tsLabel()),
                 const SizedBox(height: 8),
                 GestureDetector(
                   onTap: () async {
@@ -166,13 +166,13 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                   child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                     const Icon(Icons.nights_stay_rounded, color: kSecondary, size: 20),
                     const SizedBox(width: 8),
-                    Text('$_nights night${_nights != 1 ? 's' : ''}', style: tsTitleMd(color: kSecondary)),
+                    Text('$_nights ' + (_nights != 1 ? t('nights') : t('night')), style: tsTitleMd(color: kSecondary)),
                   ]),
                 ),
                 const SizedBox(height: 16),
 
                 // Guests
-                Text('GUESTS', style: tsLabel()),
+                Text(t('guests'), style: tsLabel()),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.all(14),
@@ -190,7 +190,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                 const SizedBox(height: 16),
 
                 // Message
-                Text('MESSAGE (optional)', style: tsLabel()),
+                Text(t('special_requests'), style: tsLabel()),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _messageCtrl,
@@ -208,7 +208,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                     style: ElevatedButton.styleFrom(backgroundColor: kSecondary, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     child: _sending
                         ? const CircularProgressIndicator(color: Color(0xFF1A1200), strokeWidth: 2)
-                        : Text('Send Booking Request', style: tsTitleMd(color: const Color(0xFF1A1200))),
+                        : Text(t('send_booking'), style: tsTitleMd(color: const Color(0xFF1A1200))),
                   ),
                 ),
               ]),

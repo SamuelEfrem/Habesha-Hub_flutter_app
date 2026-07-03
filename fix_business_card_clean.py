@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+content = """import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -57,30 +57,30 @@ class _BusinessCardState extends State<BusinessCard> {
   String _ctaLabel() {
     switch (widget.business.category) {
       case 'Restaurant':
-        return 'Se meny \u203a';
+        return 'Se meny \\u203a';
       case 'Shop':
-        return 'Utforsk utvalg \u203a';
+        return 'Utforsk utvalg \\u203a';
       case 'Cafe':
-        return 'Finn veien \u203a';
+        return 'Finn veien \\u203a';
       case 'Barber':
-        return 'Bestill time \u203a';
+        return 'Bestill time \\u203a';
       case 'Club':
-        return 'Mer info \u203a';
+        return 'Mer info \\u203a';
       default:
-        return 'Se mer \u203a';
+        return 'Se mer \\u203a';
     }
   }
 
   String _categoryEmoji() {
     switch (widget.business.category) {
-      case 'Restaurant': return '\ud83c\udf7d\ufe0f';
-      case 'Shop': return '\ud83d\udecd';
-      case 'Cafe': return '\u2615';
-      case 'Barber': return '\ud83d\udc87';
-      case 'Club': return '\ud83c\udfb5';
-      case 'Clinic': return '\ud83c\udfe5';
-      case 'Hotel': return '\ud83c\udfe8';
-      default: return '\ud83c\udfe0';
+      case 'Restaurant': return '\\ud83c\\udf7d\\ufe0f';
+      case 'Shop': return '\\ud83d\\udecd';
+      case 'Cafe': return '\\u2615';
+      case 'Barber': return '\\ud83d\\udc87';
+      case 'Club': return '\\ud83c\\udfb5';
+      case 'Clinic': return '\\ud83c\\udfe5';
+      case 'Hotel': return '\\ud83c\\udfe8';
+      default: return '\\ud83c\\udfe0';
     }
   }
 
@@ -93,9 +93,9 @@ class _BusinessCardState extends State<BusinessCard> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
-          languageNotifier.language == 'Tigrinya' ? '\u1234\u1291 \u1308\u1293 \u12a3\u12ed\u1270\u1338\u12a3\u1290\u1295'
+          languageNotifier.language == 'Tigrinya' ? '\\u1234\\u1291 \\u1308\\u1293 \\u12a3\\u12ed\\u1270\\u1338\\u12a3\\u1290\\u1295'
             : languageNotifier.language == 'English' ? 'Menu not available yet'
-            : 'Meny ikke tilgjengelig enn\u00e5',
+            : 'Meny ikke tilgjengelig enn\\u00e5',
           style: tsBodySm(color: kOnSurface)),
         backgroundColor: kSurfaceContainerHigh,
         behavior: SnackBarBehavior.floating,
@@ -198,3 +198,9 @@ class _BusinessCardState extends State<BusinessCard> {
     );
   }
 }
+"""
+
+# Write clean version
+with open('lib/widgets/business_card.dart', 'w', encoding='utf-8') as f:
+    f.write(content)
+print("✅ business_card.dart cleaned and fixed!")

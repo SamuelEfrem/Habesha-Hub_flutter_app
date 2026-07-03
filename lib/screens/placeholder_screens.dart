@@ -12,6 +12,7 @@ import '../utils/language_notifier.dart';
 import '../theme/app_theme.dart';
 import 'business_detail_screen.dart';
 import 'register_business_screen.dart';
+import 'favorites_screen.dart';
 import 'auth_screen.dart';
 import 'admin_screen.dart';
 import 'edit_business_screen.dart';
@@ -786,6 +787,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     suffixIcon: const Icon(Icons.check_circle_outline_rounded, color: kSecondary, size: 16),
                     helperText: 'Press Enter to save',
                     helperStyle: TextStyle(fontSize: 10, color: kOnSurfaceVariant.withOpacity(0.4)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Favorites button
+                GestureDetector(
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritesScreen())),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
+                    child: Row(children: [
+                      const Icon(Icons.favorite_rounded, color: kRed, size: 20),
+                      const SizedBox(width: 12),
+                      Text('Mine favoritter', style: tsTitleMd()),
+                      const Spacer(),
+                      const Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 14),
+                    ]),
                   ),
                 ),
                 const SizedBox(height: 24),
