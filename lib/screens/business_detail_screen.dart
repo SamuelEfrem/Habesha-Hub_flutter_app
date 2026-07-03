@@ -716,6 +716,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       const SizedBox(height: 24),
       _buildReviewsSection(),
       const SizedBox(height: 24),
+      if (_isOwner && !widget.business.isPremium) ...[
+        _buildPremiumUpgradeSection(),
+        const SizedBox(height: 24),
+      ],
       if (widget.business.isPremium) ...[
         _buildPremiumSection(),
         const SizedBox(height: 24)
@@ -778,6 +782,47 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         Text(value, style: tsHeadlineSm(color: kSecondary)),
         Text(label, style: tsBodySm(color: kOnSurfaceVariant)),
       ]),
+    );
+  }
+
+
+  Widget _buildPremiumUpgradeSection() {
+    final lang = languageNotifier.language;
+    return GestureDetector(
+      onTap: () async {
+        final bizName = widget.business.name;
+        String msg;
+        if (lang == 'Tigrinya') {
+          msg = 'ሰላም ሃበሻ ሃብ፡ ፕሪሚዩም ክኸውን ይደሊ። ትካለይ: ' + bizName;
+        } else if (lang == 'Amharic') {
+          msg = 'ሰላም ሃበሻ ሃብ፡ ፕሪሚዬም መሆን እፈልጋለሁ። ድርጅቴ: ' + bizName;
+        } else if (lang == 'Norsk') {
+          msg = 'Hei Habesha Hub, jeg ønsker Premium for: ' + bizName;
+        } else {
+          msg = 'Hello Habesha Hub, I want Premium for: ' + bizName;
+        }
+        final url = Uri.parse('https://wa.me/4796988155?text=' + Uri.encodeComponent(msg));
+        if (await canLaunchUrl(url)) await launchUrl(url, mode: LaunchMode.externalApplication);
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [kSecondary.withOpacity(0.15), kSecondary.withOpacity(0.05)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: kSecondary.withOpacity(0.4), width: 1),
+        ),
+        child: Row(children: [
+          const Text('⭐', style: TextStyle(fontSize: 28)),
+          const SizedBox(width: 12),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(lang == 'Tigrinya' ? 'ፕሪሚዩም ኹን' : lang == 'Amharic' ? 'ፕሪሚዬም ሁን' : lang == 'Norsk' ? 'Bli Premium' : 'Upgrade to Premium', style: tsTitleMd(color: kSecondary)),
+            const SizedBox(height: 4),
+            Text(lang == 'Tigrinya' ? 'ሜኑ ጸዓን፡ ቅድሚ ምርኣይ' : lang == 'Amharic' ? 'ሜኑ ስቀሉ፣ ቅድሚያ ይሰጡ' : lang == 'Norsk' ? 'Last opp meny, vis øverst' : 'Upload menu, show first', style: tsBodySm(color: kOnSurfaceVariant)),
+          ])),
+          const Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 16),
+        ]),
+      ),
     );
   }
 
@@ -1249,9 +1294,20 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     if (_isOwner && !widget.business.isPremium) {
       return GestureDetector(
         onTap: () async {
-          final url = Uri.parse(
-              'mailto:support@habesha-hub.no?subject=Premium+menu+upload');
-          if (await canLaunchUrl(url)) await launchUrl(url);
+          final lang = languageNotifier.language;
+          final bizName = widget.business.name;
+          String msg;
+          if (lang == 'Tigrinya') {
+            msg = 'ሰላም ሃበሻ ሃብ፡ ፕሪሚዩም ክኸውን ይደሊ። ትካለይ: ' + bizName;
+          } else if (lang == 'Amharic') {
+            msg = 'ሰላም ሃበሻ ሃብ፡ ፕሪሚዬም መሆን እፈልጋለሁ። ድርጅቴ: ' + bizName;
+          } else if (lang == 'Norsk') {
+            msg = 'Hei Habesha Hub, jeg ønsker Premium for min bedrift: ' + bizName;
+          } else {
+            msg = 'Hello Habesha Hub, I want to upgrade to Premium. My business: ' + bizName;
+          }
+          final url = Uri.parse('https://wa.me/4796988155?text=' + Uri.encodeComponent(msg));
+          if (await canLaunchUrl(url)) await launchUrl(url, mode: LaunchMode.externalApplication);
         },
         child: Container(
           width: double.infinity,
