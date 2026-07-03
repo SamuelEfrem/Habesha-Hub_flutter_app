@@ -1,4 +1,4 @@
-import 'admin_chat_screen.dart';
+﻿import 'admin_chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,6 +25,33 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   final _db = FirebaseFirestore.instance;
+
+  Future<void> _globalSearch(String query) async {
+    if (query.trim().isEmpty) return;
+    setState(() { _isSearching = true; _hasSearched = false; });
+    try {
+      final snap = await _db.collection('businesses')
+          .where('status', isEqualTo: 'approved')
+          .get();
+      final all = snap.docs.map((d) => Business.fromFirestore(d.data(), d.id)).toList();
+      final filtered = all.where((b) =>
+        b.name.toLowerCase().contains(query.toLowerCase()) ||
+        b.category.toLowerCase().contains(query.toLowerCase()) ||
+        b.address.toLowerCase().contains(query.toLowerCase()) ||
+        b.country.toLowerCase().contains(query.toLowerCase())
+      ).toList();
+      setState(() {
+        _allResults = filtered;
+        _results = filtered;
+        _isSearching = false;
+        _hasSearched = true;
+        _selectedCountry = '';
+        _selectedCity = '';
+      });
+    } catch (e) {
+      setState(() => _isSearching = false);
+    }
+  }
 
   String _explorecat(String key) {
     final keyMap = {
@@ -160,6 +187,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 child: TextField(
                   style: tsBodyLg(color: kOnSurface),
                   onChanged: (v) { setState(() => _searchQuery = v); if (_hasSearched) _filterResults(); },
+                  onSubmitted: (v) => _globalSearch(v),
                   decoration: InputDecoration(
                     hintText: t('search_hint'),
                     hintStyle: tsBodySm(color: kOnSurfaceVariant.withOpacity(0.5)),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 import '../utils/language_notifier.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -29,6 +32,9 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
 
   String _category = 'Restaurant';
   String _country = '';
+  File? _selectedImage;
+  String _uploadedImageUrl = '';
+  bool _uploadingImage = false;
   bool _saving = false;
   bool _done = false;
   bool _geocoding = false;
@@ -171,6 +177,21 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
     return result;
   }
 
+  Future<void> _pickAndUploadImage() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 75);
+    if (picked == null) return;
+    setState(() { _selectedImage = File(picked.path); _uploadingImage = true; });
+    try {
+      final ref = FirebaseStorage.instance.ref().child('businesses/' + DateTime.now().millisecondsSinceEpoch.toString() + '.jpg');
+      await ref.putFile(_selectedImage!);
+      _uploadedImageUrl = await ref.getDownloadURL();
+      setState(() => _uploadingImage = false);
+    } catch (e) {
+      setState(() => _uploadingImage = false);
+      print('Upload error: ' + e.toString());
+    }
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final user = FirebaseAuth.instance.currentUser;
@@ -192,7 +213,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         'description': _descCtrl.text.trim(),
         'address': _addrCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
-        'imageUrl': '',
+        'imageUrl': _uploadedImageUrl,
         'lat': _lat ?? 59.9139, // fallback: Oslo center
         'lng': _lng ?? 10.7522,
         'rating': 0.0,
@@ -685,36 +706,29 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         Text('Legg til en bilde-URL for bedriften din.', style: tsBodySm()),
         const SizedBox(height: 24),
 
-        Text('BILDE URL', style: tsLabel()),
+        Text('BILDE', style: tsLabel()),
         const SizedBox(height: 8),
-        TextFormField(
-          controller: _imgCtrl,
-          keyboardType: TextInputType.url,
-          style: tsBodyLg(color: kOnSurface),
-          onChanged: (_) => setState(() {}),
-          decoration: const InputDecoration(
-            hintText: 'https://...',
-            prefixIcon: Icon(Icons.image_outlined, color: kSecondary),
+        GestureDetector(
+          onTap: _uploadingImage ? null : _pickAndUploadImage,
+          child: Container(
+            height: 180,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: kSurfaceContainer,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: kSecondary.withOpacity(0.3)),
+            ),
+            child: _uploadingImage
+                ? const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2))
+                : _selectedImage != null
+                    ? ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.file(_selectedImage!, height: 180, width: double.infinity, fit: BoxFit.cover))
+                    : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        const Icon(Icons.add_photo_alternate_rounded, color: kSecondary, size: 40),
+                        const SizedBox(height: 8),
+                        Text('Trykk for å laste opp bilde', style: tsBodySm(color: kSecondary)),
+                      ]),
           ),
         ),
-        if (_imgCtrl.text.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              _imgCtrl.text,
-              height: 180,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                  height: 180,
-                  color: kSurfaceContainer,
-                  child: const Center(
-                      child: Icon(Icons.broken_image_rounded,
-                          color: kOnSurfaceVariant, size: 40))),
-            ),
-          ),
-        ],
         const SizedBox(height: 20),
 
         const SizedBox(height: 16),
