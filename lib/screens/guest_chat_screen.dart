@@ -19,26 +19,42 @@ class _GuestChatScreenState extends State<GuestChatScreen> {
   final _scrollController = ScrollController();
   String _userId = '';
   String _nickname = 'Guest';
-  late String _chatId;
+  String _chatId = '';
+  bool _chatReady = false;
 
   @override
   void initState() {
     super.initState();
+    // For Connect chats, set chatId immediately
+    if (widget.business.id.startsWith('connect_')) {
+      _chatId = widget.business.id;
+    }
     _loadUser();
   }
 
   Future<void> _loadUser() async {
-    final user = FirebaseAuth.instance.currentUser;
+    // Wait for auth state to be ready
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      user = await FirebaseAuth.instance.authStateChanges().first.timeout(
+        const Duration(seconds: 3),
+        onTimeout: () => null,
+      );
+    }
     final prefs = await SharedPreferences.getInstance();
-    final uid = user?.uid ?? prefs.getString('userId') ?? 'guest_${DateTime.now().millisecondsSinceEpoch}';
+    final uid = user?.uid ?? prefs.getString('userId') ?? 'guest_' + DateTime.now().millisecondsSinceEpoch.toString();
     if (user == null) {
       await prefs.setString('userId', uid);
     }
-    final nick = prefs.getString('nickname') ?? user?.displayName ?? 'Guest';
+    final nick = user?.displayName ?? prefs.getString('nickname') ?? 'Guest';
+    // For Connect chats, use business.id directly (already contains sorted UIDs)
+    final chatId = widget.business.id.startsWith('connect_')
+        ? widget.business.id
+        : '\${widget.business.id}_\$uid';
     setState(() {
       _userId = uid;
       _nickname = nick;
-      _chatId = '${widget.business.id}_$uid';
+      _chatId = chatId;
     });
   }
 
@@ -65,6 +81,7 @@ class _GuestChatScreenState extends State<GuestChatScreen> {
       'createdAt': FieldValue.serverTimestamp(),
       'isAdmin': false,
     });
+    setState(() {});
 
     if (_scrollController.hasClients) {
       _scrollController.animateTo(0,
@@ -76,6 +93,7 @@ class _GuestChatScreenState extends State<GuestChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kSurface,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: kSurfaceContainer,
         iconTheme: const IconThemeData(color: kSecondary),
@@ -117,7 +135,10 @@ class _GuestChatScreenState extends State<GuestChatScreen> {
                       itemCount: docs.length,
                       itemBuilder: (_, i) {
                         final data = docs[i].data() as Map<String, dynamic>;
-                        final isMe = !((data['isAdmin'] as bool?) ?? false);
+                        // For connect chats: check userId. For business chats: check isAdmin
+                        final isMe = widget.business.id.startsWith('connect_')
+                            ? (data['userId'] ?? '') == _userId
+                            : !((data['isAdmin'] as bool?) ?? false);
                         return Align(
                           alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                           child: Container(
@@ -140,7 +161,7 @@ class _GuestChatScreenState extends State<GuestChatScreen> {
                 ),
         ),
         Container(
-          padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).viewInsets.bottom + 12),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           decoration: BoxDecoration(
             color: kSurfaceContainer,
             border: Border(top: BorderSide(color: kSecondary.withOpacity(0.1), width: 0.5)),

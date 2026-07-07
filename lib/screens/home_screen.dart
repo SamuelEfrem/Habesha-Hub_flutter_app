@@ -13,6 +13,7 @@ import 'placeholder_screens.dart';
 import 'forum_screen.dart';
 import 'ai_chat_screen.dart';
 import 'flights_screen.dart';
+import 'connect_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -160,6 +161,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               const ExploreScreen(),
               const EventsScreen(),
               const ForumScreen(),
+              const ConnectScreen(),
               const ProfileScreen(),
             ],
           ),
@@ -611,6 +613,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       {'icon': Icons.explore_rounded, 'key': 'explore'},
       {'icon': Icons.event_rounded, 'key': 'events'},
       {'icon': Icons.forum_rounded, 'key': 'forum'},
+      {'icon': Icons.people_rounded, 'key': 'connect'},
       {'icon': Icons.person_rounded, 'key': 'profile'},
     ];
     return Container(
@@ -638,7 +641,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   decoration: BoxDecoration(
                     color: selected
                         ? kPrimaryContainer.withOpacity(0.2)

@@ -443,6 +443,138 @@ class AppTranslations {
       'English': 'night',
       'Amharic': 'ምሽት'
     },
+    'connect_education': {
+      'Norsk': 'Utdanning',
+      'Tigrinya': 'ትምህርቲ',
+      'English': 'Education',
+      'Amharic': 'ትምህርት'
+    },
+    'connect_you': {
+      'Norsk': 'Deg',
+      'Tigrinya': 'ንስኻ',
+      'English': 'You',
+      'Amharic': 'አንተ'
+    },
+    'connect_create_profile': {
+      'Norsk': 'Lag Connect-profil',
+      'Tigrinya': 'ፕሮፋይል ፍጠር',
+      'English': 'Create Connect Profile',
+      'Amharic': 'መገለጫ ፍጠር'
+    },
+    'connect_edit_profile': {
+      'Norsk': 'Rediger profil',
+      'Tigrinya': 'ፕሮፋይል ኣርም',
+      'English': 'Edit Profile',
+      'Amharic': 'መገለጫ አርም'
+    },
+    'connect_name': {
+      'Norsk': 'NAVN',
+      'Tigrinya': 'ስም',
+      'English': 'NAME',
+      'Amharic': 'ስም'
+    },
+    'connect_name_hint': {
+      'Norsk': 'Ditt navn',
+      'Tigrinya': 'ስምካ',
+      'English': 'Your name',
+      'Amharic': 'ስምህ'
+    },
+    'connect_city': {
+      'Norsk': 'BY',
+      'Tigrinya': 'ከተማ',
+      'English': 'CITY',
+      'Amharic': 'ከተማ'
+    },
+    'connect_bio': {
+      'Norsk': 'BIO / FERDIGHETER',
+      'Tigrinya': 'ብዛዕባኻ',
+      'English': 'BIO / SKILLS',
+      'Amharic': 'ስለራስህ'
+    },
+    'connect_bio_hint': {
+      'Norsk': 'Fortell om deg selv og hva du kan tilby...',
+      'Tigrinya': 'ብዛዕባኻን እንታይ ክትብጽሕ ትኽእልን ንገር...',
+      'English': 'Tell people about yourself and what you can offer...',
+      'Amharic': 'ስለራስህ እና ምን ማقdinat እንደምትችל ንገር...'
+    },
+    'connect_interests': {
+      'Norsk': 'INTERESSER',
+      'Tigrinya': 'ዝፈትዎ',
+      'English': 'INTERESTS',
+      'Amharic': 'ፍላጎቶች'
+    },
+    'connect_messages': {
+      'Norsk': 'Meldinger',
+      'Tigrinya': 'መልእኽትታት',
+      'English': 'Connect Messages',
+      'Amharic': 'መልዕክቶች'
+    },
+    'connect_no_messages': {
+      'Norsk': 'Ingen meldinger ennå',
+      'Tigrinya': 'ገና መልእኽቲ የለን',
+      'English': 'No messages yet',
+      'Amharic': 'እስካሁን መልዕክት የለም'
+    },
+    'connect_it': {
+      'Norsk': 'IT',
+      'Tigrinya': 'ቴክኖሎጂ',
+      'English': 'IT',
+      'Amharic': 'ቴክኖሎጂ'
+    },
+    'connect_health': {
+      'Norsk': 'Helse',
+      'Tigrinya': 'ጥዕና',
+      'English': 'Health',
+      'Amharic': 'ጤና'
+    },
+    'connect_save': {
+      'Norsk': 'Lagre profil',
+      'Tigrinya': 'ፕሮፋይል ሓዝ',
+      'English': 'Save Profile',
+      'Amharic': 'መገለጫ አስቀምጥ'
+    },
+    'connect': {
+      'Norsk': 'Koble til',
+      'Tigrinya': 'ተራኸብ',
+      'English': 'Connect',
+      'Amharic': 'ተገናኝ'
+    },
+    'connect_title': {
+      'Norsk': 'Koble til',
+      'Tigrinya': 'ተራኸብ',
+      'English': 'Connect',
+      'Amharic': 'ተገናኝ'
+    },
+    'connect_subtitle': {
+      'Norsk': 'Finn folk med samme interesser',
+      'Tigrinya': 'ብሓባር ዝሰርሑ ሰባት ርኸብ',
+      'English': 'Find people with same interests',
+      'Amharic': 'ተመሳሳይ ፍላጎት ያላቸውን ሰዎች ፈልግ'
+    },
+    'connect_my_profile': {
+      'Norsk': 'Min profil',
+      'Tigrinya': 'ፕሮፋይለይ',
+      'English': 'My Profile',
+      'Amharic': 'የእኔ መገለጫ'
+    },
+    'connect_no_profiles': {
+      'Norsk': 'Ingen profiler ennå',
+      'Tigrinya': 'ገና ፕሮፋይላት የለን',
+      'English': 'No profiles yet',
+      'Amharic': 'እስካሁን መገለጫ የለም'
+    },
+    'connect_be_first': {
+      'Norsk': 'Vær den første til å lage en profil!',
+      'Tigrinya': 'ቀዳማይ ፕሮፋይል ፍጠር!',
+      'English': 'Be the first to create a profile!',
+      'Amharic': 'የመጀመሪያ መገለጫ ፍጠር!'
+    },
+    'connect_message': {
+      'Norsk': 'Melding',
+      'Tigrinya': 'መልእኽቲ',
+      'English': 'Message',
+      'Amharic': 'መልዕክት'
+    },
     'cat_hotel': {
       'Norsk': 'Hotell/Hostel',
       'Tigrinya': 'ሆቴል/ሆስቴል',
@@ -712,6 +844,138 @@ class AppTranslations {
       'Tigrinya': 'ለይቲ',
       'English': 'night',
       'Amharic': 'ምሽት'
+    },
+    'connect_education': {
+      'Norsk': 'Utdanning',
+      'Tigrinya': 'ትምህርቲ',
+      'English': 'Education',
+      'Amharic': 'ትምህርት'
+    },
+    'connect_you': {
+      'Norsk': 'Deg',
+      'Tigrinya': 'ንስኻ',
+      'English': 'You',
+      'Amharic': 'አንተ'
+    },
+    'connect_create_profile': {
+      'Norsk': 'Lag Connect-profil',
+      'Tigrinya': 'ፕሮፋይል ፍጠር',
+      'English': 'Create Connect Profile',
+      'Amharic': 'መገለጫ ፍጠር'
+    },
+    'connect_edit_profile': {
+      'Norsk': 'Rediger profil',
+      'Tigrinya': 'ፕሮፋይል ኣርም',
+      'English': 'Edit Profile',
+      'Amharic': 'መገለጫ አርም'
+    },
+    'connect_name': {
+      'Norsk': 'NAVN',
+      'Tigrinya': 'ስም',
+      'English': 'NAME',
+      'Amharic': 'ስም'
+    },
+    'connect_name_hint': {
+      'Norsk': 'Ditt navn',
+      'Tigrinya': 'ስምካ',
+      'English': 'Your name',
+      'Amharic': 'ስምህ'
+    },
+    'connect_city': {
+      'Norsk': 'BY',
+      'Tigrinya': 'ከተማ',
+      'English': 'CITY',
+      'Amharic': 'ከተማ'
+    },
+    'connect_bio': {
+      'Norsk': 'BIO / FERDIGHETER',
+      'Tigrinya': 'ብዛዕባኻ',
+      'English': 'BIO / SKILLS',
+      'Amharic': 'ስለራስህ'
+    },
+    'connect_bio_hint': {
+      'Norsk': 'Fortell om deg selv og hva du kan tilby...',
+      'Tigrinya': 'ብዛዕባኻን እንታይ ክትብጽሕ ትኽእልን ንገር...',
+      'English': 'Tell people about yourself and what you can offer...',
+      'Amharic': 'ስለራስህ እና ምን ማقdinat እንደምትችל ንገር...'
+    },
+    'connect_interests': {
+      'Norsk': 'INTERESSER',
+      'Tigrinya': 'ዝፈትዎ',
+      'English': 'INTERESTS',
+      'Amharic': 'ፍላጎቶች'
+    },
+    'connect_messages': {
+      'Norsk': 'Meldinger',
+      'Tigrinya': 'መልእኽትታት',
+      'English': 'Connect Messages',
+      'Amharic': 'መልዕክቶች'
+    },
+    'connect_no_messages': {
+      'Norsk': 'Ingen meldinger ennå',
+      'Tigrinya': 'ገና መልእኽቲ የለን',
+      'English': 'No messages yet',
+      'Amharic': 'እስካሁን መልዕክት የለም'
+    },
+    'connect_it': {
+      'Norsk': 'IT',
+      'Tigrinya': 'ቴክኖሎጂ',
+      'English': 'IT',
+      'Amharic': 'ቴክኖሎጂ'
+    },
+    'connect_health': {
+      'Norsk': 'Helse',
+      'Tigrinya': 'ጥዕና',
+      'English': 'Health',
+      'Amharic': 'ጤና'
+    },
+    'connect_save': {
+      'Norsk': 'Lagre profil',
+      'Tigrinya': 'ፕሮፋይል ሓዝ',
+      'English': 'Save Profile',
+      'Amharic': 'መገለጫ አስቀምጥ'
+    },
+    'connect': {
+      'Norsk': 'Koble til',
+      'Tigrinya': 'ተራኸብ',
+      'English': 'Connect',
+      'Amharic': 'ተገናኝ'
+    },
+    'connect_title': {
+      'Norsk': 'Koble til',
+      'Tigrinya': 'ተራኸብ',
+      'English': 'Connect',
+      'Amharic': 'ተገናኝ'
+    },
+    'connect_subtitle': {
+      'Norsk': 'Finn folk med samme interesser',
+      'Tigrinya': 'ብሓባር ዝሰርሑ ሰባት ርኸብ',
+      'English': 'Find people with same interests',
+      'Amharic': 'ተመሳሳይ ፍላጎት ያላቸውን ሰዎች ፈልግ'
+    },
+    'connect_my_profile': {
+      'Norsk': 'Min profil',
+      'Tigrinya': 'ፕሮፋይለይ',
+      'English': 'My Profile',
+      'Amharic': 'የእኔ መገለጫ'
+    },
+    'connect_no_profiles': {
+      'Norsk': 'Ingen profiler ennå',
+      'Tigrinya': 'ገና ፕሮፋይላት የለን',
+      'English': 'No profiles yet',
+      'Amharic': 'እስካሁን መገለጫ የለም'
+    },
+    'connect_be_first': {
+      'Norsk': 'Vær den første til å lage en profil!',
+      'Tigrinya': 'ቀዳማይ ፕሮፋይል ፍጠር!',
+      'English': 'Be the first to create a profile!',
+      'Amharic': 'የመጀመሪያ መገለጫ ፍጠር!'
+    },
+    'connect_message': {
+      'Norsk': 'Melding',
+      'Tigrinya': 'መልእኽቲ',
+      'English': 'Message',
+      'Amharic': 'መልዕክት'
     },
     'cat_hotel': {
       'Norsk': 'Hotell/Hostel',
