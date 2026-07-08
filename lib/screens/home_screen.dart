@@ -13,6 +13,7 @@ import 'placeholder_screens.dart';
 import 'forum_screen.dart';
 import 'ai_chat_screen.dart';
 import 'flights_screen.dart';
+import 'marketplace_screen.dart';
 import 'connect_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -212,6 +213,38 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 // ── Shazam circle + search field ──
                 SliverToBoxAdapter(child: _buildShazamSection(t)),
                 const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+                // Marketplace banner
+                SliverToBoxAdapter(
+                  child: GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketplaceScreen())),
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF1A3A1A), Color(0xFF2E7D32)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(children: [
+                        const Text('🛒', style: TextStyle(fontSize: 32)),
+                        const SizedBox(width: 12),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(t('marketplace_title'), style: tsTitleMd(color: Colors.white)),
+                          Text(t('marketplace_subtitle'), style: tsBodySm(color: Colors.white70)),
+                        ])),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(100)),
+                          child: Text(t('marketplace_browse'), style: tsLabel(color: Colors.white)),
+                        ),
+                      ]),
+                    ),
+                  ),
+                ),
 
                 // Flights banner
                 SliverToBoxAdapter(

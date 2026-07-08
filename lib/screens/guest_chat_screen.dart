@@ -25,8 +25,8 @@ class _GuestChatScreenState extends State<GuestChatScreen> {
   @override
   void initState() {
     super.initState();
-    // For Connect chats, set chatId immediately
-    if (widget.business.id.startsWith('connect_')) {
+    // For Connect/Market chats, set chatId immediately
+    if (widget.business.id.startsWith('connect_') || widget.business.id.startsWith('market_')) {
       _chatId = widget.business.id;
     }
     _loadUser();
@@ -48,9 +48,9 @@ class _GuestChatScreenState extends State<GuestChatScreen> {
     }
     final nick = user?.displayName ?? prefs.getString('nickname') ?? 'Guest';
     // For Connect chats, use business.id directly (already contains sorted UIDs)
-    final chatId = widget.business.id.startsWith('connect_')
+    final chatId = (widget.business.id.startsWith('connect_') || widget.business.id.startsWith('market_'))
         ? widget.business.id
-        : '\${widget.business.id}_\$uid';
+        : widget.business.id + '_' + uid;
     setState(() {
       _userId = uid;
       _nickname = nick;
@@ -135,8 +135,8 @@ class _GuestChatScreenState extends State<GuestChatScreen> {
                       itemCount: docs.length,
                       itemBuilder: (_, i) {
                         final data = docs[i].data() as Map<String, dynamic>;
-                        // For connect chats: check userId. For business chats: check isAdmin
-                        final isMe = widget.business.id.startsWith('connect_')
+                        // For connect/market chats: check userId. For business chats: check isAdmin
+                        final isMe = (widget.business.id.startsWith('connect_') || widget.business.id.startsWith('market_'))
                             ? (data['userId'] ?? '') == _userId
                             : !((data['isAdmin'] as bool?) ?? false);
                         return Align(

@@ -133,7 +133,7 @@ class AppTranslations {
     },
     'cat_wedding': {
       'Norsk': 'Bryllup',
-      'Tigrinya': 'ሰርሐ ሰሚዐ',
+      'Tigrinya': 'መርዓ',
       'English': 'Wedding',
       'Amharic': 'ሰርግ'
     },
@@ -502,6 +502,156 @@ class AppTranslations {
       'Tigrinya': 'ዝፈትዎ',
       'English': 'INTERESTS',
       'Amharic': 'ፍላጎቶች'
+    },
+    'marketplace_title': {
+      'Norsk': 'Marked',
+      'Tigrinya': 'ዕዳጋ',
+      'English': 'Marketplace',
+      'Amharic': 'ገበያ'
+    },
+    'marketplace_subtitle': {
+      'Norsk': 'Kjøp og selg brukte ting',
+      'Tigrinya': 'ዝተጠቕሙ ኣቓሑ ሸጡ ወይ ግዝኡ',
+      'English': 'Buy and sell second-hand items',
+      'Amharic': 'የሁለተኛ ዕቃዎችን ይሸጡ ወይ ይግዙ'
+    },
+    'marketplace_browse': {
+      'Norsk': 'Utforsk',
+      'Tigrinya': 'ፈልጥ',
+      'English': 'Browse',
+      'Amharic': 'ዳስስ'
+    },
+    'marketplace_sell': {
+      'Norsk': 'Selg',
+      'Tigrinya': 'ሽጥ',
+      'English': 'Sell',
+      'Amharic': 'ሸጥ'
+    },
+    'marketplace_search_name': {
+      'Norsk': 'Søk etter produkt...',
+      'Tigrinya': 'ብ ሽም ንብረት ድለ',
+      'English': 'Search for product...',
+      'Amharic': 'ምርት ፈልግ...'
+    },
+    'marketplace_search_city': {
+      'Norsk': 'Søk etter by...',
+      'Tigrinya': 'ከተማ ድለ...',
+      'English': 'Search by city...',
+      'Amharic': 'በከተማ ፈልግ...'
+    },
+    'marketplace_edit': {
+      'Norsk': 'Rediger annonse',
+      'Tigrinya': 'ኣዊጅ ኣርም',
+      'English': 'Edit Listing',
+      'Amharic': 'ማስታወቂያ አርም'
+    },
+    'marketplace_add': {
+      'Norsk': 'Legg ut annonse',
+      'Tigrinya': 'ዝርዝር ወስኽ',
+      'English': 'Add Listing',
+      'Amharic': 'ማስታወቂያ ጨምር'
+    },
+    'marketplace_empty': {
+      'Norsk': 'Ingen annonser ennå',
+      'Tigrinya': 'ዝርዝር የለን',
+      'English': 'No listings yet',
+      'Amharic': 'እስካሁን ማስታወቂያ የለም'
+    },
+    'marketplace_be_first': {
+      'Norsk': 'Vær den første til å selge noe!',
+      'Tigrinya': 'ቀዳማይ ሸያጢ ኹን!',
+      'English': 'Be the first to sell something!',
+      'Amharic': 'የመጀመሪያው ሻጭ ሁን!'
+    },
+    'marketplace_add_photo': {
+      'Norsk': 'Legg til bilde',
+      'Tigrinya': 'ስእሊ ወስኽ',
+      'English': 'Add photo',
+      'Amharic': 'ፎቶ ጨምር'
+    },
+    'marketplace_title_field': {
+      'Norsk': 'TITTEL',
+      'Tigrinya': 'ኣርእስቲ',
+      'English': 'TITLE',
+      'Amharic': 'ርዕስ'
+    },
+    'marketplace_title_hint': {
+      'Norsk': 'f.eks. iPhone 12, sofa...',
+      'Tigrinya': 'ንጠቢ iPhone 12, መቐመጢ...',
+      'English': 'e.g. iPhone 12, sofa...',
+      'Amharic': 'ለምሳሌ iPhone 12, ሶፋ...'
+    },
+    'marketplace_price': {
+      'Norsk': 'PRIS',
+      'Tigrinya': 'ዋጋ',
+      'English': 'PRICE',
+      'Amharic': 'ዋጋ'
+    },
+    'marketplace_desc': {
+      'Norsk': 'BESKRIVELSE',
+      'Tigrinya': 'መግለጺ',
+      'English': 'DESCRIPTION',
+      'Amharic': 'መግለጫ'
+    },
+    'marketplace_desc_hint': {
+      'Norsk': 'Beskriv gjenstanden...',
+      'Tigrinya': 'ነቲ ኣቓሕ ግለጸሉ...',
+      'English': 'Describe the item...',
+      'Amharic': 'ዕቃውን ግለጽ...'
+    },
+    'marketplace_publish': {
+      'Norsk': 'Publiser annonse',
+      'Tigrinya': 'ኣዊጅ ኣውጽእ',
+      'English': 'Publish Listing',
+      'Amharic': 'ማስታወቂያ አሳትም'
+    },
+    'market_all': {
+      'Norsk': 'Alle',
+      'Tigrinya': 'ኩሉ',
+      'English': 'All',
+      'Amharic': 'ሁሉ'
+    },
+    'market_clothes': {
+      'Norsk': 'Klær',
+      'Tigrinya': 'ክዳን',
+      'English': 'Clothes',
+      'Amharic': 'ልብስ'
+    },
+    'market_electronics': {
+      'Norsk': 'Elektronikk',
+      'Tigrinya': 'ኤሌክትሮኒክስ',
+      'English': 'Electronics',
+      'Amharic': 'ኤሌክትሮኒክስ'
+    },
+    'market_furniture': {
+      'Norsk': 'Møbler',
+      'Tigrinya': 'ኣቑሑ ቤት',
+      'English': 'Furniture',
+      'Amharic': 'የቤት እቃዎች'
+    },
+    'market_food': {
+      'Norsk': 'Mat',
+      'Tigrinya': 'መግቢ',
+      'English': 'Food',
+      'Amharic': 'ምግብ'
+    },
+    'market_books': {
+      'Norsk': 'Bøker',
+      'Tigrinya': 'መጻሕፍቲ',
+      'English': 'Books',
+      'Amharic': 'መጻሕፍት'
+    },
+    'marketplace_city': {
+      'Norsk': 'BY / STED',
+      'Tigrinya': 'ከተማ / ቦታ',
+      'English': 'CITY / LOCATION',
+      'Amharic': 'ከተማ / ቦታ'
+    },
+    'market_other': {
+      'Norsk': 'Annet',
+      'Tigrinya': 'ካልእ',
+      'English': 'Other',
+      'Amharic': 'ሌላ'
     },
     'connect_messages': {
       'Norsk': 'Meldinger',
@@ -904,6 +1054,156 @@ class AppTranslations {
       'Tigrinya': 'ዝፈትዎ',
       'English': 'INTERESTS',
       'Amharic': 'ፍላጎቶች'
+    },
+    'marketplace_title': {
+      'Norsk': 'Marked',
+      'Tigrinya': 'ዕዳጋ',
+      'English': 'Marketplace',
+      'Amharic': 'ገበያ'
+    },
+    'marketplace_subtitle': {
+      'Norsk': 'Kjøp og selg brukte ting',
+      'Tigrinya': 'ዝተጠቕሙ ኣቓሑ ሸጡ ወይ ግዝኡ',
+      'English': 'Buy and sell second-hand items',
+      'Amharic': 'የሁለተኛ ዕቃዎችን ይሸጡ ወይ ይግዙ'
+    },
+    'marketplace_browse': {
+      'Norsk': 'Utforsk',
+      'Tigrinya': 'ፈልጥ',
+      'English': 'Browse',
+      'Amharic': 'ዳስስ'
+    },
+    'marketplace_sell': {
+      'Norsk': 'Selg',
+      'Tigrinya': 'ሽጥ',
+      'English': 'Sell',
+      'Amharic': 'ሸጥ'
+    },
+    'marketplace_search_name': {
+      'Norsk': 'Søk etter produkt...',
+      'Tigrinya': 'ብ ሽም ንብረት ድለ',
+      'English': 'Search for product...',
+      'Amharic': 'ምርት ፈልግ...'
+    },
+    'marketplace_search_city': {
+      'Norsk': 'Søk etter by...',
+      'Tigrinya': 'ከተማ ድለ...',
+      'English': 'Search by city...',
+      'Amharic': 'በከተማ ፈልግ...'
+    },
+    'marketplace_edit': {
+      'Norsk': 'Rediger annonse',
+      'Tigrinya': 'ኣዊጅ ኣርም',
+      'English': 'Edit Listing',
+      'Amharic': 'ማስታወቂያ አርም'
+    },
+    'marketplace_add': {
+      'Norsk': 'Legg ut annonse',
+      'Tigrinya': 'ዝርዝር ወስኽ',
+      'English': 'Add Listing',
+      'Amharic': 'ማስታወቂያ ጨምር'
+    },
+    'marketplace_empty': {
+      'Norsk': 'Ingen annonser ennå',
+      'Tigrinya': 'ዝርዝር የለን',
+      'English': 'No listings yet',
+      'Amharic': 'እስካሁን ማስታወቂያ የለም'
+    },
+    'marketplace_be_first': {
+      'Norsk': 'Vær den første til å selge noe!',
+      'Tigrinya': 'ቀዳማይ ሸያጢ ኹን!',
+      'English': 'Be the first to sell something!',
+      'Amharic': 'የመጀመሪያው ሻጭ ሁን!'
+    },
+    'marketplace_add_photo': {
+      'Norsk': 'Legg til bilde',
+      'Tigrinya': 'ስእሊ ወስኽ',
+      'English': 'Add photo',
+      'Amharic': 'ፎቶ ጨምር'
+    },
+    'marketplace_title_field': {
+      'Norsk': 'TITTEL',
+      'Tigrinya': 'ኣርእስቲ',
+      'English': 'TITLE',
+      'Amharic': 'ርዕስ'
+    },
+    'marketplace_title_hint': {
+      'Norsk': 'f.eks. iPhone 12, sofa...',
+      'Tigrinya': 'ንጠቢ iPhone 12, መቐመጢ...',
+      'English': 'e.g. iPhone 12, sofa...',
+      'Amharic': 'ለምሳሌ iPhone 12, ሶፋ...'
+    },
+    'marketplace_price': {
+      'Norsk': 'PRIS',
+      'Tigrinya': 'ዋጋ',
+      'English': 'PRICE',
+      'Amharic': 'ዋጋ'
+    },
+    'marketplace_desc': {
+      'Norsk': 'BESKRIVELSE',
+      'Tigrinya': 'መግለጺ',
+      'English': 'DESCRIPTION',
+      'Amharic': 'መግለጫ'
+    },
+    'marketplace_desc_hint': {
+      'Norsk': 'Beskriv gjenstanden...',
+      'Tigrinya': 'ነቲ ኣቓሕ ግለጸሉ...',
+      'English': 'Describe the item...',
+      'Amharic': 'ዕቃውን ግለጽ...'
+    },
+    'marketplace_publish': {
+      'Norsk': 'Publiser annonse',
+      'Tigrinya': 'ኣዊጅ ኣውጽእ',
+      'English': 'Publish Listing',
+      'Amharic': 'ማስታወቂያ አሳትም'
+    },
+    'market_all': {
+      'Norsk': 'Alle',
+      'Tigrinya': 'ኩሉ',
+      'English': 'All',
+      'Amharic': 'ሁሉ'
+    },
+    'market_clothes': {
+      'Norsk': 'Klær',
+      'Tigrinya': 'ክዳን',
+      'English': 'Clothes',
+      'Amharic': 'ልብስ'
+    },
+    'market_electronics': {
+      'Norsk': 'Elektronikk',
+      'Tigrinya': 'ኤሌክትሮኒክስ',
+      'English': 'Electronics',
+      'Amharic': 'ኤሌክትሮኒክስ'
+    },
+    'market_furniture': {
+      'Norsk': 'Møbler',
+      'Tigrinya': 'ኣቑሑ ቤት',
+      'English': 'Furniture',
+      'Amharic': 'የቤት እቃዎች'
+    },
+    'market_food': {
+      'Norsk': 'Mat',
+      'Tigrinya': 'መግቢ',
+      'English': 'Food',
+      'Amharic': 'ምግብ'
+    },
+    'market_books': {
+      'Norsk': 'Bøker',
+      'Tigrinya': 'መጻሕፍቲ',
+      'English': 'Books',
+      'Amharic': 'መጻሕፍት'
+    },
+    'marketplace_city': {
+      'Norsk': 'BY / STED',
+      'Tigrinya': 'ከተማ / ቦታ',
+      'English': 'CITY / LOCATION',
+      'Amharic': 'ከተማ / ቦታ'
+    },
+    'market_other': {
+      'Norsk': 'Annet',
+      'Tigrinya': 'ካልእ',
+      'English': 'Other',
+      'Amharic': 'ሌላ'
     },
     'connect_messages': {
       'Norsk': 'Meldinger',

@@ -426,7 +426,18 @@ class ConnectInboxScreen extends StatelessWidget {
               final senderName = data['guestName'] ?? data['nickname'] ?? 'User';
               final businessId = data['businessId'] ?? '';
 
-              return GestureDetector(
+              return Dismissible(
+                key: ValueKey(docs[i].id),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(right: 20),
+                  decoration: BoxDecoration(color: kRed.withOpacity(0.8), borderRadius: BorderRadius.circular(12)),
+                  alignment: Alignment.centerRight,
+                  child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 24),
+                ),
+                onDismissed: (_) => db.collection('chats').doc(docs[i].id).delete(),
+                child: GestureDetector(
                 onTap: () {
                   final fakeBusiness = Business(
                     id: businessId,
@@ -490,6 +501,7 @@ class ConnectInboxScreen extends StatelessWidget {
                       child: const Icon(Icons.delete_outline_rounded, color: kRed, size: 18),
                     ),
                   ]),
+                ),
                 ),
               );
             },
