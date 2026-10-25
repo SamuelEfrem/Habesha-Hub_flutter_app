@@ -165,6 +165,14 @@ class Business {
         entry = e;
         break;
       }
+      if ((key.contains('sat') || key.contains('lør')) && weekday == 6) {
+        entry = e;
+        break;
+      }
+      if ((key.contains('sun') || key.contains('søn')) && weekday == 7) {
+        entry = e;
+        break;
+      }
       if (key.contains('mon') && key.contains('fri') && weekday <= 5) {
         entry = e;
         break;

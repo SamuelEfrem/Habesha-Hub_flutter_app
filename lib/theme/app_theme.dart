@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../utils/theme_notifier.dart';
+import '../utils/translations.dart';
 
+// ── Mørke farger (dark mode) ──────────────────────────────
 const kSurface = Color(0xFF131313);
 const kSurfaceDim = Color(0xFF0E0E0E);
 const kSurfaceContainerLow = Color(0xFF1C1B1B);
@@ -13,6 +16,24 @@ const kOnSurfaceVariant = Color(0xFFE3BEB8);
 const kOutlineVariant = Color(0xFF5A403C);
 const kGreen = Color(0xFF22C55E);
 const kRed = Color(0xFFEF4444);
+
+// ── Lyse farger (light mode) ──────────────────────────────
+const kSurfaceLight = Color(0xFFFAF8F5);
+const kSurfaceContainerLowLight = Color(0xFFF5F0E8);
+const kSurfaceContainerLight = Color(0xFFFFFFFF);
+const kSurfaceContainerHighLight = Color(0xFFF0EBE3);
+const kSurfaceContainerHighestLight = Color(0xFFE8E1D8);
+const kOnSurfaceLight = Color(0xFF1A1200);
+const kOnSurfaceVariantLight = Color(0xFF5C4A1E);
+
+// ── Dynamiske farger — bytter auto basert på theme ────────
+Color get kBg => themeNotifier.isDark ? kSurface : kSurfaceLight;
+Color get kCard => themeNotifier.isDark ? kSurfaceContainer : kSurfaceContainerLight;
+Color get kCardLow => themeNotifier.isDark ? kSurfaceContainerLow : kSurfaceContainerLowLight;
+Color get kCardHigh => themeNotifier.isDark ? kSurfaceContainerHigh : kSurfaceContainerHighLight;
+Color get kCardHighest => themeNotifier.isDark ? kSurfaceContainerHighest : kSurfaceContainerHighestLight;
+Color get kText => themeNotifier.isDark ? kOnSurface : kOnSurfaceLight;
+Color get kTextSub => themeNotifier.isDark ? kOnSurfaceVariant : kOnSurfaceVariantLight;
 
 const kFontHeadline = 'NotoSerif';
 const kFontBody = 'Manrope';
@@ -128,6 +149,57 @@ ThemeData habeshaTheme() => ThemeData(
       ),
     );
 
+ThemeData habeshaLightTheme() => ThemeData(
+      useMaterial3: true,
+      scaffoldBackgroundColor: kSurfaceLight,
+      fontFamily: kFontBody,
+      colorScheme: const ColorScheme.light(
+        surface: kSurfaceLight,
+        primary: kPrimaryContainer,
+        primaryContainer: kPrimaryContainer,
+        secondary: kSecondary,
+        onSurface: kOnSurfaceLight,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: kSurfaceLight,
+        elevation: 0,
+        iconTheme: IconThemeData(color: kPrimaryContainer),
+        titleTextStyle: TextStyle(
+            fontFamily: kFontHeadline,
+            color: kPrimaryContainer,
+            fontSize: 18,
+            fontWeight: FontWeight.w700),
+      ),
+      tabBarTheme: const TabBarThemeData(
+        indicatorColor: kSecondary,
+        labelColor: kPrimaryContainer,
+        unselectedLabelColor: kOnSurfaceVariantLight,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: kSurfaceContainerHighestLight,
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: kSecondary, width: 1)),
+        hintStyle: const TextStyle(
+            fontFamily: kFontBody, fontSize: 12, color: kOnSurfaceVariantLight),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: kSurfaceContainerHighLight,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: kSurfaceContainerHighLight,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+    );
+
 // ── Shared Widgets ────────────────────────────────────────
 
 Widget openBadge(bool isOpen) => Container(
@@ -137,7 +209,7 @@ Widget openBadge(bool isOpen) => Container(
               ? kGreen.withOpacity(0.9)
               : kPrimaryContainer.withOpacity(0.9),
           borderRadius: BorderRadius.circular(100)),
-      child: Text(isOpen ? 'ÅPEN NÅ' : 'STENGT',
+      child: Text(isOpen ? AppTranslations.get('open_now') : AppTranslations.get('closed').toUpperCase(),
           style: const TextStyle(
               fontFamily: kFontBody,
               fontSize: 10,

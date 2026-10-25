@@ -6,6 +6,8 @@ import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import '../widgets/business_card.dart';
 import 'business_detail_screen.dart';
+import '../utils/translations.dart';
+import 'provider_extras.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -42,7 +44,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           businesses.add(Business.fromFirestore(doc.data()!, doc.id));
         }
       } catch (e) {
-        print('Error loading business $id: $e');
+        debugPrint('Error loading business $id: $e');
       }
     }
 
@@ -60,6 +62,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         title: AnimatedBuilder(animation: languageNotifier, builder: (_, __) => Text(languageNotifier.t('favorites_title'), style: tsTitleMd(color: kSecondary))),
         actions: [
           IconButton(
+            tooltip: tr('Favorite services'),
+            icon: const Icon(Icons.miscellaneous_services_rounded, color: kSecondary),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const FavoriteServicesScreen())),
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh_rounded, color: kSecondary),
             onPressed: () {
               setState(() => _loading = true);
@@ -76,7 +84,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   const SizedBox(height: 16),
                   Text(languageNotifier.t('favorites_title'), style: tsTitleLg()),
                   const SizedBox(height: 8),
-                  Text('Trykk hjerte-ikonet på en bedrift for å lagre', style: tsBodySm(color: kOnSurfaceVariant), textAlign: TextAlign.center),
+                  Text(tr('Tap the heart icon on a business to save it'), style: tsBodySm(color: kOnSurfaceVariant), textAlign: TextAlign.center),
                 ]))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),

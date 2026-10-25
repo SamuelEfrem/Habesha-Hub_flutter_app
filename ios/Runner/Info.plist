@@ -31,8 +31,6 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
@@ -52,6 +50,22 @@
 	<string>This app uses your location to show nearby services.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+
+	<!-- Required by Apple: shown when the app asks for permission -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choose photos for your business, marketplace listing or profile.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Take photos for your business or marketplace listing.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Speak your question to the Habesha Hub AI assistant.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Turn your voice into text for the Habesha Hub AI assistant.</string>
+
+	<!-- Push notifications (booking confirmations, new providers) -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 
 	
 	<key>CFBundleURLTypes</key>

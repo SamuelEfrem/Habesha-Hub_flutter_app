@@ -12,10 +12,7 @@ import 'package:uuid/uuid.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../models/business.dart';
-import 'admin_chat_screen.dart';
-import 'guest_chat_screen.dart';
 import 'hotel_booking_screen.dart';
-import 'business_inbox_screen.dart';
 import 'booking_screen.dart';
 import '../utils/language_notifier.dart';
 import '../theme/app_theme.dart';
@@ -23,6 +20,7 @@ import 'edit_business_screen.dart';
 import 'booking_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
+import '../utils/translations.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final Business business;
@@ -130,7 +128,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Du må logge inn for å rate', style: tsBodySm(color: kOnSurface)),
+        content: Text(tr('You must log in to rate'), style: tsBodySm(color: kText)),
         backgroundColor: kRed,
         behavior: SnackBarBehavior.floating,
       ));
@@ -159,7 +157,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
             '${languageNotifier.t("gave_stars")} ${stars.toInt()} ${languageNotifier.t("stars")} ⭐',
-            style: tsBodySm(color: kOnSurface)),
+            style: tsBodySm(color: kText)),
         backgroundColor: kGreen,
         behavior: SnackBarBehavior.floating,
       ));
@@ -256,7 +254,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(languageNotifier.t('message_sent'),
-                style: tsBodySm(color: kOnSurface)),
+                style: tsBodySm(color: kText)),
             backgroundColor: kGreen));
         setState(() => _uploadingMenu = false);
       }
@@ -264,7 +262,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       setState(() => _uploadingMenu = false);
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+            .showSnackBar(SnackBar(content: Text('${tr('Error')}: $e')));
       }
     }
   }
@@ -287,8 +285,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           .update({'imageUrl': url});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Profilbilde oppdatert!',
-                style: tsBodySm(color: kOnSurface)),
+            content: Text(tr('Profile picture updated!'),
+                style: tsBodySm(color: kText)),
             backgroundColor: kGreen));
         setState(() {
           _uploadingMenu = false;
@@ -299,7 +297,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       setState(() => _uploadingMenu = false);
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Feil: $e')));
+            .showSnackBar(SnackBar(content: Text('${tr('Error')}: $e')));
       }
     }
   }
@@ -307,7 +305,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   Future<void> _uploadGalleryImage() async {
     if (_localGalleryImages.length >= 5) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Maks 5 bilder!', style: tsBodySm(color: kOnSurface)),
+          content: Text(tr('Max 5 images!'), style: tsBodySm(color: kText)),
           backgroundColor: kRed));
       return;
     }
@@ -334,7 +332,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         });
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content:
-                Text('Bilde lagt til!', style: tsBodySm(color: kOnSurface)),
+                Text(tr('Image added!'), style: tsBodySm(color: kText)),
             backgroundColor: kGreen));
       }
     } catch (e) {
@@ -365,7 +363,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         });
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content:
-                Text('Video lastet opp!', style: tsBodySm(color: kOnSurface)),
+                Text(tr('Video uploaded!'), style: tsBodySm(color: kText)),
             backgroundColor: kGreen));
       }
     } catch (e) {
@@ -378,7 +376,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     return AnimatedBuilder(
       animation: languageNotifier,
       builder: (context, _) => Scaffold(
-        backgroundColor: kSurface,
+        backgroundColor: kBg,
         body: NestedScrollView(
           headerSliverBuilder: (_, __) => [_buildSliver()],
           body: TabBarView(
@@ -394,7 +392,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     return SliverAppBar(
       expandedHeight: 300,
       pinned: true,
-      backgroundColor: kSurfaceContainer,
+      backgroundColor: kCard,
       iconTheme: const IconThemeData(color: kSecondary),
       actions: [
         GestureDetector(
@@ -427,7 +425,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
               '${_localImageUrl ?? widget.business.imageUrl}?v=${DateTime.now().millisecondsSinceEpoch}',
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
-                  color: kSurfaceContainerHigh,
+                  color: kCardHigh,
                   child: const Icon(Icons.storefront_rounded,
                       size: 80, color: kSecondary))),
           ),
@@ -472,7 +470,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                       end: Alignment.bottomCenter,
                       colors: [
                 Colors.transparent,
-                kSurface.withOpacity(0.95)
+                kBg.withOpacity(0.95)
               ]))),
           // Fullscreen tap overlay - must be last in Stack
           Positioned(
@@ -510,13 +508,13 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                             borderRadius: BorderRadius.circular(100)),
                         child: Text(widget.business.category.toUpperCase(),
                             style: tsLabel(color: const Color(0xFF342800)))),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(widget.business.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontFamily: kFontHeadline,
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
-                            color: kOnSurface,
+                            color: kText,
                             height: 1.2),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis),
@@ -531,13 +529,13 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                                       : Icons.star_outline_rounded,
                                   color: kSecondary,
                                   size: 13))),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6),
                       Text(widget.business.rating.toStringAsFixed(1),
-                          style: tsTitleMd(color: kOnSurface)),
-                      const SizedBox(width: 4),
+                          style: tsTitleMd(color: kText)),
+                      SizedBox(width: 4),
                       Text('($_ratingCount)',
                           style: tsBodySm(
-                              color: kOnSurfaceVariant.withOpacity(0.6))),
+                              color: kTextSub.withOpacity(0.6))),
                     ]),
                   ])),
           if (widget.userLat != 0)
@@ -573,13 +571,13 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           controller: _tabController,
           indicatorColor: kSecondary,
           indicatorWeight: 2,
-          labelStyle: const TextStyle(
+          labelStyle: TextStyle(
               fontFamily: kFontBody,
               fontSize: 11,
               fontWeight: FontWeight.w800,
               letterSpacing: 1.2),
           labelColor: kSecondary,
-          unselectedLabelColor: kOnSurfaceVariant,
+          unselectedLabelColor: kTextSub,
           tabs: [Tab(text: t('info_tab')), Tab(text: t('chat_tab'))]),
     );
   }
@@ -615,7 +613,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
               const Icon(Icons.calendar_today_rounded,
                   color: Color(0xFF1A1200), size: 18),
               const SizedBox(width: 8),
-              Text('Book tid',
+              Text(tr('Book a time'),
                   style: tsTitleMd(color: const Color(0xFF1A1200))),
             ]),
           ),
@@ -652,9 +650,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
               final user = FirebaseAuth.instance.currentUser;
               final isOwner = user?.uid == widget.business.ownerId;
               if (isOwner) {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => BusinessInboxScreen(business: widget.business)));
+                // Chat removed - use phone
               } else {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => GuestChatScreen(business: widget.business)));
+                launchUrl(Uri.parse('tel:' + widget.business.phone), mode: LaunchMode.externalApplication);
               }
             }),
             if (widget.business.category == 'Hotel')
@@ -673,15 +671,15 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text(t('no_website'),
-                        style: tsBodySm(color: kOnSurface)),
-                    backgroundColor: kSurfaceContainerHigh,
+                        style: tsBodySm(color: kText)),
+                    backgroundColor: kCardHigh,
                     behavior: SnackBarBehavior.floating));
               }
             }),
           ]),
       const SizedBox(height: 24),
       Row(children: [
-        Text('About ${widget.business.name.split(" ").first}',
+        Text('${tr('About')} ${widget.business.name.split(" ").first}',
             style: tsHeadlineMd()),
         const SizedBox(width: 12),
         Expanded(
@@ -693,12 +691,12 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                   Colors.transparent
                 ])))),
       ]),
-      const SizedBox(height: 12),
+      SizedBox(height: 12),
       Text(
           widget.business.description.isNotEmpty
               ? widget.business.description
               : t('no_description'),
-          style: tsBodyLg(color: kOnSurfaceVariant)),
+          style: tsBodyLg(color: kTextSub)),
       const SizedBox(height: 24),
       if (_localGalleryImages.isNotEmpty) ...[
         _buildGallery(),
@@ -735,7 +733,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     return StreamBuilder<DocumentSnapshot>(
       stream: _db.collection('businesses').doc(widget.business.id).snapshots(),
       builder: (_, snap) {
-        if (!snap.hasData) return const SizedBox();
+        if (!snap.hasData) return SizedBox();
         final data = snap.data!.data() as Map<String, dynamic>? ?? {};
         final views = data['viewCount'] ?? 0;
         final bookings = data['bookingCount'] ?? 0;
@@ -744,7 +742,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: kSurfaceContainer,
+            color: kCard,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: kSecondary.withOpacity(0.2)),
           ),
@@ -752,15 +750,15 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
             Row(children: [
               const Icon(Icons.bar_chart_rounded, color: kSecondary, size: 20),
               const SizedBox(width: 8),
-              Text('Business Statistics', style: tsTitleMd(color: kSecondary)),
+              Text(tr('Business Statistics'), style: tsTitleMd(color: kSecondary)),
             ]),
             const SizedBox(height: 16),
             Row(children: [
-              Expanded(child: _statCard('👁', views.toString(), 'Views')),
+              Expanded(child: _statCard('👁', views.toString(), tr('Views'))),
               const SizedBox(width: 10),
-              Expanded(child: _statCard('📅', bookings.toString(), 'Bookings')),
+              Expanded(child: _statCard('📅', bookings.toString(), tr('Bookings'))),
               const SizedBox(width: 10),
-              Expanded(child: _statCard('⭐', reviews.toString(), 'Reviews')),
+              Expanded(child: _statCard('⭐', reviews.toString(), tr('Reviews'))),
             ]),
           ]),
         );
@@ -772,15 +770,15 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: kSurface,
+        color: kBg,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: kSecondary.withOpacity(0.1)),
       ),
       child: Column(children: [
-        Text(emoji, style: const TextStyle(fontSize: 22)),
-        const SizedBox(height: 4),
+        Text(emoji, style: TextStyle(fontSize: 22)),
+        SizedBox(height: 4),
         Text(value, style: tsHeadlineSm(color: kSecondary)),
-        Text(label, style: tsBodySm(color: kOnSurfaceVariant)),
+        Text(label, style: tsBodySm(color: kTextSub)),
       ]),
     );
   }
@@ -813,12 +811,12 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           border: Border.all(color: kSecondary.withOpacity(0.4), width: 1),
         ),
         child: Row(children: [
-          const Text('⭐', style: TextStyle(fontSize: 28)),
-          const SizedBox(width: 12),
+          Text('⭐', style: TextStyle(fontSize: 28)),
+          SizedBox(width: 12),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(lang == 'Tigrinya' ? 'ፕሪሚዩም ኹን' : lang == 'Amharic' ? 'ፕሪሚዬም ሁን' : lang == 'Norsk' ? 'Bli Premium' : 'Upgrade to Premium', style: tsTitleMd(color: kSecondary)),
-            const SizedBox(height: 4),
-            Text(lang == 'Tigrinya' ? 'ሜኑ ጸዓን፡ ቅድሚ ምርኣይ' : lang == 'Amharic' ? 'ሜኑ ስቀሉ፣ ቅድሚያ ይሰጡ' : lang == 'Norsk' ? 'Last opp meny, vis øverst' : 'Upload menu, show first', style: tsBodySm(color: kOnSurfaceVariant)),
+            SizedBox(height: 4),
+            Text(lang == 'Tigrinya' ? 'ሜኑ ጸዓን፡ ቅድሚ ምርኣይ' : lang == 'Amharic' ? 'ሜኑ ስቀሉ፣ ቅድሚያ ይሰጡ' : lang == 'Norsk' ? 'Last opp meny, vis øverst' : 'Upload menu, show first', style: tsBodySm(color: kTextSub)),
           ])),
           const Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 16),
         ]),
@@ -835,13 +833,13 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       builder: (context, setS) => Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: kSurfaceContainer,
+          color: kCard,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: kSecondary.withOpacity(0.1), width: 0.5),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Reviews & Comments', style: tsTitleMd(color: kSecondary)),
-          const SizedBox(height: 12),
+          Text(tr('Reviews & Comments'), style: tsTitleMd(color: kSecondary)),
+          SizedBox(height: 12),
 
           // Comment list
           StreamBuilder<QuerySnapshot>(
@@ -850,7 +848,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
               if (!snap.hasData || snap.data!.docs.isEmpty) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text('No reviews yet. Be the first!', style: tsBodySm(color: kOnSurfaceVariant)),
+                  child: Text(tr('No reviews yet. Be the first!'), style: tsBodySm(color: kTextSub)),
                 );
               }
               return Column(children: snap.data!.docs.map((doc) {
@@ -859,10 +857,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                 return Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: kSurface, borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(color: kBg, borderRadius: BorderRadius.circular(10)),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(children: [
-                      Text(d['nickname'] ?? 'Guest', style: tsTitleMd()),
+                      Text(d['nickname'] ?? tr('Guest'), style: tsTitleMd()),
                       const Spacer(),
                       if (isMe)
                         GestureDetector(
@@ -880,17 +878,17 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
 
           const SizedBox(height: 12),
           const Divider(),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
 
           // Add comment
           if (user != null && !_isOwner) ...[
-            Text('Write a review', style: tsLabel()),
-            const SizedBox(height: 8),
+            Text(tr('Write a review'), style: tsLabel()),
+            SizedBox(height: 8),
             TextField(
               controller: commentCtrl,
               maxLines: 2,
-              style: tsBodyLg(color: kOnSurface),
-              decoration: const InputDecoration(hintText: 'Share your experience...'),
+              style: tsBodyLg(color: kText),
+              decoration: InputDecoration(hintText: tr('Share your experience...')),
             ),
             const SizedBox(height: 10),
             GestureDetector(
@@ -911,11 +909,11 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(10)),
-                child: Center(child: Text('Post Review', style: tsTitleMd(color: const Color(0xFF1A1200)))),
+                child: Center(child: Text(tr('Post Review'), style: tsTitleMd(color: const Color(0xFF1A1200)))),
               ),
             ),
           ] else if (user == null)
-            Text('Log in to write a review', style: tsBodySm(color: kOnSurfaceVariant)),
+            Text(tr('Log in to write a review'), style: tsBodySm(color: kTextSub)),
         ]),
       ),
     );
@@ -926,13 +924,13 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          color: kSurfaceContainer,
+          color: kCard,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: kSecondary.withOpacity(0.1), width: 0.5)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(_ratingSubmitted ? t('your_rating') : t('rate_business'),
             style:
-                tsTitleMd(color: _ratingSubmitted ? kSecondary : kOnSurface)),
+                tsTitleMd(color: _ratingSubmitted ? kSecondary : kText)),
         const SizedBox(height: 10),
         Row(
             children: List.generate(5, (i) {
@@ -977,18 +975,18 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-              color: kSurfaceContainer,
+              color: kCard,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: kSecondary.withOpacity(0.3), width: 0.5)),
           child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             const Icon(Icons.add_a_photo_rounded, color: kSecondary, size: 16),
             const SizedBox(width: 6),
-            Text('Oppdater profilbilde',
+            Text(tr('Update profile picture'),
                 style: tsTitleMd(color: kSecondary).copyWith(fontSize: 13)),
           ]),
         ),
       ),
-      const SizedBox(height: 10),
+      SizedBox(height: 10),
       Row(children: [
         Expanded(
           child: GestureDetector(
@@ -996,7 +994,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                  color: kSurfaceContainer,
+                  color: kCard,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: kSecondary.withOpacity(0.3), width: 0.5)),
               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -1005,20 +1003,20 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                 else
                   const Icon(Icons.photo_library_rounded, color: kSecondary, size: 16),
                 const SizedBox(width: 6),
-                Text('Galleri (${_localGalleryImages.length}/5)',
+                Text('${tr('Gallery')} (${_localGalleryImages.length}/5)',
                     style: tsTitleMd(color: kSecondary).copyWith(fontSize: 12)),
               ]),
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: 10),
         Expanded(
           child: GestureDetector(
             onTap: _uploadingVideo ? null : _uploadPromoVideo,
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                  color: kSurfaceContainer,
+                  color: kCard,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: kSecondary.withOpacity(0.3), width: 0.5)),
               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -1027,7 +1025,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                 else
                   const Icon(Icons.videocam_rounded, color: kSecondary, size: 16),
                 const SizedBox(width: 6),
-                Text(_localVideoUrl != null ? 'Video' : 'Legg til video',
+                Text(_localVideoUrl != null ? tr('Video') : tr('Add video'),
                     style: tsTitleMd(color: kSecondary).copyWith(fontSize: 12)),
               ]),
             ),
@@ -1049,7 +1047,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
-                color: kSurfaceContainer,
+                color: kCard,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: kSecondary.withOpacity(0.3), width: 0.5)),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -1060,14 +1058,14 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
             ]),
           ),
         )),
-        const SizedBox(width: 10),
+        SizedBox(width: 10),
         Expanded(
             child: GestureDetector(
           onTap: () async {
             final confirm = await showDialog<bool>(
                 context: context,
                 builder: (_) => AlertDialog(
-                      backgroundColor: kSurfaceContainerHigh,
+                      backgroundColor: kCardHigh,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20)),
                       title: Text(t('delete_business'), style: tsHeadlineSm()),
@@ -1108,7 +1106,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          color: kSurfaceContainer,
+          color: kCard,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: kSecondary.withOpacity(0.05), width: 0.5)),
       child: Column(children: [
@@ -1125,7 +1123,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                         color: widget.business.isOpenNow ? kGreen : kRed,
                         shape: BoxShape.circle,
                         border:
-                            Border.all(color: kSurfaceContainer, width: 1.5)))),
+                            Border.all(color: kCard, width: 1.5)))),
           ]),
           const SizedBox(width: 14),
           Expanded(
@@ -1141,7 +1139,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                         color: widget.business.isOpenNow ? kGreen : kRed)),
                 if (widget.business.openingHours.isNotEmpty)
                   Text(_summaryLine(),
-                      style: tsBodySm(color: kOnSurfaceVariant))
+                      style: tsBodySm(color: kTextSub))
                 else
                   Text(t('no_opening_hours'), style: tsBodySm()),
               ])),
@@ -1149,16 +1147,16 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         if (widget.business.openingHours.isNotEmpty) ...[
           const SizedBox(height: 12),
           Container(height: 0.5, color: kOutlineVariant.withOpacity(0.15)),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           ..._sortedHours.entries.map((e) => Padding(
               padding: const EdgeInsets.only(bottom: 7),
               child: Row(children: [
-                Expanded(child: Text(e.key, style: tsBodySm())),
-                Text(e.value,
+                Expanded(child: Text(tr(e.key), style: tsBodySm())),
+                Text(tr(e.value),
                     style: tsBodySm(
-                            color: e.value.toLowerCase() == 'stengt'
+                            color: (e.value.toLowerCase() == 'stengt' || e.value.toLowerCase() == 'closed')
                                 ? kRed
-                                : kOnSurface)
+                                : kText)
                         .copyWith(fontWeight: FontWeight.w600)),
               ]))),
         ],
@@ -1217,8 +1215,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     final parts = val.split(' - ');
     if (parts.length == 2) {
       return widget.business.isOpenNow
-          ? '${t("closes_at")} ${parts[1].trim()} • ${todayEntry.key}'
-          : '${t("opens_at")} ${parts[0].trim()} • ${todayEntry.key}';
+          ? '${t("closes_at")} ${parts[1].trim()} • ${tr(todayEntry.key)}'
+          : '${t("opens_at")} ${parts[0].trim()} • ${tr(todayEntry.key)}';
     }
     return val;
   }
@@ -1255,11 +1253,11 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                   borderRadius: BorderRadius.circular(12)),
               child:
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                const Icon(Icons.restaurant_menu_rounded,
+                Icon(Icons.restaurant_menu_rounded,
                     color: kSecondary, size: 20),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(t('view_menu'),
-                    style: tsTitleMd(color: kOnSurface)
+                    style: tsTitleMd(color: kText)
                         .copyWith(letterSpacing: 0.5)),
               ])));
     }
@@ -1313,7 +1311,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           decoration: BoxDecoration(
-              color: kSurfaceContainer,
+              color: kCard,
               borderRadius: BorderRadius.circular(12),
               border:
                   Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
@@ -1329,7 +1327,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                           tsTitleMd(color: kSecondary).copyWith(fontSize: 13)),
                   Text(t('contact_for_premium'),
                       style:
-                          tsBodySm(color: kOnSurfaceVariant.withOpacity(0.6))),
+                          tsBodySm(color: kTextSub.withOpacity(0.6))),
                 ])),
             const Icon(Icons.arrow_forward_ios_rounded,
                 color: kSecondary, size: 12),
@@ -1343,16 +1341,16 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       decoration: BoxDecoration(
-          color: kSurfaceContainerHigh,
+          color: kCardHigh,
           borderRadius: BorderRadius.circular(12),
           border:
               Border.all(color: kOutlineVariant.withOpacity(0.15), width: 0.5)),
       child: Row(children: [
         Icon(Icons.restaurant_menu_rounded,
-            color: kOnSurfaceVariant.withOpacity(0.3), size: 20),
-        const SizedBox(width: 10),
+            color: kTextSub.withOpacity(0.3), size: 20),
+        SizedBox(width: 10),
         Text(t('menu_not_available'),
-            style: tsBodySm(color: kOnSurfaceVariant.withOpacity(0.45))),
+            style: tsBodySm(color: kTextSub.withOpacity(0.45))),
       ]),
     );
   }
@@ -1451,7 +1449,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
             gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [kPrimaryContainer.withOpacity(0.35), kSurface]),
+                colors: [kPrimaryContainer.withOpacity(0.35), kBg]),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1464,23 +1462,23 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                 opacity: 0.08,
                 child: Icon(Icons.verified_rounded, color: kSecondary, size: 64)),
           ]),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Text(t('premium_desc'), style: tsBodySm()),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           ...[t('verified_business'), t('priority_booking'), t('digital_menu')]
               .map((item) => Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Row(children: [
-                    const Icon(Icons.check_circle_rounded, color: kGreen, size: 16),
-                    const SizedBox(width: 10),
-                    Text(item, style: tsLabel(color: kOnSurface.withOpacity(0.7))),
+                    Icon(Icons.check_circle_rounded, color: kGreen, size: 16),
+                    SizedBox(width: 10),
+                    Text(item, style: tsLabel(color: kText.withOpacity(0.7))),
                   ]))),
         ]));
   }
 
   Widget _buildGallery() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Galleri', style: tsHeadlineSm(color: kSecondary)),
+      Text(tr('Gallery'), style: tsHeadlineSm(color: kSecondary)),
       const SizedBox(height: 12),
       SizedBox(
         height: 120,
@@ -1492,7 +1490,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
             margin: const EdgeInsets.only(right: 10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              color: kSurfaceContainerHigh,
+              color: kCardHigh,
             ),
             clipBehavior: Clip.hardEdge,
             child: Stack(children: [
@@ -1533,7 +1531,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     final url = _localVideoUrl ?? widget.business.promoVideoUrl;
     if (url == null) return const SizedBox();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Video', style: tsHeadlineSm(color: kSecondary)),
+      Text(tr('Video'), style: tsHeadlineSm(color: kSecondary)),
       const SizedBox(height: 12),
       Container(
         height: 200,
@@ -1559,7 +1557,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     return Column(children: [
       Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          color: kSurfaceContainer,
+          color: kCard,
           child: Row(children: [
             const Icon(Icons.person_outline_rounded,
                 color: kSecondary, size: 14),
@@ -1587,8 +1585,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                       child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                        const Icon(Icons.chat_bubble_outline_rounded,
-                            color: kOnSurfaceVariant, size: 52),
+                        Icon(Icons.chat_bubble_outline_rounded,
+                            color: kTextSub, size: 52),
                         const SizedBox(height: 12),
                         Text(t('no_messages'),
                             style: tsBodySm(), textAlign: TextAlign.center),
@@ -1612,24 +1610,24 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
               })),
       Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          color: kSurfaceContainer,
+          color: kCard,
           child: Row(children: [
             Container(
                 width: 36,
                 height: 36,
-                decoration: const BoxDecoration(
-                    color: kSurfaceContainerHigh, shape: BoxShape.circle),
-                child: const Icon(Icons.add_rounded,
-                    color: kOnSurfaceVariant, size: 20)),
-            const SizedBox(width: 10),
+                decoration: BoxDecoration(
+                    color: kCardHigh, shape: BoxShape.circle),
+                child: Icon(Icons.add_rounded,
+                    color: kTextSub, size: 20)),
+            SizedBox(width: 10),
             Expanded(
                 child: Container(
                     decoration: BoxDecoration(
-                        color: kSurfaceContainerHighest,
+                        color: kCardHighest,
                         borderRadius: BorderRadius.circular(24)),
                     child: TextField(
                         controller: _messageController,
-                        style: tsBodyLg(color: kOnSurface),
+                        style: tsBodyLg(color: kText),
                         decoration: InputDecoration(
                             hintText: t('type_message'),
                             filled: false,
@@ -1664,7 +1662,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           constraints: BoxConstraints(
               maxWidth: MediaQuery.of(context).size.width * 0.72),
           decoration: BoxDecoration(
-              color: isMe ? kPrimaryContainer : kSurfaceContainerHigh,
+              color: isMe ? kPrimaryContainer : kCardHigh,
               borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -1679,20 +1677,20 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                         fontFamily: kFontBody,
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
-                        color: isMe ? kOnSurface.withOpacity(0.6) : kSecondary,
+                        color: isMe ? kText.withOpacity(0.6) : kSecondary,
                         letterSpacing: 0.5)),
                 const SizedBox(height: 4),
                 Text(text, style: tsBodyLg()),
                 if (time != null) ...[
-                  const SizedBox(height: 3),
+                  SizedBox(height: 3),
                   Row(mainAxisSize: MainAxisSize.min, children: [
                     Text(DateFormat('HH:mm').format(time),
                         style: TextStyle(
                             fontFamily: kFontBody,
                             fontSize: 10,
                             color: isMe
-                                ? kOnSurface.withOpacity(0.35)
-                                : kOnSurfaceVariant.withOpacity(0.4))),
+                                ? kText.withOpacity(0.35)
+                                : kTextSub.withOpacity(0.4))),
                     if (isMe) ...[
                       const SizedBox(width: 3),
                       Icon(Icons.done_all_rounded,

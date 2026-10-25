@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import 'home_screen.dart';
+import '../utils/translations.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -62,17 +63,13 @@ class _SplashScreenState extends State<SplashScreen>
             ? 'ናይ ሓበሻ ማሕበረሰብኩም ኣብ ኢድኩም'
             : lang == 'Amharic'
                 ? 'የሃበሻ ማህበረሰብዎ በእጅዎ'
-                : lang == 'English'
-                    ? 'Your Habesha community in your pocket'
-                    : 'Ditt Habesha-fellesskap i lomma';
+                : tr('Your Habesha community in your pocket');
 
         final joinBtn = lang == 'Tigrinya'
             ? 'እቶ'
             : lang == 'Amharic'
                 ? 'አሁን ይቀላቀሉ'
-                : lang == 'English'
-                    ? 'Join Now'
-                    : 'Bli med nå';
+                : tr('Join Now');
 
         return Scaffold(
           backgroundColor: kSurface,
@@ -177,7 +174,6 @@ class _SplashScreenState extends State<SplashScreen>
                         _langBtn('🇬🇧', 'English', 'English', lang),
                         _langBtn('🇪🇷', 'ትግርኛ', 'Tigrinya', lang),
                         _langBtn('🇪🇹', 'አማርኛ', 'Amharic', lang),
-                        _langBtn('🇳🇴', 'Norsk', 'Norsk', lang),
                       ],
                     ),
 

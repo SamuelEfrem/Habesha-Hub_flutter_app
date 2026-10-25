@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geocoding/geocoding.dart';
 import '../theme/app_theme.dart';
 import 'auth_screen.dart';
+import '../utils/translations.dart';
 
 class RegisterBusinessScreen extends StatefulWidget {
   const RegisterBusinessScreen({super.key});
@@ -44,9 +45,9 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
 
   // Opening hours — one row per day-group
   final List<Map<String, String>> _hours = [
-    {'days': 'Man - Fre', 'open': '09:00', 'close': '18:00', 'closed': 'false'},
-    {'days': 'Lørdag', 'open': '10:00', 'close': '16:00', 'closed': 'false'},
-    {'days': 'Søndag', 'open': '11:00', 'close': '15:00', 'closed': 'true'},
+    {'days': 'Mon - Fri', 'open': '09:00', 'close': '18:00', 'closed': 'false'},
+    {'days': 'Saturday', 'open': '10:00', 'close': '16:00', 'closed': 'false'},
+    {'days': 'Sunday', 'open': '11:00', 'close': '15:00', 'closed': 'true'},
   ];
 
   String _catDisplayName(String key) {
@@ -144,7 +145,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
     if (address.isEmpty) return;
     setState(() {
       _geocoding = true;
-      _geoStatus = 'Finner koordinater...';
+      _geoStatus = tr('Finding coordinates...');
     });
     try {
       final locations = await locationFromAddress(address);
@@ -152,14 +153,14 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         _lat = locations.first.latitude;
         _lng = locations.first.longitude;
         setState(() => _geoStatus =
-            '✓ Posisjon funnet: ${_lat!.toStringAsFixed(5)}, ${_lng!.toStringAsFixed(5)}');
+            '✓ ${tr('Location found')}: ${_lat!.toStringAsFixed(5)}, ${_lng!.toStringAsFixed(5)}');
       } else {
         setState(
-            () => _geoStatus = '⚠ Adresse ikke funnet. Sjekk og prøv igjen.');
+            () => _geoStatus = tr('⚠ Address not found. Check and try again.'));
       }
     } catch (e) {
       setState(
-          () => _geoStatus = '⚠ Kunne ikke finne posisjon. Sjekk adressen.');
+          () => _geoStatus = tr('⚠ Could not find location. Check the address.'));
     } finally {
       setState(() => _geocoding = false);
     }
@@ -169,7 +170,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
     final Map<String, String> result = {};
     for (final row in _hours) {
       if (row['closed'] == 'true') {
-        result[row['days']!] = 'Stengt';
+        result[row['days']!] = 'Closed';
       } else {
         result[row['days']!] = '${row['open']} - ${row['close']}';
       }
@@ -196,8 +197,8 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
     if (!_formKey.currentState!.validate()) return;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Du må logge inn for å registrere bedrift')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr('You must log in to register a business'))));
       return;
     }
     setState(() => _saving = true);
@@ -235,7 +236,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       setState(() => _saving = false);
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Feil: $e')));
+            .showSnackBar(SnackBar(content: Text('${tr('Error')}: $e')));
       }
     }
   }
@@ -247,7 +248,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       appBar: AppBar(
         backgroundColor: kSurfaceContainer,
         iconTheme: const IconThemeData(color: kSecondary),
-        title: Text('Registrer bedrift', style: tsTitleLg(color: kSecondary)),
+        title: Text(tr('Register business'), style: tsTitleLg(color: kSecondary)),
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(2),
@@ -283,7 +284,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                   const Icon(Icons.check_rounded, size: 48, color: kSecondary),
             ),
             const SizedBox(height: 24),
-            Text('Bedrift sendt til godkjenning!',
+            Text(tr('Business sent for approval!'),
                 style: tsHeadlineSm(), textAlign: TextAlign.center),
             const SizedBox(height: 12),
             Container(
@@ -298,14 +299,14 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                 const Icon(Icons.pending_outlined, color: kSecondary, size: 28),
                 const SizedBox(height: 8),
                 Text(
-                  'Bedriften din er under gjennomgang av Habesha Hub. Vi sender deg en e-post når den er godkjent og publisert. Vanligvis 1-2 virkedager.',
+                  tr('Your business is being reviewed by Habesha Hub. We will email you when it is approved and published. Usually 1–2 business days.'),
                   style: tsBodySm(),
                   textAlign: TextAlign.center,
                 ),
               ]),
             ),
             const SizedBox(height: 32),
-            goldButton('Tilbake', () => Navigator.pop(context)),
+            goldButton(tr('Back'), () => Navigator.pop(context)),
           ],
         ),
       ),
@@ -341,7 +342,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                                   ),
                                 )))),
                     const SizedBox(height: 6),
-                    Text('Steg ${_step + 1} av 3', style: tsBodySm()),
+                    Text('${tr('Step')} ${_step + 1} / 3', style: tsBodySm()),
                     const SizedBox(height: 24),
                     if (_step == 0) _buildStep1(),
                     if (_step == 1) _buildStep2(),
@@ -368,16 +369,16 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                         borderRadius: BorderRadius.circular(12)),
                     foregroundColor: kSecondary,
                   ),
-                  child: Text('Tilbake', style: tsLabel()),
+                  child: Text(tr('Back'), style: tsLabel()),
                 )),
                 const SizedBox(width: 12),
               ],
               Expanded(
                 flex: 2,
                 child: _step < 2
-                    ? goldButton('Neste', _next)
+                    ? goldButton(tr('Next'), _next)
                     : primaryButton(
-                        'Send til godkjenning', _saving ? null : _submit,
+                        tr('Send for approval'), _saving ? null : _submit,
                         loading: _saving),
               ),
             ]),
@@ -393,27 +394,27 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         RichText(
-            text: TextSpan(style: tsHeadlineMd(), children: const [
-          TextSpan(text: 'Establish Your\n'),
+            text: TextSpan(style: tsHeadlineMd(), children: [
+          TextSpan(text: tr('Establish Your\n')),
           TextSpan(
-              text: 'Digital Heritage.',
+              text: tr('Digital Heritage.'),
               style: TextStyle(color: kSecondary, fontStyle: FontStyle.italic)),
         ])),
         const SizedBox(height: 6),
-        Text('Registrer bedriften din i Habesha Hub-nettverket.',
+        Text(tr('Register your business in the Habesha Hub network.'),
             style: tsBodySm()),
         const SizedBox(height: 24),
-        Text('BEDRIFTSNAVN', style: tsLabel()),
+        Text(tr('BUSINESS NAME'), style: tsLabel()),
         const SizedBox(height: 8),
         TextFormField(
           controller: _nameCtrl,
           style: tsBodyLg(color: kOnSurface),
-          validator: (v) => v!.isEmpty ? 'Påkrevd' : null,
+          validator: (v) => v!.isEmpty ? tr('Required') : null,
           decoration:
-              const InputDecoration(hintText: 'f.eks. Addis Fine Dining'),
+              InputDecoration(hintText: tr('e.g. Addis Fine Dining')),
         ),
         const SizedBox(height: 20),
-        Text('KATEGORI', style: tsLabel()),
+        Text(tr('CATEGORY'), style: tsLabel()),
         const SizedBox(height: 10),
         GridView.count(
           shrinkWrap: true,
@@ -461,46 +462,46 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Kontaktinformasjon', style: tsHeadlineSm()),
+        Text(tr('Contact information'), style: tsHeadlineSm()),
         const SizedBox(height: 24),
 
-        Text('LAND', style: tsLabel()),
+        Text(tr('COUNTRY'), style: tsLabel()),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: _country.isEmpty ? null : _country,
           dropdownColor: kSurfaceContainer,
           style: tsBodyLg(color: kOnSurface),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             prefixIcon: Icon(Icons.flag_rounded, color: kSecondary),
-            hintText: 'Velg land',
+            hintText: tr('Select country'),
           ),
-          validator: (v) => v == null || v.isEmpty ? 'Påkrevd' : null,
+          validator: (v) => v == null || v.isEmpty ? tr('Required') : null,
           items: [
-            'Uganda', 'Etiopia', 'Eritrea', 'Egypt', 'Kenya',
-            'Norge', 'Sverige', 'Danmark', 'UK', 'Tyskland',
-            'Nederland', 'Frankrike', 'Belgia', 'Sveits', 'Italia',
+            'Uganda', 'Ethiopia', 'Eritrea', 'Egypt', 'Kenya', 'South Sudan', 'Rwanda', 'Angola',
+            'Norway', 'Sweden', 'Denmark', 'UK', 'Germany',
+            'Netherlands', 'France', 'Belgium', 'Switzerland', 'Italy',
             'USA', 'Canada',
-          ].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+          ].map((c) => DropdownMenuItem(value: c, child: Text(tr(c)))).toList(),
           onChanged: (v) => setState(() => _country = v ?? ''),
         ),
         const SizedBox(height: 16),
 
-        Text('BESKRIVELSE', style: tsLabel()),
+        Text(tr('DESCRIPTION'), style: tsLabel()),
         const SizedBox(height: 8),
         TextFormField(
           controller: _descCtrl,
           maxLines: 3,
           style: tsBodyLg(color: kOnSurface),
-          validator: (v) => v!.isEmpty ? 'Påkrevd' : null,
+          validator: (v) => v!.isEmpty ? tr('Required') : null,
           decoration:
-              const InputDecoration(hintText: 'Beskriv bedriften din...'),
+              InputDecoration(hintText: tr('Describe your business...')),
         ),
         const SizedBox(height: 16),
 
-        Text('ADRESSE', style: tsLabel()),
+        Text(tr('ADDRESS'), style: tsLabel()),
         const SizedBox(height: 4),
         Text(
-            'Skriv full adresse inkl. postnummer og by for riktig kartplassering.',
+            tr('Enter the full address incl. postcode and city for the correct map location.'),
             style: tsBodySm(color: kOnSurfaceVariant.withOpacity(0.6))),
         const SizedBox(height: 8),
         Row(
@@ -509,9 +510,9 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
               child: TextFormField(
                 controller: _addrCtrl,
                 style: tsBodyLg(color: kOnSurface),
-                validator: (v) => v!.isEmpty ? 'Påkrevd' : null,
-                decoration: const InputDecoration(
-                  hintText: 'Grønlandsleiret 15, 0190 Oslo',
+                validator: (v) => v!.isEmpty ? tr('Required') : null,
+                decoration: InputDecoration(
+                  hintText: tr('Street 15, 0190 Oslo'),
                   prefixIcon:
                       Icon(Icons.location_on_rounded, color: kSecondary),
                 ),
@@ -547,7 +548,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         ],
         const SizedBox(height: 16),
 
-        Text('TELEFON', style: tsLabel()),
+        Text(tr('PHONE'), style: tsLabel()),
         const SizedBox(height: 8),
         TextFormField(
           controller: _phoneCtrl,
@@ -561,7 +562,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         const SizedBox(height: 24),
 
         // Opening hours
-        Text('ÅPNINGSTIDER', style: tsLabel()),
+        Text(tr('OPENING HOURS'), style: tsLabel()),
         const SizedBox(height: 10),
         ..._hours.asMap().entries.map((entry) {
           final i = entry.key;
@@ -582,7 +583,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                     Text(row['days']!, style: tsTitleMd()),
                     const Spacer(),
                     Row(children: [
-                      Text('Stengt',
+                      Text(tr('Closed'),
                           style: tsBodySm(
                               color: isClosed
                                   ? kRed
@@ -626,7 +627,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                   Row(children: [
                     Expanded(
                         child: _timeField(
-                      label: 'Åpner',
+                      label: tr('Opens'),
                       value: row['open']!,
                       onChanged: (v) => setState(() => _hours[i]['open'] = v),
                     )),
@@ -635,7 +636,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                     const SizedBox(width: 12),
                     Expanded(
                         child: _timeField(
-                      label: 'Stenger',
+                      label: tr('Closes'),
                       value: row['close']!,
                       onChanged: (v) => setState(() => _hours[i]['close'] = v),
                     )),
@@ -701,12 +702,12 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Bilde', style: tsHeadlineSm()),
+        Text(tr('Image'), style: tsHeadlineSm()),
         const SizedBox(height: 6),
-        Text('Legg til en bilde-URL for bedriften din.', style: tsBodySm()),
+        Text(tr('Add an image for your business.'), style: tsBodySm()),
         const SizedBox(height: 24),
 
-        Text('BILDE', style: tsLabel()),
+        Text(tr('IMAGE'), style: tsLabel()),
         const SizedBox(height: 8),
         GestureDetector(
           onTap: _uploadingImage ? null : _pickAndUploadImage,
@@ -725,7 +726,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                     : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                         const Icon(Icons.add_photo_alternate_rounded, color: kSecondary, size: 40),
                         const SizedBox(height: 8),
-                        Text('Trykk for å laste opp bilde', style: tsBodySm(color: kSecondary)),
+                        Text(tr('Tap to upload an image'), style: tsBodySm(color: kSecondary)),
                       ]),
           ),
         ),
@@ -733,17 +734,17 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
 
         const SizedBox(height: 16),
 
-        Text('NETTSIDE (valgfritt)', style: tsLabel()),
+        Text(tr('WEBSITE (optional)'), style: tsLabel()),
         const SizedBox(height: 4),
-        Text('URL til bedriftens nettside',
+        Text(tr('URL of the business\'s website'),
             style: tsBodySm(color: kOnSurfaceVariant.withOpacity(0.6))),
         const SizedBox(height: 8),
         TextFormField(
           controller: _websiteCtrl,
           keyboardType: TextInputType.url,
           style: tsBodyLg(color: kOnSurface),
-          decoration: const InputDecoration(
-            hintText: 'https://www.dinbedrift.no',
+          decoration: InputDecoration(
+            hintText: tr('https://www.yourbusiness.com'),
             prefixIcon: Icon(Icons.language_rounded, color: kSecondary),
           ),
         ),
@@ -762,11 +763,11 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
             Row(children: [
               const Icon(Icons.pending_outlined, color: kSecondary, size: 16),
               const SizedBox(width: 8),
-              Text('Godkjenningsprosess', style: tsTitleMd(color: kSecondary)),
+              Text(tr('Approval process'), style: tsTitleMd(color: kSecondary)),
             ]),
             const SizedBox(height: 8),
             Text(
-              'Etter innsending vil Habesha Hub-teamet gjennomgå bedriften din. Dette tar vanligvis 1-2 virkedager. Du vil motta e-post når den er godkjent.',
+              tr('After you submit, the Habesha Hub team will review your business. This usually takes 1–2 business days. You will receive an email when it is approved.'),
               style: tsBodySm(),
             ),
           ]),

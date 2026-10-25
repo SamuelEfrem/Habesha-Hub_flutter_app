@@ -7,6 +7,7 @@ import '../models/business.dart';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import '../services/notification_service.dart';
+import '../utils/translations.dart';
 
 class HotelBookingScreen extends StatefulWidget {
   final Business business;
@@ -43,7 +44,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
   Future<void> _submit() async {
     if (_nights < 1) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Check-out must be after check-in'),
+        content: Text(tr('Check-out must be after check-in')),
         backgroundColor: kRed,
       ));
       return;
@@ -180,7 +181,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                   child: Row(children: [
                     const Icon(Icons.people_rounded, color: kSecondary, size: 18),
                     const SizedBox(width: 10),
-                    Text('$_guests guest${_guests != 1 ? 's' : ''}', style: tsBodyLg(color: kOnSurface)),
+                    Text('$_guests ${_guests != 1 ? tr('guests') : tr('guest')}', style: tsBodyLg(color: kOnSurface)),
                     const Spacer(),
                     GestureDetector(onTap: () { if (_guests > 1) setState(() => _guests--); }, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: kSurfaceContainerHigh, shape: BoxShape.circle), child: const Icon(Icons.remove_rounded, color: kSecondary, size: 18))),
                     const SizedBox(width: 12),
@@ -196,7 +197,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                   controller: _messageCtrl,
                   maxLines: 3,
                   style: tsBodyLg(color: kOnSurface),
-                  decoration: const InputDecoration(hintText: 'Any special requests?'),
+                  decoration: InputDecoration(hintText: tr('Any special requests?')),
                 ),
                 const SizedBox(height: 24),
 

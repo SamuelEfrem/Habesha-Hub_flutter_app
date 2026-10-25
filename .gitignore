@@ -60,3 +60,7 @@ fix_events*.py
 *.keystore
 key.properties
 .bunny-keys.json
+
+# Node dependencies (reinstall with npm install)
+node_modules/
+functions/node_modules/

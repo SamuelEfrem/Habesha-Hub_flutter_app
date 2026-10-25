@@ -50,6 +50,23 @@ class NotificationService {
     FirebaseMessaging.onBackgroundMessage(_backgroundHandler);
   }
 
+  // ── News topics: new providers / new videos, in the user's language ──
+  static const _topics = {'English': 'news_en', 'Tigrinya': 'news_ti', 'Amharic': 'news_am'};
+  static String? _currentTopic;
+
+  /// Subscribe to the news topic for [language] and unsubscribe from the others.
+  static Future<void> syncNewsTopic(String language) async {
+    final topic = _topics[language] ?? 'news_en';
+    if (topic == _currentTopic) return;
+    try {
+      for (final t in _topics.values) {
+        if (t != topic) await _messaging.unsubscribeFromTopic(t);
+      }
+      await _messaging.subscribeToTopic(topic);
+      _currentTopic = topic;
+    } catch (_) {}
+  }
+
   static Future<void> _saveToken() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;

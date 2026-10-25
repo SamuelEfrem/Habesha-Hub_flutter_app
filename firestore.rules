@@ -1,0 +1,157 @@
+rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════
+// Habesha Hub — Firestore security rules
+// Admin = samuelefriem@gmail.com. Cloud Functions & Node scripts use the
+// Admin SDK and are NOT affected by these rules.
+// Deploy:  firebase deploy --only firestore:rules
+// ═══════════════════════════════════════════════════════════
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function uid()      { return request.auth.uid; }
+    function isAdmin()  {
+      return signedIn() && (request.auth.uid == 'W3z67R3wiXUVvcPFDS0oxgfaDlj1'
+        || (request.auth.token.email == 'samuelefriem@gmail.com'
+            && request.auth.token.email_verified == true));
+    }
+    function changed()  { return request.resource.data.diff(resource.data).affectedKeys(); }
+    function bizOwner(bizId) {
+      return signedIn() &&
+        get(/databases/$(database)/documents/businesses/$(bizId)).data.ownerId == uid();
+    }
+
+    // ── Businesses ─────────────────────────────────────────
+    match /businesses/{bizId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.ownerId == uid()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.isPremium != true;
+      allow update: if isAdmin()
+        // owner may edit everything except approval / premium / ownership
+        || (signedIn() && resource.data.ownerId == uid()
+            && !changed().hasAny(['status', 'isPremium', 'ownerId']))
+        // anyone: view counter
+        || changed().hasOnly(['viewCount'])
+        // logged-in users: rating / review counters
+        || (signedIn() && changed().hasOnly(['rating', 'ratingCount', 'reviewCount']));
+      allow delete: if isAdmin() || (signedIn() && resource.data.ownerId == uid());
+
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if signedIn() && request.resource.data.userId == uid()
+                      && request.resource.data.comment.size() <= 2000;
+        allow delete: if isAdmin() || (signedIn() && resource.data.userId == uid());
+      }
+    }
+
+    // ── Chat between a user and a business ("bizId_userId") ─
+    match /chats/{chatId} {
+      function chatAllowed() {
+        return isAdmin()
+          || (signedIn() && chatId.split('_')[1] == uid())
+          || bizOwner(chatId.split('_')[0]);
+      }
+      allow read, write: if chatAllowed();
+      match /messages/{msgId} {
+        allow read: if chatAllowed();
+        allow create: if chatAllowed() && request.resource.data.text.size() <= 2000;
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    // ── Business bookings (restaurant / barber / hotel) ────
+    match /bookings/{id} {
+      allow create: if request.resource.data.status == 'pending';
+      allow read: if isAdmin()
+        || (signedIn() && (resource.data.ownerId == uid() || resource.data.userId == uid()));
+      allow update, delete: if isAdmin() || (signedIn() && resource.data.ownerId == uid());
+    }
+
+    // ── Marketplace (buy & sell) ───────────────────────────
+    match /marketplace/{id} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.userId == uid();
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.userId == uid() && request.resource.data.userId == uid());
+      allow delete: if isAdmin() || (signedIn() && resource.data.userId == uid());
+    }
+
+    // ── Anonymous service providers (only admin edits) ─────
+    match /anonymous_services/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+
+      // Reviews: one per booking (review ID = booking ID), only by the customer
+      // of a completed or paid booking for THIS provider.
+      match /reviews/{bookingId} {
+        function booking() {
+          return get(/databases/$(database)/documents/service_bookings/$(bookingId)).data;
+        }
+        function validReview() {
+          return request.resource.data.userId == uid()
+            && request.resource.data.rating is int
+            && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
+            && request.resource.data.comment.size() <= 500;
+        }
+        allow read: if true;
+        allow create: if signedIn() && validReview()
+          && booking().userId == uid()
+          && booking().serviceId == id
+          && (booking().status == 'completed' || booking().paid == true);
+        allow update: if signedIn() && resource.data.userId == uid() && validReview();
+        allow delete: if isAdmin() || (signedIn() && resource.data.userId == uid());
+      }
+    }
+
+    // ── Service bookings + receipts ────────────────────────
+    match /service_bookings/{id} {
+      allow create: if signedIn()
+        && request.resource.data.userId == uid()
+        && request.resource.data.status == 'created'
+        && !('amount' in request.resource.data)
+        && !('paid' in request.resource.data);
+      allow read: if isAdmin() || (signedIn() && resource.data.userId == uid());
+      allow update, delete: if isAdmin();
+    }
+
+    // ── App settings (payment numbers) ─────────────────────
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Users (FCM token etc.) ─────────────────────────────
+    match /users/{userId} {
+      allow read, write: if signedIn() && uid() == userId;
+      allow read: if isAdmin();
+    }
+
+    // ── Contact form ───────────────────────────────────────
+    match /contact_messages/{id} {
+      allow create: if request.resource.data.keys().hasAll(['message'])
+                    && request.resource.data.message.size() <= 5000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── Notifications queue ────────────────────────────────
+    match /notifications/{id} {
+      allow create: if signedIn();
+      allow read: if isAdmin() || (signedIn() && resource.data.userId == uid());
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Travel requests ────────────────────────────────────
+    match /travel_requests/{id} {
+      allow create: if signedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── Everything else (old Connect / Forum / Events) ─────
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

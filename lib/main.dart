@@ -5,6 +5,7 @@ import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'utils/language_notifier.dart';
 import 'theme/app_theme.dart';
+import 'utils/theme_notifier.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,6 +34,12 @@ void main() async {
     print('Notification init error: $e');
   }
   await languageNotifier.load();
+  await themeNotifier.load();
+
+  // Push about new providers / videos in the chosen language
+  NotificationService.syncNewsTopic(languageNotifier.language);
+  languageNotifier.addListener(
+      () => NotificationService.syncNewsTopic(languageNotifier.language));
 
   runApp(const HabeshahubApp());
 }
@@ -45,16 +52,14 @@ class HabeshahubApp extends StatelessWidget {
     // AnimatedBuilder lytter på languageNotifier.
     // Når brukeren bytter språk, vil hele appen tegnes på nytt med det nye språket.
     return AnimatedBuilder(
-      animation: languageNotifier,
+      animation: Listenable.merge([languageNotifier, themeNotifier]),
       builder: (context, _) {
         return MaterialApp(
           title: 'Habesha Hub',
           debugShowCheckedModeBanner: false,
-
-          // Bruker temaet fra lib/theme/app_theme.dart
-          theme: habeshaTheme(),
-
-          // Starter appen på Splash Screen
+          theme: habeshaLightTheme(),
+          darkTheme: habeshaTheme(),
+          themeMode: themeNotifier.mode,
           home: const AppEntry(),
         );
       },

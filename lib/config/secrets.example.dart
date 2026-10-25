@@ -1,4 +1,5 @@
+// Copy this file to secrets.dart and fill in your own values.
+// secrets.dart is git-ignored. Never put real keys in this example file.
 class Secrets {
-  static const anthropicKey =
-      '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';
+  static const anthropicKey = 'YOUR_KEY_HERE';
 }

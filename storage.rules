@@ -1,0 +1,61 @@
+rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════
+// Habesha Hub — Storage security rules
+// Deploy:  firebase deploy --only storage
+// ═══════════════════════════════════════════════════════════
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin()  {
+      return signedIn() && (request.auth.uid == 'W3z67R3wiXUVvcPFDS0oxgfaDlj1'
+        || (request.auth.token.email == 'samuelefriem@gmail.com'
+            && request.auth.token.email_verified == true));
+    }
+    // contentType may be missing (application/octet-stream) when the app does not set it
+    function isImage(mb) {
+      return request.resource.size < mb * 1024 * 1024
+          && request.resource.contentType.matches('image/.*|application/octet-stream');
+    }
+    function isMedia(mb) {
+      return request.resource.size < mb * 1024 * 1024
+          && request.resource.contentType.matches('image/.*|video/.*|application/pdf|application/octet-stream');
+    }
+    function bizOwner(bizId) {
+      return signedIn() &&
+        firestore.get(/databases/(default)/documents/businesses/$(bizId)).data.ownerId == request.auth.uid;
+    }
+
+    // Everyone can view uploaded pictures and videos
+    match /{allPaths=**} {
+      allow read: if true;
+    }
+
+    // Image chosen while registering a new business (business id not created yet)
+    match /businesses/{file} {
+      allow write: if signedIn() && isImage(10);
+    }
+
+    // Profile picture, gallery and promo video of a business
+    match /businesses/{bizId}/{file} {
+      allow write: if (isAdmin() || bizOwner(bizId)) && (request.resource == null || isMedia(100));
+    }
+
+    // Menu (image or PDF)
+    match /menus/{bizId}/{file} {
+      allow write: if (isAdmin() || bizOwner(bizId)) && (request.resource == null || isMedia(20));
+    }
+
+    // Marketplace pictures — each user only in their own folder
+    match /marketplace/{userId}/{file} {
+      allow write: if signedIn() && (request.auth.uid == userId || isAdmin())
+                   && (request.resource == null || isImage(10));
+    }
+
+    // Service provider photos — admin only
+    match /services/{folder}/{file} {
+      allow write: if isAdmin();
+    }
+  }
+}

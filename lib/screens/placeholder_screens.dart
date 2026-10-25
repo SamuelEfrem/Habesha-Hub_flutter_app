@@ -1,14 +1,13 @@
-﻿import 'admin_chat_screen.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart';
 import '../models/business.dart';
 import '../widgets/business_card.dart';
 import '../utils/language_notifier.dart';
+import '../utils/theme_notifier.dart';
 import '../theme/app_theme.dart';
 import 'business_detail_screen.dart';
 import 'register_business_screen.dart';
@@ -16,6 +15,8 @@ import 'favorites_screen.dart';
 import 'auth_screen.dart';
 import 'admin_screen.dart';
 import 'edit_business_screen.dart';
+import '../utils/translations.dart';
+import 'payment.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -178,19 +179,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
       builder: (_, __) {
         final t = languageNotifier.t;
         return Scaffold(
-          backgroundColor: kSurface,
+          backgroundColor: kBg,
           body: SafeArea(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Container(
-                decoration: BoxDecoration(color: kSurfaceContainerHighest, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: kCardHighest, borderRadius: BorderRadius.circular(12)),
                 child: TextField(
-                  style: tsBodyLg(color: kOnSurface),
+                  style: tsBodyLg(color: kText),
                   onChanged: (v) { setState(() => _searchQuery = v); if (_hasSearched) _filterResults(); },
                   onSubmitted: (v) => _globalSearch(v),
                   decoration: InputDecoration(
                     hintText: t('search_hint'),
-                    hintStyle: tsBodySm(color: kOnSurfaceVariant.withOpacity(0.5)),
+                    hintStyle: tsBodySm(color: kTextSub.withOpacity(0.5)),
                     prefixIcon: const Icon(Icons.search_rounded, color: kSecondary, size: 22),
                     filled: false, border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -213,11 +214,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       duration: const Duration(milliseconds: 200),
                       margin: const EdgeInsets.only(right: 10),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(color: sel ? kSecondary : kSurfaceContainer, borderRadius: BorderRadius.circular(12)),
+                      decoration: BoxDecoration(color: sel ? kSecondary : kCard, borderRadius: BorderRadius.circular(12)),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
                         Text(cont['emoji'] as String, style: const TextStyle(fontSize: 20)),
                         const SizedBox(width: 8),
-                        Text(cont['name'] as String, style: tsLabel(color: sel ? const Color(0xFF342800) : kOnSurfaceVariant)),
+                        Text(tr(cont['name'] as String), style: tsLabel(color: sel ? Color(0xFF342800) : kTextSub)),
                       ]),
                     ),
                   );
@@ -242,14 +243,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         margin: const EdgeInsets.only(right: 10),
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          color: sel ? kPrimaryContainer.withOpacity(0.3) : kSurfaceContainer,
+                          color: sel ? kPrimaryContainer.withOpacity(0.3) : kCard,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: sel ? kSecondary : Colors.transparent, width: 0.5),
                         ),
                         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                           Text(c['flag'] as String, style: const TextStyle(fontSize: 26)),
                           const SizedBox(height: 4),
-                          Text(c['name'] as String, style: tsLabel(color: sel ? kSecondary : kOnSurfaceVariant.withOpacity(0.8))),
+                          Text(tr(c['name'] as String), style: tsLabel(color: sel ? kSecondary : kTextSub.withOpacity(0.8))),
                         ]),
                       ),
                     );
@@ -273,8 +274,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         duration: const Duration(milliseconds: 200),
                         margin: const EdgeInsets.only(right: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                        decoration: BoxDecoration(color: sel ? kSecondary : kSurfaceContainer, borderRadius: BorderRadius.circular(100)),
-                        child: Text(city, style: tsLabel(color: sel ? const Color(0xFF342800) : kOnSurfaceVariant)),
+                        decoration: BoxDecoration(color: sel ? kSecondary : kCard, borderRadius: BorderRadius.circular(100)),
+                        child: Text(city, style: tsLabel(color: sel ? Color(0xFF342800) : kTextSub)),
                       ),
                     );
                   },
@@ -294,8 +295,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         duration: const Duration(milliseconds: 200),
                         margin: const EdgeInsets.only(right: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                        decoration: BoxDecoration(color: sel ? kSecondary : kSurfaceContainer, borderRadius: BorderRadius.circular(100)),
-                        child: Text(_explorecat(cat), style: tsLabel(color: sel ? const Color(0xFF342800) : kOnSurfaceVariant)),
+                        decoration: BoxDecoration(color: sel ? kSecondary : kCard, borderRadius: BorderRadius.circular(100)),
+                        child: Text(_explorecat(cat), style: tsLabel(color: sel ? Color(0xFF342800) : kTextSub)),
                       ),
                     );
                   }).toList(),
@@ -305,7 +306,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: goldButton(
-                  '${t('search_in')} $_selectedCountry${_selectedCity.isNotEmpty ? " / $_selectedCity" : ""}',
+                  '${t('search_in')} ${tr(_selectedCountry)}${_selectedCity.isNotEmpty ? " / $_selectedCity" : ""}',
                   _isSearching ? null : _search, loading: _isSearching),
               ),
             ],
@@ -321,7 +322,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ? Center(child: Text(t('no_businesses_country'), style: tsBodySm()))
                       : RefreshIndicator(
                           color: kSecondary,
-                          backgroundColor: kSurfaceContainer,
+                          backgroundColor: kCard,
                           onRefresh: _search,
                           child: ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -343,315 +344,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
 }
 
 // ═══════════════════════════════════════════════════════════
-// FAVORITES SCREEN
-// ═══════════════════════════════════════════════════════════
-class FavoritesScreen extends StatefulWidget {
-  const FavoritesScreen({super.key});
-  @override
-  State<FavoritesScreen> createState() => _FavoritesScreenState();
-}
-
-class _FavoritesScreenState extends State<FavoritesScreen> {
-  final _db = FirebaseFirestore.instance;
-  List<Business> _favorites = [];
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    final prefs = await SharedPreferences.getInstance();
-    final ids = prefs.getStringList('favorites') ?? [];
-    if (ids.isEmpty) {
-      setState(() { _favorites = []; _loading = false; });
-      return;
-    }
-    final List<Business> favs = [];
-    for (final id in ids) {
-      final doc = await _db.collection('businesses').doc(id).get();
-      if (doc.exists) favs.add(Business.fromFirestore(doc.data()!, doc.id));
-    }
-    setState(() { _favorites = favs; _loading = false; });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: languageNotifier,
-      builder: (_, __) {
-        final t = languageNotifier.t;
-        return Scaffold(
-          backgroundColor: kSurface,
-          body: SafeArea(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Padding(padding: const EdgeInsets.fromLTRB(20, 20, 20, 16), child: Text(t('favorites_title'), style: tsHeadlineMd(color: kSecondary))),
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))
-                  : RefreshIndicator(
-                      color: kSecondary,
-                      backgroundColor: kSurfaceContainer,
-                      onRefresh: _load,
-                      child: _favorites.isEmpty
-                          ? ListView(children: [
-                              SizedBox(
-                                height: MediaQuery.of(context).size.height * 0.55,
-                                child: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                                  const Icon(Icons.favorite_border_rounded, size: 64, color: kOnSurfaceVariant),
-                                  const SizedBox(height: 16),
-                                  Text(t('no_favorites'), style: tsTitleLg(), textAlign: TextAlign.center),
-                                  const SizedBox(height: 8),
-                                  Text(t('tap_heart'), style: tsBodySm(), textAlign: TextAlign.center),
-                                ])),
-                              )
-                            ])
-                          : ListView.builder(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              itemCount: _favorites.length,
-                              itemBuilder: (_, i) {
-                                final b = _favorites[i];
-                                return BusinessCard(
-                                  business: b, userLat: 0, userLng: 0,
-                                  onFavoriteChanged: _load,
-                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BusinessDetailScreen(business: b, userLat: 0, userLng: 0))));
-                              }),
-                    ),
-            ),
-          ])),
-        );
-      },
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// CHAT LIST SCREEN
-// ═══════════════════════════════════════════════════════════
-class ChatListScreen extends StatefulWidget {
-  const ChatListScreen({super.key});
-  @override
-  State<ChatListScreen> createState() => _ChatListScreenState();
-}
-
-class _ChatListScreenState extends State<ChatListScreen> {
-  final _db = FirebaseFirestore.instance;
-  String? _userId;
-  bool _isOwner = false;
-  List<Business> _myBusinesses = [];
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    final prefs = await SharedPreferences.getInstance();
-    final user = FirebaseAuth.instance.currentUser;
-    print('ChatList _load: user=\${user?.email} uid=\${user?.uid}');
-    final uid = user?.uid ?? prefs.getString('userId') ?? '';
-    setState(() => _userId = uid);
-    if (user != null && !user.isAnonymous) {
-      final isAdmin = ['samuelefriem@gmail.com'].contains(user.email);
-      final snap = isAdmin
-          ? await _db.collection('businesses').get()
-          : await _db.collection('businesses').where('ownerId', isEqualTo: user.uid).get();
-      final businesses = snap.docs.map((d) => Business.fromFirestore(d.data(), d.id)).toList();
-      print('ChatList: found \${businesses.length} businesses for user \${user.uid}');
-      setState(() { _myBusinesses = businesses; _isOwner = businesses.isNotEmpty; _loading = false; });
-    } else {
-      setState(() { _isOwner = false; _loading = false; });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: languageNotifier,
-      builder: (_, __) {
-        final t = languageNotifier.t;
-        return Scaffold(
-          backgroundColor: kSurface,
-          body: SafeArea(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Padding(padding: const EdgeInsets.fromLTRB(20, 20, 20, 16), child: Text(t('messages_title'), style: tsHeadlineMd(color: kSecondary))),
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))
-                  : _isOwner ? _buildOwnerView(t) : _buildUserView(t),
-            ),
-          ])),
-        );
-      },
-    );
-  }
-
-  Widget _buildOwnerView(String Function(String) t) {
-    return ListView.builder(
-      itemCount: _myBusinesses.length,
-      itemBuilder: (_, i) {
-        final business = _myBusinesses[i];
-        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-            child: Row(children: [
-              const Icon(Icons.storefront_rounded, color: kSecondary, size: 16),
-              const SizedBox(width: 8),
-              Text(business.name, style: tsTitleMd(color: kSecondary)),
-            ]),
-          ),
-          StreamBuilder<QuerySnapshot>(
-            stream: _db.collection('chats').snapshots(),
-            builder: (_, snap) {
-              if (!snap.hasData) return const SizedBox();
-              final chats = snap.data!.docs.where((d) => d.id.startsWith('${business.id}_')).toList();
-              if (chats.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: Text('Ingen meldinger ennå', style: tsBodySm(color: kOnSurfaceVariant)),
-                );
-              }
-              return ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: chats.length,
-                itemBuilder: (_, j) => _OwnerChatTile(db: _db, business: business, chatId: chats[j].id),
-              );
-            },
-          ),
-          const Divider(color: Colors.white10),
-        ]);
-      },
-    );
-  }
-
-  Widget _buildUserView(String Function(String) t) {
-    if (_userId == null || _userId!.isEmpty) {
-      return Center(child: Padding(padding: const EdgeInsets.all(40), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        const Icon(Icons.chat_bubble_outline_rounded, size: 64, color: kOnSurfaceVariant),
-        const SizedBox(height: 16),
-        Text('Start en chat med en bedrift', style: tsTitleLg(), textAlign: TextAlign.center),
-        const SizedBox(height: 8),
-        Text('Gå til en bedrift og trykk på chat-fanen.', style: tsBodySm(), textAlign: TextAlign.center),
-      ])));
-    }
-    return StreamBuilder<QuerySnapshot>(
-      stream: _db.collection('chats').snapshots(),
-      builder: (_, snap) {
-        if (!snap.hasData) return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
-        final userChats = snap.data!.docs.where((d) => d.id.endsWith('_$_userId')).toList();
-        if (userChats.isEmpty) {
-          return Center(child: Padding(padding: const EdgeInsets.all(40), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            const Icon(Icons.chat_bubble_outline_rounded, size: 64, color: kOnSurfaceVariant),
-            const SizedBox(height: 16),
-            Text(t('no_chats'), style: tsTitleLg(), textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            Text('Gå til en bedrift og start en chat!', style: tsBodySm(), textAlign: TextAlign.center),
-          ])));
-        }
-        return ListView.builder(
-          itemCount: userChats.length,
-          itemBuilder: (_, i) {
-            final chatId = userChats[i].id;
-            final businessId = chatId.replaceAll('_$_userId', '');
-            return _UserChatTile(db: _db, businessId: businessId, chatId: chatId, userId: _userId!);
-          },
-        );
-      },
-    );
-  }
-}
-
-class _OwnerChatTile extends StatelessWidget {
-  final FirebaseFirestore db;
-  final Business business;
-  final String chatId;
-  const _OwnerChatTile({required this.db, required this.business, required this.chatId});
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: db.collection('chats').doc(chatId).collection('messages').orderBy('createdAt', descending: true).limit(1).snapshots(),
-      builder: (_, msgSnap) {
-        String lastMsg = '...', timeStr = '', senderName = 'Bruker';
-        if (msgSnap.hasData && msgSnap.data!.docs.isNotEmpty) {
-          final data = msgSnap.data!.docs.first.data() as Map<String, dynamic>;
-          lastMsg = data['text'] ?? '...';
-          senderName = data['nickname'] ?? 'Bruker';
-          final ts = data['createdAt'] as Timestamp?;
-          if (ts != null) timeStr = DateFormat('HH:mm').format(ts.toDate());
-        }
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-          decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(14)),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: CircleAvatar(radius: 24, backgroundColor: kSurfaceContainerHigh, child: Text(senderName.isNotEmpty ? senderName[0].toUpperCase() : '?', style: tsTitleMd(color: kSecondary))),
-            title: Text(senderName, style: tsTitleMd()),
-            subtitle: Text(lastMsg, style: tsBodySm(), maxLines: 1, overflow: TextOverflow.ellipsis),
-            trailing: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text(timeStr, style: tsLabel(color: kOnSurfaceVariant.withOpacity(0.5)).copyWith(fontSize: 9)),
-              const SizedBox(height: 4),
-              const Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 12),
-            ]),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AdminChatScreen(business: business, chatId: chatId))),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _UserChatTile extends StatelessWidget {
-  final FirebaseFirestore db;
-  final String businessId, chatId, userId;
-  const _UserChatTile({required this.db, required this.businessId, required this.chatId, required this.userId});
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<DocumentSnapshot>(
-      future: db.collection('businesses').doc(businessId).get(),
-      builder: (_, bSnap) {
-        if (!bSnap.hasData || !bSnap.data!.exists) return const SizedBox();
-        final b = Business.fromFirestore(bSnap.data!.data() as Map<String, dynamic>, bSnap.data!.id);
-        return StreamBuilder<QuerySnapshot>(
-          stream: db.collection('chats').doc(chatId).collection('messages').orderBy('createdAt', descending: true).limit(1).snapshots(),
-          builder: (_, msgSnap) {
-            String lastMsg = '...', timeStr = '';
-            if (msgSnap.hasData && msgSnap.data!.docs.isNotEmpty) {
-              final data = msgSnap.data!.docs.first.data() as Map<String, dynamic>;
-              lastMsg = data['text'] ?? '...';
-              final ts = data['createdAt'] as Timestamp?;
-              if (ts != null) timeStr = DateFormat('HH:mm').format(ts.toDate());
-            }
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(14)),
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                leading: CircleAvatar(radius: 26, backgroundColor: kSurfaceContainerHigh, backgroundImage: b.imageUrl.isNotEmpty ? NetworkImage(b.imageUrl) : null, child: b.imageUrl.isEmpty ? const Icon(Icons.storefront_rounded, color: kSecondary) : null),
-                title: Text(b.name, style: tsTitleMd()),
-                subtitle: Text(lastMsg, style: tsBodySm(), maxLines: 1, overflow: TextOverflow.ellipsis),
-                trailing: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text(timeStr, style: tsLabel(color: kOnSurfaceVariant.withOpacity(0.5)).copyWith(fontSize: 9)),
-                  const SizedBox(height: 4),
-                  const Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 12),
-                ]),
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BusinessDetailScreen(business: b, userLat: 0, userLng: 0, openChat: true))),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
 // PROFILE SCREEN
 // ═══════════════════════════════════════════════════════════
 class ProfileScreen extends StatefulWidget {
@@ -662,7 +354,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _nicknameCtrl = TextEditingController();
-  String _selectedLang = 'Norsk';
+  String _selectedLang = 'English';
   bool _saved = false;
   User? _user;
   List<Business> _myBusinesses = [];
@@ -695,13 +387,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _logout() async {
     final confirm = await showDialog<bool>(context: context, builder: (_) => AlertDialog(
-      backgroundColor: kSurfaceContainerHigh,
+      backgroundColor: kCardHigh,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text('Logg ut', style: tsHeadlineSm(color: kOnSurface)),
-      content: Text('Er du sikker på at du vil logge ut?', style: tsBodyLg()),
+      title: Text(tr('Log out'), style: tsHeadlineSm(color: kText)),
+      content: Text(tr('Are you sure you want to log out?'), style: tsBodyLg()),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Avbryt', style: tsBodySm())),
-        TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Logg ut', style: tsTitleMd(color: kRed))),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Cancel'), style: tsBodySm())),
+        TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Log out'), style: tsTitleMd(color: kRed))),
       ],
     ));
     if (confirm != true) return;
@@ -709,17 +401,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('nickname');
     await prefs.remove('favorites');
-    await languageNotifier.setLanguage('Norsk');
+    await languageNotifier.setLanguage('English');
     if (mounted) {
-      setState(() { _user = null; _nicknameCtrl.text = ''; _selectedLang = 'Norsk'; _myBusinesses = []; });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Du er logget ut', style: tsBodySm(color: kOnSurface)), backgroundColor: kSurfaceContainerHigh));
+      setState(() { _user = null; _nicknameCtrl.text = ''; _selectedLang = 'English'; _myBusinesses = []; });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('You are logged out'), style: tsBodySm(color: kText)), backgroundColor: kCardHigh));
     }
   }
 
   Future<void> _deleteAccount() async {
     final t = languageNotifier.t;
     final confirm = await showDialog<bool>(context: context, builder: (_) => AlertDialog(
-      backgroundColor: kSurfaceContainerHigh,
+      backgroundColor: kCardHigh,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text(t('delete_account'), style: tsHeadlineSm(color: kRed)),
       content: Text(t('delete_account_confirm'), style: tsBodyLg()),
@@ -738,10 +430,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await prefs.clear();
       if (mounted) {
         setState(() { _user = null; _nicknameCtrl.text = ''; _myBusinesses = []; });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Konto slettet', style: tsBodySm(color: kOnSurface)), backgroundColor: kSurfaceContainerHigh));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('Account deleted'), style: tsBodySm(color: kText)), backgroundColor: kCardHigh));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Feil: Logg inn på nytt og prøv igjen.', style: tsBodySm(color: kOnSurface)), backgroundColor: kRed));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('Error: please log in again and try again.'), style: tsBodySm(color: kText)), backgroundColor: kRed));
     }
   }
 
@@ -758,24 +450,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final t = languageNotifier.t;
         final isLoggedIn = _user != null;
         return Scaffold(
-          backgroundColor: kSurface,
+          backgroundColor: kBg,
           body: SafeArea(child: SingleChildScrollView(child: Column(children: [
             Container(
               width: double.infinity,
-              color: kSurfaceContainerLow,
+              color: kCardLow,
               child: Column(children: [
                 const SizedBox(height: 20),
                 Stack(children: [
                   Container(
                     width: 120, height: 120,
                     decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: kSecondary, width: 2.5), boxShadow: [BoxShadow(color: kSecondary.withOpacity(0.2), blurRadius: 20, spreadRadius: 2)]),
-                    child: ClipOval(child: Image.asset('assets/images/icon.png', fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: kSurfaceContainerHigh, child: const Icon(Icons.person_rounded, size: 56, color: kSecondary)))),
+                    child: ClipOval(child: Image.asset('assets/images/icon.png', fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: kCardHigh, child: Icon(Icons.person_rounded, size: 56, color: kSecondary)))),
                   ),
                 ]),
                 const SizedBox(height: 12),
-                Text(_nicknameCtrl.text.isEmpty ? (isLoggedIn ? 'Bruker' : 'Gjest') : _nicknameCtrl.text, style: tsHeadlineMd()),
+                Text(_nicknameCtrl.text.isEmpty ? (isLoggedIn ? tr('User') : tr('Guest')) : _nicknameCtrl.text, style: tsHeadlineMd()),
                 const SizedBox(height: 4),
-                Text(isLoggedIn ? (_user?.email ?? '') : 'Logg inn for å få full tilgang', style: tsBodySm(color: kOnSurfaceVariant.withOpacity(0.6)), textAlign: TextAlign.center),
+                Text(isLoggedIn ? (_user?.email ?? '') : tr('Log in for full access'), style: tsBodySm(color: kTextSub.withOpacity(0.6)), textAlign: TextAlign.center),
                 const SizedBox(height: 20),
               ]),
             ),
@@ -787,7 +479,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _nicknameCtrl,
-                  style: tsBodyLg(color: kOnSurface),
+                  style: tsBodyLg(color: kText),
                   onChanged: (_) => setState(() {}),
                   onSubmitted: (val) async {
                     final name = val.trim();
@@ -800,34 +492,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     hintText: t('nickname_hint'),
                     prefixIcon: const Icon(Icons.person_outline_rounded, color: kSecondary),
                     suffixIcon: const Icon(Icons.check_circle_outline_rounded, color: kSecondary, size: 16),
-                    helperText: 'Press Enter to save',
-                    helperStyle: TextStyle(fontSize: 10, color: kOnSurfaceVariant.withOpacity(0.4)),
+                    helperText: tr('Press Enter to save'),
+                    helperStyle: TextStyle(fontSize: 10, color: kTextSub.withOpacity(0.4)),
                   ),
                 ),
                 const SizedBox(height: 16),
+                // My bookings / receipts
+                GestureDetector(
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBookingsScreen())),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
+                    child: Row(children: [
+                      const Icon(Icons.receipt_long_rounded, color: kSecondary, size: 20),
+                      const SizedBox(width: 12),
+                      Text(tr('My bookings'), style: tsTitleMd()),
+                      const Spacer(),
+                      const Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 14),
+                    ]),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 // Favorites button
                 GestureDetector(
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritesScreen())),
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
+                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
                     child: Row(children: [
                       const Icon(Icons.favorite_rounded, color: kRed, size: 20),
                       const SizedBox(width: 12),
-                      Text('Mine favoritter', style: tsTitleMd()),
+                      Text(tr('My favorites'), style: tsTitleMd()),
                       const Spacer(),
                       const Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 14),
                     ]),
                   ),
                 ),
                 const SizedBox(height: 24),
-                Row(children: [const Icon(Icons.translate_rounded, color: kSecondary, size: 18), const SizedBox(width: 8), Text('Language', style: tsHeadlineSm())]),
+                Row(children: [const Icon(Icons.translate_rounded, color: kSecondary, size: 18), const SizedBox(width: 8), Text(tr('Language'), style: tsHeadlineSm())]),
                 const SizedBox(height: 14),
                 ...[
                   {'code': 'English', 'label': 'English', 'flag': '🇬🇧'},
                   {'code': 'Tigrinya', 'label': 'ትግርኛ', 'flag': '🇪🇷'},
                   {'code': 'Amharic', 'label': 'አማርኛ', 'flag': '🇪🇹'},
-                  {'code': 'Norsk', 'label': 'Norsk', 'flag': '🇳🇴'},
                 ].map((lang) {
                   final sel = _selectedLang == lang['code'];
                   return GestureDetector(
@@ -836,16 +543,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       duration: const Duration(milliseconds: 200),
                       margin: const EdgeInsets.only(bottom: 10),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(color: sel ? kPrimaryContainer : kSurfaceContainerHigh, borderRadius: BorderRadius.circular(10)),
+                      decoration: BoxDecoration(color: sel ? kPrimaryContainer : kCardHigh, borderRadius: BorderRadius.circular(10)),
                       child: Row(children: [
                         Text(lang['flag']!, style: const TextStyle(fontSize: 20)),
                         const SizedBox(width: 14),
-                        Expanded(child: Text(lang['label']!, style: tsBodyLg(color: sel ? kOnSurface : kOnSurface.withOpacity(0.7)))),
+                        Expanded(child: Text(lang['label']!, style: tsBodyLg(color: sel ? kText : kText.withOpacity(0.7)))),
                         if (sel) const Icon(Icons.check_circle_rounded, color: kSecondary, size: 20),
                       ]),
                     ),
                   );
                 }),
+                const SizedBox(height: 24),
+                // ── Theme toggle ───────────────────────────────────
+                AnimatedBuilder(
+                  animation: themeNotifier,
+                  builder: (_, __) => GestureDetector(
+                    onTap: () => themeNotifier.toggle(),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(10)),
+                      child: Row(children: [
+                        Icon(themeNotifier.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: kSecondary, size: 20),
+                        const SizedBox(width: 14),
+                        Expanded(child: Text(themeNotifier.isDark ? t('switch_to_light') : t('switch_to_dark'), style: tsBodyLg())),
+                        Switch(
+                          value: !themeNotifier.isDark,
+                          onChanged: (_) => themeNotifier.toggle(),
+                          activeColor: kSecondary,
+                        ),
+                      ]),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(20),
@@ -853,7 +582,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(t('bring_vision'), style: tsHeadlineSm()),
                     const SizedBox(height: 6),
-                    Text(t('list_business_desc'), style: tsBodySm(color: kOnSurface.withOpacity(0.7))),
+                    Text(t('list_business_desc'), style: tsBodySm(color: kText.withOpacity(0.7))),
                     const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterBusinessScreen())),
@@ -879,20 +608,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   if (_loadingBiz)
                     const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))
                   else if (_myBusinesses.isEmpty)
-                    Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(12)), child: Text(t('no_businesses_yet'), style: tsBodySm(), textAlign: TextAlign.center))
+                    Container(padding: EdgeInsets.all(16), decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12)), child: Text(t('no_businesses_yet'), style: tsBodySm(), textAlign: TextAlign.center))
                   else
                     ..._myBusinesses.map((b) => _businessRow(b, context)),
                   const SizedBox(height: 24),
                 ],
                 GestureDetector(
-                  onTap: () => Share.share('Check out Habesha Hub!\n\nFind Ethiopian & Eritrean businesses near you.\n\nDownload now: https://habesha-hub.no/download.html'),
+                  onTap: () => Share.share(tr('Check out Habesha Hub!\n\nFind Ethiopian & Eritrean businesses near you.\n\nDownload now: https://habesha-hub.no/download.html')),
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
+                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
                     child: Row(children: [
                       const Icon(Icons.share_rounded, color: kSecondary, size: 20),
                       const SizedBox(width: 12),
-                      Text('Share Habesha Hub', style: tsTitleMd()),
+                      Text(tr('Share Habesha Hub'), style: tsTitleMd()),
                       const Spacer(),
                       const Icon(Icons.chevron_right_rounded, color: kSecondary, size: 20),
                     ]),
@@ -921,16 +650,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _businessRow(Business b, BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         leading: Container(
           width: 48, height: 48,
-          decoration: BoxDecoration(color: kSurfaceContainerHigh, borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(10)),
           child: b.imageUrl.isNotEmpty ? ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.network(b.imageUrl, fit: BoxFit.cover)) : const Icon(Icons.storefront_rounded, color: kSecondary, size: 24),
         ),
         title: Text(b.name, style: tsTitleMd()),
-        subtitle: Text('${b.category}', style: tsBodySm()),
+        subtitle: Text(tr(b.category), style: tsBodySm()),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 13),
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BusinessDetailScreen(business: b, userLat: 0, userLng: 0))),
       ),
@@ -940,7 +669,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showHelp() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: kSurfaceContainer,
+      backgroundColor: kCard,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       isScrollControlled: true,
       builder: (_) => DraggableScrollableSheet(
@@ -958,7 +687,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: kSurfaceContainerHigh, borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(12)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(languageNotifier.t('contact_us'), style: tsTitleMd(color: kSecondary)),
                 const SizedBox(height: 10),
@@ -972,7 +701,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ]),
             ),
             const SizedBox(height: 16),
-            goldButton('Send melding', () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactScreen())); }),
+            goldButton(tr('Send message'), () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactScreen())); }),
             const SizedBox(height: 20),
           ]),
         ),
@@ -984,28 +713,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     data: ThemeData(dividerColor: Colors.transparent),
     child: ExpansionTile(
       tilePadding: EdgeInsets.zero, title: Text(q, style: tsTitleMd()),
-      iconColor: kSecondary, collapsedIconColor: kOnSurfaceVariant,
+      iconColor: kSecondary, collapsedIconColor: kTextSub,
       children: [Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(a, style: tsBodySm()))],
     ),
   );
 
   Widget _chip(IconData icon, String label) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-    decoration: BoxDecoration(color: kSurfaceContainerHigh, borderRadius: BorderRadius.circular(100)),
-    child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(icon, color: kSecondary, size: 12), const SizedBox(width: 5), Text(label, style: tsLabel(color: kOnSurfaceVariant))]),
+    decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(100)),
+    child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(icon, color: kSecondary, size: 12), SizedBox(width: 5), Text(label, style: tsLabel(color: kTextSub))]),
   );
 
-  Widget _menuRow(IconData icon, String label, VoidCallback onTap, {Color color = kOnSurface}) => GestureDetector(
+  Widget _menuRow(IconData icon, String label, VoidCallback onTap, {Color? color}) => GestureDetector(
     onTap: onTap,
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12)),
       child: Row(children: [
-        Icon(icon, color: color == kOnSurface ? kSecondary : color, size: 20),
+        Icon(icon, color: color == kText ? kSecondary : color, size: 20),
         const SizedBox(width: 14),
-        Text(label, style: tsBodyLg(color: color)),
+        Text(label, style: tsBodyLg(color: color ?? kText)),
         const Spacer(),
-        Icon(Icons.arrow_forward_ios_rounded, color: color == kOnSurface ? kOnSurfaceVariant.withOpacity(0.4) : color.withOpacity(0.6), size: 14),
+        Icon(Icons.arrow_forward_ios_rounded, color: (color == null || color == kText) ? kTextSub.withOpacity(0.4) : color!.withOpacity(0.6), size: 14),
       ]),
     ),
   );
@@ -1015,18 +744,30 @@ class PrivacyScreen extends StatelessWidget {
   const PrivacyScreen({super.key});
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: kSurface,
-    appBar: AppBar(title: const Text('Personvern'), backgroundColor: kSurfaceContainer),
+    backgroundColor: kBg,
+    appBar: AppBar(title: Text(tr('Privacy')), backgroundColor: kCard),
     body: SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Personvernerklæring', style: tsHeadlineSm(color: kSecondary)),
+        Text(tr('Privacy policy'), style: tsHeadlineSm(color: kSecondary)),
         const SizedBox(height: 12),
-        Text('Habesha Hub tar personvern på alvor. Vi samler minimalt med data.', style: tsBodyLg()),
+        Text(tr('Habesha Hub takes privacy seriously. We collect minimal data.'), style: tsBodyLg()),
         const SizedBox(height: 16),
-        Text('Hva vi samler inn', style: tsTitleMd(color: kSecondary)),
+        Text(tr('What we collect'), style: tsTitleMd(color: kSecondary)),
         const SizedBox(height: 8),
-        Text('• E-post og passord\n• Kallenavn\n• Chat-meldinger\n• GPS (kun ved søk)\n• Favoritt-bedrifter (lokalt)', style: tsBodyLg()),
+        Text(tr('• Email and name\n• Bookings, receipts and payment status\n• Chat messages, reviews and marketplace listings\n• AI assistant questions (answered by Google Gemini)\n• Notification token for push messages\n• GPS (only when searching, not stored)\n• Favorites and settings (only on your phone)'), style: tsBodyLg()),
+        const SizedBox(height: 16),
+        Text(tr('Payments'), style: tsTitleMd(color: kSecondary)),
+        const SizedBox(height: 8),
+        Text(tr('We never store card or bank numbers. You pay directly with Vipps, Swish, PayPal, Mobile Money or similar.'), style: tsBodyLg()),
+        const SizedBox(height: 16),
+        Text(tr('Your rights'), style: tsTitleMd(color: kSecondary)),
+        const SizedBox(height: 8),
+        Text(tr('You can see, correct or delete your data at any time. Delete your account under Profile, or contact support@habesha-hub.no.'), style: tsBodyLg()),
+        const SizedBox(height: 24),
+        goldButton(tr('Read the full privacy policy'), () => launchUrl(
+            Uri.parse('https://habesha-hub.no/privacy.html'), mode: LaunchMode.externalApplication),
+            icon: Icons.open_in_new_rounded),
       ]),
     ),
   );
@@ -1051,8 +792,8 @@ class _ContactScreenState extends State<ContactScreen> {
       'name': _nameCtrl.text.trim(), 'message': _msgCtrl.text.trim(), 'email': _emailCtrl.text.trim(),
       'createdAt': FieldValue.serverTimestamp(), 'replied': false, 'adminEmail': 'support@habesha-hub.no',
     });
-    final subject = Uri.encodeComponent('Ny henvendelse fra ${_nameCtrl.text.trim()}');
-    final body = Uri.encodeComponent('Fra: ${_nameCtrl.text.trim()}\nE-post: ${_emailCtrl.text.trim()}\n\nMelding:\n${_msgCtrl.text.trim()}');
+    final subject = Uri.encodeComponent('New message from ${_nameCtrl.text.trim()}');
+    final body = Uri.encodeComponent('From: ${_nameCtrl.text.trim()}\nEmail: ${_emailCtrl.text.trim()}\n\nMessage:\n${_msgCtrl.text.trim()}');
     final url = Uri.parse('mailto:support@habesha-hub.no?subject=$subject&body=$body');
     if (await canLaunchUrl(url)) await launchUrl(url);
     setState(() { _sending = false; _sent = true; });
@@ -1060,34 +801,34 @@ class _ContactScreenState extends State<ContactScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: kSurface,
-    appBar: AppBar(title: const Text('Kontakt oss'), backgroundColor: kSurfaceContainer),
+    backgroundColor: kBg,
+    appBar: AppBar(title: Text(tr('Contact us')), backgroundColor: kCard),
     body: _sent
         ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             const Icon(Icons.check_circle_rounded, color: kGreen, size: 64),
             const SizedBox(height: 16),
-            Text('Melding sendt!', style: tsHeadlineSm()),
+            Text(tr('Message sent!'), style: tsHeadlineSm()),
             const SizedBox(height: 8),
-            Text('Vi svarer deg så snart som mulig.', style: tsBodySm()),
+            Text(tr('We will reply as soon as possible.'), style: tsBodySm()),
           ]))
         : SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Kontakt oss', style: tsHeadlineMd(color: kSecondary)),
+              Text(tr('Contact us'), style: tsHeadlineMd(color: kSecondary)),
               const SizedBox(height: 20),
-              Text('NAVN', style: tsLabel()),
+              Text(tr('NAME'), style: tsLabel()),
               const SizedBox(height: 8),
-              TextField(controller: _nameCtrl, style: tsBodyLg(color: kOnSurface), decoration: const InputDecoration(hintText: 'Ditt navn...')),
+              TextField(controller: _nameCtrl, style: tsBodyLg(color: kText), decoration: InputDecoration(hintText: tr('Your name...'))),
               const SizedBox(height: 12),
-              Text('E-POST', style: tsLabel()),
+              Text(tr('EMAIL'), style: tsLabel()),
               const SizedBox(height: 8),
-              TextField(controller: _emailCtrl, style: tsBodyLg(color: kOnSurface), keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(hintText: 'din@epost.no', prefixIcon: Icon(Icons.email_outlined, color: kSecondary))),
+              TextField(controller: _emailCtrl, style: tsBodyLg(color: kText), keyboardType: TextInputType.emailAddress, decoration: InputDecoration(hintText: tr('your@email.com'), prefixIcon: Icon(Icons.email_outlined, color: kSecondary))),
               const SizedBox(height: 12),
-              Text('MELDING', style: tsLabel()),
+              Text(tr('MESSAGE'), style: tsLabel()),
               const SizedBox(height: 8),
-              TextField(controller: _msgCtrl, maxLines: 5, style: tsBodyLg(color: kOnSurface), decoration: const InputDecoration(hintText: 'Skriv din melding her...')),
+              TextField(controller: _msgCtrl, maxLines: 5, style: tsBodyLg(color: kText), decoration: InputDecoration(hintText: tr('Write your message here...'))),
               const SizedBox(height: 24),
-              goldButton('Send melding', _sending ? null : _send, loading: _sending),
+              goldButton(tr('Send message'), _sending ? null : _send, loading: _sending),
             ]),
           ),
   );

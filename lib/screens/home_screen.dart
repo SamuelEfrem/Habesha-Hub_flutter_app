@@ -1,4 +1,3 @@
-import 'events_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
@@ -7,14 +6,15 @@ import '../models/business.dart';
 import '../services/business_service.dart';
 import '../widgets/business_card.dart';
 import '../utils/language_notifier.dart';
+import '../utils/theme_notifier.dart';
 import '../theme/app_theme.dart';
+import 'services_screen.dart';
 import 'business_detail_screen.dart';
 import 'placeholder_screens.dart';
-import 'forum_screen.dart';
-import 'ai_chat_screen.dart';
-import 'flights_screen.dart';
 import 'marketplace_screen.dart';
-import 'connect_screen.dart';
+import 'ai_chat_screen.dart';
+import 'habesha_tok_screen.dart';
+import '../utils/translations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -150,19 +150,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: languageNotifier,
+      animation: Listenable.merge([languageNotifier, themeNotifier]),
       builder: (context, _) {
         final t = languageNotifier.t;
         return Scaffold(
-          backgroundColor: kSurface,
+          backgroundColor: kBg,
           body: IndexedStack(
             index: _currentTab,
             children: [
               _buildHomeTab(t),
               const ExploreScreen(),
-              const EventsScreen(),
-              const ForumScreen(),
-              const ConnectScreen(),
+              const ServicesScreen(),
+              // visible=false pauses the video when the user leaves the Hab Tok tab
+              HabeshaTokScreen(visible: _currentTab == 3),
               const ProfileScreen(),
             ],
           ),
@@ -179,29 +179,62 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           // ── Top Bar — NO hamburger, NO profile icon ──
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.fromLTRB(12, 14, 16, 14),
             child: Row(children: [
-              const Text('Habesha Hub',
-                  style: TextStyle(
-                      fontFamily: kFontHeadline,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      fontStyle: FontStyle.italic,
-                      color: kSecondary)),
-              const Spacer(),
-              // Language switcher — works for guests too
+              // Title sits to the left and shrinks if the buttons need the space
+              const Expanded(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text('Habesha Hub',
+                      maxLines: 1,
+                      style: TextStyle(
+                          fontFamily: kFontHeadline,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          fontStyle: FontStyle.italic,
+                          color: kSecondary)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Language switcher
               _buildLangSwitcher(),
               const SizedBox(width: 8),
+              // Theme toggle — sol/måne
+              AnimatedBuilder(
+                animation: themeNotifier,
+                builder: (_, __) => GestureDetector(
+                  onTap: () => themeNotifier.toggle(),
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: kCardHigh,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: kSecondary.withOpacity(0.4)),
+                    ),
+                    child: Icon(
+                      themeNotifier.isDark
+                          ? Icons.light_mode_rounded
+                          : Icons.dark_mode_rounded,
+                      color: kSecondary,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // AI chat knapp
               GestureDetector(
-                onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const AiChatScreen())),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiChatScreen())),
                 child: Container(
                   width: 36,
                   height: 36,
-                  decoration: const BoxDecoration(
-                      color: kSecondary, shape: BoxShape.circle),
-                  child: const Icon(Icons.auto_awesome_rounded,
-                      color: Color(0xFF1A1200), size: 20),
+                  decoration: BoxDecoration(
+                    color: kSecondary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF1A1200), size: 20),
                 ),
               ),
             ]),
@@ -246,37 +279,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ),
 
-                // Flights banner
-                SliverToBoxAdapter(
-                  child: GestureDetector(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FlightsScreen())),
-                    child: Container(
-                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF004D40), Color(0xFF00897B)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(children: [
-                        const Text('✈️', style: TextStyle(fontSize: 32)),
-                        const SizedBox(width: 12),
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(t('flights_title'), style: tsTitleMd(color: Colors.white)),
-                          Text(t('flights_subtitle'), style: tsBodySm(color: Colors.white70)),
-                        ])),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(100)),
-                          child: Text(t('flights_search'), style: tsLabel(color: Colors.white)),
-                        ),
-                      ]),
-                    ),
-                  ),
-                ),
                 if (_hasSearched) ...[
                   // Category chips
                   SliverToBoxAdapter(child: _buildCategoryChips()),
@@ -303,20 +305,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final lang = languageNotifier.language;
     return Container(
       decoration: BoxDecoration(
-        color: kSurfaceContainer,
+        color: kCard,
         borderRadius: BorderRadius.circular(100),
         border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: ['ትግርኛ', 'አማ', 'EN', 'NO'].map((label) {
+        children: ['ትግርኛ', 'አማ', 'EN'].map((label) {
           final code = label == 'ትግርኛ'
               ? 'Tigrinya'
               : label == 'አማ'
                   ? 'Amharic'
-                  : label == 'EN'
-                      ? 'English'
-                      : 'Norsk';
+                  : 'English';
           final active = lang == code;
           return GestureDetector(
             onTap: () => languageNotifier.setLanguage(code),
@@ -331,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   style: tsLabel(
                           color: active
                               ? const Color(0xFF1A1200)
-                              : kOnSurfaceVariant.withOpacity(0.7))
+                              : kTextSub.withOpacity(0.7))
                       .copyWith(fontSize: 10)),
             ),
           );
@@ -348,9 +348,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ? 'ኣብዚ ተዊቕካ ኣብ ጥቃኻ ዘሎ ትካላት ርከብ'
         : lang == 'Amharic'
             ? 'በአካባቢ ይፈልጉ'
-            : lang == 'English'
-                ? 'Find Nearby'
-                : 'Finn her';
+            : tr('Find Nearby');
 
     return Column(children: [
       const SizedBox(height: 8),
@@ -360,16 +358,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Container(
           decoration: BoxDecoration(
-            color: kSurfaceContainerHighest,
+            color: kCardHighest,
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextField(
             controller: _searchController,
-            style: tsBodyLg(color: kOnSurface),
+            style: tsBodyLg(color: kText),
             onChanged: (v) => setState(() => _searchQuery = v),
             decoration: InputDecoration(
               hintText: t('search_hint'),
-              hintStyle: tsBodySm(color: kOnSurfaceVariant.withOpacity(0.5)),
+              hintStyle: tsBodySm(color: kTextSub.withOpacity(0.5)),
               prefixIcon:
                   const Icon(Icons.search_rounded, color: kSecondary, size: 22),
               filled: false,
@@ -467,24 +465,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ? 'ይደልይ ኣሎ...'
                 : lang == 'Amharic'
                     ? 'በመፈለግ ላይ...'
-                    : lang == 'English'
-                        ? 'Searching...'
-                        : 'Søker...')
+                    : tr('Searching...'))
             : searchLabel,
-        style: tsTitleMd(color: _isSearching ? kSecondary : kOnSurfaceVariant)
+        style: tsTitleMd(color: _isSearching ? kSecondary : kTextSub)
             .copyWith(fontSize: 13, letterSpacing: 0.5),
       ),
 
       const SizedBox(height: 4),
       Text(
         _hasSearched && _position != null
-            ? '${_businesses.length} ${lang == "Tigrinya" ? "ትካላት ተረኺቦም" : lang == "Amharic" ? "ድርጅቶች ተገኝተዋል" : lang == "English" ? "businesses found" : "bedrifter funnet"}'
+            ? '${_businesses.length} ${lang == "Tigrinya" ? "ትካላት ተረኺቦም" : lang == "Amharic" ? "ድርጅቶች ተገኝተዋል" : tr("businesses found")}'
             : (lang == 'Tigrinya'
                 ? 'ኣብዚ ጠዊቅካ ኣብ ቀረባካ ድለ'
-                : lang == 'English'
-                    ? 'Tap to search nearby'
-                    : 'Trykk for å søke i nærheten'),
-        style: tsBodySm(color: kOnSurfaceVariant.withOpacity(0.5)),
+                : tr('Tap to search nearby')),
+        style: tsBodySm(color: kTextSub.withOpacity(0.5)),
       ),
 
       const SizedBox(height: 8),
@@ -508,7 +502,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               margin: const EdgeInsets.only(right: 10),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color: selected ? kSecondary : kSurfaceContainerHigh,
+                color: selected ? kSecondary : kCardHigh,
                 borderRadius: BorderRadius.circular(100),
                 border: Border.all(
                     color: selected
@@ -526,7 +520,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         fontWeight:
                             selected ? FontWeight.w700 : FontWeight.w500,
                         color:
-                            selected ? const Color(0xFF342800) : kOnSurface)),
+                            selected ? const Color(0xFF342800) : kText)),
               ]),
             ),
           );
@@ -541,7 +535,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(children: [
         Text(
-          '${_filtered.length} ${lang == "Tigrinya" ? "ትካላት" : lang == "English" ? "businesses" : "bedrifter"}',
+          '${_filtered.length} ${lang == "Tigrinya" ? "ትካላት" : tr("businesses")}',
           style: tsHeadlineSm(color: kSecondary),
         ),
         const Spacer(),
@@ -550,7 +544,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: kSurfaceContainer,
+              color: kCard,
               borderRadius: BorderRadius.circular(100),
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -559,9 +553,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Text(
                   lang == 'Tigrinya'
                       ? 'ሓድስ'
-                      : lang == 'English'
-                          ? 'Refresh'
-                          : 'Oppdater',
+                      : tr('Refresh'),
                   style: tsLabel()),
             ]),
           ),
@@ -581,9 +573,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ? 'ኣብቲ ኣብ ላዕሊ ዘሎ ክቢ ብምጥዋቅ ኣብ ጥቃካ ዝሎ ናይ ሓበሻ ትካላት ርኸብ'
                   : languageNotifier.language == 'Amharic'
                       ? 'ከላይ ያለውን ክበብ ጫኑ የሃበሻ ድርጅቶችን ለማግኘት'
-                      : languageNotifier.language == 'English'
-                          ? 'Tap the circle above to find nearby Habesha businesses'
-                          : 'Trykk på sirkelen ovenfor for å finne Habesha bedrifter i nærheten',
+                      : tr('Tap the circle above to find nearby Habesha businesses'),
               textAlign: TextAlign.center),
         ]),
       ),
@@ -641,17 +631,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildBottomNav(String Function(String) t) {
+    // key = translation key; label = fallback if key not found
     final items = [
-      {'icon': Icons.home_rounded, 'key': 'home'},
-      {'icon': Icons.explore_rounded, 'key': 'explore'},
-      {'icon': Icons.event_rounded, 'key': 'events'},
-      {'icon': Icons.forum_rounded, 'key': 'forum'},
-      {'icon': Icons.people_rounded, 'key': 'connect'},
-      {'icon': Icons.person_rounded, 'key': 'profile'},
+      {'icon': Icons.home_rounded,                  'key': 'home',     'label': 'Home'},
+      {'icon': Icons.explore_rounded,               'key': 'explore',  'label': 'Explore'},
+      {'icon': Icons.miscellaneous_services_rounded,'key': 'services', 'label': 'Services'},
+      {'icon': Icons.play_circle_filled_rounded,    'key': 'tok',      'label': 'Hab Tok'},
+      {'icon': Icons.person_rounded,                'key': 'profile',  'label': 'Profile'},
     ];
     return Container(
       decoration: BoxDecoration(
-        color: kSurfaceContainer.withOpacity(0.97),
+        color: kCard.withOpacity(0.97),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         border: Border(
             top: BorderSide(color: kSecondary.withOpacity(0.1), width: 0.5)),
@@ -684,14 +674,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Icon(items[i]['icon'] as IconData,
                         color:
-                            selected ? kSecondary : kOnSurface.withOpacity(0.4),
+                            selected ? kSecondary : kText.withOpacity(0.4),
                         size: 22),
                     const SizedBox(height: 2),
-                    Text(t(items[i]['key'] as String),
+                    Text(
+                        () {
+                          final raw = t(items[i]['key'] as String);
+                          // if translation returned the key itself (not found), use fallback label
+                          return (raw == items[i]['key']) ? (items[i]['label'] as String) : raw;
+                        }(),
                         style: tsLabel(
                             color: selected
                                 ? kSecondary
-                                : kOnSurface.withOpacity(0.4))),
+                                : kText.withOpacity(0.4))),
                   ]),
                 ),
               );
@@ -702,3 +697,4 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 }
+

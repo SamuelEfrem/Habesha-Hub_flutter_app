@@ -1,7 +1,7 @@
 name: habesha_hub
-description: Habesha Hub - Finn Habesha bedrifter i nærheten
+description: Habesha Hub - community app for the Ethiopian and Eritrean diaspora
 
-version: 2.0.9+41
+version: 2.1.0+42
 
 publish_to: "none"
 
@@ -11,6 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_tts: ^4.2.0
+  speech_to_text: ^7.0.0
   google_places_flutter: ^2.0.9
 
   firebase_core: ^3.6.0
@@ -19,7 +21,6 @@ dependencies:
   firebase_storage: ^12.3.2
   geolocator: ^10.1.0
   geocoding: ^3.0.0
-  google_maps_flutter: ^2.5.0
   cached_network_image: ^3.3.1
   url_launcher: ^6.2.2
   shared_preferences: ^2.2.2
@@ -33,6 +34,7 @@ dependencies:
   flutter_local_notifications: ^17.0.0
   share_plus: ^10.0.0
   video_player: ^2.8.6
+  chewie: ^1.8.5
   flutter_map: ^6.1.0
   latlong2: ^0.9.1
   sign_in_with_apple: ^7.0.1
@@ -60,4 +62,32 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/fonts/
+
+  # Design fonts (were in assets/fonts but never registered, so the app used the system font)
+  fonts:
+    - family: NotoSerif
+      fonts:
+        - asset: assets/fonts/NotoSerif-Regular.ttf
+        - asset: assets/fonts/NotoSerif-Italic.ttf
+          style: italic
+        - asset: assets/fonts/NotoSerif-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/NotoSerif-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/NotoSerif-Black.ttf
+          weight: 900
+        - asset: assets/fonts/NotoSerif-BlackItalic.ttf
+          weight: 900
+          style: italic
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Regular.ttf
+        - asset: assets/fonts/Manrope-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Manrope-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Manrope-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Manrope-ExtraBold.ttf
+          weight: 800

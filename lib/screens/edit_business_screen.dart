@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geocoding/geocoding.dart';
 import '../models/business.dart';
 import '../theme/app_theme.dart';
+import '../utils/translations.dart';
 
 class EditBusinessScreen extends StatefulWidget {
   final Business business;
@@ -42,12 +43,12 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
 
   final _cats = [
     {'name': 'Restaurant', 'icon': Icons.restaurant_rounded},
-    {'name': 'Butikk', 'icon': Icons.shopping_bag_rounded},
-    {'name': 'Kafé', 'icon': Icons.local_cafe_rounded},
-    {'name': 'Frisør', 'icon': Icons.content_cut_rounded},
+    {'name': 'Shop', 'icon': Icons.shopping_bag_rounded},
+    {'name': 'Cafe', 'icon': Icons.local_cafe_rounded},
+    {'name': 'Barber', 'icon': Icons.content_cut_rounded},
     {'name': 'Club', 'icon': Icons.music_note_rounded},
-    {'name': 'Klinikk', 'icon': Icons.local_hospital_rounded},
-    {'name': 'Annet', 'icon': Icons.storefront_rounded},
+    {'name': 'Clinic', 'icon': Icons.local_hospital_rounded},
+    {'name': 'Other', 'icon': Icons.storefront_rounded},
   ];
 
   @override
@@ -69,33 +70,35 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
       _hours = b.openingHours.entries
           .map((e) => {
                 'days': e.key,
-                'open': e.value == 'Stengt'
+                'open': _isClosedVal(e.value)
                     ? '09:00'
                     : e.value.split(' - ').first.trim(),
-                'close': e.value == 'Stengt'
+                'close': _isClosedVal(e.value)
                     ? '18:00'
                     : e.value.split(' - ').last.trim(),
-                'closed': e.value == 'Stengt' ? 'true' : 'false',
+                'closed': _isClosedVal(e.value) ? 'true' : 'false',
               })
           .toList();
     } else {
       _hours = [
         {
-          'days': 'Man - Fre',
+          'days': 'Mon - Fri',
           'open': '09:00',
           'close': '18:00',
           'closed': 'false'
         },
         {
-          'days': 'Lørdag',
+          'days': 'Saturday',
           'open': '10:00',
           'close': '16:00',
           'closed': 'false'
         },
-        {'days': 'Søndag', 'open': '11:00', 'close': '15:00', 'closed': 'true'},
+        {'days': 'Sunday', 'open': '11:00', 'close': '15:00', 'closed': 'true'},
       ];
     }
   }
+
+  static bool _isClosedVal(String v) => v.toLowerCase() == 'stengt' || v.toLowerCase() == 'closed';
 
   @override
   void dispose() {
@@ -113,7 +116,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
     if (address.isEmpty) return;
     setState(() {
       _geocoding = true;
-      _geoStatus = 'Finner koordinater...';
+      _geoStatus = tr('Finding coordinates...');
     });
     try {
       final locations = await locationFromAddress(address);
@@ -121,12 +124,12 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
         _lat = locations.first.latitude;
         _lng = locations.first.longitude;
         setState(() => _geoStatus =
-            '✓ Posisjon: ${_lat!.toStringAsFixed(5)}, ${_lng!.toStringAsFixed(5)}');
+            '✓ ${tr('Location')}: ${_lat!.toStringAsFixed(5)}, ${_lng!.toStringAsFixed(5)}');
       } else {
-        setState(() => _geoStatus = '⚠ Adresse ikke funnet');
+        setState(() => _geoStatus = tr('⚠ Address not found'));
       }
     } catch (_) {
-      setState(() => _geoStatus = '⚠ Kunne ikke finne posisjon');
+      setState(() => _geoStatus = tr('⚠ Could not find location'));
     } finally {
       setState(() => _geocoding = false);
     }
@@ -136,7 +139,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
     final Map<String, String> result = {};
     for (final row in _hours) {
       result[row['days']!] = row['closed'] == 'true'
-          ? 'Stengt'
+          ? 'Closed'
           : '${row['open']} - ${row['close']}';
     }
     return result;
@@ -164,8 +167,8 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
         // Keep status as-is (don't reset to pending on edit)
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('✓ Bedrift oppdatert!'),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr('✓ Business updated!')),
           backgroundColor: kGreen,
         ));
         Navigator.pop(context, true); // return true = reload needed
@@ -174,7 +177,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
       setState(() => _saving = false);
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Feil: $e')));
+            .showSnackBar(SnackBar(content: Text('${tr('Error')}: $e')));
       }
     }
   }
@@ -185,12 +188,12 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
       builder: (_) => AlertDialog(
         backgroundColor: kSurfaceContainerHigh,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Slett bedrift', style: tsHeadlineSm()),
+        title: Text(tr('Delete business'), style: tsHeadlineSm()),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           const Icon(Icons.warning_amber_rounded, color: kRed, size: 48),
           const SizedBox(height: 12),
           Text(
-            'Er du sikker på at du vil slette "${widget.business.name}"?\n\nDette kan ikke angres.',
+            '${tr('Are you sure you want to delete')} "${widget.business.name}"?\n\n${tr('This cannot be undone.')}',
             style: tsBodyLg(),
             textAlign: TextAlign.center,
           ),
@@ -198,11 +201,11 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Avbryt', style: tsBodySm()),
+            child: Text(tr('Cancel'), style: tsBodySm()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Ja, slett', style: tsTitleMd(color: kRed)),
+            child: Text(tr('Yes, delete'), style: tsTitleMd(color: kRed)),
           ),
         ],
       ),
@@ -214,7 +217,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
       await _db.collection('businesses').doc(widget.docId).delete();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${widget.business.name} er slettet'),
+          content: Text('${widget.business.name} ${tr('was deleted')}'),
           backgroundColor: kSurfaceContainerHigh,
         ));
         Navigator.pop(context, true);
@@ -223,7 +226,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
       setState(() => _deleting = false);
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Feil: $e')));
+            .showSnackBar(SnackBar(content: Text('${tr('Error')}: $e')));
       }
     }
   }
@@ -235,7 +238,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
       appBar: AppBar(
         backgroundColor: kSurfaceContainer,
         iconTheme: const IconThemeData(color: kSecondary),
-        title: Text('Rediger bedrift', style: tsTitleLg(color: kSecondary)),
+        title: Text(tr('Edit business'), style: tsTitleLg(color: kSecondary)),
         elevation: 0,
         actions: [
           // Delete button in app bar
@@ -248,7 +251,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                     child:
                         CircularProgressIndicator(color: kRed, strokeWidth: 2))
                 : const Icon(Icons.delete_outline_rounded, color: kRed),
-            tooltip: 'Slett bedrift',
+            tooltip: tr('Delete business'),
           ),
         ],
       ),
@@ -263,19 +266,19 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // ── Basic Info ──────────────────────────
-                    Text('BEDRIFTSNAVN', style: tsLabel()),
+                    Text(tr('BUSINESS NAME'), style: tsLabel()),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _nameCtrl,
                       style: tsBodyLg(color: kOnSurface),
-                      validator: (v) => v!.isEmpty ? 'Påkrevd' : null,
+                      validator: (v) => v!.isEmpty ? tr('Required') : null,
                       decoration:
-                          const InputDecoration(hintText: 'Bedriftsnavn'),
+                          InputDecoration(hintText: tr('Business name')),
                     ),
                     const SizedBox(height: 16),
 
                     // ── Category ────────────────────────────
-                    Text('KATEGORI', style: tsLabel()),
+                    Text(tr('CATEGORY'), style: tsLabel()),
                     const SizedBox(height: 10),
                     GridView.count(
                       shrinkWrap: true,
@@ -323,29 +326,29 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                     const SizedBox(height: 16),
 
                     // ── Description ─────────────────────────
-                    Text('BESKRIVELSE', style: tsLabel()),
+                    Text(tr('DESCRIPTION'), style: tsLabel()),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _descCtrl,
                       maxLines: 3,
                       style: tsBodyLg(color: kOnSurface),
-                      validator: (v) => v!.isEmpty ? 'Påkrevd' : null,
+                      validator: (v) => v!.isEmpty ? tr('Required') : null,
                       decoration:
-                          const InputDecoration(hintText: 'Beskrivelse...'),
+                          InputDecoration(hintText: tr('Description...')),
                     ),
                     const SizedBox(height: 16),
 
                     // ── Address ─────────────────────────────
-                    Text('ADRESSE', style: tsLabel()),
+                    Text(tr('ADDRESS'), style: tsLabel()),
                     const SizedBox(height: 8),
                     Row(children: [
                       Expanded(
                         child: TextFormField(
                           controller: _addrCtrl,
                           style: tsBodyLg(color: kOnSurface),
-                          validator: (v) => v!.isEmpty ? 'Påkrevd' : null,
-                          decoration: const InputDecoration(
-                            hintText: 'Gateadresse, postnummer, by',
+                          validator: (v) => v!.isEmpty ? tr('Required') : null,
+                          decoration: InputDecoration(
+                            hintText: tr('Street address, postcode, city'),
                             prefixIcon: Icon(Icons.location_on_rounded,
                                 color: kSecondary),
                           ),
@@ -386,13 +389,13 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                     if (_lat != null) ...[
                       const SizedBox(height: 4),
                       Text(
-                          'Koordinater: ${_lat!.toStringAsFixed(5)}, ${_lng!.toStringAsFixed(5)}',
+                          '${tr('Coordinates')}: ${_lat!.toStringAsFixed(5)}, ${_lng!.toStringAsFixed(5)}',
                           style: tsBodySm(color: kSecondary)),
                     ],
                     const SizedBox(height: 16),
 
                     // ── Phone ───────────────────────────────
-                    Text('TELEFON', style: tsLabel()),
+                    Text(tr('PHONE'), style: tsLabel()),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _phoneCtrl,
@@ -407,7 +410,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                     const SizedBox(height: 24),
 
                     // ── Opening Hours ───────────────────────
-                    Text('ÅPNINGSTIDER', style: tsLabel()),
+                    Text(tr('OPENING HOURS'), style: tsLabel()),
                     const SizedBox(height: 10),
                     ..._hours.asMap().entries.map((entry) {
                       final i = entry.key;
@@ -426,7 +429,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                               Row(children: [
                                 Text(row['days']!, style: tsTitleMd()),
                                 const Spacer(),
-                                Text('Stengt',
+                                Text(tr('Closed'),
                                     style: tsBodySm(
                                         color: closed
                                             ? kRed
@@ -470,7 +473,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                                 Row(children: [
                                   Expanded(
                                       child: _timeField(
-                                    label: 'Åpner',
+                                    label: tr('Opens'),
                                     value: row['open']!,
                                     onChanged: (v) =>
                                         setState(() => _hours[i]['open'] = v),
@@ -482,7 +485,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                                   const SizedBox(width: 12),
                                   Expanded(
                                       child: _timeField(
-                                    label: 'Stenger',
+                                    label: tr('Closes'),
                                     value: row['close']!,
                                     onChanged: (v) =>
                                         setState(() => _hours[i]['close'] = v),
@@ -496,7 +499,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                     const SizedBox(height: 16),
 
                     // ── Image URL ───────────────────────────
-                    Text('BILDE URL', style: tsLabel()),
+                    Text(tr('IMAGE URL'), style: tsLabel()),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _imgCtrl,
@@ -529,14 +532,14 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                     ],
                     const SizedBox(height: 16),
 
-                    Text('NETTSIDE (valgfritt)', style: tsLabel()),
+                    Text(tr('WEBSITE (optional)'), style: tsLabel()),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _websiteCtrl,
                       keyboardType: TextInputType.url,
                       style: tsBodyLg(color: kOnSurface),
-                      decoration: const InputDecoration(
-                        hintText: 'https://www.dinbedrift.no',
+                      decoration: InputDecoration(
+                        hintText: tr('https://www.yourbusiness.com'),
                         prefixIcon:
                             Icon(Icons.language_rounded, color: kSecondary),
                       ),
@@ -553,7 +556,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
               padding: const EdgeInsets.all(16),
               color: kSurfaceContainer,
               child: goldButton(
-                _saving ? '' : 'Lagre endringer',
+                _saving ? '' : tr('Save changes'),
                 _saving ? null : _save,
                 loading: _saving,
                 icon: Icons.save_rounded,

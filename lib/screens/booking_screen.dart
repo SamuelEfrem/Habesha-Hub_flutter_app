@@ -7,6 +7,7 @@ import '../models/business.dart';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import '../services/notification_service.dart';
+import '../utils/translations.dart';
 
 class BookingScreen extends StatefulWidget {
   final Business business;
@@ -22,7 +23,7 @@ class _BookingScreenState extends State<BookingScreen> {
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   String _selectedTime = '10:00';
   bool _sending = false;
-  String _nickname = 'Gjest';
+  String _nickname = 'Guest';
 
   final _times = [
     '08:00',
@@ -76,9 +77,9 @@ class _BookingScreenState extends State<BookingScreen> {
 
     await NotificationService.sendNotificationToUser(
       userId: widget.business.ownerId,
-      title: 'Ny booking! 📅',
+      title: 'New booking! 📅',
       body:
-          '$_nickname vil booke ${widget.business.name} - ${DateFormat('dd. MMM').format(_selectedDate)} kl. $_selectedTime',
+          '$_nickname wants to book ${widget.business.name} - ${DateFormat('dd. MMM').format(_selectedDate)} at $_selectedTime',
       data: {'type': 'booking', 'businessId': widget.business.id},
     );
 
@@ -196,7 +197,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         color: kSecondary, size: 20),
                     const SizedBox(width: 12),
                     Text(
-                        DateFormat('EEEE, dd. MMMM yyyy', 'nb')
+                        DateFormat('EEEE, dd. MMMM yyyy')
                             .format(_selectedDate),
                         style: tsBodyLg(color: kOnSurface)),
                     const Spacer(),
@@ -320,7 +321,7 @@ class BookingListScreen extends StatelessWidget {
           appBar: AppBar(
             backgroundColor: kSurfaceContainer,
             iconTheme: const IconThemeData(color: kSecondary),
-            title: Text('Bookinger', style: tsTitleMd(color: kSecondary)),
+            title: Text(tr('Bookings'), style: tsTitleMd(color: kSecondary)),
           ),
           body: StreamBuilder<QuerySnapshot>(
             stream: isAdmin
@@ -331,15 +332,24 @@ class BookingListScreen extends StatelessWidget {
                 : db
                     .collection('bookings')
                     .where('ownerId', isEqualTo: user?.uid)
-                    .orderBy('createdAt', descending: true)
-                    .snapshots(),
+                    .snapshots(),   // sorted below (no composite index needed)
             builder: (_, snap) {
+              if (snap.hasError) {
+                return Center(child: Padding(padding: const EdgeInsets.all(24),
+                  child: Text('${tr('Error')}: ${snap.error}', style: tsBodySm(color: kRed), textAlign: TextAlign.center)));
+              }
               if (!snap.hasData) {
                 return const Center(
                     child: CircularProgressIndicator(
                         color: kSecondary, strokeWidth: 1.5));
               }
-              final docs = snap.data!.docs;
+              final docs = snap.data!.docs.toList()
+                ..sort((a, b) {
+                  final ta = (a.data() as Map)['createdAt'];
+                  final tb = (b.data() as Map)['createdAt'];
+                  if (ta is Timestamp && tb is Timestamp) return tb.compareTo(ta);
+                  return 0;
+                });
               if (docs.isEmpty) {
                 return Center(
                     child: Column(
@@ -414,7 +424,7 @@ class _BookingCard extends StatelessWidget {
         Row(children: [
           const Icon(Icons.person_outline_rounded, color: kSecondary, size: 14),
           const SizedBox(width: 6),
-          Text(data['nickname'] ?? 'Gjest', style: tsBodySm()),
+          Text(data['nickname'] ?? 'Guest', style: tsBodySm()),
           const SizedBox(width: 16),
           if (data['type'] == 'hotel') ...[
             const Icon(Icons.nights_stay_rounded, color: kSecondary, size: 14),
@@ -444,10 +454,10 @@ class _BookingCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(color: kRed.withOpacity(0.08), borderRadius: BorderRadius.circular(8)),
-            child: const Center(child: Row(mainAxisSize: MainAxisSize.min, children: [
+            child: Center(child: Row(mainAxisSize: MainAxisSize.min, children: [
               Icon(Icons.delete_outline_rounded, color: kRed, size: 14),
               SizedBox(width: 4),
-              Text('Delete', style: TextStyle(color: kRed, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(tr('Delete'), style: TextStyle(color: kRed, fontSize: 12, fontWeight: FontWeight.w600)),
             ])),
           ),
         ),

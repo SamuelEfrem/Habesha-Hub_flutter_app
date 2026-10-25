@@ -1,4 +1,6 @@
 import 'admin_register_screen.dart';
+import 'add_service_screen.dart';
+import 'services_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -99,13 +101,13 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tab = TabController(length: 7, vsync: this);
+    _tab = TabController(length: 9, vsync: this);
 
     if (!_isAdmin) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ikke tilgang')),
+          const SnackBar(content: Text('No access')),
         );
       });
     }
@@ -134,13 +136,15 @@ class _AdminScreenState extends State<AdminScreen>
           labelStyle: const TextStyle(
               fontFamily: kFontBody, fontWeight: FontWeight.w700, fontSize: 11),
           tabs: const [
-            Tab(child: Text('VENTER', style: TextStyle(fontSize: 9))),
-            Tab(child: Text('GODKJENT', style: TextStyle(fontSize: 9))),
-            Tab(child: Text('AVVIST', style: TextStyle(fontSize: 9))),
-            Tab(child: Text('MELD.', style: TextStyle(fontSize: 9))),
-            Tab(child: Text('BOOK.', style: TextStyle(fontSize: 9))),
-            Tab(child: Text('REISER', style: TextStyle(fontSize: 9))),
-            Tab(child: Text('LEGG TIL', style: TextStyle(fontSize: 9))),
+            Tab(child: Text('PENDING',   style: TextStyle(fontSize: 9))),
+            Tab(child: Text('APPROVED', style: TextStyle(fontSize: 9))),
+            Tab(child: Text('REJECTED',   style: TextStyle(fontSize: 9))),
+            Tab(child: Text('MSGS',    style: TextStyle(fontSize: 9))),
+            Tab(child: Text('BOOK.',    style: TextStyle(fontSize: 9))),
+            Tab(child: Text('TRAVEL',   style: TextStyle(fontSize: 9))),
+            Tab(child: Text('ADD', style: TextStyle(fontSize: 9))),
+            Tab(child: Text('SERV.',    style: TextStyle(fontSize: 9))),
+            Tab(child: Text('ORDERS', style: TextStyle(fontSize: 9))),
           ],
         ),
       ),
@@ -154,6 +158,20 @@ class _AdminScreenState extends State<AdminScreen>
           const BookingListScreen(),
           _TravelRequestsList(db: _db),
           const AdminRegisterScreen(),
+          // ─ SERVICES (anonymous providers) ─
+          Scaffold(
+            backgroundColor: Colors.transparent,
+            floatingActionButton: FloatingActionButton(
+              backgroundColor: kSecondary,
+              foregroundColor: Color(0xFF1A1200),
+              onPressed: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const AddServiceScreen())),
+              child: const Icon(Icons.add_rounded),
+            ),
+            body: const ManageServicesTab(),
+          ),
+          // ─ BOOKINGS (service_bookings) ─
+          const ManageBookingsTab(),
         ],
       ),
     );
@@ -181,7 +199,7 @@ class _BusinessListState extends State<_BusinessList> {
         child: TextField(
           style: tsBodyLg(color: kOnSurface),
           decoration: InputDecoration(
-            hintText: 'Søk bedrift...',
+            hintText: 'Search business...',
             prefixIcon: const Icon(Icons.search_rounded, color: kSecondary),
             filled: true,
             fillColor: kSurfaceContainer,
@@ -238,10 +256,10 @@ class _BusinessListState extends State<_BusinessList> {
               const SizedBox(height: 16),
               Text(
                 status == 'pending'
-                    ? 'Ingen ventende bedrifter'
+                    ? 'No pending businesses'
                     : status == 'approved'
-                        ? 'Ingen godkjente bedrifter'
-                        : 'Ingen avviste bedrifter',
+                        ? 'No approved businesses'
+                        : 'No rejected businesses',
                 style: tsBodySm(),
                 textAlign: TextAlign.center,
               ),
@@ -260,8 +278,8 @@ class _BusinessListState extends State<_BusinessList> {
               business: business,
               docId: doc.id,
               status: status,
-              ownerEmail: data['ownerEmail'] ?? '',
-              ownerName: data['ownerName'] ?? '',
+              ownerEmail: serviceStr(data['ownerEmail']),
+              ownerName: serviceStr(data['ownerName']),
               db: db,
             );
           },
@@ -298,8 +316,8 @@ class _AdminCard extends StatelessWidget {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(newStatus == 'approved'
-            ? '✓ ${business.name} godkjent og publisert!'
-            : '✗ ${business.name} avvist.'),
+            ? '✓ ${business.name} approved and published!'
+            : '✗ ${business.name} rejected.'),
         backgroundColor: newStatus == 'approved' ? kGreen : kRed,
       ));
     }
@@ -310,16 +328,16 @@ class _AdminCard extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: kSurfaceContainerHigh,
-        title: Text('Slett bedrift', style: tsHeadlineSm()),
-        content: Text('Er du sikker på at du vil slette "${business.name}"?',
+        title: Text('Delete business', style: tsHeadlineSm()),
+        content: Text('Are you sure you want to delete "${business.name}"?',
             style: tsBodyLg()),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text('Avbryt', style: tsBodySm())),
+              child: Text('Cancel', style: tsBodySm())),
           TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: Text('Slett', style: tsTitleMd(color: kRed))),
+              child: Text('Delete', style: tsTitleMd(color: kRed))),
         ],
       ),
     );
@@ -327,7 +345,7 @@ class _AdminCard extends StatelessWidget {
       await db.collection('businesses').doc(docId).delete();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${business.name} slettet'),
+          content: Text('${business.name} deleted'),
           backgroundColor: kSurfaceContainerHigh,
         ));
       }
@@ -408,7 +426,7 @@ class _AdminCard extends StatelessWidget {
                               Expanded(child: Text(e.key, style: tsBodySm())),
                               Text(e.value,
                                   style: tsBodySm(
-                                      color: e.value == 'Stengt'
+                                      color: (e.value == 'Stengt' || e.value == 'Closed')
                                           ? kRed
                                           : kOnSurface)),
                             ]),
@@ -464,29 +482,29 @@ class _AdminActions extends StatelessWidget {
       Row(children: [
         if (status == 'pending') ...[
           Expanded(
-              child: _btn(Icons.close_rounded, 'Avvis', kRed,
+              child: _btn(Icons.close_rounded, 'Reject', kRed,
                   () => onUpdate('rejected'))),
           const SizedBox(width: 8),
           Expanded(
               flex: 2,
-              child: _btn(Icons.check_rounded, 'Godkjenn og publiser', kGreen,
+              child: _btn(Icons.check_rounded, 'Approve and publish', kGreen,
                   () => onUpdate('approved'))),
         ] else if (status == 'approved') ...[
           Expanded(
-              child: _btn(Icons.block_rounded, 'Deaktiver', kRed,
+              child: _btn(Icons.block_rounded, 'Deactivate', kRed,
                   () => onUpdate('rejected'))),
           const SizedBox(width: 8),
           Expanded(
               child:
-                  _btn(Icons.delete_outline_rounded, 'Slett', kRed, onDelete)),
+                  _btn(Icons.delete_outline_rounded, 'Delete', kRed, onDelete)),
         ] else ...[
           Expanded(
-              child: _btn(Icons.check_rounded, 'Godkjenn', kGreen,
+              child: _btn(Icons.check_rounded, 'Approve', kGreen,
                   () => onUpdate('approved'))),
           const SizedBox(width: 8),
           Expanded(
               child:
-                  _btn(Icons.delete_outline_rounded, 'Slett', kRed, onDelete)),
+                  _btn(Icons.delete_outline_rounded, 'Delete', kRed, onDelete)),
         ],
       ]),
       const SizedBox(height: 8),
@@ -530,7 +548,7 @@ class _AdminActions extends StatelessWidget {
           child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             const Icon(Icons.edit_rounded, color: kSecondary, size: 15),
             const SizedBox(width: 6),
-            Text('Rediger bedrift',
+            Text('Edit business',
                 style: tsTitleMd(color: kSecondary).copyWith(fontSize: 13)),
           ]),
         ),
@@ -587,7 +605,7 @@ class _ContactMessagesList extends StatelessWidget {
                 const Icon(Icons.mail_outline_rounded,
                     color: kOnSurfaceVariant, size: 52),
                 const SizedBox(height: 12),
-                Text('Ingen meldinger ennå', style: tsBodySm()),
+                Text('No messages yet', style: tsBodySm()),
               ]));
         }
         return ListView.builder(
@@ -622,7 +640,7 @@ class _ContactMessagesList extends StatelessWidget {
                               : kSecondary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(100),
                         ),
-                        child: Text(replied ? 'BESVART' : 'NY',
+                        child: Text(replied ? 'ANSWERED' : 'NEW',
                             style: tsLabel(color: replied ? kGreen : kSecondary)
                                 .copyWith(fontSize: 9)),
                       ),
@@ -641,15 +659,15 @@ class _ContactMessagesList extends StatelessWidget {
                       const Icon(Icons.person_rounded,
                           color: kSecondary, size: 14),
                       const SizedBox(width: 6),
-                      Text(data['name'] ?? 'Ukjent', style: tsTitleMd()),
+                      Text(data['name'] ?? 'Unknown', style: tsTitleMd()),
                     ]),
-                    if ((data['email'] ?? '').isNotEmpty) ...[
+                    if (serviceStr(data['email']).isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Row(children: [
                         const Icon(Icons.email_outlined,
                             color: kSecondary, size: 14),
                         const SizedBox(width: 6),
-                        Text(data['email'] ?? '', style: tsBodySm()),
+                        Text(serviceStr(data['email']), style: tsBodySm()),
                       ]),
                     ],
                     const SizedBox(height: 10),
@@ -658,27 +676,27 @@ class _ContactMessagesList extends StatelessWidget {
                       decoration: BoxDecoration(
                           color: kSurfaceContainerHigh,
                           borderRadius: BorderRadius.circular(10)),
-                      child: Text(data['message'] ?? '', style: tsBodyLg()),
+                      child: Text(serviceStr(data['message']), style: tsBodyLg()),
                     ),
                     const SizedBox(height: 12),
                     Row(children: [
                       Expanded(
                         child: GestureDetector(
                           onTap: () async {
-                            final email = data['email'] ?? '';
+                            final email = serviceStr(data['email']);
                             final name = data['name'] ?? 'Bruker';
-                            final message = data['message'] ?? '';
+                            final message = serviceStr(data['message']);
                             if (email.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                       content:
-                                          Text('Ingen e-post registrert')));
+                                          Text('No email registered')));
                               return;
                             }
                             final subject = Uri.encodeComponent(
-                                'Svar fra Habesha Hub - $name');
+                                'Reply from Habesha Hub - $name');
                             final body = Uri.encodeComponent(
-                                'Hei $name,\n\nTakk for din henvendelse:\n"$message"\n\nSvar:\n\n---\nHabesha Hub\nsamuelefriem@gmail.com');
+                                'Hi $name,\n\nThank you for your message:\n"$message"\n\nReply:\n\n---\nHabesha Hub\nsupport@habesha-hub.no');
                             final gmailUrl = Uri.parse(
                                 'https://mail.google.com/mail/?view=cm&to=$email&su=$subject&body=$body');
                             final mailtoUrl = Uri.parse(
@@ -706,7 +724,7 @@ class _ContactMessagesList extends StatelessWidget {
                                   const Icon(Icons.reply_rounded,
                                       color: kSecondary, size: 16),
                                   const SizedBox(width: 6),
-                                  Text('Svar i Gmail',
+                                  Text('Reply in Gmail',
                                       style: tsTitleMd(color: kSecondary)
                                           .copyWith(fontSize: 12)),
                                 ]),
@@ -756,14 +774,14 @@ class _TravelRequestsList extends StatelessWidget {
           itemCount: docs.length,
           itemBuilder: (_, i) {
             final data = docs[i].data() as Map<String, dynamic>;
-            final service = data['service'] ?? '';
-            final name = data['name'] ?? '';
-            final email = data['email'] ?? '';
-            final phone = data['phone'] ?? '';
-            final from = data['fromCountry'] ?? '';
-            final to = data['toCountry'] ?? '';
-            final date = data['travelDate'] ?? '';
-            final details = data['details'] ?? '';
+            final service = serviceStr(data['service']);
+            final name = serviceStr(data['name']);
+            final email = serviceStr(data['email']);
+            final phone = serviceStr(data['phone']);
+            final from = serviceStr(data['fromCountry']);
+            final to = serviceStr(data['toCountry']);
+            final date = serviceStr(data['travelDate']);
+            final details = serviceStr(data['details']);
             final status = data['status'] ?? 'pending';
             final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
 

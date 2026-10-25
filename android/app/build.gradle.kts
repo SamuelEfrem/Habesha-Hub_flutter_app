@@ -15,7 +15,7 @@ if (keyPropertiesFile.exists()) {
 
 android {
     namespace = "no.habesha.hub"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36   // Android 16 — required by Google Play from Aug 31 2026
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -33,7 +33,7 @@ android {
     defaultConfig {
         applicationId = "no.habesha.hub"
         minSdk = flutter.minSdkVersion
-        targetSdk = 35
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
