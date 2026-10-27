@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/app_theme.dart';
 import '../utils/theme_notifier.dart';
 import '../utils/language_notifier.dart';
@@ -90,6 +92,7 @@ class _HabeshaTokScreenState extends State<HabeshaTokScreen> with WidgetsBinding
             return PageView.builder(
               controller: _pageCtrl,
               scrollDirection: Axis.vertical,
+              allowImplicitScrolling: true,   // preload the next provider's video
               itemCount: docs.length,
               onPageChanged: (i) => setState(() => _currentPage = i),
               itemBuilder: (_, i) {
@@ -97,6 +100,7 @@ class _HabeshaTokScreenState extends State<HabeshaTokScreen> with WidgetsBinding
                 final id = docs[i].id;
                 return _ProviderTok(
                   key: ValueKey(id),
+                  serviceId: id,
                   data: data,
                   isActive: widget.visible && _appActive && _currentPage == i,
                   onAllFailed: () { if (mounted) setState(() => _hidden.add(id)); },
@@ -130,10 +134,11 @@ class _HabeshaTokScreenState extends State<HabeshaTokScreen> with WidgetsBinding
 // PROVIDER TOK — one provider, horizontal pager of its videos
 // ═══════════════════════════════════════════════════════════
 class _ProviderTok extends StatefulWidget {
+  final String serviceId;
   final Map<String, dynamic> data;
   final bool isActive;
   final VoidCallback onAllFailed;
-  const _ProviderTok({super.key, required this.data, required this.isActive, required this.onAllFailed});
+  const _ProviderTok({super.key, required this.serviceId, required this.data, required this.isActive, required this.onAllFailed});
 
   @override
   State<_ProviderTok> createState() => _ProviderTokState();
@@ -189,10 +194,12 @@ class _ProviderTokState extends State<_ProviderTok> {
     return Stack(fit: StackFit.expand, children: [
       PageView.builder(
         controller: _subCtrl,
+        allowImplicitScrolling: true,         // preload the next video
         itemCount: videos.length,
         onPageChanged: (i) => setState(() => _sub = i),
         itemBuilder: (_, i) => _TokCard(
           key: ValueKey('$i-${videos[i]}'),
+          serviceId: widget.serviceId,
           data: widget.data,
           videoUrl: videos[i],
           videoCount: videos.length,
@@ -238,6 +245,7 @@ class _ProviderTokState extends State<_ProviderTok> {
 // TOK CARD — a single video
 // ═══════════════════════════════════════════════════════════
 class _TokCard extends StatefulWidget {
+  final String serviceId;
   final Map<String, dynamic> data;
   final String videoUrl;
   final int videoCount;
@@ -247,6 +255,7 @@ class _TokCard extends StatefulWidget {
   final VoidCallback onError;
   const _TokCard({
     super.key,
+    required this.serviceId,
     required this.data,
     required this.videoUrl,
     required this.videoCount,
@@ -285,20 +294,55 @@ class _TokCardState extends State<_TokCard> {
   @override
   void initState() {
     super.initState();
-    final lc = widget.data['likeCount'];
-    _likes = lc is int ? lc : 0;
     _initPlayer();
+    _loadLikes();
+  }
+
+  // ── Likes, saved in Firestore per video ───────────────────
+  //   video_likes/{videoKey}            { count }   ← kept up to date by a Cloud Function
+  //   video_likes/{videoKey}/users/{uid}            ← one doc per user who liked
+  String get _videoKey {
+    final m = RegExp(r'/([0-9a-fA-F-]{20,})/playlist\.m3u8$').firstMatch(widget.videoUrl);
+    if (m != null) return m.group(1)!;                                   // Bunny video id
+    final k = widget.videoUrl.replaceAll(RegExp(r'[^A-Za-z0-9]'), '_');
+    return k.length > 140 ? k.substring(k.length - 140) : k;
+  }
+  DocumentReference<Map<String, dynamic>> get _likeDoc =>
+      FirebaseFirestore.instance.collection('video_likes').doc(_videoKey);
+
+  Future<void> _loadLikes() async {
+    try {
+      final doc = await _likeDoc.get();
+      final c = doc.data()?['count'];
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      bool liked = false;
+      if (uid != null) liked = (await _likeDoc.collection('users').doc(uid).get()).exists;
+      if (mounted) setState(() { _likes = c is int && c > 0 ? c : 0; _liked = liked; });
+    } catch (_) {}
+  }
+
+  static int _bump(int v, int d) => v + d < 0 ? 0 : v + d;
+
+  Future<void> _toggleLike() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    final nowLiked = !_liked;
+    setState(() { _liked = nowLiked; _likes = _bump(_likes, nowLiked ? 1 : -1); });
+    final mine = _likeDoc.collection('users').doc(uid);
+    try {
+      if (nowLiked) {
+        await mine.set({'serviceId': widget.serviceId, 'createdAt': FieldValue.serverTimestamp()});
+      } else {
+        await mine.delete();
+      }
+    } catch (_) {
+      if (mounted) setState(() { _liked = !nowLiked; _likes = _bump(_likes, nowLiked ? -1 : 1); });
+    }
   }
 
   Future<void> _initPlayer() async {
     try {
-      final uri = Uri.parse(widget.videoUrl);
-      _vpc = VideoPlayerController.networkUrl(
-        uri,
-        formatHint: VideoFormat.hls,
-        httpHeaders: const {'User-Agent': 'HabeshaHub/1.0'},
-      );
-      await _vpc!.initialize();
+      _vpc = await openVideo(widget.videoUrl);
       // Single video → loop. Several videos → move on to the next one.
       await _vpc!.setLooping(!_multi);
       _vpc!.addListener(_onTick);
@@ -367,9 +411,21 @@ class _TokCardState extends State<_TokCard> {
   }
 
   Widget _bgWidget() {
+    // While the video loads: its small Bunny thumbnail + spinner (fast),
+    // instead of a large provider photo.
+    final thumb = videoThumb(widget.videoUrl);
+    if (thumb != null) {
+      return Stack(fit: StackFit.expand, children: [
+        const ColoredBox(color: Colors.black),
+        CachedNetworkImage(imageUrl: thumb, fit: BoxFit.contain,
+            errorWidget: (_, __, ___) => _fallbackBg()),
+        const Center(child: SizedBox(width: 36, height: 36,
+            child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2))),
+      ]);
+    }
     if (_images.isNotEmpty) {
-      return Image.network(_images.first, fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _fallbackBg());
+      return CachedNetworkImage(imageUrl: _images.first, fit: BoxFit.cover, memCacheWidth: 1080,
+          errorWidget: (_, __, ___) => _fallbackBg());
     }
     return _fallbackBg();
   }
@@ -518,22 +574,11 @@ class _TokCardState extends State<_TokCard> {
             icon: _liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
             color: _liked ? kRed : Colors.white,
             label: _likes > 0 ? '$_likes' : '',
-            onTap: () => setState(() {
-              _liked = !_liked;
-              _likes += _liked ? 1 : -1;
-            }),
+            onTap: _toggleLike,
           ),
           const SizedBox(height: 22),
           Column(children: [
-            Container(
-              width: 50, height: 50,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: kSecondary.withOpacity(0.12),
-                border: Border.all(color: kSecondary.withOpacity(0.4), width: 1.5),
-              ),
-              child: Center(child: Text(_cat.emoji, style: const TextStyle(fontSize: 24))),
-            ),
+            ProviderAvatar(data: widget.data, size: 50),
             const SizedBox(height: 4),
             Text(tr(_cat.label).split(' ').first,
                 style: tsLabel(color: Colors.white70).copyWith(fontSize: 9)),

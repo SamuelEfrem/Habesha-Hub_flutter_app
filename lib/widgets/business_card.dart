@@ -55,23 +55,6 @@ class _BusinessCardState extends State<BusinessCard> {
     widget.onFavoriteChanged?.call();
   }
 
-  String _ctaLabel() {
-    switch (widget.business.category) {
-      case 'Restaurant':
-        return '${tr('See menu')} \u203a';
-      case 'Shop':
-        return '${tr('Browse products')} \u203a';
-      case 'Cafe':
-        return '${tr('Get directions')} \u203a';
-      case 'Barber':
-        return '${tr('Book appointment')} \u203a';
-      case 'Club':
-        return '${tr('More info')} \u203a';
-      default:
-        return '${tr('See more')} \u203a';
-    }
-  }
-
   String _categoryEmoji() {
     switch (widget.business.category) {
       case 'Restaurant': return '\ud83c\udf7d\ufe0f';
@@ -106,51 +89,116 @@ class _BusinessCardState extends State<BusinessCard> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 24),
-        decoration: BoxDecoration(
-          color: kCardLow,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 24, offset: const Offset(0, 10))],
+    final b = widget.business;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Material(
+        color: kCardLow,
+        borderRadius: BorderRadius.circular(18),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: widget.onTap,
+          child: b.imageUrl.isEmpty ? _buildCompact() : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [_buildImage(), _buildInfo()],
+          ),
         ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          _buildImage(),
-          _buildInfo(),
-        ]),
       ),
     );
   }
 
-  Widget _buildImage() {
-    return Stack(children: [
-      ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-        child: CachedNetworkImage(
-          imageUrl: widget.business.imageUrl,
-          height: 200,
-          width: double.infinity,
-          fit: BoxFit.cover,
-          placeholder: (_, __) => Container(height: 200, color: kCardHigh, child: Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))),
-          errorWidget: (_, __, ___) => Container(height: 200, color: kCardHigh, child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.storefront_rounded, size: 52, color: kSecondary), SizedBox(height: 8), Text(widget.business.name, style: tsLabel())])),
+  bool get _hasMenu => (widget.business.pdfMenuUrl ?? '').isNotEmpty;
+
+  String get _distance => widget.userLat == 0
+      ? ''
+      : widget.business.formattedDistance(widget.userLat, widget.userLng);
+
+  // ── No photo: one tidy row instead of a big empty box ──
+  Widget _buildCompact() {
+    final b = widget.business;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 14, 6, 14),
+      child: Row(children: [
+        Container(
+          width: 56, height: 56,
+          decoration: BoxDecoration(
+            color: kSecondary.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          alignment: Alignment.center,
+          child: Text(_categoryEmoji(), style: const TextStyle(fontSize: 26)),
         ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(b.name, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: tsTitleLg(color: kText).copyWith(fontSize: 16)),
+            const SizedBox(height: 3),
+            Text(
+              [tr(b.category), if (_distance.isNotEmpty) _distance].join('  ·  '),
+              style: tsBodySm(color: kSecondary).copyWith(fontWeight: FontWeight.w600),
+            ),
+            if (b.address.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Text(b.address, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: tsBodySm(color: kTextSub)),
+            ],
+            if (b.hasKnownHours) ...[
+              const SizedBox(height: 6),
+              _openDot(),
+            ],
+          ]),
+        ),
+        IconButton(
+          onPressed: _toggleFav,
+          icon: Icon(_isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              color: _isFavorite ? Colors.redAccent : kTextSub, size: 22),
+        ),
+      ]),
+    );
+  }
+
+  Widget _openDot() {
+    final open = widget.business.isOpenNow;
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      Container(width: 7, height: 7,
+          decoration: BoxDecoration(color: open ? kGreen : kRed, shape: BoxShape.circle)),
+      const SizedBox(width: 6),
+      Text(open ? tr('Open now') : tr('Closed'),
+          style: tsBodySm(color: open ? kGreen : kRed).copyWith(fontWeight: FontWeight.w600)),
+    ]);
+  }
+
+  Widget _buildImage() {
+    final b = widget.business;
+    return Stack(children: [
+      CachedNetworkImage(
+        imageUrl: b.imageUrl,
+        height: 180,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        memCacheWidth: 1080,
+        placeholder: (_, __) => Container(height: 180, color: kCardHigh),
+        errorWidget: (_, __, ___) => Container(height: 180, color: kCardHigh,
+            alignment: Alignment.center,
+            child: Text(_categoryEmoji(), style: const TextStyle(fontSize: 48))),
       ),
-      Positioned(top: 12, right: 12, child: openBadge(widget.business.isOpenNow)),
+      if (b.hasKnownHours) Positioned(top: 12, right: 12, child: openBadge(b.isOpenNow)),
       Positioned(
         top: 12, left: 12,
         child: Row(children: [
-          _iconBtn(Icons.menu_book_rounded, _showMenuDialog),
-          const SizedBox(width: 8),
-          _iconBtn(_isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded, _toggleFav, color: _isFavorite ? Colors.redAccent : kText),
+          if (_hasMenu) ...[
+            _iconBtn(Icons.menu_book_rounded, _showMenuDialog),
+            const SizedBox(width: 8),
+          ],
+          _iconBtn(_isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded, _toggleFav, color: _isFavorite ? Colors.redAccent : Colors.white),
         ]),
       ),
-      Positioned(bottom: 10, left: 12, child: categoryBadge('${_categoryEmoji()} ${tr(widget.business.category)}')),
-      if (widget.business.isPremium)
+      if (b.isPremium)
         Positioned(bottom: 10, right: 12, child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(color: kSecondary.withOpacity(0.2), borderRadius: BorderRadius.circular(100), border: Border.all(color: kSecondary.withOpacity(0.4), width: 0.5)),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.verified_rounded, color: kSecondary, size: 10), const SizedBox(width: 3), Text('PREMIUM', style: tsLabel())]),
+          decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(100), border: Border.all(color: kSecondary.withOpacity(0.5), width: 0.5)),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.verified_rounded, color: kSecondary, size: 12), const SizedBox(width: 4), Text('Premium', style: tsLabel())]),
         )),
     ]);
   }
@@ -159,41 +207,40 @@ class _BusinessCardState extends State<BusinessCard> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 34, height: 34,
-        decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), shape: BoxShape.circle),
-        child: Icon(icon, color: color, size: 17),
+        width: 36, height: 36,
+        decoration: BoxDecoration(color: Colors.black.withOpacity(0.55), shape: BoxShape.circle),
+        child: Icon(icon, color: color, size: 18),
       ),
     );
   }
 
   Widget _buildInfo() {
+    final b = widget.business;
+    final rated = b.rating > 0 || b.ratingCount > 0;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Expanded(child: Text(widget.business.name, style: const TextStyle(fontFamily: kFontHeadline, fontSize: 22, fontWeight: FontWeight.w700, color: kSecondary))),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(color: kCardHighest, borderRadius: BorderRadius.circular(8)),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.star_rounded, color: kSecondary, size: 14), SizedBox(width: 3), Text(widget.business.rating.toStringAsFixed(1), style: tsTitleMd(color: kText))]),
-          ),
+          Expanded(child: Text(b.name, maxLines: 2, overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontFamily: kFontHeadline, fontSize: 20, fontWeight: FontWeight.w700, color: kText, height: 1.2))),
+          if (rated) ...[
+            const SizedBox(width: 8),
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.star_rounded, color: kSecondary, size: 18),
+              const SizedBox(width: 2),
+              Text(b.rating.toStringAsFixed(1), style: tsTitleMd(color: kText)),
+            ]),
+          ],
         ]),
-        const SizedBox(height: 6),
-        Text(widget.business.description, style: tsBodySm(color: kTextSub), maxLines: 2, overflow: TextOverflow.ellipsis),
-        const SizedBox(height: 14),
-        Container(height: 0.5, color: kOutlineVariant.withOpacity(0.1)),
-        const SizedBox(height: 12),
-        Row(children: [
-          Icon(Icons.near_me_rounded, color: kTextSub, size: 14),
-          const SizedBox(width: 5),
-          Text(
-            widget.userLat == 0 ? widget.business.address : widget.business.formattedDistance(widget.userLat, widget.userLng),
-            style: TextStyle(fontFamily: kFontBody, fontSize: 12, fontWeight: FontWeight.w600, color: kTextSub.withOpacity(0.7)),
-          ),
-          const Spacer(),
-          Text(_ctaLabel(), style: const TextStyle(fontFamily: kFontBody, fontSize: 13, fontWeight: FontWeight.w700, color: kSecondary)),
-        ]),
+        const SizedBox(height: 4),
+        Text(
+          [tr(b.category), if (_distance.isNotEmpty) _distance].join('  ·  '),
+          style: tsBodySm(color: kSecondary).copyWith(fontWeight: FontWeight.w600),
+        ),
+        if (b.description.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(b.description, style: tsBodySm(color: kTextSub), maxLines: 2, overflow: TextOverflow.ellipsis),
+        ],
       ]),
     );
   }

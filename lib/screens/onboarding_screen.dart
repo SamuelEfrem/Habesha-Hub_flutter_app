@@ -48,7 +48,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       builder: (_, __) {
         final t = languageNotifier.t;
         return Scaffold(
-          backgroundColor: kSurface,
+          backgroundColor: kBg,
           body: Stack(children: [
             Positioned.fill(child: CustomPaint(painter: TibebPainter())),
             SafeArea(
@@ -57,7 +57,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   alignment: Alignment.topRight,
                   child: TextButton(
                     onPressed: _finish,
-                    child: Text(t('skip'), style: tsBodySm(color: kOnSurfaceVariant)),
+                    child: Text(t('skip'), style: tsBodySm(color: kTextSub)),
                   ),
                 ),
                 Expanded(
@@ -79,7 +79,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 textAlign: TextAlign.center),
                             const SizedBox(height: 16),
                             Text(t(p['desc_key']!),
-                                style: tsBodyLg(color: kOnSurfaceVariant),
+                                style: tsBodyLg(color: kTextSub),
                                 textAlign: TextAlign.center),
                           ],
                         ),
@@ -95,7 +95,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     width: _page == i ? 24 : 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: _page == i ? kSecondary : kSurfaceContainer,
+                      color: _page == i ? kSecondary : kCard,
                       borderRadius: BorderRadius.circular(100),
                     ),
                   )),

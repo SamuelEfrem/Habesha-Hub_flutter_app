@@ -1,5 +1,8 @@
 {
   "dependencies": {
-    "firebase-admin": "^14.5.0"
+    "firebase-admin": "^14.5.0",
+    "i18n-iso-countries": "^7.14.0",
+    "sharp": "^0.34.3",
+    "which-country": "^1.0.0"
   }
 }

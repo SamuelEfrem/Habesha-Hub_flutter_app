@@ -64,3 +64,6 @@ key.properties
 # Node dependencies (reinstall with npm install)
 node_modules/
 functions/node_modules/
+.osm-address-cache.json
+.osm-cache.json
+android/.kotlin/

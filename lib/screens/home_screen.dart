@@ -15,6 +15,8 @@ import 'marketplace_screen.dart';
 import 'ai_chat_screen.dart';
 import 'habesha_tok_screen.dart';
 import '../utils/translations.dart';
+import 'community_screens.dart';
+import 'map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -77,6 +79,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _pulseAnim = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1800))
       ..repeat(reverse: true);
+    _autoSearch();
+  }
+
+  // Search right away if the user already allowed location (no popup on start)
+  Future<void> _autoSearch() async {
+    final perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.always || perm == LocationPermission.whileInUse) {
+      if (await Geolocator.isLocationServiceEnabled()) _searchNearby();
+    }
   }
 
   @override
@@ -89,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> _searchNearby() async {
     if (_isSearching) return;
-    HapticFeedback.mediumImpact();
+    HapticFeedback.selectionClick();
     setState(() {
       _isSearching = true;
     });
@@ -110,12 +121,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       final pos = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
       setState(() => _position = pos);
-      final snapshot = await _service.getBusinessesOnce();
+      final snapshot = await _service.getBusinessesNear(pos.latitude, pos.longitude);
       snapshot.sort((a, b) => a
           .distanceTo(pos.latitude, pos.longitude)
           .compareTo(b.distanceTo(pos.latitude, pos.longitude)));
       setState(() {
-        _businesses = snapshot.where((b) => b.distanceTo(pos.latitude, pos.longitude) <= 50).toList();
+        _businesses = snapshot;
         _hasSearched = true;
         _isSearching = false;
       });
@@ -177,122 +188,52 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       Positioned.fill(child: CustomPaint(painter: TibebPainter())),
       SafeArea(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // ── Top Bar — NO hamburger, NO profile icon ──
+          // ── Top bar: logo, theme, AI (language lives in Profile) ──
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 14, 16, 14),
+            padding: const EdgeInsets.fromLTRB(20, 14, 16, 6),
             child: Row(children: [
-              // Title sits to the left and shrinks if the buttons need the space
               const Expanded(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text('Habesha Hub',
-                      maxLines: 1,
-                      style: TextStyle(
-                          fontFamily: kFontHeadline,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          fontStyle: FontStyle.italic,
-                          color: kSecondary)),
-                ),
+                child: Text('Habesha Hub',
+                    maxLines: 1,
+                    style: TextStyle(
+                        fontFamily: kFontHeadline,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        fontStyle: FontStyle.italic,
+                        color: kSecondary)),
               ),
-              const SizedBox(width: 8),
-              // Language switcher
-              _buildLangSwitcher(),
-              const SizedBox(width: 8),
-              // Theme toggle — sol/måne
-              AnimatedBuilder(
-                animation: themeNotifier,
-                builder: (_, __) => GestureDetector(
-                  onTap: () => themeNotifier.toggle(),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: kCardHigh,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: kSecondary.withOpacity(0.4)),
-                    ),
-                    child: Icon(
-                      themeNotifier.isDark
-                          ? Icons.light_mode_rounded
-                          : Icons.dark_mode_rounded,
-                      color: kSecondary,
-                      size: 20,
-                    ),
-                  ),
-                ),
+              _roundBtn(
+                themeNotifier.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                () => themeNotifier.toggle(),
               ),
-              const SizedBox(width: 8),
-              // AI chat knapp
-              GestureDetector(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiChatScreen())),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: kSecondary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF1A1200), size: 20),
-                ),
-              ),
+              const SizedBox(width: 10),
+              _aiButton(),
             ]),
           ),
 
           Expanded(
-            child: CustomScrollView(
-              slivers: [
-                // ── Shazam circle + search field ──
-                SliverToBoxAdapter(child: _buildShazamSection(t)),
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-                // Marketplace banner
-                SliverToBoxAdapter(
-                  child: GestureDetector(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketplaceScreen())),
-                    child: Container(
-                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF1A3A1A), Color(0xFF2E7D32)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(children: [
-                        const Text('🛒', style: TextStyle(fontSize: 32)),
-                        const SizedBox(width: 12),
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(t('marketplace_title'), style: tsTitleMd(color: Colors.white)),
-                          Text(t('marketplace_subtitle'), style: tsBodySm(color: Colors.white70)),
-                        ])),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(100)),
-                          child: Text(t('marketplace_browse'), style: tsLabel(color: Colors.white)),
-                        ),
-                      ]),
-                    ),
-                  ),
-                ),
-
-                if (_hasSearched) ...[
-                  // Category chips
-                  SliverToBoxAdapter(child: _buildCategoryChips()),
-                  const SliverToBoxAdapter(child: SizedBox(height: 10)),
-                  // Results count + refresh
-                  SliverToBoxAdapter(child: _buildResultsHeader(t)),
-                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                  // Results list
-                  _buildResultsSliver(t),
-                ] else
-                  SliverFillRemaining(child: _buildEmptyHint(t)),
-
-                const SliverToBoxAdapter(child: SizedBox(height: 100)),
-              ],
+            child: RefreshIndicator(
+              color: kSecondary,
+              backgroundColor: kCard,
+              onRefresh: _searchNearby,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(child: _buildSearchRow(t)),
+                  SliverToBoxAdapter(child: _buildMarketplaceBanner(t)),
+                  if (_hasSearched) ...[
+                    SliverToBoxAdapter(child: _buildCategoryChips()),
+                    const SliverToBoxAdapter(child: SizedBox(height: 14)),
+                    SliverToBoxAdapter(child: _buildResultsHeader(t)),
+                    const SliverToBoxAdapter(child: SizedBox(height: 10)),
+                    _buildResultsSliver(t),
+                  ] else if (_isSearching)
+                    _buildSkeletons()
+                  else
+                    SliverToBoxAdapter(child: _buildLocationPrompt()),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                ],
+              ),
             ),
           ),
         ]),
@@ -300,189 +241,187 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     ]);
   }
 
-  // ── Language switcher (top right, no profile icon) ────────────────────
-  Widget _buildLangSwitcher() {
-    final lang = languageNotifier.language;
-    return Container(
-      decoration: BoxDecoration(
-        color: kCard,
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: ['ትግርኛ', 'አማ', 'EN'].map((label) {
-          final code = label == 'ትግርኛ'
-              ? 'Tigrinya'
-              : label == 'አማ'
-                  ? 'Amharic'
-                  : 'English';
-          final active = lang == code;
-          return GestureDetector(
-            onTap: () => languageNotifier.setLanguage(code),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: active ? kSecondary : Colors.transparent,
-                borderRadius: BorderRadius.circular(100),
-              ),
-              child: Text(label,
-                  style: tsLabel(
-                          color: active
-                              ? const Color(0xFF1A1200)
-                              : kTextSub.withOpacity(0.7))
-                      .copyWith(fontSize: 10)),
+  // "AI" in a glowing gold circle, so people notice the assistant
+  Widget _aiButton() {
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiChatScreen())),
+      child: AnimatedBuilder(
+        animation: _pulseAnim,
+        builder: (_, child) => Container(
+          width: 44, height: 44,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              colors: [Color(0xFFF2D06B), kSecondary, Color(0xFFB8960C)],
+              begin: Alignment.topLeft, end: Alignment.bottomRight,
             ),
-          );
-        }).toList(),
+            boxShadow: [
+              BoxShadow(
+                color: kSecondary.withOpacity(0.25 + _pulseAnim.value * 0.35),
+                blurRadius: 8 + _pulseAnim.value * 10,
+                spreadRadius: _pulseAnim.value * 2,
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: child,
+        ),
+        child: const Text('AI',
+            style: TextStyle(fontFamily: kFontBody, fontSize: 16,
+                fontWeight: FontWeight.w900, letterSpacing: 0.5, color: Color(0xFF1A1200))),
       ),
     );
   }
 
-  // ── Shazam-style section ─────────────────────────────────────────────
-  Widget _buildShazamSection(String Function(String) t) {
-    final lang = languageNotifier.language;
-    // "Finn her" in Tigrinya, "Find here" in English, "Finn her" in Norwegian
-    final searchLabel = lang == 'Tigrinya'
-        ? 'ኣብዚ ተዊቕካ ኣብ ጥቃኻ ዘሎ ትካላት ርከብ'
-        : lang == 'Amharic'
-            ? 'በአካባቢ ይፈልጉ'
-            : tr('Find Nearby');
+  Widget _roundBtn(IconData icon, VoidCallback onTap, {bool filled = false}) {
+    return Material(
+      color: filled ? kSecondary : kCardHigh,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: 40, height: 40,
+          child: Icon(icon, size: 20, color: filled ? const Color(0xFF1A1200) : kSecondary),
+        ),
+      ),
+    );
+  }
 
-    return Column(children: [
-      const SizedBox(height: 8),
-
-      // Search text field
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: kCardHighest,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TextField(
-            controller: _searchController,
-            style: tsBodyLg(color: kText),
-            onChanged: (v) => setState(() => _searchQuery = v),
-            decoration: InputDecoration(
-              hintText: t('search_hint'),
-              hintStyle: tsBodySm(color: kTextSub.withOpacity(0.5)),
-              prefixIcon:
-                  const Icon(Icons.search_rounded, color: kSecondary, size: 22),
-              filled: false,
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 14),
+  // ── Search field + "Near me" button ──
+  Widget _buildSearchRow(String Function(String) t) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+      child: Row(children: [
+        Expanded(
+          child: Container(
+            height: 52,
+            decoration: BoxDecoration(color: kCardHighest, borderRadius: BorderRadius.circular(16)),
+            child: TextField(
+              controller: _searchController,
+              style: tsBodyLg(color: kText),
+              onChanged: (v) => setState(() => _searchQuery = v),
+              decoration: InputDecoration(
+                hintText: t('search_hint'),
+                hintStyle: tsBodyLg(color: kTextSub.withOpacity(0.7)),
+                prefixIcon: const Icon(Icons.search_rounded, color: kSecondary, size: 22),
+                suffixIcon: _searchQuery.isEmpty ? null : IconButton(
+                  icon: Icon(Icons.close_rounded, color: kTextSub, size: 20),
+                  onPressed: () => setState(() { _searchController.clear(); _searchQuery = ''; }),
+                ),
+                filled: false,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 15),
+              ),
             ),
           ),
         ),
-      ),
-
-      const SizedBox(height: 28),
-
-      // ── Shazam Circle Button ──
-      GestureDetector(
-        onTap: _searchNearby,
-        child: Stack(alignment: Alignment.center, children: [
-          // Outer pulse rings
-          AnimatedBuilder(
-            animation: _pulseAnim,
-            builder: (_, __) {
-              if (_isSearching) {
-                return Stack(alignment: Alignment.center, children: [
-                  Container(
-                    width: 130 + (_pulseAnim.value * 30),
-                    height: 130 + (_pulseAnim.value * 30),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: kPrimaryContainer
-                          .withOpacity(0.15 - (_pulseAnim.value * 0.1)),
-                    ),
-                  ),
-                  Container(
-                    width: 110 + (_pulseAnim.value * 20),
-                    height: 110 + (_pulseAnim.value * 20),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: kPrimaryContainer
-                          .withOpacity(0.2 - (_pulseAnim.value * 0.1)),
-                    ),
-                  ),
-                ]);
-              }
-              // Idle: subtle pulse
-              return Container(
-                width: 116 + (_pulseAnim.value * 8),
-                height: 116 + (_pulseAnim.value * 8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color:
-                      kSecondary.withOpacity(0.08 - (_pulseAnim.value * 0.04)),
-                ),
-              );
-            },
-          ),
-
-          // Inner circle button
-          Container(
-            width: 96,
-            height: 96,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(colors: [
-                kPrimaryContainer,
-                kPrimaryContainer.withOpacity(0.8),
-              ]),
-              boxShadow: [
-                BoxShadow(
-                    color: kPrimaryContainer.withOpacity(0.5),
-                    blurRadius: 20,
-                    spreadRadius: 2),
-                BoxShadow(
-                    color: kSecondary.withOpacity(0.15),
-                    blurRadius: 30,
-                    spreadRadius: 5),
-              ],
-              border:
-                  Border.all(color: kSecondary.withOpacity(0.4), width: 1.5),
+        const SizedBox(width: 10),
+        Material(
+          color: kPrimaryContainer,
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: _searchNearby,
+            child: SizedBox(
+              width: 52, height: 52,
+              child: _isSearching
+                  ? const Padding(padding: EdgeInsets.all(15),
+                      child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2.2))
+                  : const Icon(Icons.my_location_rounded, color: kSecondary, size: 24),
             ),
-            child: _isSearching
-                ? const Center(
-                    child: CircularProgressIndicator(
-                        color: kSecondary, strokeWidth: 2.5))
-                : const Icon(Icons.my_location_rounded,
-                    color: kSecondary, size: 38),
           ),
-        ]),
+        ),
+      ]),
+    );
+  }
+
+  Widget _buildMarketplaceBanner(String Function(String) t) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+      child: Material(
+        color: kCard,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketplaceScreen())),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: kSecondary.withOpacity(0.25)),
+            ),
+            child: Row(children: [
+              Container(
+                width: 48, height: 48,
+                decoration: BoxDecoration(color: kSecondary.withOpacity(0.12), borderRadius: BorderRadius.circular(14)),
+                alignment: Alignment.center,
+                child: const Text('🛍️', style: TextStyle(fontSize: 24)),
+              ),
+              const SizedBox(width: 14),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(t('marketplace_title'), style: tsTitleLg(color: kText)),
+                const SizedBox(height: 2),
+                Text(t('marketplace_subtitle'), style: tsBodySm(color: kTextSub)),
+              ])),
+              const Icon(Icons.chevron_right_rounded, color: kSecondary),
+            ]),
+          ),
+        ),
       ),
+    );
+  }
 
-      const SizedBox(height: 14),
+  // Shown before the first search (location not allowed yet)
+  Widget _buildLocationPrompt() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      child: Column(children: [
+        Container(
+          width: 84, height: 84,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: kPrimaryContainer.withOpacity(0.25),
+            border: Border.all(color: kSecondary.withOpacity(0.4)),
+          ),
+          child: const Icon(Icons.near_me_rounded, color: kSecondary, size: 36),
+        ),
+        const SizedBox(height: 18),
+        Text(tr('Allow location to see Habesha businesses near you'),
+            textAlign: TextAlign.center, style: tsTitleLg(color: kText)),
+        const SizedBox(height: 18),
+        SizedBox(width: 220, child: goldButton(tr('Allow location'), _searchNearby, icon: Icons.my_location_rounded)),
+      ]),
+    );
+  }
 
-      // Label under circle
-      Text(
-        _isSearching
-            ? (lang == 'Tigrinya'
-                ? 'ይደልይ ኣሎ...'
-                : lang == 'Amharic'
-                    ? 'በመፈለግ ላይ...'
-                    : tr('Searching...'))
-            : searchLabel,
-        style: tsTitleMd(color: _isSearching ? kSecondary : kTextSub)
-            .copyWith(fontSize: 13, letterSpacing: 0.5),
-      ),
-
-      const SizedBox(height: 4),
-      Text(
-        _hasSearched && _position != null
-            ? '${_businesses.length} ${lang == "Tigrinya" ? "ትካላት ተረኺቦም" : lang == "Amharic" ? "ድርጅቶች ተገኝተዋል" : tr("businesses found")}'
-            : (lang == 'Tigrinya'
-                ? 'ኣብዚ ጠዊቅካ ኣብ ቀረባካ ድለ'
-                : tr('Tap to search nearby')),
-        style: tsBodySm(color: kTextSub.withOpacity(0.5)),
-      ),
-
-      const SizedBox(height: 8),
-    ]);
+  // Grey placeholder cards while loading
+  Widget _buildSkeletons() {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate((_, i) => AnimatedBuilder(
+        animation: _pulseAnim,
+        builder: (_, __) => Opacity(
+          opacity: 0.45 + _pulseAnim.value * 0.35,
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(color: kCardLow, borderRadius: BorderRadius.circular(18)),
+            child: Row(children: [
+              Container(width: 56, height: 56,
+                  decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(14))),
+              const SizedBox(width: 14),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Container(height: 14, width: 160, color: kCardHigh),
+                const SizedBox(height: 8),
+                Container(height: 10, width: 100, color: kCardHigh),
+                const SizedBox(height: 6),
+                Container(height: 10, width: 200, color: kCardHigh),
+              ])),
+            ]),
+          ),
+        ),
+      ), childCount: 5),
+    );
   }
 
   Widget _buildCategoryChips() {
@@ -530,53 +469,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildResultsHeader(String Function(String) t) {
-    final lang = languageNotifier.language;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(children: [
-        Text(
-          '${_filtered.length} ${lang == "Tigrinya" ? "ትካላት" : tr("businesses")}',
-          style: tsHeadlineSm(color: kSecondary),
+        Text(tr('Nearby'), style: tsHeadlineSm(color: kText)),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(color: kSecondary.withOpacity(0.15), borderRadius: BorderRadius.circular(100)),
+          child: Text('${_filtered.length}', style: tsTitleMd(color: kSecondary)),
         ),
         const Spacer(),
-        GestureDetector(
-          onTap: _searchNearby,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: kCard,
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.refresh_rounded, color: kSecondary, size: 14),
-              const SizedBox(width: 5),
-              Text(
-                  lang == 'Tigrinya'
-                      ? 'ሓድስ'
-                      : tr('Refresh'),
-                  style: tsLabel()),
-            ]),
-          ),
-        ),
+        if (_filtered.isNotEmpty)
+          mapButton(() => Navigator.push(context, MaterialPageRoute(
+              builder: (_) => BusinessesMapScreen(
+                    businesses: _filtered,
+                    title: tr('Nearby'),
+                    userLat: _position?.latitude,
+                    userLng: _position?.longitude,
+                  )))),
       ]),
-    );
-  }
-
-  Widget _buildEmptyHint(String Function(String) t) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const SizedBox(height: 20),
-          Text(
-              languageNotifier.language == 'Tigrinya'
-                  ? 'ኣብቲ ኣብ ላዕሊ ዘሎ ክቢ ብምጥዋቅ ኣብ ጥቃካ ዝሎ ናይ ሓበሻ ትካላት ርኸብ'
-                  : languageNotifier.language == 'Amharic'
-                      ? 'ከላይ ያለውን ክበብ ጫኑ የሃበሻ ድርጅቶችን ለማግኘት'
-                      : tr('Tap the circle above to find nearby Habesha businesses'),
-              textAlign: TextAlign.center),
-        ]),
-      ),
     );
   }
 
@@ -585,8 +497,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     if (list.isEmpty) {
       return SliverList(
           delegate: SliverChildListDelegate([
-        const SizedBox(height: 40),
-        Center(child: Text(t('no_businesses'), style: tsBodySm())),
+        const SizedBox(height: 30),
+        Icon(Icons.storefront_rounded, color: kTextSub.withOpacity(0.5), size: 44),
+        const SizedBox(height: 10),
+        Center(child: Text(
+            _businesses.isEmpty ? tr('No Habesha businesses within 50 km yet') : tr('Nothing here yet'),
+            textAlign: TextAlign.center, style: tsTitleMd(color: kText))),
+        const SizedBox(height: 4),
+        Center(child: Text(
+            _businesses.isEmpty ? tr('Browse by country in Explore') : tr('Try another category or city'),
+            style: tsBodySm(color: kTextSub))),
+        const SizedBox(height: 8),
+        Center(child: suggestBusinessButton(context)),
       ]));
     }
     return SliverList(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -88,7 +89,7 @@ class _BookingScreenState extends State<BookingScreen> {
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
-          backgroundColor: kSurfaceContainerHigh,
+          backgroundColor: kCardHigh,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(children: [
@@ -118,15 +119,15 @@ class _BookingScreenState extends State<BookingScreen> {
       builder: (_, __) {
         final t = languageNotifier.t;
         return Scaffold(
-          backgroundColor: kSurface,
+          backgroundColor: kBg,
           appBar: AppBar(
-            backgroundColor: kSurfaceContainer,
+            backgroundColor: kCard,
             iconTheme: const IconThemeData(color: kSecondary),
             title:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(t('book_time'), style: tsTitleMd(color: kSecondary)),
               Text(widget.business.name,
-                  style: tsBodySm(color: kOnSurfaceVariant)),
+                  style: tsBodySm(color: kTextSub)),
             ]),
           ),
           body: SingleChildScrollView(
@@ -137,7 +138,7 @@ class _BookingScreenState extends State<BookingScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: kSurfaceContainer,
+                  color: kCard,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                       color: kSecondary.withOpacity(0.2), width: 0.5),
@@ -147,13 +148,13 @@ class _BookingScreenState extends State<BookingScreen> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                        color: kSurfaceContainerHigh,
+                        color: kCardHigh,
                         borderRadius: BorderRadius.circular(10)),
                     child: widget.business.imageUrl.isNotEmpty
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: Image.network(widget.business.imageUrl,
-                                fit: BoxFit.cover))
+                            child: CachedNetworkImage(imageUrl: widget.business.imageUrl,
+                                fit: BoxFit.cover, memCacheWidth: 200))
                         : const Icon(Icons.storefront_rounded,
                             color: kSecondary),
                   ),
@@ -190,7 +191,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                      color: kSurfaceContainer,
+                      color: kCard,
                       borderRadius: BorderRadius.circular(12)),
                   child: Row(children: [
                     const Icon(Icons.calendar_today_rounded,
@@ -199,10 +200,10 @@ class _BookingScreenState extends State<BookingScreen> {
                     Text(
                         DateFormat('EEEE, dd. MMMM yyyy')
                             .format(_selectedDate),
-                        style: tsBodyLg(color: kOnSurface)),
+                        style: tsBodyLg(color: kText)),
                     const Spacer(),
-                    const Icon(Icons.arrow_forward_ios_rounded,
-                        color: kOnSurfaceVariant, size: 14),
+                    Icon(Icons.arrow_forward_ios_rounded,
+                        color: kTextSub, size: 14),
                   ]),
                 ),
               ),
@@ -226,14 +227,14 @@ class _BookingScreenState extends State<BookingScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
-                          color: sel ? kSecondary : kSurfaceContainerHigh,
+                          color: sel ? kSecondary : kCardHigh,
                           borderRadius: BorderRadius.circular(100),
                         ),
                         child: Text(_times[i],
                             style: tsLabel(
                                 color: sel
                                     ? const Color(0xFF342800)
-                                    : kOnSurfaceVariant)),
+                                    : kTextSub)),
                       ),
                     );
                   },
@@ -247,7 +248,7 @@ class _BookingScreenState extends State<BookingScreen> {
               TextField(
                 controller: _messageCtrl,
                 maxLines: 4,
-                style: tsBodyLg(color: kOnSurface),
+                style: tsBodyLg(color: kText),
                 decoration: InputDecoration(hintText: t('describe_need')),
               ),
               const SizedBox(height: 12),
@@ -256,7 +257,7 @@ class _BookingScreenState extends State<BookingScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                    color: kSurfaceContainer,
+                    color: kCard,
                     borderRadius: BorderRadius.circular(10)),
                 child: Row(children: [
                   const Icon(Icons.person_outline_rounded,
@@ -317,9 +318,9 @@ class BookingListScreen extends StatelessWidget {
         final db = FirebaseFirestore.instance;
 
         return Scaffold(
-          backgroundColor: kSurface,
+          backgroundColor: kBg,
           appBar: AppBar(
-            backgroundColor: kSurfaceContainer,
+            backgroundColor: kCard,
             iconTheme: const IconThemeData(color: kSecondary),
             title: Text(tr('Bookings'), style: tsTitleMd(color: kSecondary)),
           ),
@@ -390,7 +391,7 @@ class _BookingCard extends StatelessWidget {
     final date = (data['date'] as Timestamp?)?.toDate();
     final status = data['status'] ?? 'pending';
 
-    Color statusColor = kOnSurfaceVariant;
+    Color statusColor = kTextSub;
     String statusText = t('pending');
     if (status == 'approved') {
       statusColor = kGreen;
@@ -405,7 +406,7 @@ class _BookingCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: kSurfaceContainer,
+        color: kCard,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: statusColor.withOpacity(0.3), width: 0.5),
       ),
@@ -444,7 +445,7 @@ class _BookingCard extends StatelessWidget {
         ]),
         const SizedBox(height: 8),
         Text(data['message'] ?? '',
-            style: tsBodySm(color: kOnSurfaceVariant),
+            style: tsBodySm(color: kTextSub),
             maxLines: 2,
             overflow: TextOverflow.ellipsis),
         const SizedBox(height: 12),

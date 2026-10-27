@@ -4,10 +4,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import 'payment.dart';
 import 'provider_extras.dart';
+import 'auth_screen.dart';
+import 'send_money_screen.dart';
 import '../utils/translations.dart';
 
 class ServiceCountry {
@@ -71,6 +74,155 @@ List<String> serviceStringList(dynamic v) {
 List<String> serviceImages(Map<String, dynamic> data) =>
     serviceStringList(data['sampleImages']);
 
+/// Provider profile picture: `profileImage`, otherwise the first photo.
+/// (The original photos are not changed – the app only shows a small round copy.)
+String serviceProfileImage(Map<String, dynamic> data) {
+  final p = serviceStr(data['profileImage']);
+  if (p.isNotEmpty) return p;
+  final imgs = serviceImages(data);
+  return imgs.isEmpty ? '' : imgs.first;
+}
+
+// ═══════════════════════════════════════════════════════════
+// LIKES for photos and videos (saved in Firestore)
+//   video_likes/{key}              { count }  ← kept up to date by Cloud Function
+//   video_likes/{key}/users/{uid}             ← one doc per user who liked
+// ═══════════════════════════════════════════════════════════
+String mediaLikeKey(String url) {
+  final m = RegExp(r'/([0-9a-fA-F-]{20,})/playlist\.m3u8$').firstMatch(url);
+  if (m != null) return m.group(1)!;                       // Bunny video id
+  final k = url.replaceAll(RegExp(r'[^A-Za-z0-9]'), '_');
+  return k.length > 140 ? k.substring(k.length - 140) : k;
+}
+
+class MediaLikeButton extends StatefulWidget {
+  final String url;
+  final String serviceId;
+  const MediaLikeButton({super.key, required this.url, required this.serviceId});
+  @override
+  State<MediaLikeButton> createState() => _MediaLikeButtonState();
+}
+
+class _MediaLikeButtonState extends State<MediaLikeButton> {
+  bool _liked = false;
+  int _count = 0;
+
+  DocumentReference<Map<String, dynamic>> get _doc =>
+      FirebaseFirestore.instance.collection('video_likes').doc(mediaLikeKey(widget.url));
+
+  @override
+  void initState() { super.initState(); _load(); }
+
+  Future<void> _load() async {
+    try {
+      final d = await _doc.get();
+      final c = d.data()?['count'];
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      final liked = uid != null && (await _doc.collection('users').doc(uid).get()).exists;
+      if (mounted) setState(() { _count = c is int && c > 0 ? c : 0; _liked = liked; });
+    } catch (_) {}
+  }
+
+  Future<void> _toggle() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    final now = !_liked;
+    setState(() { _liked = now; _count = now ? _count + 1 : (_count > 0 ? _count - 1 : 0); });
+    final mine = _doc.collection('users').doc(uid);
+    try {
+      if (now) {
+        await mine.set({'serviceId': widget.serviceId, 'createdAt': FieldValue.serverTimestamp()});
+      } else {
+        await mine.delete();
+      }
+    } catch (_) {
+      if (mounted) setState(() { _liked = !now; _count = now ? (_count > 0 ? _count - 1 : 0) : _count + 1; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: _toggle,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(100)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(_liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            color: _liked ? kRed : Colors.white, size: 20),
+        if (_count > 0) ...[
+          const SizedBox(width: 5),
+          Text('$_count', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        ],
+      ]),
+    ),
+  );
+}
+
+/// Round profile picture with gold border; falls back to the category emoji.
+class ProviderAvatar extends StatelessWidget {
+  final Map<String, dynamic> data;
+  final double size;
+  const ProviderAvatar({super.key, required this.data, this.size = 44});
+
+  @override
+  Widget build(BuildContext context) {
+    final url = serviceProfileImage(data);
+    final cat = kServiceCategories.firstWhere((c) => c.key == serviceStr(data['category']),
+        orElse: () => kServiceCategories.first);
+    final emoji = Center(child: Text(cat.emoji, style: TextStyle(fontSize: size * 0.48)));
+    return Container(
+      width: size, height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: kSecondary.withOpacity(0.12),
+        border: Border.all(color: kSecondary.withOpacity(0.7), width: 1.5),
+      ),
+      child: ClipOval(child: url.isEmpty ? emoji
+          : CachedNetworkImage(imageUrl: url, fit: BoxFit.cover, width: size, height: size,
+              memCacheWidth: (size * 3).round(),         // decode small = fast, even for big photos
+              errorWidget: (_, __, ___) => emoji)),
+    );
+  }
+}
+
+/// Bunny Stream sources: HLS first, then MP4 fallbacks.
+/// Some phones (e.g. certain Huawei models) cannot play the HLS stream,
+/// but play the plain MP4 files fine. MP4 fallback must be enabled in
+/// Bunny → Stream → library → Encoding → "Enable MP4 Fallback".
+List<String> videoSources(String url) {
+  final m = RegExp(r'^(https://[^/]+/[^/]+)/playlist\.m3u8$').firstMatch(url);
+  if (m == null) return [url];
+  final base = m.group(1)!;
+  return [url, '$base/play_720p.mp4', '$base/play_480p.mp4', '$base/play_360p.mp4'];
+}
+
+/// Small preview image Bunny Stream makes for every video (shown while loading).
+String? videoThumb(String url) => url.endsWith('/playlist.m3u8')
+    ? url.replaceFirst(RegExp(r'playlist\.m3u8$'), 'thumbnail.jpg') : null;
+
+/// Opens the first source that this phone can actually play.
+Future<VideoPlayerController> openVideo(String url) async {
+  Object? last;
+  for (final src in videoSources(url)) {
+    final c = VideoPlayerController.networkUrl(
+      Uri.parse(src),
+      formatHint: src.endsWith('.m3u8') ? VideoFormat.hls : VideoFormat.other,
+      httpHeaders: const {'User-Agent': 'HabeshaHub/1.0'},
+    );
+    try {
+      // HLS gets a short timeout so phones that can't play it switch to MP4 quickly
+      await c.initialize().timeout(Duration(seconds: src.endsWith('.m3u8') ? 8 : 20));
+      if (src != url) debugPrint('🟡 Video: HLS failed, playing fallback $src');
+      return c;
+    } catch (e) {
+      last = e;
+      debugPrint('🔴 Video source failed: $src → $e');
+      await c.dispose();
+    }
+  }
+  throw last ?? Exception('No playable video source');
+}
+
 /// All videos for a provider: new `sampleVideoUrls` array,
 /// falls back to old single `sampleVideoUrl` string.
 List<String> serviceVideos(Map<String, dynamic> data) {
@@ -86,7 +238,7 @@ const kServiceCategories = [
   ServiceCategory(key: 'transport',     emoji: '\u{1F697}', label: 'Transport'),
   ServiceCategory(key: 'clothing',      emoji: '\u{1F457}', label: 'Clothing'),
   ServiceCategory(key: 'accommodation', emoji: '\u{1F3E8}', label: 'Accommodation'),
-  ServiceCategory(key: 'hawala',        emoji: '\u{1F4B0}', label: 'Hawala / Money Transfer'),
+  ServiceCategory(key: 'money_transfer', emoji: '\u{1F4B8}', label: 'Send money home'),
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -179,7 +331,9 @@ class ServiceCategoryScreen extends StatelessWidget {
           final cat = kServiceCategories[i];
           return GestureDetector(
             onTap: () => Navigator.push(context, MaterialPageRoute(
-              builder: (_) => ServiceListScreen(country: country, category: cat))),
+              builder: (_) => cat.key == 'money_transfer'
+                  ? const SendMoneyScreen()          // licensed partners (Dahabshiil, Ria, Remitly)
+                  : ServiceListScreen(country: country, category: cat))),
             child: Container(
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(18),
@@ -259,9 +413,9 @@ class ServiceListScreen extends StatelessWidget {
                     if (imgs.isNotEmpty)
                       ClipRRect(
                         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                        child: Image.network(imgs.first,
-                          height: 160, width: double.infinity, fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(height: 120, color: kCardHigh,
+                        child: CachedNetworkImage(imageUrl: imgs.first,
+                          height: 160, width: double.infinity, fit: BoxFit.cover, memCacheWidth: 1080,
+                          errorWidget: (_, __, ___) => Container(height: 120, color: kCardHigh,
                             child: Center(child: Text(category.emoji, style: const TextStyle(fontSize: 48)))),
                         ),
                       )
@@ -274,7 +428,11 @@ class ServiceListScreen extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(14),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(serviceText(data, 'publicName'), style: tsHeadlineSm()),
+                        Row(children: [
+                          ProviderAvatar(data: data, size: 40),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(serviceText(data, 'publicName'), style: tsHeadlineSm())),
+                        ]),
                         RatingLine(data: data),
                         if (serviceText(data, 'description').isNotEmpty) ...[
                           const SizedBox(height: 6),
@@ -349,11 +507,15 @@ class ServiceProviderScreen extends StatelessWidget {
       ),
       body: SingleChildScrollView(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (images.isNotEmpty) _ImageCarousel(images: images),
+          if (images.isNotEmpty) _ImageCarousel(images: images, serviceId: docId),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(serviceText(data, 'publicName'), style: tsHeadlineMd(color: kSecondary)),
+              Row(children: [
+                ProviderAvatar(data: data, size: 60),
+                const SizedBox(width: 14),
+                Expanded(child: Text(serviceText(data, 'publicName'), style: tsHeadlineMd(color: kSecondary))),
+              ]),
               if (serviceStr(data['city']).isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Row(children: [
@@ -381,7 +543,7 @@ class ServiceProviderScreen extends StatelessWidget {
                     style: tsBodySm(color: kTextSub)),
                 ]),
                 const SizedBox(height: 10),
-                _MediaAlbum(images: images, videos: videos),
+                _MediaAlbum(images: images, videos: videos, serviceId: docId),
               ],
               const SizedBox(height: 24),
               ProviderReviews(providerId: docId, data: data),
@@ -423,6 +585,7 @@ class BookServiceScreen extends StatefulWidget {
 class _BookServiceScreenState extends State<BookServiceScreen> {
   final _db = FirebaseFirestore.instance;
   final _notesCtrl = TextEditingController();
+  final _waCtrl    = TextEditingController();   // customer's WhatsApp number
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 7));
   bool _saving = false;
   bool _done = false;
@@ -434,6 +597,48 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
   void initState() {
     super.initState();
     loadPaymentMethods().then((m) { if (mounted) setState(() => _methods = m); });
+    _prefillWhatsApp();
+  }
+
+  /// A real account (email / Apple / Google) — not an anonymous guest.
+  static bool _isRealUser(User? u) => u != null && !u.isAnonymous;
+
+  /// Fill in the WhatsApp number the customer used last time.
+  Future<void> _prefillWhatsApp() async {
+    final u = FirebaseAuth.instance.currentUser;
+    if (!_isRealUser(u)) return;
+    try {
+      final doc = await _db.collection('users').doc(u!.uid).get();
+      final wa = serviceStr(doc.data()?['whatsapp']);
+      if (wa.isNotEmpty && _waCtrl.text.isEmpty && mounted) setState(() => _waCtrl.text = wa);
+    } catch (_) {}
+  }
+
+  // ── Login required ────────────────────────────────────────
+  Widget _loginRequired() {
+    final lang = languageNotifier.language;
+    final title = {'Tigrinya':'ንምሓዝ እቶ (Log in)','Amharic':'ለማስያዝ ይግቡ','English':'Log in to book'};
+    final body  = {
+      'Tigrinya':'ቡኪንግ ንምስዳድ ብኢመይልኩም እተዉ። ከምኡ ኸኣ ቡኪንግኩም ኣብ ኣካውንትኩም ክትርእዩ ትኽእሉ።',
+      'Amharic':'ቦታ ለማስያዝ በኢሜይልዎ ይግቡ። ቦታ ማስያዣዎን በመለያዎ ማየት ይችላሉ።',
+      'English':'Please log in with your email to send a booking. You can then follow your booking and receipt in your account.'};
+    final btn   = {'Tigrinya':'እቶ / ተመዝገብ','Amharic':'ይግቡ / ይመዝገቡ','English':'Log in / Sign up'};
+    return Center(child: Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Icon(Icons.lock_person_rounded, color: kSecondary, size: 56),
+        const SizedBox(height: 16),
+        Text(title[lang] ?? title['English']!, style: tsHeadlineSm(), textAlign: TextAlign.center),
+        const SizedBox(height: 10),
+        Text(body[lang] ?? body['English']!, style: tsBodySm(), textAlign: TextAlign.center),
+        const SizedBox(height: 24),
+        goldButton(btn[lang] ?? btn['English']!, () async {
+          await Navigator.push(context, MaterialPageRoute(
+              builder: (_) => const AuthScreen(returnOnLogin: true)));
+          if (mounted) { setState(() {}); _prefillWhatsApp(); }
+        }),
+      ]),
+    ));
   }
 
   @override
@@ -479,10 +684,10 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
       'English':  'Booking Sent!',
     };
     final subs = {
-      'Tigrinya': 'ቡኪንግኩም ተቐቢልና ኣለና። ብ WhatsApp ክትዘራረቡ ጠውቑ።',
-      'Amharic':  'ቡኪንግዎ ደርሷል። በ WhatsApp ለማነጋገር ጠቅ ያድርጉ።',
-      'Norsk':    'Forespørselen din er mottatt. Trykk for å kontakte oss på WhatsApp.',
-      'English':  'Your request is received. Tap below to contact us on WhatsApp.',
+      'Tigrinya': 'ቡኪንግኩም ተቐቢልና ኣለና። Habesha Hub ቡኪንግኩም ንምርግጋጽ ብ WhatsApp ክረኽበኩም እዩ። ቅድሚ ምርግጋጽ ኣይትኽፈሉ።',
+      'Amharic':  'ቦታ ማስያዣዎ ደርሷል። Habesha Hub ለማረጋገጥ በ WhatsApp ያነጋግርዎታል። ከማረጋገጫ በፊት አይክፈሉ።',
+      'Norsk':    'Forespørselen din er mottatt. Habesha Hub kontakter deg på WhatsApp for å bekrefte. Ikke betal før bekreftelse.',
+      'English':  'Your request is received. Habesha Hub will contact you on WhatsApp to confirm your booking. Do not pay before it is confirmed.',
     };
     final waBtnLabel = {
       'Tigrinya': 'ብ WhatsApp ተዛረቡ',
@@ -549,7 +754,11 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
     final reqLabel  = {'Tigrinya':'ተወሳኺ ሕቶታት','Amharic':'ተጨማሪ ጥያቄዎች','Norsk':'SPESIELLE ØNSKER','English':'SPECIAL REQUESTS'};
     final hintLabel = {'Tigrinya':'ዝኾነ ተወሳኺ ሓበሬታ...','Amharic':'ማንኛውም ተጨማሪ መረጃ...','Norsk':'Spesielle ønsker eller detaljer...','English':'Any special requests or details...'};
     final btnLabel  = {'Tigrinya':'ቡኪንግ ሰዱ','Amharic':'ቡኪንግ ላኩ','Norsk':'Send bookingforespørsel','English':'Send Booking Request'};
-    final infoLabel = {'Tigrinya':'Habesha Hub ድሕሪ ቡኪንግ ብ WhatsApp ክረኽበኩም እዩ።','Amharic':'Habesha Hub ቡኪንጉን ተቀብሎ በ WhatsApp ያነጋግርዎታል።','Norsk':'Habesha Hub tar kontakt med deg på WhatsApp etter bestilling.','English':'Habesha Hub will contact you on WhatsApp after booking.'};
+    final infoLabel = {'Tigrinya':'Habesha Hub ቡኪንግኩም ንምርግጋጽ ብ WhatsApp ክረኽበኩም እዩ። ቅድሚ ምርግጋጽ ኣይትኽፈሉ።','Amharic':'Habesha Hub ቦታ ማስያዣዎን ለማረጋገጥ በ WhatsApp ያነጋግርዎታል። ከማረጋገጫ በፊት አይክፈሉ።','Norsk':'Habesha Hub kontakter deg på WhatsApp for å bekrefte bookingen. Ikke betal før den er bekreftet.','English':'Habesha Hub will contact you on WhatsApp to confirm your booking. Do not pay before it is confirmed.'};
+    final waLabel   = {'Tigrinya':'ቁጽሪ WHATSAPPኩም','Amharic':'የ WHATSAPP ቁጥርዎ','Norsk':'DITT WHATSAPP-NUMMER','English':'YOUR WHATSAPP NUMBER'};
+    final waError   = {'Tigrinya':'በጃኹም ቁጽሪ WhatsApp ምስ ኮድ ሃገር ጽሓፉ (ን.ኣ. +47…)','Amharic':'እባክዎ የ WhatsApp ቁጥር ከአገር ኮድ ጋር ያስገቡ (ለምሳሌ +47…)','Norsk':'Skriv WhatsApp-nummeret ditt med landskode (f.eks. +47…)','English':'Please enter your WhatsApp number with country code (e.g. +47…)'};
+
+    if (!_isRealUser(user)) return _loginRequired();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -576,7 +785,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
               context: context, initialDate: _selectedDate,
               firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)),
               builder: (ctx, child) => Theme(
-                data: ThemeData.dark().copyWith(colorScheme: const ColorScheme.dark(primary: kSecondary, surface: kSurfaceContainer)),
+                data: ThemeData.dark().copyWith(colorScheme: ColorScheme.dark(primary: kSecondary, surface: kCard)),
                 child: child!),
             );
             if (picked != null) setState(() => _selectedDate = picked);
@@ -597,6 +806,14 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
         const SizedBox(height: 8),
         TextField(controller: _notesCtrl, maxLines: 4, style: tsBodyLg(color: kText),
           decoration: InputDecoration(hintText: hintLabel[lang] ?? hintLabel['English']!)),
+        const SizedBox(height: 20),
+        // ── customer's WhatsApp number (required) ───────
+        Text(waLabel[lang] ?? waLabel['English']!, style: tsLabel()),
+        const SizedBox(height: 8),
+        TextField(controller: _waCtrl, keyboardType: TextInputType.phone, style: tsBodyLg(color: kText),
+          decoration: const InputDecoration(
+            hintText: '+47 123 45 678',
+            prefixIcon: Icon(Icons.chat_rounded, color: Color(0xFF25D366), size: 20))),
         const SizedBox(height: 20),
         // ── where will you pay from ─────────────────────
         Text(tr('WHERE WILL YOU PAY FROM?'), style: tsLabel()),
@@ -630,10 +847,21 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
         ),
         const SizedBox(height: 24),
         primaryButton(_saving ? '' : (btnLabel[lang] ?? btnLabel['English']!), _saving ? null : () async {
-          if (user == null) return;
+          if (user == null || user.isAnonymous) return;
+          final wa = _waCtrl.text.trim();
+          if (wa.replaceAll(RegExp(r'[^0-9]'), '').length < 8) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(waError[lang] ?? waError['English']!)));
+            return;
+          }
           setState(() => _saving = true);
           final ref = _db.collection('service_bookings').doc();
+          try {
+          // remember the number for next time
+          await _db.collection('users').doc(user.uid)
+              .set({'whatsapp': wa}, SetOptions(merge: true)).catchError((_) {});
           await ref.set({
+            'whatsapp':    wa,
             'bookingCode': bookingCode(ref.id),
             'payCountry':  _payFrom,
             'lang':        languageNotifier.language,
@@ -648,15 +876,26 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
             'status':      'created',
             'createdAt':   FieldValue.serverTimestamp(),
           });
-          // Cloud Function sender FCM-varsel til Samuel automatisk
-          setState(() { _saving = false; _done = true; _bookingId = ref.id; });
+          } catch (e) {
+            if (mounted) {
+              setState(() => _saving = false);
+              debugPrint('🔴 booking failed: $e');
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
+                  lang == 'Tigrinya' ? '⚠️ ቡኪንግ ክስደድ ኣይከኣለን። ኢንተርነትኩም ኣረጋግጹ እሞ ደጊምኩም ፈትኑ።'
+                  : lang == 'Amharic' ? '⚠️ ቦታ ማስያዣው አልተላከም። ኢንተርኔትዎን ያረጋግጡና እንደገና ይሞክሩ።'
+                  : '⚠️ Could not send the booking. Check your internet and try again.')));
+            }
+            return;
+          }
+          // Cloud Function sends a push to the admin automatically
+          if (mounted) setState(() { _saving = false; _done = true; _bookingId = ref.id; });
         }, loading: _saving),
       ]),
     );
   }
 
   @override
-  void dispose() { _notesCtrl.dispose(); super.dispose(); }
+  void dispose() { _notesCtrl.dispose(); _waCtrl.dispose(); super.dispose(); }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -664,7 +903,8 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
 // ═══════════════════════════════════════════════════════════
 class _ImageCarousel extends StatefulWidget {
   final List<String> images;
-  const _ImageCarousel({required this.images});
+  final String serviceId;
+  const _ImageCarousel({required this.images, required this.serviceId});
   @override
   State<_ImageCarousel> createState() => _ImageCarouselState();
 }
@@ -687,17 +927,20 @@ class _ImageCarouselState extends State<_ImageCarousel> {
             controller: _ctrl,
             itemCount: imgs.length,
             onPageChanged: (i) => setState(() => _index = i),
-            itemBuilder: (_, i) => Image.network(
-              imgs[i],
+            itemBuilder: (_, i) => CachedNetworkImage(
+              imageUrl: imgs[i],
               fit: BoxFit.cover,
               width: double.infinity,
-              loadingBuilder: (_, child, progress) => progress == null
-                  ? child
-                  : Container(color: kCardHigh,
-                      child: const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))),
-              errorBuilder: (_, __, ___) => Container(color: kCardHigh,
+              memCacheWidth: 1080,
+              placeholder: (_, __) => Container(color: kCardHigh,
+                  child: const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))),
+              errorWidget: (_, __, ___) => Container(color: kCardHigh,
                 child: Center(child: Icon(Icons.image_not_supported_rounded, color: kTextSub, size: 40))),
             ),
+          ),
+          Positioned(
+            bottom: 10, right: 10,
+            child: MediaLikeButton(key: ValueKey(imgs[_index]), url: imgs[_index], serviceId: widget.serviceId),
           ),
           if (imgs.length > 1)
             Positioned(
@@ -734,7 +977,8 @@ class _MediaItem {
 class _MediaAlbum extends StatelessWidget {
   final List<String> images;
   final List<String> videos;
-  const _MediaAlbum({required this.images, required this.videos});
+  final String serviceId;
+  const _MediaAlbum({required this.images, required this.videos, required this.serviceId});
 
   @override
   Widget build(BuildContext context) {
@@ -754,13 +998,13 @@ class _MediaAlbum extends StatelessWidget {
         final it = items[i];
         return GestureDetector(
           onTap: () => Navigator.push(context, MaterialPageRoute(
-            builder: (_) => _MediaViewerScreen(items: items, start: i))),
+            builder: (_) => _MediaViewerScreen(items: items, start: i, serviceId: serviceId))),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: Stack(fit: StackFit.expand, children: [
               if (it.thumb != null)
-                Image.network(it.thumb!, fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: kCardHigh,
+                CachedNetworkImage(imageUrl: it.thumb!, fit: BoxFit.cover, memCacheWidth: 400,
+                  errorWidget: (_, __, ___) => Container(color: kCardHigh,
                     child: Icon(it.isVideo ? Icons.videocam_rounded : Icons.broken_image_rounded,
                         color: kTextSub)))
               else
@@ -781,7 +1025,8 @@ class _MediaAlbum extends StatelessWidget {
 class _MediaViewerScreen extends StatefulWidget {
   final List<_MediaItem> items;
   final int start;
-  const _MediaViewerScreen({required this.items, required this.start});
+  final String serviceId;
+  const _MediaViewerScreen({required this.items, required this.start, required this.serviceId});
   @override
   State<_MediaViewerScreen> createState() => _MediaViewerScreenState();
 }
@@ -803,6 +1048,13 @@ class _MediaViewerScreenState extends State<_MediaViewerScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text('${_index + 1} / ${items.length}',
             style: tsTitleMd(color: Colors.white)),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Center(child: MediaLikeButton(
+                key: ValueKey(items[_index].url), url: items[_index].url, serviceId: widget.serviceId)),
+          ),
+        ],
       ),
       body: PageView.builder(
         controller: _ctrl,
@@ -816,10 +1068,9 @@ class _MediaViewerScreenState extends State<_MediaViewerScreen> {
             return Center(child: _InlineVideoPlayer(key: ValueKey(it.url), url: it.url));
           }
           return InteractiveViewer(
-            child: Center(child: Image.network(it.url, fit: BoxFit.contain,
-              loadingBuilder: (_, child, p) => p == null ? child
-                  : const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5)),
-              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_rounded,
+            child: Center(child: CachedNetworkImage(imageUrl: it.url, fit: BoxFit.contain,
+              placeholder: (_, __) => const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5)),
+              errorWidget: (_, __, ___) => const Icon(Icons.broken_image_rounded,
                   color: Colors.white38, size: 60))),
           );
         },
@@ -893,13 +1144,7 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> with WidgetsBind
 
   Future<void> _init() async {
     try {
-      final uri = Uri.parse(widget.url);
-      _vpc = VideoPlayerController.networkUrl(
-        uri,
-        formatHint: VideoFormat.hls,
-        httpHeaders: const {'User-Agent': 'HabeshaHub/1.0'},
-      );
-      await _vpc!.initialize();
+      _vpc = await openVideo(widget.url);
       await _vpc!.pause();
       _vpc!.addListener(_onTick);
       _chc = ChewieController(

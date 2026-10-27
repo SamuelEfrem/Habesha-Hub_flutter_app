@@ -16,6 +16,8 @@ service cloud.firestore {
         || (request.auth.token.email == 'samuelefriem@gmail.com'
             && request.auth.token.email_verified == true));
     }
+    // a real account (email/Apple/Google) — not an anonymous guest
+    function realUser() { return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous'; }
     function changed()  { return request.resource.data.diff(resource.data).affectedKeys(); }
     function bizOwner(bizId) {
       return signedIn() &&
@@ -25,18 +27,25 @@ service cloud.firestore {
     // ── Businesses ─────────────────────────────────────────
     match /businesses/{bizId} {
       allow read: if true;
-      allow create: if signedIn()
+      // admin may publish directly (e.g. an approved suggestion)
+      allow create: if isAdmin() || (signedIn()
         && request.resource.data.ownerId == uid()
         && request.resource.data.status == 'pending'
-        && request.resource.data.isPremium != true;
+        && request.resource.data.isPremium != true);
       allow update: if isAdmin()
         // owner may edit everything except approval / premium / ownership
         || (signedIn() && resource.data.ownerId == uid()
             && !changed().hasAny(['status', 'isPremium', 'ownerId']))
         // anyone: view counter
         || changed().hasOnly(['viewCount'])
-        // logged-in users: rating / review counters
-        || (signedIn() && changed().hasOnly(['rating', 'ratingCount', 'reviewCount']));
+        // logged-in users: add ONE rating (average must stay 0–5)
+        || (signedIn() && changed().hasOnly(['rating', 'ratingCount'])
+            && request.resource.data.rating is number
+            && request.resource.data.rating >= 0 && request.resource.data.rating <= 5
+            && request.resource.data.ratingCount == resource.data.get('ratingCount', 0) + 1)
+        // logged-in users: review counter +1
+        || (signedIn() && changed().hasOnly(['reviewCount'])
+            && request.resource.data.reviewCount == resource.data.get('reviewCount', 0) + 1);
       allow delete: if isAdmin() || (signedIn() && resource.data.ownerId == uid());
 
       match /reviews/{reviewId} {
@@ -73,9 +82,13 @@ service cloud.firestore {
     // ── Marketplace (buy & sell) ───────────────────────────
     match /marketplace/{id} {
       allow read: if true;
-      allow create: if signedIn() && request.resource.data.userId == uid();
+      // New and edited listings must wait for admin approval (approved == false).
+      allow create: if isAdmin()
+        || (realUser() && request.resource.data.userId == uid()
+            && request.resource.data.approved == false);
       allow update: if isAdmin()
-        || (signedIn() && resource.data.userId == uid() && request.resource.data.userId == uid());
+        || (realUser() && resource.data.userId == uid() && request.resource.data.userId == uid()
+            && request.resource.data.approved == false);
       allow delete: if isAdmin() || (signedIn() && resource.data.userId == uid());
     }
 
@@ -108,13 +121,55 @@ service cloud.firestore {
 
     // ── Service bookings + receipts ────────────────────────
     match /service_bookings/{id} {
-      allow create: if signedIn()
+      allow create: if realUser()
         && request.resource.data.userId == uid()
         && request.resource.data.status == 'created'
         && !('amount' in request.resource.data)
         && !('paid' in request.resource.data);
       allow read: if isAdmin() || (signedIn() && resource.data.userId == uid());
       allow update, delete: if isAdmin();
+    }
+
+    // ── Video likes (count kept by Cloud Function) ─────────
+    match /video_likes/{videoKey} {
+      allow read: if true;
+      allow write: if isAdmin();
+      match /users/{userId} {
+        allow read: if signedIn() && uid() == userId;
+        allow create: if signedIn() && uid() == userId
+          && request.resource.data.keys().hasOnly(['serviceId', 'createdAt']);
+        allow delete: if signedIn() && uid() == userId;
+      }
+    }
+
+    // ── Community help: claim / report / suggest ──────────
+    // Owner wants to take over an imported business
+    match /claims/{id} {
+      allow create: if realUser()
+        && request.resource.data.userId == uid()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.message.size() <= 2000
+        && request.resource.data.name.size() <= 200;
+      allow read: if isAdmin() || (signedIn() && resource.data.userId == uid());
+      allow update, delete: if isAdmin();
+    }
+    // "Report wrong info" (guests too)
+    match /reports/{id} {
+      allow create: if request.resource.data.status == 'open'
+        && request.resource.data.keys().hasOnly(
+             ['businessId', 'businessName', 'reason', 'note', 'userId', 'status', 'createdAt'])
+        && request.resource.data.note.size() <= 1000
+        && (request.resource.data.userId == null || (signedIn() && request.resource.data.userId == uid()));
+      allow read, update, delete: if isAdmin();
+    }
+    // Missing business suggested by a user
+    match /suggestions/{id} {
+      allow create: if realUser()
+        && request.resource.data.userId == uid()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.name.size() <= 200
+        && request.resource.data.note.size() <= 2000;
+      allow read, update, delete: if isAdmin();
     }
 
     // ── App settings (payment numbers) ─────────────────────

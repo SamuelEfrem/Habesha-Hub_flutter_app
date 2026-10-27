@@ -33,13 +33,14 @@ exports.notifyBooking = onDocumentCreated(
     const email    = data.userEmail   || 'ukjent';
     const dateRaw  = data.date        || '';
     const notes    = data.notes       || '';
+    const wa       = data.whatsapp    || '';
     const dateStr  = dateRaw ? new Date(dateRaw).toLocaleDateString('no-NO') : '';
 
     const message = {
       token,
       notification: {
         title: `📅 Ny booking — ${svcName}`,
-        body:  `${email} • ${dateStr}${notes ? '\n' + notes : ''}`,
+        body:  `${email}${wa ? ' • WhatsApp ' + wa : ''} • ${dateStr}${notes ? '\n' + notes : ''}`,
       },
       android: { priority: 'high' },
       apns:    { payload: { aps: { sound: 'default', badge: 1 } } },
@@ -321,4 +322,161 @@ exports.notifyNewVideo = onDocumentUpdated('anonymous_services/{id}', async (eve
   const nb = Array.isArray(before.sampleVideoUrls) ? before.sampleVideoUrls.length : (before.sampleVideoUrl ? 1 : 0);
   const na = Array.isArray(after.sampleVideoUrls) ? after.sampleVideoUrls.length : 0;
   if (na > nb) await sendNews('vid', after);
+});
+
+
+// ═══════════════════════════════════════════════════════════
+// Marketplace moderation
+//  • notifyNewListing  — push to admin when a listing waits for approval
+//  • notifyListingApproved — push to the seller when it goes live
+// ═══════════════════════════════════════════════════════════
+async function tokenOf(uid) {
+  if (!uid) return null;
+  const d = await getFirestore().collection('users').doc(uid).get();
+  return d.data()?.fcmToken || null;
+}
+
+exports.notifyNewListing = onDocumentWritten('marketplace/{id}', async (event) => {
+  const after  = event.data?.after?.data();
+  const before = event.data?.before?.data();
+  if (!after || after.approved !== false) return;
+  if (before && before.approved === false) return;   // already waiting — don't spam
+  const token = await tokenOf(SAMUEL_UID);
+  if (!token) return;
+  await getMessaging().send({
+    token,
+    notification: { title: '🛒 New listing waiting for approval', body: `${after.title || 'Listing'}${after.city ? ' • ' + after.city : ''}` },
+    android: { priority: 'high' },
+    apns: { payload: { aps: { sound: 'default' } } },
+  }).catch(e => console.error('notifyNewListing', e.message));
+});
+
+exports.notifyListingApproved = onDocumentUpdated('marketplace/{id}', async (event) => {
+  const before = event.data?.before?.data();
+  const after  = event.data?.after?.data();
+  if (!before || !after || before.approved !== false || after.approved !== true) return;
+  const token = await tokenOf(after.userId);
+  if (!token) return;
+  await getMessaging().send({
+    token,
+    notification: { title: '✅ Your listing is live', body: `${after.title || 'Your listing'} is now visible in the Habesha Hub marketplace.` },
+    apns: { payload: { aps: { sound: 'default' } } },
+  }).catch(e => console.error('notifyListingApproved', e.message));
+});
+
+
+// ═══════════════════════════════════════════════════════════
+// countVideoLikes — keeps video_likes/{videoKey}.count in sync
+// when a user likes / unlikes a Hab Tok video.
+// ═══════════════════════════════════════════════════════════
+exports.countVideoLikes = onDocumentWritten('video_likes/{videoKey}/users/{uid}', async (event) => {
+  const before = event.data?.before?.exists;
+  const after  = event.data?.after?.exists;
+  if (before === after) return;
+  const { FieldValue } = require('firebase-admin/firestore');
+  const delta = after ? 1 : -1;
+  const data = event.data?.after?.data() || event.data?.before?.data() || {};
+  await getFirestore().collection('video_likes').doc(event.params.videoKey).set({
+    count: FieldValue.increment(delta),
+    serviceId: data.serviceId || null,
+    updatedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
+});
+
+
+// ═══════════════════════════════════════════════════════════
+// businessPage — public share page:  https://habesha-hub.no/b/<businessId>
+// Link preview (WhatsApp/Facebook) + directions, call and download buttons.
+// ═══════════════════════════════════════════════════════════
+const CAT_EMOJI = { Restaurant: '🍽️', Cafe: '☕', Shop: '🛍️', Barber: '💇', Club: '🎵', Clinic: '🏥', Hotel: '🏨' };
+
+exports.businessPage = onRequest({ invoker: 'public', maxInstances: 5 }, async (req, res) => {
+  const id = decodeURIComponent((req.path || '').split('/').filter(Boolean).pop() || '');
+  const doc = id && !id.includes('/') ? await getFirestore().collection('businesses').doc(id).get() : null;
+  const v = doc?.exists ? doc.data() : null;
+  res.set('Cache-Control', 'public, max-age=300');
+  if (!v || (v.status && v.status !== 'approved')) {
+    res.status(404).send('<h1>Not found</h1><p><a href="https://habesha-hub.no">Habesha Hub</a></p>');
+    return;
+  }
+  const emoji = CAT_EMOJI[v.category] || '📍';
+  const img = v.imageUrl || 'https://habesha-hub.no/icon.png';
+  const desc = v.description || `${v.category || 'Business'} · ${v.address || ''}`;
+  const stars = v.ratingCount ? `★ ${Number(v.rating || 0).toFixed(1)} (${v.ratingCount})` : '';
+  const maps = `https://www.google.com/maps/dir/?api=1&destination=${v.lat},${v.lng}`;
+  res.send(`<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(v.name)} – Habesha Hub</title>
+<meta property="og:title" content="${esc(emoji + ' ' + v.name)} – Habesha Hub">
+<meta property="og:description" content="${esc(desc)}">
+<meta property="og:image" content="${esc(img)}">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+body{margin:0;font-family:system-ui,Arial,sans-serif;background:#131313;color:#eee}
+.wrap{max-width:640px;margin:0 auto;padding:20px}
+.hero{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:16px;background:#222}
+.ph{width:100%;aspect-ratio:16/9;border-radius:16px;background:#2a2a2a;display:flex;align-items:center;justify-content:center;font-size:64px}
+h1{color:#D4AF37;margin:16px 0 4px}.muted{color:#aaa}
+.btn{display:block;text-align:center;background:#D4AF37;color:#1A1200;font-weight:700;padding:14px;border-radius:12px;text-decoration:none;margin:10px 0}
+.btn2{background:transparent;color:#D4AF37;border:1px solid #D4AF37}
+.row{display:flex;gap:10px}.row .btn{flex:1}
+</style></head><body><div class="wrap">
+${v.imageUrl ? `<img class="hero" src="${esc(img)}" alt="">` : `<div class="ph">${emoji}</div>`}
+<h1>${esc(v.name)}</h1>
+<div class="muted">${esc(v.category)}${v.country ? ' · ' + esc(v.country) : ''}${stars ? ' · ' + esc(stars) : ''}</div>
+<p>📍 ${esc(v.address)}</p>
+${v.description ? `<p>${esc(v.description)}</p>` : ''}
+<div class="row">
+<a class="btn" href="${esc(maps)}">🧭 Directions</a>
+${v.phone ? `<a class="btn btn2" href="tel:${esc(String(v.phone).replace(/\s/g, ''))}">📞 Call</a>` : ''}
+</div>
+<a class="btn" href="https://habesha-hub.no/download.html">📲 Find more Habesha places in the app</a>
+${v.source === 'osm' ? '<p class="muted" style="font-size:12px">Data © OpenStreetMap contributors</p>' : ''}
+</div></body></html>`);
+});
+
+
+// ═══════════════════════════════════════════════════════════
+// Community help (claims / suggestions / reports)
+//  • notifyAdminCommunity — push to admin when something new arrives
+//  • notifyClaimApproved  — push to the owner when the claim is accepted
+// ═══════════════════════════════════════════════════════════
+async function pushAdmin(title, body) {
+  const token = await tokenOf(SAMUEL_UID);
+  if (!token) return;
+  await getMessaging().send({
+    token,
+    notification: { title, body },
+    android: { priority: 'high' },
+    apns: { payload: { aps: { sound: 'default' } } },
+  }).catch(e => console.error('pushAdmin', e.message));
+}
+
+exports.notifyNewClaim = onDocumentCreated('claims/{id}', async (event) => {
+  const c = event.data?.data();
+  if (c) await pushAdmin('🏪 New business claim', `${c.name || 'Someone'} claims ${c.businessName || 'a business'}`);
+});
+
+exports.notifyNewSuggestion = onDocumentCreated('suggestions/{id}', async (event) => {
+  const s = event.data?.data();
+  if (s) await pushAdmin('➕ New business suggested', `${s.name || 'A business'} · ${s.country || ''}`);
+});
+
+exports.notifyNewReport = onDocumentCreated('reports/{id}', async (event) => {
+  const r = event.data?.data();
+  if (r) await pushAdmin('🚩 Business reported', `${r.businessName || 'A business'}: ${r.reason || ''}`);
+});
+
+exports.notifyClaimApproved = onDocumentUpdated('claims/{id}', async (event) => {
+  const before = event.data?.before?.data();
+  const after  = event.data?.after?.data();
+  if (!before || !after || before.status === 'approved' || after.status !== 'approved') return;
+  const token = await tokenOf(after.userId);
+  if (!token) return;
+  await getMessaging().send({
+    token,
+    notification: { title: '✅ Your business is yours', body: `You can now edit ${after.businessName || 'your business'} — add photos, hours and your menu.` },
+    apns: { payload: { aps: { sound: 'default' } } },
+  }).catch(e => console.error('notifyClaimApproved', e.message));
 });

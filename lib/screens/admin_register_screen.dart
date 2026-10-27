@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:google_places_flutter/model/prediction.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../theme/app_theme.dart';
 
 const String _apiKey = 'AIzaSyDlr-jUBRiouKToV9eVF3026yIvP5Ek2q0';
 
@@ -86,9 +87,9 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
   Widget build(BuildContext context) {
     if (_success) return _buildSuccess();
     return Scaffold(
-      backgroundColor: const Color(0xFF131313),
+      backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1C1B1B),
+        backgroundColor: kCard,
         title: const Text('Admin — Registrer bedrift',
             style: TextStyle(color: Color(0xFFD4AF37), fontSize: 16)),
         iconTheme: const IconThemeData(color: Color(0xFFD4AF37)),
@@ -107,9 +108,9 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
               googleAPIKey: _apiKey,
               inputDecoration: InputDecoration(
                 hintText: 'F.eks. Addis Kitchen Oslo...',
-                hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
+                hintStyle: TextStyle(color: kText.withOpacity(0.4)),
                 filled: true,
-                fillColor: const Color(0xFF20201F),
+                fillColor: kCard,
                 prefixIcon: const Icon(Icons.search, color: Color(0xFFD4AF37)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -138,7 +139,7 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
               containerHorizontalPadding: 10,
               itemBuilder: (context, index, Prediction prediction) {
                 return Container(
-                  color: const Color(0xFF20201F),
+                  color: kCard,
                   padding: const EdgeInsets.all(12),
                   child: Row(children: [
                     const Icon(Icons.location_on,
@@ -146,21 +147,21 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(prediction.description ?? '',
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 13)),
+                          style: TextStyle(
+                              color: kText, fontSize: 13)),
                     ),
                   ]),
                 );
               },
               isCrossBtnShown: true,
-              textStyle: const TextStyle(color: Colors.white),
+              textStyle: TextStyle(color: kText),
             ),
             if (_name.isNotEmpty) ...[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF20201F),
+                  color: kCard,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                       color: const Color(0xFFD4AF37).withOpacity(0.3)),
@@ -178,21 +179,21 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
                     ]),
                     const SizedBox(height: 8),
                     Text(_name,
-                        style: const TextStyle(
-                            color: Colors.white,
+                        style: TextStyle(
+                            color: kText,
                             fontWeight: FontWeight.bold,
                             fontSize: 16)),
                     const SizedBox(height: 4),
                     Text(_address,
                         style: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
+                            color: kText.withOpacity(0.6),
                             fontSize: 13)),
                     if (_lat != 0) ...[
                       const SizedBox(height: 4),
                       Text(
                           'GPS: ${_lat.toStringAsFixed(4)}, ${_lng.toStringAsFixed(4)}',
                           style: TextStyle(
-                              color: Colors.white.withOpacity(0.4),
+                              color: kText.withOpacity(0.4),
                               fontSize: 11)),
                     ],
                   ],
@@ -219,12 +220,12 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
                     decoration: BoxDecoration(
                       color: selected
                           ? const Color(0xFFD4AF37)
-                          : const Color(0xFF20201F),
+                          : kCard,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(cat,
                         style: TextStyle(
-                            color: selected ? Colors.black : Colors.white,
+                            color: selected ? Colors.black : kText,
                             fontSize: 13,
                             fontWeight: selected
                                 ? FontWeight.bold
@@ -241,12 +242,12 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
             TextField(
               onChanged: (v) => setState(() => _description = v),
               maxLines: 3,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: kText),
               decoration: InputDecoration(
                 hintText: 'Kort beskrivelse av bedriften...',
-                hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
+                hintStyle: TextStyle(color: kText.withOpacity(0.4)),
                 filled: true,
-                fillColor: const Color(0xFF20201F),
+                fillColor: kCard,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -314,20 +315,20 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
 
   Widget _buildSuccess() {
     return Scaffold(
-      backgroundColor: const Color(0xFF131313),
+      backgroundColor: kBg,
       body: Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           const Icon(Icons.check_circle, color: Color(0xFFD4AF37), size: 80),
           const SizedBox(height: 20),
-          const Text('Bedrift registrert!',
+          Text('Bedrift registrert!',
               style: TextStyle(
-                  color: Colors.white,
+                  color: kText,
                   fontSize: 22,
                   fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text('$_name er nå tilgjengelig for brukere.',
               style: TextStyle(
-                  color: Colors.white.withOpacity(0.6), fontSize: 14)),
+                  color: kText.withOpacity(0.6), fontSize: 14)),
           const SizedBox(height: 32),
           ElevatedButton(
             onPressed: () => setState(() {
@@ -341,8 +342,8 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
             }),
             style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF8B0000)),
-            child: const Text('Registrer en til',
-                style: TextStyle(color: Colors.white)),
+            child: Text('Registrer en til',
+                style: TextStyle(color: kText)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),

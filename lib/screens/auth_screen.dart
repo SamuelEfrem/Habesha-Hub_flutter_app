@@ -69,7 +69,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           context: context,
           barrierDismissible: false,
           builder: (_) => AlertDialog(
-            backgroundColor: kSurfaceContainerHigh,
+            backgroundColor: kCardHigh,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: Row(children: [
               const Icon(Icons.mark_email_unread_rounded, color: kSecondary),
@@ -153,7 +153,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: kSurfaceContainerHigh,
+        backgroundColor: kCardHigh,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(children: [
           const Icon(Icons.lock_reset_rounded, color: kSecondary),
@@ -163,7 +163,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(tr('Enter your email address and we will send you a link to reset your password.'), style: tsBodyLg()),
           const SizedBox(height: 16),
-          TextField(controller: ctrl, keyboardType: TextInputType.emailAddress, style: tsBodyLg(color: kOnSurface), decoration: InputDecoration(hintText: tr('your@email.com'), prefixIcon: Icon(Icons.email_outlined, color: kSecondary))),
+          TextField(controller: ctrl, keyboardType: TextInputType.emailAddress, style: tsBodyLg(color: kText), decoration: InputDecoration(hintText: tr('your@email.com'), prefixIcon: Icon(Icons.email_outlined, color: kSecondary))),
         ]),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('Cancel'), style: tsBodySm())),
@@ -201,9 +201,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kSurface,
+      backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: kSurface,
+        backgroundColor: kBg,
         elevation: 0,
         iconTheme: const IconThemeData(color: kSecondary),
         title: const Text('Habesha Hub', style: TextStyle(fontFamily: kFontHeadline, color: kSecondary, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic)),
@@ -211,7 +211,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           controller: _tab,
           indicatorColor: kSecondary,
           labelColor: kSecondary,
-          unselectedLabelColor: kOnSurfaceVariant,
+          unselectedLabelColor: kTextSub,
           labelStyle: const TextStyle(fontFamily: kFontBody, fontWeight: FontWeight.w700, letterSpacing: 1),
           tabs: [Tab(text: tr('LOG IN')), Tab(text: tr('SIGN UP'))],
         ),
@@ -232,18 +232,18 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         const SizedBox(height: 32),
         Text(tr('EMAIL'), style: tsLabel()),
         const SizedBox(height: 8),
-        TextField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress, style: tsBodyLg(color: kOnSurface), decoration: InputDecoration(hintText: tr('your@email.com'), prefixIcon: Icon(Icons.email_outlined, color: kSecondary))),
+        TextField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress, style: tsBodyLg(color: kText), decoration: InputDecoration(hintText: tr('your@email.com'), prefixIcon: Icon(Icons.email_outlined, color: kSecondary))),
         const SizedBox(height: 16),
         Text(tr('PASSWORD'), style: tsLabel()),
         const SizedBox(height: 8),
         TextField(
           controller: _passwordCtrl,
           obscureText: _obscure,
-          style: tsBodyLg(color: kOnSurface),
+          style: tsBodyLg(color: kText),
           decoration: InputDecoration(
             hintText: tr('password'),
             prefixIcon: const Icon(Icons.lock_outline_rounded, color: kSecondary),
-            suffixIcon: GestureDetector(onTap: () => setState(() => _obscure = !_obscure), child: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: kOnSurfaceVariant)),
+            suffixIcon: GestureDetector(onTap: () => setState(() => _obscure = !_obscure), child: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: kTextSub)),
           ),
           onSubmitted: (_) => _login(),
         ),
@@ -263,14 +263,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         Center(child: TextButton(
           onPressed: _loading ? null : _registerWithEmail,
           child: RichText(text: TextSpan(children: [
-            TextSpan(text: tr('New user? '), style: tsBodySm(color: kOnSurfaceVariant)),
+            TextSpan(text: tr('New user? '), style: tsBodySm(color: kTextSub)),
             TextSpan(text: 'Register', style: tsBodySm(color: kSecondary)),
           ])),
         )),
         const SizedBox(height: 12),
         Row(children: [
           Expanded(child: Divider(color: kOutlineVariant.withOpacity(0.3))),
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Text(tr('or'), style: tsBodySm(color: kOnSurfaceVariant))),
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Text(tr('or'), style: tsBodySm(color: kTextSub))),
           Expanded(child: Divider(color: kOutlineVariant.withOpacity(0.3))),
         ]),
         const SizedBox(height: 12),
@@ -279,7 +279,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           onTap: _signInWithGoogle,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 14),
-            decoration: BoxDecoration(color: kSurfaceContainerHigh, borderRadius: BorderRadius.circular(12), border: Border.all(color: kOutlineVariant.withOpacity(0.3), width: 0.5)),
+            decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(12), border: Border.all(color: kOutlineVariant.withOpacity(0.3), width: 0.5)),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Image.network('https://www.google.com/favicon.ico', width: 20, height: 20, errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata_rounded, color: kSecondary, size: 24)),
               const SizedBox(width: 10),
@@ -320,22 +320,22 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         const SizedBox(height: 32),
         Text(tr('NAME'), style: tsLabel()),
         const SizedBox(height: 8),
-        TextField(controller: _nameCtrl, style: tsBodyLg(color: kOnSurface), decoration: InputDecoration(hintText: tr('Full name'), prefixIcon: Icon(Icons.person_outline_rounded, color: kSecondary))),
+        TextField(controller: _nameCtrl, style: tsBodyLg(color: kText), decoration: InputDecoration(hintText: tr('Full name'), prefixIcon: Icon(Icons.person_outline_rounded, color: kSecondary))),
         const SizedBox(height: 16),
         Text(tr('EMAIL'), style: tsLabel()),
         const SizedBox(height: 8),
-        TextField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress, style: tsBodyLg(color: kOnSurface), decoration: InputDecoration(hintText: tr('your@email.com'), prefixIcon: Icon(Icons.email_outlined, color: kSecondary))),
+        TextField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress, style: tsBodyLg(color: kText), decoration: InputDecoration(hintText: tr('your@email.com'), prefixIcon: Icon(Icons.email_outlined, color: kSecondary))),
         const SizedBox(height: 16),
         Text(tr('PASSWORD'), style: tsLabel()),
         const SizedBox(height: 8),
         TextField(
           controller: _passwordCtrl,
           obscureText: _obscure,
-          style: tsBodyLg(color: kOnSurface),
+          style: tsBodyLg(color: kText),
           decoration: InputDecoration(
             hintText: tr('At least 6 characters'),
             prefixIcon: const Icon(Icons.lock_outline_rounded, color: kSecondary),
-            suffixIcon: GestureDetector(onTap: () => setState(() => _obscure = !_obscure), child: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: kOnSurfaceVariant)),
+            suffixIcon: GestureDetector(onTap: () => setState(() => _obscure = !_obscure), child: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: kTextSub)),
           ),
         ),
         if (_error.isNotEmpty) ...[
@@ -353,7 +353,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         const SizedBox(height: 24),
         Container(
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.15), width: 0.5)),
+          decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.15), width: 0.5)),
           child: Row(children: [
             const Icon(Icons.info_outline_rounded, color: kSecondary, size: 16),
             const SizedBox(width: 10),

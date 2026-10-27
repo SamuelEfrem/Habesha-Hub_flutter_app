@@ -12,7 +12,7 @@ const kSurfaceContainerHighest = Color(0xFF353535);
 const kPrimaryContainer = Color(0xFF8B0000);
 const kSecondary = Color(0xFFD4AF37);
 const kOnSurface = Color(0xFFE5E2E1);
-const kOnSurfaceVariant = Color(0xFFE3BEB8);
+const kOnSurfaceVariant = Color(0xFFD3C9BD); // warm grey (was pinkish 0xFFE3BEB8)
 const kOutlineVariant = Color(0xFF5A403C);
 const kGreen = Color(0xFF22C55E);
 const kRed = Color(0xFFEF4444);
@@ -38,65 +38,65 @@ Color get kTextSub => themeNotifier.isDark ? kOnSurfaceVariant : kOnSurfaceVaria
 const kFontHeadline = 'NotoSerif';
 const kFontBody = 'Manrope';
 
-TextStyle tsDisplay({Color color = kOnSurface}) => TextStyle(
+TextStyle tsDisplay({Color? color}) => TextStyle(
     fontFamily: kFontHeadline,
     fontSize: 36,
     fontWeight: FontWeight.w900,
     height: 1.1,
-    color: color);
+    color: color ?? kText);
 
-TextStyle tsHeadlineLg({Color color = kOnSurface}) => TextStyle(
+TextStyle tsHeadlineLg({Color? color}) => TextStyle(
     fontFamily: kFontHeadline,
     fontSize: 26,
     fontWeight: FontWeight.w700,
     height: 1.2,
-    color: color);
+    color: color ?? kText);
 
-TextStyle tsHeadlineMd({Color color = kOnSurface}) => TextStyle(
+TextStyle tsHeadlineMd({Color? color}) => TextStyle(
     fontFamily: kFontHeadline,
     fontSize: 22,
     fontWeight: FontWeight.w700,
     height: 1.25,
-    color: color);
+    color: color ?? kText);
 
-TextStyle tsHeadlineSm({Color color = kOnSurface}) => TextStyle(
+TextStyle tsHeadlineSm({Color? color}) => TextStyle(
     fontFamily: kFontHeadline,
     fontSize: 18,
     fontWeight: FontWeight.w700,
-    color: color);
+    color: color ?? kText);
 
-TextStyle tsTitleLg({Color color = kOnSurface}) => TextStyle(
+TextStyle tsTitleLg({Color? color}) => TextStyle(
     fontFamily: kFontBody,
     fontSize: 16,
     fontWeight: FontWeight.w700,
-    color: color);
+    color: color ?? kText);
 
-TextStyle tsTitleMd({Color color = kOnSurface}) => TextStyle(
+TextStyle tsTitleMd({Color? color}) => TextStyle(
     fontFamily: kFontBody,
     fontSize: 14,
     fontWeight: FontWeight.w700,
-    color: color);
+    color: color ?? kText);
 
-TextStyle tsBodyLg({Color color = kOnSurface}) => TextStyle(
+TextStyle tsBodyLg({Color? color}) => TextStyle(
     fontFamily: kFontBody,
     fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 1.6,
-    color: color);
+    color: color ?? kText);
 
-TextStyle tsBodySm({Color color = kOnSurfaceVariant}) => TextStyle(
+TextStyle tsBodySm({Color? color}) => TextStyle(
     fontFamily: kFontBody,
     fontSize: 12,
     fontWeight: FontWeight.w400,
     height: 1.5,
-    color: color);
+    color: color ?? kTextSub);
 
-TextStyle tsLabel({Color color = kSecondary}) => TextStyle(
+TextStyle tsLabel({Color? color}) => TextStyle(
     fontFamily: kFontBody,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: FontWeight.w700,
-    letterSpacing: 1.2,
-    color: color);
+    letterSpacing: 0.3,
+    color: color ?? kSecondary);
 
 ThemeData habeshaTheme() => ThemeData(
       useMaterial3: true,
@@ -209,12 +209,12 @@ Widget openBadge(bool isOpen) => Container(
               ? kGreen.withOpacity(0.9)
               : kPrimaryContainer.withOpacity(0.9),
           borderRadius: BorderRadius.circular(100)),
-      child: Text(isOpen ? AppTranslations.get('open_now') : AppTranslations.get('closed').toUpperCase(),
+      child: Text(isOpen ? tr('Open now') : tr('Closed'),
           style: const TextStyle(
               fontFamily: kFontBody,
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
+              letterSpacing: 0.2,
               color: Colors.white)),
     );
 
@@ -224,12 +224,12 @@ Widget categoryBadge(String label) => Container(
           color: Colors.black.withOpacity(0.6),
           borderRadius: BorderRadius.circular(100),
           border: Border.all(color: kSecondary.withOpacity(0.3), width: 0.5)),
-      child: Text(label.toUpperCase(),
+      child: Text(label,
           style: const TextStyle(
               fontFamily: kFontBody,
-              fontSize: 9,
+              fontSize: 11,
               fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
+              letterSpacing: 0.2,
               color: kSecondary)),
     );
 
@@ -316,18 +316,18 @@ Widget actionSquare(IconData icon, String label, VoidCallback onTap) {
     child: Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-          color: kSurfaceContainerLow,
+          color: kCardLow,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: kSecondary.withOpacity(0.1), width: 0.5)),
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Icon(icon, color: kSecondary, size: 28),
         const SizedBox(height: 6),
-        Text(label.toUpperCase(),
+        Text(label,
             style: const TextStyle(
                 fontFamily: kFontBody,
-                fontSize: 10,
+                fontSize: 12,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
+                letterSpacing: 0.2,
                 color: kSecondary)),
       ]),
     ),

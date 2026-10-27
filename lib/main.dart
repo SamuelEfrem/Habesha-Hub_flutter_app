@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:ui';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'utils/language_notifier.dart';
@@ -25,6 +29,13 @@ void main() async {
 
   try {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    // Crash reports (not while developing on the PC)
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
   } catch (e) {
     print('Firebase init error: $e');
   }
@@ -44,8 +55,48 @@ void main() async {
   runApp(const HabeshahubApp());
 }
 
-class HabeshahubApp extends StatelessWidget {
+class HabeshahubApp extends StatefulWidget {
   const HabeshahubApp({super.key});
+
+  @override
+  State<HabeshahubApp> createState() => _HabeshahubAppState();
+}
+
+class _HabeshahubAppState extends State<HabeshahubApp> {
+  @override
+  void initState() {
+    super.initState();
+    _applySystemBars();
+    themeNotifier.addListener(_onThemeChanged);
+  }
+
+  @override
+  void dispose() {
+    themeNotifier.removeListener(_onThemeChanged);
+    super.dispose();
+  }
+
+  // Colours like kBg / kText are read while building, so every screen that
+  // is already open (also pages pushed on top) must build again. Marking all
+  // elements dirty keeps their state (scroll position, typed text …).
+  void _onThemeChanged() {
+    _applySystemBars();
+    void rebuild(Element el) {
+      el.markNeedsBuild();
+      el.visitChildren(rebuild);
+    }
+    (context as Element).visitChildren(rebuild);
+  }
+
+  void _applySystemBars() {
+    final dark = themeNotifier.isDark;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+      systemNavigationBarColor: dark ? const Color(0xFF20201F) : const Color(0xFFFFFFFF),
+      systemNavigationBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +111,15 @@ class HabeshahubApp extends StatelessWidget {
           theme: habeshaLightTheme(),
           darkTheme: habeshaTheme(),
           themeMode: themeNotifier.mode,
+          // Analytics: which screens people open
+          navigatorObservers: [FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)],
+          // Status bar icons: dark on the light theme, light on the dark theme
+          builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+            value: themeNotifier.isDark
+                ? SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent)
+                : SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.transparent),
+            child: child!,
+          ),
           home: const AppEntry(),
         );
       },
@@ -75,7 +135,7 @@ class AppEntry extends StatelessWidget {
     return FutureBuilder<SharedPreferences>(
       future: SharedPreferences.getInstance(),
       builder: (_, snap) {
-        if (!snap.hasData) return const Scaffold(backgroundColor: Color(0xFF131313));
+        if (!snap.hasData) return Scaffold(backgroundColor: kBg);
         final done = snap.data!.getBool('onboarding_done') ?? false;
         return done ? const SplashScreen() : const OnboardingScreen();
       },

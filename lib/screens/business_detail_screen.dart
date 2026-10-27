@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import '../models/business.dart';
 import 'hotel_booking_screen.dart';
@@ -21,6 +22,7 @@ import 'booking_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import '../utils/translations.dart';
+import 'community_screens.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final Business business;
@@ -139,7 +141,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         await _db.collection('businesses').doc(widget.business.id).get();
     if (!doc.exists) return;
     final data = doc.data() as Map<String, dynamic>;
-    final oldRating = (data['rating'] ?? 0.0) as double;
+    final oldRating = ((data['rating'] ?? 0) as num).toDouble(); // imported places store 0 (int)
     final count = (data['ratingCount'] ?? 0) as int;
     final newCount = count + 1;
     final newRating = ((oldRating * count) + stars) / newCount;
@@ -238,7 +240,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   Future<void> _uploadMenuImage() async {
     final picker = ImagePicker();
     final picked =
-        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80, maxWidth: 1600);
     if (picked == null) return;
     setState(() => _uploadingMenu = true);
     try {
@@ -270,7 +272,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   Future<void> _uploadProfileImage() async {
     final picker = ImagePicker();
     final picked =
-        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80, maxWidth: 1600);
     if (picked == null) return;
     setState(() => _uploadingMenu = true);
     try {
@@ -311,7 +313,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     }
     final picker = ImagePicker();
     final picked =
-        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80, maxWidth: 1600);
     if (picked == null) return;
     setState(() => _uploadingGallery = true);
     try {
@@ -397,8 +399,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       actions: [
         GestureDetector(
           onTap: () {
+            // Link opens a page with photo, directions, call + download
             Share.share(
-                '${widget.business.name} - ${widget.business.category}\n${widget.business.address}\n\nFind on Habesha Hub! Download: https://habesha-hub.no/download.html');
+                '${widget.business.name} – ${tr(widget.business.category)}\n${widget.business.address}\n\nhttps://habesha-hub.no/b/${widget.business.id}');
           },
           child: const Padding(
             padding: EdgeInsets.all(12),
@@ -416,85 +419,34 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                   backgroundColor: Colors.transparent,
                   child: GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: InteractiveViewer(child: Image.network(url, fit: BoxFit.contain)),
+                    child: InteractiveViewer(child: CachedNetworkImage(imageUrl: url, fit: BoxFit.contain)),
                   ),
                 ));
               }
             },
-            child: Image.network(
-              '${_localImageUrl ?? widget.business.imageUrl}?v=${DateTime.now().millisecondsSinceEpoch}',
+            child: CachedNetworkImage(
+              imageUrl: _localImageUrl ?? widget.business.imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorWidget: (_, __, ___) => Container(
                   color: kCardHigh,
                   child: const Icon(Icons.storefront_rounded,
                       size: 80, color: kSecondary))),
           ),
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: () {
-                final url = _localImageUrl ?? widget.business.imageUrl;
-                if (url.isNotEmpty) {
-                  showDialog(context: context, builder: (_) => Dialog(
-                    backgroundColor: Colors.transparent,
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: InteractiveViewer(child: Image.network(url, fit: BoxFit.contain)),
-                    ),
-                  ));
-                }
-              },
-              child: Container(color: Colors.transparent),
-            ),
+          // Gradient must not swallow taps meant for the photo
+          IgnorePointer(
+            child: DecoratedBox(
+                decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                  Colors.transparent,
+                  kBg.withOpacity(0.95)
+                ]))),
           ),
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: () {
-                final url = _localImageUrl ?? widget.business.imageUrl;
-                if (url.isNotEmpty) {
-                  showDialog(context: context, builder: (_) => Dialog(
-                    backgroundColor: Colors.transparent,
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: InteractiveViewer(child: Image.network(url, fit: BoxFit.contain)),
-                    ),
-                  ));
-                }
-              },
-              child: Container(color: Colors.transparent),
-            ),
-          ),
-          DecoratedBox(
-              decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                Colors.transparent,
-                kBg.withOpacity(0.95)
-              ]))),
-          // Fullscreen tap overlay - must be last in Stack
+          // Sits above the INFO / CHAT tab bar (48 px), not behind it
           Positioned(
-            top: 0, left: 0, right: 0,
-            height: 180,
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () {
-                final url = _localImageUrl ?? widget.business.imageUrl;
-                if (url.isNotEmpty) {
-                  showDialog(context: context, builder: (_) => Dialog(
-                    backgroundColor: Colors.transparent,
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: InteractiveViewer(child: Image.network(url, fit: BoxFit.contain)),
-                    ),
-                  ));
-                }
-              },
-              child: Container(color: Colors.transparent),
-            ),
-          ),
-          Positioned(
-              bottom: 16,
+              bottom: 16 + kTextTabBarHeight,
               left: 16,
               right: 110,
               child: Column(
@@ -506,7 +458,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                         decoration: BoxDecoration(
                             color: kSecondary,
                             borderRadius: BorderRadius.circular(100)),
-                        child: Text(widget.business.category.toUpperCase(),
+                        child: Text(tr(widget.business.category),
                             style: tsLabel(color: const Color(0xFF342800)))),
                     SizedBox(height: 8),
                     Text(widget.business.name,
@@ -519,6 +471,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 6),
+                    if (widget.business.rating == 0 && _ratingCount == 0)
+                      Text(tr('New on Habesha Hub'),
+                          style: tsBodySm(color: kSecondary))
+                    else
                     Row(children: [
                       Row(
                           children: List.generate(
@@ -540,7 +496,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                   ])),
           if (widget.userLat != 0)
             Positioned(
-                bottom: 22,
+                bottom: 22 + kTextTabBarHeight,
                 right: 16,
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -571,11 +527,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           controller: _tabController,
           indicatorColor: kSecondary,
           indicatorWeight: 2,
-          labelStyle: TextStyle(
+          labelStyle: const TextStyle(
               fontFamily: kFontBody,
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.2),
+              fontSize: 13,
+              fontWeight: FontWeight.w700),
           labelColor: kSecondary,
           unselectedLabelColor: kTextSub,
           tabs: [Tab(text: t('info_tab')), Tab(text: t('chat_tab'))]),
@@ -583,18 +538,28 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   }
 
   Widget _buildInfoTab() {
-    final t = languageNotifier.t;
     return ListView(padding: const EdgeInsets.all(20), children: [
-      if (!_isOwner) _buildRatingWidget(),
-      if (!_isOwner) const SizedBox(height: 12),
-      if (_isOwner) _buildOwnerControls(),
-      if (_isOwner) const SizedBox(height: 12),
-      _buildHoursCard(),
+      _buildQuickActions(),
       const SizedBox(height: 12),
+      _buildAddressRow(),
+      const SizedBox(height: 12),
+      // Imported places nobody owns yet: let the owner take it over
+      if (!_isOwner && widget.business.source == 'osm' && widget.business.ownerId.isEmpty) ...[
+        ClaimBusinessCard(business: widget.business),
+        const SizedBox(height: 12),
+      ],
+      if (_isOwner) ...[
+        _buildOwnerControls(),
+        const SizedBox(height: 12),
+      ],
+      if (widget.business.openingHours.isNotEmpty || _isOwner) ...[
+        _buildHoursCard(),
+        const SizedBox(height: 12),
+      ],
       _buildMenuButton(),
-      const SizedBox(height: 12),
       if (!_isOwner &&
-          FirebaseAuth.instance.currentUser?.email != 'samuelefriem@gmail.com')
+          FirebaseAuth.instance.currentUser?.email != 'samuelefriem@gmail.com') ...[
+        const SizedBox(height: 12),
         GestureDetector(
           onTap: () => Navigator.push(
             context,
@@ -607,7 +572,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
             padding: const EdgeInsets.symmetric(vertical: 14),
             decoration: BoxDecoration(
               color: kSecondary,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               const Icon(Icons.calendar_today_rounded,
@@ -618,86 +583,15 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
             ]),
           ),
         ),
-      const SizedBox(height: 12),
-      // Address card
-      Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-              color: kSecondary, borderRadius: BorderRadius.circular(12)),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(t('full_address'),
-                style: tsLabel(color: const Color(0xFF342800))
-                    .copyWith(fontSize: 9, letterSpacing: 1.5)),
-            const SizedBox(height: 4),
-            Text(
-                widget.business.address.isNotEmpty
-                    ? widget.business.address
-                    : t('no_address'),
-                style: tsTitleLg(color: const Color(0xFF1A1200))),
-          ])),
-      const SizedBox(height: 20),
-      GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 2,
-          children: [
-            actionSquare(Icons.map_rounded, t('map'), _openMaps),
-            actionSquare(Icons.chat_bubble_rounded, t('chat_tab'), () {
-              final user = FirebaseAuth.instance.currentUser;
-              final isOwner = user?.uid == widget.business.ownerId;
-              if (isOwner) {
-                // Chat removed - use phone
-              } else {
-                launchUrl(Uri.parse('tel:' + widget.business.phone), mode: LaunchMode.externalApplication);
-              }
-            }),
-            if (widget.business.category == 'Hotel')
-              actionSquare(Icons.hotel, languageNotifier.language == 'Tigrinya' ? 'ቡክ መሕደሪ' : languageNotifier.language == 'Amharic' ? 'ክፍል ያዝ' : languageNotifier.language == 'Norsk' ? 'Book rom' : 'Book Room', () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => HotelBookingScreen(business: widget.business)));
-              }),
-            actionSquare(Icons.phone_rounded, t('call'), _callBusiness),
-            actionSquare(Icons.language_rounded, t('web'), () async {
-              final site = widget.business.website;
-              if (site != null && site.isNotEmpty) {
-                final url =
-                    Uri.parse(site.startsWith('http') ? site : 'https://$site');
-                if (await canLaunchUrl(url)) {
-                  await launchUrl(url, mode: LaunchMode.externalApplication);
-                }
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(t('no_website'),
-                        style: tsBodySm(color: kText)),
-                    backgroundColor: kCardHigh,
-                    behavior: SnackBarBehavior.floating));
-              }
-            }),
-          ]),
+      ],
       const SizedBox(height: 24),
-      Row(children: [
-        Text('${tr('About')} ${widget.business.name.split(" ").first}',
-            style: tsHeadlineMd()),
-        const SizedBox(width: 12),
-        Expanded(
-            child: Container(
-                height: 1,
-                decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [
-                  kSecondary.withOpacity(0.4),
-                  Colors.transparent
-                ])))),
-      ]),
-      SizedBox(height: 12),
-      Text(
-          widget.business.description.isNotEmpty
-              ? widget.business.description
-              : t('no_description'),
-          style: tsBodyLg(color: kTextSub)),
-      const SizedBox(height: 24),
+      if (widget.business.description.isNotEmpty) ...[
+        Text('${tr('About')} ${widget.business.name}',
+            style: tsHeadlineSm(color: kText)),
+        const SizedBox(height: 8),
+        Text(widget.business.description, style: tsBodyLg(color: kTextSub)),
+        const SizedBox(height: 24),
+      ],
       if (_localGalleryImages.isNotEmpty) ...[
         _buildGallery(),
         const SizedBox(height: 24),
@@ -712,6 +606,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       ],
       _buildOfflineMap(),
       const SizedBox(height: 24),
+      if (!_isOwner) ...[
+        _buildRatingWidget(),
+        const SizedBox(height: 12),
+      ],
       _buildReviewsSection(),
       const SizedBox(height: 24),
       if (_isOwner && !widget.business.isPremium) ...[
@@ -722,6 +620,14 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         _buildPremiumSection(),
         const SizedBox(height: 24)
       ],
+      if (!_isOwner)
+        Center(
+          child: TextButton.icon(
+            onPressed: () => showReportSheet(context, widget.business),
+            icon: Icon(Icons.flag_outlined, color: kTextSub, size: 18),
+            label: Text(tr('Report wrong info'), style: tsBodySm(color: kTextSub)),
+          ),
+        ),
       const SizedBox(height: 40),
     ]);
   }
@@ -1336,22 +1242,98 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       );
     }
 
-    // Guest
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-      decoration: BoxDecoration(
-          color: kCardHigh,
-          borderRadius: BorderRadius.circular(12),
-          border:
-              Border.all(color: kOutlineVariant.withOpacity(0.15), width: 0.5)),
-      child: Row(children: [
-        Icon(Icons.restaurant_menu_rounded,
-            color: kTextSub.withOpacity(0.3), size: 20),
-        SizedBox(width: 10),
-        Text(t('menu_not_available'),
-            style: tsBodySm(color: kTextSub.withOpacity(0.45))),
-      ]),
+    // Guest and no menu: show nothing
+    return const SizedBox.shrink();
+  }
+
+  // ── Directions / Call / Website / Chat in one row ──
+  Widget _buildQuickActions() {
+    final t = languageNotifier.t;
+    final b = widget.business;
+    final site = b.website ?? '';
+    final actions = <Widget>[
+      _quickAction(Icons.directions_rounded, tr('Directions'), _openMaps, primary: true),
+      if (b.phone.isNotEmpty) _quickAction(Icons.phone_rounded, t('call'), _callBusiness),
+      if (site.isNotEmpty)
+        _quickAction(Icons.language_rounded, t('web'), () async {
+          final url = Uri.parse(site.startsWith('http') ? site : 'https://$site');
+          if (await canLaunchUrl(url)) {
+            await launchUrl(url, mode: LaunchMode.externalApplication);
+          }
+        }),
+      if (b.category == 'Hotel')
+        _quickAction(Icons.hotel_rounded, tr('Book Room'), () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => HotelBookingScreen(business: b)))),
+      _quickAction(Icons.chat_bubble_rounded, t('chat_tab'), () => _tabController.animateTo(1)),
+    ];
+    return Row(children: [
+      for (var i = 0; i < actions.length; i++) ...[
+        if (i > 0) const SizedBox(width: 8),
+        Expanded(child: actions[i]),
+      ],
+    ]);
+  }
+
+  Widget _quickAction(IconData icon, String label, VoidCallback onTap, {bool primary = false}) {
+    final fg = primary ? const Color(0xFF1A1200) : kSecondary;
+    return Material(
+      color: primary ? kSecondary : kCard,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icon, color: fg, size: 22),
+            const SizedBox(height: 4),
+            Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontFamily: kFontBody, fontSize: 12,
+                    fontWeight: FontWeight.w600, color: primary ? fg : kText)),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  // ── Address as one tappable line (tap = directions, hold = copy) ──
+  Widget _buildAddressRow() {
+    final t = languageNotifier.t;
+    final address = widget.business.address;
+    return Material(
+      color: kCard,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: _openMaps,
+        onLongPress: address.isEmpty ? null : () {
+          Clipboard.setData(ClipboardData(text: address));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(tr('Address copied'), style: tsBodySm(color: kText)),
+              backgroundColor: kCardHigh));
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          child: Row(children: [
+            const Icon(Icons.place_rounded, color: kSecondary, size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(address.isNotEmpty ? address : t('no_address'),
+                  style: tsBodyLg(color: kText).copyWith(height: 1.35)),
+            ),
+            if (widget.userLat != 0) ...[
+              const SizedBox(width: 8),
+              Text(widget.business.formattedDistance(widget.userLat, widget.userLng),
+                  style: tsTitleMd(color: kSecondary)),
+            ],
+          ]),
+        ),
+      ),
     );
   }
 
@@ -1404,6 +1386,13 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                     ],
                   ),
                 ],
+              ),
+              // Required by OpenStreetMap (map tiles + imported business data)
+              Positioned(
+                left: 6,
+                bottom: 4,
+                child: Text('© OpenStreetMap contributors',
+                    style: TextStyle(fontSize: 9, color: Colors.black.withOpacity(0.6))),
               ),
               Positioned(
                 bottom: 10,
@@ -1499,10 +1488,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                   backgroundColor: Colors.transparent,
                   child: GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: InteractiveViewer(child: Image.network(_localGalleryImages[i], fit: BoxFit.contain)),
+                    child: InteractiveViewer(child: CachedNetworkImage(imageUrl: _localGalleryImages[i], fit: BoxFit.contain)),
                   ),
                 )),
-                child: Image.network(_localGalleryImages[i], fit: BoxFit.cover, width: 120, height: 120),
+                child: CachedNetworkImage(imageUrl: _localGalleryImages[i], fit: BoxFit.cover, width: 120, height: 120, memCacheWidth: 360),
               ),
               if (_isOwner)
                 Positioned(

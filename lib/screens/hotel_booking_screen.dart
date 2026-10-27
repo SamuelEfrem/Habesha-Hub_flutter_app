@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -80,13 +81,13 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
   Widget build(BuildContext context) {
     final t = languageNotifier.t;
     return Scaffold(
-      backgroundColor: kSurface,
+      backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: kSurfaceContainer,
+        backgroundColor: kCard,
         iconTheme: const IconThemeData(color: kSecondary),
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(t('hotel_booking'), style: tsTitleMd(color: kSecondary)),
-          Text(widget.business.name, style: tsBodySm(color: kOnSurfaceVariant)),
+          Text(widget.business.name, style: tsBodySm(color: kTextSub)),
         ]),
       ),
       body: _sent
@@ -105,16 +106,16 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                 // Business info
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(14), border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
+                  decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(14), border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
                   child: Row(children: [
-                    Container(width: 48, height: 48, decoration: BoxDecoration(color: kSurfaceContainerHigh, borderRadius: BorderRadius.circular(10)),
+                    Container(width: 48, height: 48, decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(10)),
                       child: widget.business.imageUrl.isNotEmpty
-                          ? ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.network(widget.business.imageUrl, fit: BoxFit.cover))
+                          ? ClipRRect(borderRadius: BorderRadius.circular(10), child: CachedNetworkImage(imageUrl: widget.business.imageUrl, fit: BoxFit.cover, memCacheWidth: 200))
                           : const Icon(Icons.hotel, color: kSecondary, size: 28)),
                     const SizedBox(width: 12),
                     Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(widget.business.name, style: tsTitleMd()),
-                      Text(widget.business.address, style: tsBodySm(color: kOnSurfaceVariant)),
+                      Text(widget.business.address, style: tsBodySm(color: kTextSub)),
                     ]),
                   ]),
                 ),
@@ -130,11 +131,11 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.3))),
+                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.3))),
                     child: Row(children: [
                       const Icon(Icons.calendar_today_rounded, color: kSecondary, size: 18),
                       const SizedBox(width: 10),
-                      Text(DateFormat('dd. MMMM yyyy').format(_checkIn), style: tsBodyLg(color: kOnSurface)),
+                      Text(DateFormat('dd. MMMM yyyy').format(_checkIn), style: tsBodyLg(color: kText)),
                     ]),
                   ),
                 ),
@@ -150,11 +151,11 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.3))),
+                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.3))),
                     child: Row(children: [
                       const Icon(Icons.calendar_today_rounded, color: kSecondary, size: 18),
                       const SizedBox(width: 10),
-                      Text(DateFormat('dd. MMMM yyyy').format(_checkOut), style: tsBodyLg(color: kOnSurface)),
+                      Text(DateFormat('dd. MMMM yyyy').format(_checkOut), style: tsBodyLg(color: kText)),
                     ]),
                   ),
                 ),
@@ -177,15 +178,15 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(color: kSurfaceContainer, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.3))),
+                  decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.3))),
                   child: Row(children: [
                     const Icon(Icons.people_rounded, color: kSecondary, size: 18),
                     const SizedBox(width: 10),
-                    Text('$_guests ${_guests != 1 ? tr('guests') : tr('guest')}', style: tsBodyLg(color: kOnSurface)),
+                    Text('$_guests ${_guests != 1 ? tr('guests') : tr('guest')}', style: tsBodyLg(color: kText)),
                     const Spacer(),
-                    GestureDetector(onTap: () { if (_guests > 1) setState(() => _guests--); }, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: kSurfaceContainerHigh, shape: BoxShape.circle), child: const Icon(Icons.remove_rounded, color: kSecondary, size: 18))),
+                    GestureDetector(onTap: () { if (_guests > 1) setState(() => _guests--); }, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: kCardHigh, shape: BoxShape.circle), child: const Icon(Icons.remove_rounded, color: kSecondary, size: 18))),
                     const SizedBox(width: 12),
-                    GestureDetector(onTap: () { if (_guests < 10) setState(() => _guests++); }, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: kSurfaceContainerHigh, shape: BoxShape.circle), child: const Icon(Icons.add_rounded, color: kSecondary, size: 18))),
+                    GestureDetector(onTap: () { if (_guests < 10) setState(() => _guests++); }, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: kCardHigh, shape: BoxShape.circle), child: const Icon(Icons.add_rounded, color: kSecondary, size: 18))),
                   ]),
                 ),
                 const SizedBox(height: 16),
@@ -196,7 +197,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                 TextField(
                   controller: _messageCtrl,
                   maxLines: 3,
-                  style: tsBodyLg(color: kOnSurface),
+                  style: tsBodyLg(color: kText),
                   decoration: InputDecoration(hintText: tr('Any special requests?')),
                 ),
                 const SizedBox(height: 24),

@@ -179,7 +179,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
   }
 
   Future<void> _pickAndUploadImage() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 75);
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 75, maxWidth: 1600);
     if (picked == null) return;
     setState(() { _selectedImage = File(picked.path); _uploadingImage = true; });
     try {
@@ -244,9 +244,9 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kSurface,
+      backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: kSurfaceContainer,
+        backgroundColor: kCard,
         iconTheme: const IconThemeData(color: kSecondary),
         title: Text(tr('Register business'), style: tsTitleLg(color: kSecondary)),
         elevation: 0,
@@ -254,7 +254,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
           preferredSize: const Size.fromHeight(2),
           child: LinearProgressIndicator(
             value: (_step + 1) / 3,
-            backgroundColor: kSurfaceContainerHigh,
+            backgroundColor: kCardHigh,
             valueColor: const AlwaysStoppedAnimation<Color>(kSecondary),
             minHeight: 2,
           ),
@@ -276,7 +276,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
               height: 96,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: kSurfaceContainer,
+                color: kCard,
                 border:
                     Border.all(color: kSecondary.withOpacity(0.4), width: 1.5),
               ),
@@ -290,7 +290,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: kSurfaceContainer,
+                color: kCard,
                 borderRadius: BorderRadius.circular(12),
                 border:
                     Border.all(color: kSecondary.withOpacity(0.2), width: 0.5),
@@ -337,7 +337,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                                   decoration: BoxDecoration(
                                     color: i <= _step
                                         ? kSecondary
-                                        : kSurfaceContainerHigh,
+                                        : kCardHigh,
                                     borderRadius: BorderRadius.circular(2),
                                   ),
                                 )))),
@@ -355,7 +355,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
           // Bottom navigation
           Container(
             padding: const EdgeInsets.all(16),
-            color: kSurfaceContainer,
+            color: kCard,
             child: Row(children: [
               if (_step > 0) ...[
                 Expanded(
@@ -408,7 +408,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         const SizedBox(height: 8),
         TextFormField(
           controller: _nameCtrl,
-          style: tsBodyLg(color: kOnSurface),
+          style: tsBodyLg(color: kText),
           validator: (v) => v!.isEmpty ? tr('Required') : null,
           decoration:
               InputDecoration(hintText: tr('e.g. Addis Fine Dining')),
@@ -432,7 +432,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                 decoration: BoxDecoration(
                   color: sel
                       ? kPrimaryContainer.withOpacity(0.3)
-                      : kSurfaceContainer,
+                      : kCard,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                       color: sel
@@ -443,11 +443,11 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                 child:
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Icon(cat['icon'] as IconData,
-                      color: sel ? kSecondary : kOnSurfaceVariant, size: 16),
+                      color: sel ? kSecondary : kTextSub, size: 16),
                   const SizedBox(width: 8),
                   Text(_catDisplayName(cat['name'] as String),
                       style:
-                          tsLabel(color: sel ? kSecondary : kOnSurfaceVariant)),
+                          tsLabel(color: sel ? kSecondary : kTextSub)),
                 ]),
               ),
             );
@@ -469,8 +469,8 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: _country.isEmpty ? null : _country,
-          dropdownColor: kSurfaceContainer,
-          style: tsBodyLg(color: kOnSurface),
+          dropdownColor: kCard,
+          style: tsBodyLg(color: kText),
           decoration: InputDecoration(
             prefixIcon: Icon(Icons.flag_rounded, color: kSecondary),
             hintText: tr('Select country'),
@@ -491,7 +491,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         TextFormField(
           controller: _descCtrl,
           maxLines: 3,
-          style: tsBodyLg(color: kOnSurface),
+          style: tsBodyLg(color: kText),
           validator: (v) => v!.isEmpty ? tr('Required') : null,
           decoration:
               InputDecoration(hintText: tr('Describe your business...')),
@@ -502,14 +502,14 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         const SizedBox(height: 4),
         Text(
             tr('Enter the full address incl. postcode and city for the correct map location.'),
-            style: tsBodySm(color: kOnSurfaceVariant.withOpacity(0.6))),
+            style: tsBodySm(color: kTextSub.withOpacity(0.6))),
         const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: TextFormField(
                 controller: _addrCtrl,
-                style: tsBodyLg(color: kOnSurface),
+                style: tsBodyLg(color: kText),
                 validator: (v) => v!.isEmpty ? tr('Required') : null,
                 decoration: InputDecoration(
                   hintText: tr('Street 15, 0190 Oslo'),
@@ -544,7 +544,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
           Text(_geoStatus,
               style: tsBodySm(
                   color:
-                      _geoStatus.startsWith('✓') ? kGreen : kOnSurfaceVariant)),
+                      _geoStatus.startsWith('✓') ? kGreen : kTextSub)),
         ],
         const SizedBox(height: 16),
 
@@ -553,7 +553,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         TextFormField(
           controller: _phoneCtrl,
           keyboardType: TextInputType.phone,
-          style: tsBodyLg(color: kOnSurface),
+          style: tsBodyLg(color: kText),
           decoration: const InputDecoration(
             hintText: '+47 00 00 00 00',
             prefixIcon: Icon(Icons.phone_rounded, color: kSecondary),
@@ -572,7 +572,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: kSurfaceContainer,
+              color: kCard,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -587,7 +587,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                           style: tsBodySm(
                               color: isClosed
                                   ? kRed
-                                  : kOnSurfaceVariant.withOpacity(0.5))),
+                                  : kTextSub.withOpacity(0.5))),
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () => setState(() =>
@@ -632,7 +632,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                       onChanged: (v) => setState(() => _hours[i]['open'] = v),
                     )),
                     const SizedBox(width: 12),
-                    const Text('—', style: TextStyle(color: kOnSurfaceVariant)),
+                    Text('—', style: TextStyle(color: kTextSub)),
                     const SizedBox(width: 12),
                     Expanded(
                         child: _timeField(
@@ -665,8 +665,8 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
           builder: (context, child) {
             return Theme(
               data: ThemeData.dark().copyWith(
-                colorScheme: const ColorScheme.dark(
-                    primary: kSecondary, surface: kSurfaceContainer),
+                colorScheme: ColorScheme.dark(
+                    primary: kSecondary, surface: kCard),
               ),
               child: child!,
             );
@@ -680,12 +680,12 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: kSurfaceContainerHigh,
+          color: kCardHigh,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(label,
-              style: tsLabel(color: kOnSurfaceVariant).copyWith(fontSize: 9)),
+              style: tsLabel(color: kTextSub).copyWith(fontSize: 9)),
           const SizedBox(height: 2),
           Row(children: [
             const Icon(Icons.access_time_rounded, color: kSecondary, size: 14),
@@ -715,7 +715,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
             height: 180,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: kSurfaceContainer,
+              color: kCard,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: kSecondary.withOpacity(0.3)),
             ),
@@ -737,12 +737,12 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         Text(tr('WEBSITE (optional)'), style: tsLabel()),
         const SizedBox(height: 4),
         Text(tr('URL of the business\'s website'),
-            style: tsBodySm(color: kOnSurfaceVariant.withOpacity(0.6))),
+            style: tsBodySm(color: kTextSub.withOpacity(0.6))),
         const SizedBox(height: 8),
         TextFormField(
           controller: _websiteCtrl,
           keyboardType: TextInputType.url,
-          style: tsBodyLg(color: kOnSurface),
+          style: tsBodyLg(color: kText),
           decoration: InputDecoration(
             hintText: tr('https://www.yourbusiness.com'),
             prefixIcon: Icon(Icons.language_rounded, color: kSecondary),
@@ -754,7 +754,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: kSurfaceContainer,
+            color: kCard,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: kSecondary.withOpacity(0.15), width: 0.5),
           ),

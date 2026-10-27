@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -17,6 +18,8 @@ import 'admin_screen.dart';
 import 'edit_business_screen.dart';
 import '../utils/translations.dart';
 import 'payment.dart';
+import 'community_screens.dart';
+import 'map_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -24,152 +27,128 @@ class ExploreScreen extends StatefulWidget {
   State<ExploreScreen> createState() => _ExploreScreenState();
 }
 
+// Country name (as stored in Firestore) → ISO code, for the flag emoji
+const Map<String, String> _countryCodes = {
+  'USA': 'US', 'UK': 'GB', 'Canada': 'CA', 'Ethiopia': 'ET', 'Eritrea': 'ER', 'Germany': 'DE',
+  'France': 'FR', 'Netherlands': 'NL', 'Switzerland': 'CH', 'Italy': 'IT', 'Sweden': 'SE',
+  'Norway': 'NO', 'Denmark': 'DK', 'Belgium': 'BE', 'Uganda': 'UG', 'Kenya': 'KE', 'Israel': 'IL',
+  'Spain': 'ES', 'Australia': 'AU', 'New Zealand': 'NZ', 'South Africa': 'ZA', 'Austria': 'AT',
+  'Tanzania': 'TZ', 'Poland': 'PL', 'Thailand': 'TH', 'Lebanon': 'LB', 'United Arab Emirates': 'AE',
+  'Sudan': 'SD', 'South Sudan': 'SS', 'Finland': 'FI', 'Iceland': 'IS', 'Malawi': 'MW', 'Russia': 'RU',
+  'Mali': 'ML', 'Luxembourg': 'LU', 'Cambodia': 'KH', 'Burkina Faso': 'BF', 'Angola': 'AO',
+  'Kazakhstan': 'KZ', 'Ukraine': 'UA', 'Ivory Coast': 'CI', 'Ireland': 'IE', 'Zambia': 'ZM',
+  'Somalia': 'SO', 'Palestine': 'PS', 'Djibouti': 'DJ', 'Kuwait': 'KW', 'Portugal': 'PT',
+  'Brazil': 'BR', 'Vietnam': 'VN', 'China': 'CN', 'Rwanda': 'RW', 'Romania': 'RO', 'Moldova': 'MD',
+  'Egypt': 'EG', 'Saudi Arabia': 'SA', 'Qatar': 'QA', 'Greece': 'GR', 'Czech Republic': 'CZ',
+};
+
+String countryFlag(String country) {
+  final code = _countryCodes[country];
+  if (code == null) return '🌍';
+  return String.fromCharCodes(code.codeUnits.map((c) => 0x1F1E6 + c - 65));
+}
+
 class _ExploreScreenState extends State<ExploreScreen> {
   final _db = FirebaseFirestore.instance;
+  final _searchCtrl = TextEditingController();
 
-  Future<void> _globalSearch(String query) async {
-    if (query.trim().isEmpty) return;
-    setState(() { _isSearching = true; _hasSearched = false; });
+  List<Business> _all = [];
+  bool _loading = true;
+  String _country = '';
+  String _city = '';
+  String _category = '';
+  String _query = '';
+
+  static const _categoryOrder = ['Restaurant', 'Cafe', 'Shop', 'Barber', 'Club', 'Clinic', 'Hotel',
+    'Photographer', 'Music', 'Decoration', 'Taxi', 'Other'];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
     try {
-      final snap = await _db.collection('businesses')
-          .where('status', isEqualTo: 'approved')
-          .get();
-      final all = snap.docs.map((d) => Business.fromFirestore(d.data(), d.id)).toList();
-      final filtered = all.where((b) =>
-        b.name.toLowerCase().contains(query.toLowerCase()) ||
-        b.category.toLowerCase().contains(query.toLowerCase()) ||
-        b.address.toLowerCase().contains(query.toLowerCase()) ||
-        b.country.toLowerCase().contains(query.toLowerCase())
-      ).toList();
+      final prefs = await SharedPreferences.getInstance();
+      final snap = await _db.collection('businesses').where('status', isEqualTo: 'approved').get();
+      if (!mounted) return;
       setState(() {
-        _allResults = filtered;
-        _results = filtered;
-        _isSearching = false;
-        _hasSearched = true;
-        _selectedCountry = '';
-        _selectedCity = '';
+        _all = snap.docs.map((d) => Business.fromFirestore(d.data(), d.id)).toList();
+        _country = prefs.getString('explore_country') ?? '';
+        _loading = false;
       });
-    } catch (e) {
-      setState(() => _isSearching = false);
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
-  String _explorecat(String key) {
-    final keyMap = {
-      'All': 'all',
-      'Restaurant': 'restaurant',
-      'Cafe': 'cafe',
-      'Shop': 'shop',
-      'Barber': 'barber',
-      'Club': 'club',
-      'Clinic': 'clinic',
-      'Photographer': 'cat_photographer',
-      'Music': 'cat_music',
-      'Decoration': 'cat_decoration',
-      'Taxi': 'cat_taxi',
-      'Hotel': 'cat_hotel',
-      'Hotel': 'cat_hotel',
-      'Other': 'other',
+  Future<void> _pickCountry(String c) async {
+    setState(() { _country = c; _city = ''; _category = ''; });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('explore_country', c);
+  }
+
+  /// Countries with their number of businesses, biggest first
+  List<MapEntry<String, int>> get _countries {
+    final m = <String, int>{};
+    for (final b in _all) {
+      if (b.country.isNotEmpty) m[b.country] = (m[b.country] ?? 0) + 1;
+    }
+    return m.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+  }
+
+  /// City from an address like "Old Kent Road 244, SE1 5UB London" → "London"
+  String _cityOf(Business b) {
+    final parts = b.address.split(',').map((p) => p.trim()).where((p) => p.isNotEmpty).toList();
+    for (final p in parts.reversed) {
+      final words = p.split(RegExp(r'\s+')).where((w) => !RegExp(r'\d').hasMatch(w)).toList();
+      final city = words.join(' ').trim();
+      if (city.isNotEmpty && city.toLowerCase() != b.country.toLowerCase() && city.length > 1) return city;
+    }
+    return '';
+  }
+
+  List<Business> get _inCountry => _all.where((b) => b.country == _country).toList();
+
+  List<MapEntry<String, int>> get _cities {
+    final m = <String, int>{};
+    for (final b in _inCountry) {
+      final c = _cityOf(b);
+      if (c.isNotEmpty) m[c] = (m[c] ?? 0) + 1;
+    }
+    return m.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+  }
+
+  List<Business> get _results {
+    final q = _query.toLowerCase();
+    // Typing searches the whole world; otherwise show the chosen country
+    var list = q.isNotEmpty && _country.isEmpty ? _all : _inCountry;
+    if (_city.isNotEmpty) list = list.where((b) => _cityOf(b) == _city).toList();
+    if (_category.isNotEmpty) list = list.where((b) => b.category == _category).toList();
+    if (q.isNotEmpty) {
+      list = list.where((b) =>
+          b.name.toLowerCase().contains(q) ||
+          b.address.toLowerCase().contains(q) ||
+          b.description.toLowerCase().contains(q)).toList();
+    }
+    return list;
+  }
+
+  String _catLabel(String key) {
+    const keyMap = {
+      'Restaurant': 'restaurant', 'Cafe': 'cafe', 'Shop': 'shop', 'Barber': 'barber', 'Club': 'club',
+      'Clinic': 'clinic', 'Photographer': 'cat_photographer', 'Music': 'cat_music',
+      'Decoration': 'cat_decoration', 'Taxi': 'cat_taxi', 'Hotel': 'cat_hotel', 'Other': 'other',
     };
-    final tKey = keyMap[key];
-    if (tKey == null) return key;
-    return languageNotifier.t(tKey);
-  }
-  String _selectedCountry = '';
-  String _selectedCity = '';
-  String _searchQuery = '';
-  String _selectedCategory = '';
-  List<Business> _results = [];
-  List<Business> _allResults = [];
-  bool _isSearching = false;
-  bool _hasSearched = false;
-  String _selectedContinent = '';
-
-  final _continents = [
-    {
-      'name': 'Africa',
-      'emoji': '🌍',
-      'countries': [
-        {'name': 'Uganda', 'flag': '🇺🇬', 'label': 'country_uganda', 'cities': ['Kampala', 'Entebbe', 'Jinja']},
-        {'name': 'Angola', 'flag': '🇦🇴', 'label': 'country_angola', 'cities': ['Luanda', 'Huambo', 'Benguela']},
-        {'name': 'South Sudan', 'flag': '🇸🇸', 'label': 'country_south_sudan', 'cities': ['Juba', 'Wau', 'Malakal']},
-        {'name': 'Rwanda', 'flag': '🇷🇼', 'label': 'country_rwanda', 'cities': ['Kigali', 'Butare', 'Gisenyi']},
-        {'name': 'Kenya', 'flag': '🇰🇪', 'label': 'country_kenya', 'cities': ['Nairobi', 'Mombasa', 'Kisumu']},
-        {'name': 'Ethiopia', 'flag': '🇪🇹', 'label': 'country_ethiopia', 'cities': ['Addis Ababa', 'Dire Dawa', 'Mekelle']},
-        {'name': 'Eritrea', 'flag': '🇪🇷', 'label': 'country_eritrea', 'cities': ['Asmara', 'Massawa', 'Keren']},
-        {'name': 'Egypt', 'flag': '🇪🇬', 'label': 'country_egypt', 'cities': ['Cairo', 'Alexandria', 'Giza']},
-      ]
-    },
-    {
-      'name': 'Europe',
-      'emoji': '🌍',
-      'countries': [
-        {'name': 'Norway', 'flag': '🇳🇴', 'label': 'country_norge', 'cities': ['Oslo', 'Bergen', 'Stavanger', 'Trondheim']},
-        {'name': 'Sweden', 'flag': '🇸🇪', 'label': 'country_sverige', 'cities': ['Stockholm', 'Göteborg', 'Malmö']},
-        {'name': 'Denmark', 'flag': '🇩🇰', 'label': 'country_danmark', 'cities': ['København', 'Aarhus', 'Odense']},
-        {'name': 'UK', 'flag': '🇬🇧', 'label': 'country_uk', 'cities': ['London', 'Manchester', 'Birmingham', 'Leeds']},
-        {'name': 'Germany', 'flag': '🇩🇪', 'label': 'country_tyskland', 'cities': ['Berlin', 'Hamburg', 'München']},
-        {'name': 'Netherlands', 'flag': '🇳🇱', 'label': 'country_nederland', 'cities': ['Amsterdam', 'Rotterdam', 'Den Haag']},
-        {'name': 'France', 'flag': '🇫🇷', 'label': 'country_frankrike', 'cities': ['Paris', 'Lyon', 'Marseille']},
-        {'name': 'Belgium', 'flag': '🇧🇪', 'label': 'country_belgia', 'cities': ['Brussel', 'Antwerpen', 'Gent']},
-        {'name': 'Switzerland', 'flag': '🇨🇭', 'label': 'country_sveits', 'cities': ['Zürich', 'Genève', 'Basel']},
-        {'name': 'Italy', 'flag': '🇮🇹', 'label': 'country_italia', 'cities': ['Roma', 'Milano', 'Napoli']},
-      ]
-    },
-    {
-      'name': 'Americas',
-      'emoji': '🌎',
-      'countries': [
-        {'name': 'USA', 'flag': '🇺🇸', 'label': 'country_usa', 'cities': ['New York', 'Washington DC', 'Los Angeles', 'Minneapolis']},
-        {'name': 'Canada', 'flag': '🇨🇦', 'label': 'country_canada', 'cities': ['Toronto', 'Ottawa', 'Vancouver']},
-      ]
-    },
-  ];
-
-  List<Map<String, Object>> get _countries {
-    if (_selectedContinent.isEmpty) return [];
-    final cont = _continents.firstWhere((c) => c['name'] == _selectedContinent, orElse: () => {'countries': []});
-    return List<Map<String, Object>>.from(cont['countries'] as List);
-  }
-
-  List<String> get _cities {
-    final c = _countries.firstWhere((c) => c['name'] == _selectedCountry, orElse: () => {'name': '', 'flag': '', 'label': '', 'cities': <String>[]});
-    final cities = c['cities'];
-    if (cities == null) return [];
-    return List<String>.from(cities as List);
-  }
-
-  Future<void> _search() async {
-    if (_selectedCountry.isEmpty) return;
-    setState(() { _isSearching = true; _hasSearched = false; });
-    try {
-      final snap = await _db.collection('businesses')
-          .where('status', isEqualTo: 'approved')
-          .where('country', isEqualTo: _selectedCountry)
-          .get();
-      final all = snap.docs.map((d) => Business.fromFirestore(d.data(), d.id)).toList();
-      setState(() { _allResults = all; _isSearching = false; _hasSearched = true; });
-      _filterResults();
-    } catch (e) {
-      setState(() { _isSearching = false; _hasSearched = true; });
-    }
-  }
-
-  void _filterResults() {
-    var filtered = List<Business>.from(_allResults);
-    if (_selectedCity.isNotEmpty) {
-      filtered = filtered.where((b) => b.address.toLowerCase().contains(_selectedCity.toLowerCase())).toList();
-    }
-    if (_selectedCategory.isNotEmpty) {
-      filtered = filtered.where((b) => b.category == _selectedCategory).toList();
-    }
-    if (_searchQuery.isNotEmpty) {
-      filtered = filtered.where((b) =>
-        b.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        b.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        b.category.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
-    }
-    setState(() => _results = filtered);
+    final k = keyMap[key];
+    return k == null ? tr(key) : languageNotifier.t(k);
   }
 
   @override
@@ -182,165 +161,262 @@ class _ExploreScreenState extends State<ExploreScreen> {
           backgroundColor: kBg,
           body: SafeArea(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.fromLTRB(20, 16, 8, 4),
+              child: Row(children: [
+                Expanded(child: Text(tr('Explore'), style: tsHeadlineLg(color: kSecondary))),
+                IconButton(
+                  tooltip: tr('Suggest a business'),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => SuggestBusinessScreen(country: _country))),
+                  icon: const Icon(Icons.add_business_rounded, color: kSecondary),
+                ),
+              ]),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
               child: Container(
-                decoration: BoxDecoration(color: kCardHighest, borderRadius: BorderRadius.circular(12)),
+                height: 52,
+                decoration: BoxDecoration(color: kCardHighest, borderRadius: BorderRadius.circular(16)),
                 child: TextField(
+                  controller: _searchCtrl,
                   style: tsBodyLg(color: kText),
-                  onChanged: (v) { setState(() => _searchQuery = v); if (_hasSearched) _filterResults(); },
-                  onSubmitted: (v) => _globalSearch(v),
+                  onChanged: (v) => setState(() => _query = v.trim()),
                   decoration: InputDecoration(
                     hintText: t('search_hint'),
-                    hintStyle: tsBodySm(color: kTextSub.withOpacity(0.5)),
+                    hintStyle: tsBodyLg(color: kTextSub.withOpacity(0.7)),
                     prefixIcon: const Icon(Icons.search_rounded, color: kSecondary, size: 22),
+                    suffixIcon: _query.isEmpty ? null : IconButton(
+                      icon: Icon(Icons.close_rounded, color: kTextSub, size: 20),
+                      onPressed: () => setState(() { _searchCtrl.clear(); _query = ''; }),
+                    ),
                     filled: false, border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 15),
                   ),
                 ),
               ),
             ),
-            SizedBox(
-              height: 60,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _continents.length,
-                itemBuilder: (_, i) {
-                  final cont = _continents[i];
-                  final sel = _selectedContinent == cont['name'];
-                  return GestureDetector(
-                    onTap: () => setState(() { _selectedContinent = cont['name'] as String; _selectedCountry = ''; _selectedCity = ''; _hasSearched = false; _results = []; _allResults = []; }),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.only(right: 10),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(color: sel ? kSecondary : kCard, borderRadius: BorderRadius.circular(12)),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Text(cont['emoji'] as String, style: const TextStyle(fontSize: 20)),
-                        const SizedBox(width: 8),
-                        Text(tr(cont['name'] as String), style: tsLabel(color: sel ? Color(0xFF342800) : kTextSub)),
-                      ]),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-            if (_selectedContinent.isNotEmpty)
-              SizedBox(
-                height: 90,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _countries.length,
-                  itemBuilder: (_, i) {
-                    final c = _countries[i];
-                    final sel = _selectedCountry == c['name'];
-                    return GestureDetector(
-                      onTap: () { setState(() { _selectedCountry = c['name'] as String; _selectedCity = ''; _selectedCategory = ''; }); _search(); },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        margin: const EdgeInsets.only(right: 10),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: sel ? kPrimaryContainer.withOpacity(0.3) : kCard,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: sel ? kSecondary : Colors.transparent, width: 0.5),
-                        ),
-                        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Text(c['flag'] as String, style: const TextStyle(fontSize: 26)),
-                          const SizedBox(height: 4),
-                          Text(tr(c['name'] as String), style: tsLabel(color: sel ? kSecondary : kTextSub.withOpacity(0.8))),
-                        ]),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            if (_selectedCountry.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 36,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _cities.length + 1,
-                  itemBuilder: (_, i) {
-                    final city = i == 0 ? t('all_cities') : _cities[i - 1];
-                    final sel = i == 0 ? _selectedCity.isEmpty : _selectedCity == _cities[i - 1];
-                    return GestureDetector(
-                      onTap: () { setState(() => _selectedCity = i == 0 ? '' : _cities[i - 1]); if (_hasSearched) _filterResults(); },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        margin: const EdgeInsets.only(right: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                        decoration: BoxDecoration(color: sel ? kSecondary : kCard, borderRadius: BorderRadius.circular(100)),
-                        child: Text(city, style: tsLabel(color: sel ? Color(0xFF342800) : kTextSub)),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 36,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: ['All', 'Restaurant', 'Cafe', 'Shop', 'Barber', 'Club', 'Clinic', 'Hotel', 'Photographer', 'Music', 'Decoration', 'Taxi', 'Other'].map((cat) {
-                    final sel = cat == 'All' ? _selectedCategory.isEmpty : _selectedCategory == cat;
-                    return GestureDetector(
-                      onTap: () { setState(() => _selectedCategory = cat == 'All' ? '' : cat); if (_hasSearched) _filterResults(); },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        margin: const EdgeInsets.only(right: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                        decoration: BoxDecoration(color: sel ? kSecondary : kCard, borderRadius: BorderRadius.circular(100)),
-                        child: Text(_explorecat(cat), style: tsLabel(color: sel ? Color(0xFF342800) : kTextSub)),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              const SizedBox(height: 12),
+            if (_country.isNotEmpty) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: goldButton(
-                  '${t('search_in')} ${tr(_selectedCountry)}${_selectedCity.isNotEmpty ? " / $_selectedCity" : ""}',
-                  _isSearching ? null : _search, loading: _isSearching),
+                child: Row(children: [
+                  _pickerButton('${countryFlag(_country)}  ${tr(_country)}', _showCountrySheet),
+                  const SizedBox(width: 10),
+                  if (_cities.isNotEmpty)
+                    Flexible(child: _pickerButton(_city.isEmpty ? t('all_cities') : _city, _showCitySheet)),
+                  const Spacer(),
+                  if (_results.isNotEmpty)
+                    mapButton(() => Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => BusinessesMapScreen(
+                              businesses: _results,
+                              title: _city.isNotEmpty ? _city : tr(_country),
+                            )))),
+                ]),
               ),
+              const SizedBox(height: 12),
+              _buildCategoryChips(),
+              const SizedBox(height: 8),
             ],
-            const SizedBox(height: 12),
-            Expanded(
-              child: !_hasSearched
-                  ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      const Text('🌍', style: TextStyle(fontSize: 56)),
-                      const SizedBox(height: 16),
-                      Text(t('select_country'), style: tsTitleLg(), textAlign: TextAlign.center),
-                    ]))
-                  : _results.isEmpty
-                      ? Center(child: Text(t('no_businesses_country'), style: tsBodySm()))
-                      : RefreshIndicator(
-                          color: kSecondary,
-                          backgroundColor: kCard,
-                          onRefresh: _search,
-                          child: ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            itemCount: _results.length,
-                            itemBuilder: (_, i) {
-                              final b = _results[i];
-                              return BusinessCard(
-                                business: b, userLat: 0, userLng: 0,
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BusinessDetailScreen(business: b, userLat: 0, userLng: 0))));
-                            },
-                          ),
-                        ),
-            ),
+            Expanded(child: _buildBody(t)),
           ])),
         );
       },
     );
   }
+
+  Widget _pickerButton(String label, VoidCallback onTap) {
+    return Material(
+      color: kCard,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: tsTitleMd(color: kText))),
+            const SizedBox(width: 6),
+            const Icon(Icons.keyboard_arrow_down_rounded, color: kSecondary, size: 20),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryChips() {
+    final counts = <String, int>{};
+    for (final b in _inCountry.where((b) => _city.isEmpty || _cityOf(b) == _city)) {
+      counts[b.category] = (counts[b.category] ?? 0) + 1;
+    }
+    final cats = _categoryOrder.where(counts.containsKey).toList();
+    if (cats.length < 2) return const SizedBox.shrink();
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          _chip(tr('All'), _category.isEmpty, () => setState(() => _category = '')),
+          for (final c in cats)
+            _chip('${_catLabel(c)}  ${counts[c]}', _category == c, () => setState(() => _category = c)),
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(String label, bool sel, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Material(
+        color: sel ? kSecondary : kCard,
+        borderRadius: BorderRadius.circular(100),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(100),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            child: Text(label, style: TextStyle(fontFamily: kFontBody, fontSize: 13,
+                fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+                color: sel ? const Color(0xFF1A1200) : kText)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody(String Function(String) t) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2));
+    }
+    // No country yet and not typing: let the user choose one
+    if (_country.isEmpty && _query.isEmpty) return _countryList();
+    final list = _results;
+    if (list.isEmpty) {
+      return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Icon(Icons.storefront_rounded, color: kTextSub.withOpacity(0.5), size: 44),
+        const SizedBox(height: 10),
+        Text(tr('Nothing here yet'), style: tsTitleMd(color: kText)),
+        const SizedBox(height: 4),
+        Text(tr('Try another category or city'), style: tsBodySm(color: kTextSub)),
+        const SizedBox(height: 12),
+        suggestBusinessButton(context, country: _country),
+      ]));
+    }
+    return RefreshIndicator(
+      color: kSecondary,
+      backgroundColor: kCard,
+      onRefresh: _load,
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
+        itemCount: list.length + 1,
+        itemBuilder: (_, i) {
+          // Last row: missing a place? suggest it
+          if (i == list.length) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Center(child: suggestBusinessButton(context, country: _country)),
+            );
+          }
+          final b = list[i];
+          return BusinessCard(
+            key: ValueKey(b.id),
+            business: b, userLat: 0, userLng: 0,
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => BusinessDetailScreen(business: b, userLat: 0, userLng: 0))));
+        },
+      ),
+    );
+  }
+
+  Widget _countryList({void Function()? afterPick}) {
+    final countries = _countries;
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
+      itemCount: countries.length,
+      itemBuilder: (_, i) {
+        final c = countries[i];
+        final sel = c.key == _country;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Material(
+            color: sel ? kSecondary.withOpacity(0.15) : kCard,
+            borderRadius: BorderRadius.circular(14),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () { _pickCountry(c.key); afterPick?.call(); },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(children: [
+                  Text(countryFlag(c.key), style: const TextStyle(fontSize: 24)),
+                  const SizedBox(width: 14),
+                  Expanded(child: Text(tr(c.key), style: tsTitleLg(color: kText))),
+                  Text('${c.value}', style: tsTitleMd(color: kSecondary)),
+                  const SizedBox(width: 4),
+                  Icon(Icons.chevron_right_rounded, color: kTextSub, size: 20),
+                ]),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showCountrySheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: kBg,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => SizedBox(
+        height: MediaQuery.of(ctx).size.height * 0.75,
+        child: Column(children: [
+          _sheetHandle(),
+          Expanded(child: _countryList(afterPick: () => Navigator.pop(ctx))),
+        ]),
+      ),
+    );
+  }
+
+  void _showCitySheet() {
+    final t = languageNotifier.t;
+    final cities = _cities;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: kBg,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => SizedBox(
+        height: MediaQuery.of(ctx).size.height * 0.6,
+        child: Column(children: [
+          _sheetHandle(),
+          Expanded(child: ListView(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+            children: [
+              ListTile(
+                title: Text(t('all_cities'), style: tsTitleLg(color: kText)),
+                trailing: _city.isEmpty ? const Icon(Icons.check_rounded, color: kSecondary) : null,
+                onTap: () { setState(() => _city = ''); Navigator.pop(ctx); },
+              ),
+              for (final c in cities)
+                ListTile(
+                  title: Text(c.key, style: tsTitleLg(color: kText)),
+                  subtitle: Text('${c.value}', style: tsBodySm(color: kTextSub)),
+                  trailing: _city == c.key ? const Icon(Icons.check_rounded, color: kSecondary) : null,
+                  onTap: () { setState(() { _city = c.key; _category = ''; }); Navigator.pop(ctx); },
+                ),
+            ],
+          )),
+        ]),
+      ),
+    );
+  }
+
+  Widget _sheetHandle() => Container(
+        width: 40, height: 4,
+        margin: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(color: kTextSub.withOpacity(0.4), borderRadius: BorderRadius.circular(2)),
+      );
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -383,6 +459,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _loadingBiz = false;
       });
     } catch (_) { setState(() => _loadingBiz = false); }
+  }
+
+  String get _initial {
+    final src = _nicknameCtrl.text.trim().isNotEmpty ? _nicknameCtrl.text.trim() : (_user?.email ?? '?');
+    return src.characters.first.toUpperCase();
+  }
+
+  Future<void> _saveNickname() async {
+    final name = _nicknameCtrl.text.trim();
+    if (name.isEmpty) return;
+    FocusScope.of(context).unfocus();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('nickname', name);
+    await _user?.updateDisplayName(name);
+    if (mounted) setState(() => _saved = true);
   }
 
   Future<void> _logout() async {
@@ -457,13 +548,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: kCardLow,
               child: Column(children: [
                 const SizedBox(height: 20),
-                Stack(children: [
-                  Container(
-                    width: 120, height: 120,
-                    decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: kSecondary, width: 2.5), boxShadow: [BoxShadow(color: kSecondary.withOpacity(0.2), blurRadius: 20, spreadRadius: 2)]),
-                    child: ClipOval(child: Image.asset('assets/images/icon.png', fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: kCardHigh, child: Icon(Icons.person_rounded, size: 56, color: kSecondary)))),
+                Container(
+                  width: 96, height: 96,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(colors: [kPrimaryContainer, Color(0xFF5A0000)],
+                        begin: Alignment.topLeft, end: Alignment.bottomRight),
+                    border: Border.all(color: kSecondary, width: 2),
                   ),
-                ]),
+                  alignment: Alignment.center,
+                  child: isLoggedIn
+                      ? Text(_initial, style: const TextStyle(fontFamily: kFontHeadline,
+                          fontSize: 40, fontWeight: FontWeight.w700, color: kSecondary))
+                      : const Icon(Icons.person_rounded, size: 48, color: kSecondary),
+                ),
                 const SizedBox(height: 12),
                 Text(_nicknameCtrl.text.isEmpty ? (isLoggedIn ? tr('User') : tr('Guest')) : _nicknameCtrl.text, style: tsHeadlineMd()),
                 const SizedBox(height: 4),
@@ -475,25 +573,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: const EdgeInsets.all(20),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-                Text(t('nickname').toUpperCase(), style: tsLabel()),
+                Text(t('nickname'), style: tsTitleMd(color: kTextSub)),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _nicknameCtrl,
                   style: tsBodyLg(color: kText),
-                  onChanged: (_) => setState(() {}),
-                  onSubmitted: (val) async {
-                    final name = val.trim();
-                    if (name.isEmpty) return;
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setString('nickname', name);
-                    await _user?.updateDisplayName(name);
-                  },
+                  textInputAction: TextInputAction.done,
+                  onChanged: (_) => setState(() => _saved = false),
+                  onSubmitted: (_) => _saveNickname(),
                   decoration: InputDecoration(
                     hintText: t('nickname_hint'),
                     prefixIcon: const Icon(Icons.person_outline_rounded, color: kSecondary),
-                    suffixIcon: const Icon(Icons.check_circle_outline_rounded, color: kSecondary, size: 16),
-                    helperText: tr('Press Enter to save'),
-                    helperStyle: TextStyle(fontSize: 10, color: kTextSub.withOpacity(0.4)),
+                    suffixIcon: TextButton(
+                      onPressed: _saveNickname,
+                      child: Text(_saved ? tr('Saved') : tr('Save'),
+                          style: tsTitleMd(color: _saved ? kGreen : kSecondary)),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -529,30 +624,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Row(children: [const Icon(Icons.translate_rounded, color: kSecondary, size: 18), const SizedBox(width: 8), Text(tr('Language'), style: tsHeadlineSm())]),
-                const SizedBox(height: 14),
-                ...[
-                  {'code': 'English', 'label': 'English', 'flag': '🇬🇧'},
-                  {'code': 'Tigrinya', 'label': 'ትግርኛ', 'flag': '🇪🇷'},
-                  {'code': 'Amharic', 'label': 'አማርኛ', 'flag': '🇪🇹'},
-                ].map((lang) {
-                  final sel = _selectedLang == lang['code'];
-                  return GestureDetector(
-                    onTap: () { setState(() => _selectedLang = lang['code']!); languageNotifier.setLanguage(lang['code']!); },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(color: sel ? kPrimaryContainer : kCardHigh, borderRadius: BorderRadius.circular(10)),
-                      child: Row(children: [
-                        Text(lang['flag']!, style: const TextStyle(fontSize: 20)),
-                        const SizedBox(width: 14),
-                        Expanded(child: Text(lang['label']!, style: tsBodyLg(color: sel ? kText : kText.withOpacity(0.7)))),
-                        if (sel) const Icon(Icons.check_circle_rounded, color: kSecondary, size: 20),
-                      ]),
-                    ),
-                  );
-                }),
+                Row(children: [const Icon(Icons.translate_rounded, color: kSecondary, size: 18), const SizedBox(width: 8), Text(tr('Language'), style: tsHeadlineSm(color: kText))]),
+                const SizedBox(height: 12),
+                Row(children: [
+                  for (final lang in const [
+                    {'code': 'English', 'label': 'English', 'flag': '🇬🇧'},
+                    {'code': 'Tigrinya', 'label': 'ትግርኛ', 'flag': '🇪🇷'},
+                    {'code': 'Amharic', 'label': 'አማርኛ', 'flag': '🇪🇹'},
+                  ]) ...[
+                    if (lang['code'] != 'English') const SizedBox(width: 8),
+                    Expanded(child: Material(
+                      color: _selectedLang == lang['code'] ? kSecondary : kCard,
+                      borderRadius: BorderRadius.circular(14),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () { setState(() => _selectedLang = lang['code']!); languageNotifier.setLanguage(lang['code']!); },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Column(children: [
+                            Text(lang['flag']!, style: const TextStyle(fontSize: 22)),
+                            const SizedBox(height: 4),
+                            Text(lang['label']!, style: tsTitleMd(
+                                color: _selectedLang == lang['code'] ? const Color(0xFF1A1200) : kText)),
+                          ]),
+                        ),
+                      ),
+                    )),
+                  ],
+                ]),
                 const SizedBox(height: 24),
                 // ── Theme toggle ───────────────────────────────────
                 AnimatedBuilder(
@@ -656,7 +755,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         leading: Container(
           width: 48, height: 48,
           decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(10)),
-          child: b.imageUrl.isNotEmpty ? ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.network(b.imageUrl, fit: BoxFit.cover)) : const Icon(Icons.storefront_rounded, color: kSecondary, size: 24),
+          child: b.imageUrl.isNotEmpty ? ClipRRect(borderRadius: BorderRadius.circular(10), child: CachedNetworkImage(imageUrl: b.imageUrl, fit: BoxFit.cover, memCacheWidth: 200)) : const Icon(Icons.storefront_rounded, color: kSecondary, size: 24),
         ),
         title: Text(b.name, style: tsTitleMd()),
         subtitle: Text(tr(b.category), style: tsBodySm()),

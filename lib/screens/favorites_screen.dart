@@ -55,9 +55,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget build(BuildContext context) {
     final t = languageNotifier.t;
     return Scaffold(
-      backgroundColor: kSurface,
+      backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: kSurfaceContainer,
+        backgroundColor: kCard,
         iconTheme: const IconThemeData(color: kSecondary),
         title: AnimatedBuilder(animation: languageNotifier, builder: (_, __) => Text(languageNotifier.t('favorites_title'), style: tsTitleMd(color: kSecondary))),
         actions: [
@@ -84,7 +84,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   const SizedBox(height: 16),
                   Text(languageNotifier.t('favorites_title'), style: tsTitleLg()),
                   const SizedBox(height: 8),
-                  Text(tr('Tap the heart icon on a business to save it'), style: tsBodySm(color: kOnSurfaceVariant), textAlign: TextAlign.center),
+                  Text(tr('Tap the heart icon on a business to save it'), style: tsBodySm(color: kTextSub), textAlign: TextAlign.center),
                 ]))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -155,8 +156,8 @@ class FavoriteServicesScreen extends StatelessWidget {
                         borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
                         child: SizedBox(width: 90, height: 90, child: imgs.isEmpty
                           ? Container(color: kCardHigh, child: Icon(Icons.image_rounded, color: kTextSub))
-                          : Image.network(imgs.first, fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(color: kCardHigh))),
+                          : CachedNetworkImage(imageUrl: imgs.first, fit: BoxFit.cover, memCacheWidth: 300,
+                              errorWidget: (_, __, ___) => Container(color: kCardHigh))),
                       ),
                       const SizedBox(width: 12),
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

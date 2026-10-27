@@ -186,7 +186,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: kSurfaceContainerHigh,
+        backgroundColor: kCardHigh,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(tr('Delete business'), style: tsHeadlineSm()),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -218,7 +218,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('${widget.business.name} ${tr('was deleted')}'),
-          backgroundColor: kSurfaceContainerHigh,
+          backgroundColor: kCardHigh,
         ));
         Navigator.pop(context, true);
       }
@@ -234,9 +234,9 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kSurface,
+      backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: kSurfaceContainer,
+        backgroundColor: kCard,
         iconTheme: const IconThemeData(color: kSecondary),
         title: Text(tr('Edit business'), style: tsTitleLg(color: kSecondary)),
         elevation: 0,
@@ -270,7 +270,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _nameCtrl,
-                      style: tsBodyLg(color: kOnSurface),
+                      style: tsBodyLg(color: kText),
                       validator: (v) => v!.isEmpty ? tr('Required') : null,
                       decoration:
                           InputDecoration(hintText: tr('Business name')),
@@ -297,7 +297,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                             decoration: BoxDecoration(
                               color: sel
                                   ? kPrimaryContainer.withOpacity(0.3)
-                                  : kSurfaceContainer,
+                                  : kCard,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                   color: sel
@@ -310,14 +310,14 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                                 children: [
                                   Icon(cat['icon'] as IconData,
                                       color:
-                                          sel ? kSecondary : kOnSurfaceVariant,
+                                          sel ? kSecondary : kTextSub,
                                       size: 16),
                                   const SizedBox(width: 8),
                                   Text(cat['name'] as String,
                                       style: tsLabel(
                                           color: sel
                                               ? kSecondary
-                                              : kOnSurfaceVariant)),
+                                              : kTextSub)),
                                 ]),
                           ),
                         );
@@ -331,7 +331,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                     TextFormField(
                       controller: _descCtrl,
                       maxLines: 3,
-                      style: tsBodyLg(color: kOnSurface),
+                      style: tsBodyLg(color: kText),
                       validator: (v) => v!.isEmpty ? tr('Required') : null,
                       decoration:
                           InputDecoration(hintText: tr('Description...')),
@@ -345,7 +345,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                       Expanded(
                         child: TextFormField(
                           controller: _addrCtrl,
-                          style: tsBodyLg(color: kOnSurface),
+                          style: tsBodyLg(color: kText),
                           validator: (v) => v!.isEmpty ? tr('Required') : null,
                           decoration: InputDecoration(
                             hintText: tr('Street address, postcode, city'),
@@ -384,7 +384,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                           style: tsBodySm(
                               color: _geoStatus.startsWith('✓')
                                   ? kGreen
-                                  : kOnSurfaceVariant)),
+                                  : kTextSub)),
                     ],
                     if (_lat != null) ...[
                       const SizedBox(height: 4),
@@ -400,7 +400,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                     TextFormField(
                       controller: _phoneCtrl,
                       keyboardType: TextInputType.phone,
-                      style: tsBodyLg(color: kOnSurface),
+                      style: tsBodyLg(color: kText),
                       decoration: const InputDecoration(
                         hintText: '+47 00 00 00 00',
                         prefixIcon:
@@ -420,7 +420,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                         margin: const EdgeInsets.only(bottom: 10),
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: kSurfaceContainer,
+                          color: kCard,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -433,7 +433,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                                     style: tsBodySm(
                                         color: closed
                                             ? kRed
-                                            : kOnSurfaceVariant
+                                            : kTextSub
                                                 .withOpacity(0.4))),
                                 const SizedBox(width: 8),
                                 GestureDetector(
@@ -479,9 +479,9 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                                         setState(() => _hours[i]['open'] = v),
                                   )),
                                   const SizedBox(width: 12),
-                                  const Text('—',
+                                  Text('—',
                                       style:
-                                          TextStyle(color: kOnSurfaceVariant)),
+                                          TextStyle(color: kTextSub)),
                                   const SizedBox(width: 12),
                                   Expanded(
                                       child: _timeField(
@@ -504,7 +504,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                     TextFormField(
                       controller: _imgCtrl,
                       keyboardType: TextInputType.url,
-                      style: tsBodyLg(color: kOnSurface),
+                      style: tsBodyLg(color: kText),
                       onChanged: (_) => setState(() {}),
                       decoration: const InputDecoration(
                         hintText: 'https://...',
@@ -523,10 +523,10 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
                               height: 80,
-                              color: kSurfaceContainer,
-                              child: const Center(
+                              color: kCard,
+                              child: Center(
                                   child: Icon(Icons.broken_image_rounded,
-                                      color: kOnSurfaceVariant))),
+                                      color: kTextSub))),
                         ),
                       ),
                     ],
@@ -537,7 +537,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                     TextFormField(
                       controller: _websiteCtrl,
                       keyboardType: TextInputType.url,
-                      style: tsBodyLg(color: kOnSurface),
+                      style: tsBodyLg(color: kText),
                       decoration: InputDecoration(
                         hintText: tr('https://www.yourbusiness.com'),
                         prefixIcon:
@@ -554,7 +554,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
             // ── Save Button ──────────────────────────────
             Container(
               padding: const EdgeInsets.all(16),
-              color: kSurfaceContainer,
+              color: kCard,
               child: goldButton(
                 _saving ? '' : tr('Save changes'),
                 _saving ? null : _save,
@@ -583,8 +583,8 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
           initialTime: initial,
           builder: (ctx, child) => Theme(
             data: ThemeData.dark().copyWith(
-              colorScheme: const ColorScheme.dark(
-                  primary: kSecondary, surface: kSurfaceContainer),
+              colorScheme: ColorScheme.dark(
+                  primary: kSecondary, surface: kCard),
             ),
             child: child!,
           ),
@@ -597,12 +597,12 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: kSurfaceContainerHigh,
+          color: kCardHigh,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(label,
-              style: tsLabel(color: kOnSurfaceVariant).copyWith(fontSize: 9)),
+              style: tsLabel(color: kTextSub).copyWith(fontSize: 9)),
           const SizedBox(height: 2),
           Row(children: [
             const Icon(Icons.access_time_rounded, color: kSecondary, size: 14),

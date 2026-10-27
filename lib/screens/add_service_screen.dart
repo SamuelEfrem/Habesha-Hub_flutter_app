@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../utils/theme_notifier.dart';
 import '../utils/language_notifier.dart';
@@ -824,6 +825,25 @@ class _ManageBookingsTabState extends State<ManageBookingsTab> {
                   ]),
                   const SizedBox(height: 6),
                   Text('👤 ${serviceStr(data['userEmail'])}', style: tsBodySm(color: kTextSub)),
+                  if (serviceStr(data['whatsapp']).isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: () {
+                        final num = serviceStr(data['whatsapp']).replaceAll(RegExp(r'[^0-9]'), '');
+                        final code = serviceStr(data['bookingCode']).isNotEmpty ? data['bookingCode'] : bookingCode(doc.id);
+                        final msg = 'Hi! This is Habesha Hub about your booking $code – ${serviceStr(data['serviceName'])}.';
+                        launchUrl(Uri.parse('https://wa.me/$num?text=${Uri.encodeComponent(msg)}'),
+                            mode: LaunchMode.externalApplication);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(color: const Color(0xFF25D366).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(100)),
+                        child: Text('💬 WhatsApp ${serviceStr(data['whatsapp'])}',
+                            style: tsBodySm(color: const Color(0xFF25D366))),
+                      ),
+                    ),
+                  ],
                   if (serviceStr(data['date']) != '') ...[
                     const SizedBox(height: 2),
                     Text('📅 ${data['date'].toString().substring(0, 10)}', style: tsBodySm(color: kTextSub)),

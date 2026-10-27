@@ -26,6 +26,7 @@ class Business {
   final String status;
   final String? website;
   final String country;
+  final String source; // 'osm' = imported from OpenStreetMap
 
   Business({
     required this.id,
@@ -51,6 +52,7 @@ class Business {
     this.status = 'approved',
     this.website,
     this.country = '',
+    this.source = '',
   });
 
   factory Business.fromFirestore(Map<String, dynamic> data, String id) {
@@ -74,6 +76,8 @@ class Business {
       ownerName: data['ownerName']?.toString() ?? '',
       status: data['status']?.toString() ?? 'approved',
       website: data['website']?.toString(),
+      country: data['country']?.toString() ?? '',
+      source: data['source']?.toString() ?? '',
       galleryImages: data['galleryImages'] != null
           ? List<String>.from(data['galleryImages'])
           : [],
@@ -114,6 +118,10 @@ class Business {
       'promoVideoUrl': promoVideoUrl,
     };
   }
+
+  /// False when we can't know (imported places without opening hours) —
+  /// then the app shows no open/closed badge instead of a wrong "Closed".
+  bool get hasKnownHours => openingHours.isNotEmpty || source != 'osm';
 
   /// Compute if business is open RIGHT NOW based on opening hours
   bool get isOpenNow {
@@ -192,6 +200,7 @@ class Business {
       final open = _parseTime(parts[0].trim());
       final close = _parseTime(parts[1].trim());
       final cur = now.hour * 60 + now.minute;
+      if (close == open) return isOpen; // "10:00 - 10:00" = typo, not 24 h
       if (close > open) return cur >= open && cur < close;
       // Overnight (e.g. 22:00 - 02:00)
       return cur >= open || cur < close;
@@ -220,8 +229,9 @@ class Business {
 
   String formattedDistance(double userLat, double userLng) {
     final d = distanceTo(userLat, userLng);
-    if (d < 1) return '${(d * 1000).toStringAsFixed(0)} m unna';
-    return '${d.toStringAsFixed(1)} km unna';
+    if (d < 1) return '${(d * 1000).toStringAsFixed(0)} m';
+    if (d < 10) return '${d.toStringAsFixed(1)} km';
+    return '${d.toStringAsFixed(0)} km';
   }
 }
 

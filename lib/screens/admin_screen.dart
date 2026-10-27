@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../models/business.dart';
 import 'edit_business_screen.dart';
 import 'booking_screen.dart';
+import 'community_screens.dart';
 
 const List<String> _adminEmails = [
   'samuelefriem@gmail.com',
@@ -98,10 +99,25 @@ class _AdminScreenState extends State<AdminScreen>
   late TabController _tab;
   final _db = FirebaseFirestore.instance;
 
+  // Tab order — the stat tiles at the top jump to these
+  static const _tabs = [
+    (Icons.hourglass_top_rounded, 'Pending'),
+    (Icons.verified_rounded, 'Approved'),
+    (Icons.block_rounded, 'Rejected'),
+    (Icons.verified_user_rounded, 'Claims'),
+    (Icons.flag_rounded, 'Reports'),
+    (Icons.add_business_rounded, 'Suggestions'),
+    (Icons.mail_rounded, 'Messages'),
+    (Icons.event_note_rounded, 'Bookings'),
+    (Icons.flight_rounded, 'Travel'),
+    (Icons.design_services_rounded, 'Services'),
+    (Icons.receipt_long_rounded, 'Orders'),
+  ];
+
   @override
   void initState() {
     super.initState();
-    _tab = TabController(length: 9, vsync: this);
+    _tab = TabController(length: _tabs.length, vsync: this);
 
     if (!_isAdmin) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -122,57 +138,170 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kSurface,
-      appBar: AppBar(
-        backgroundColor: kSurfaceContainer,
-        iconTheme: const IconThemeData(color: kSecondary),
-        title: Text('Admin Panel', style: tsTitleLg(color: kSecondary)),
-        elevation: 0,
-        bottom: TabBar(
+      backgroundColor: kBg,
+      body: NestedScrollView(
+        headerSliverBuilder: (_, __) => [
+          SliverAppBar(
+            pinned: true,
+            backgroundColor: kBg,
+            surfaceTintColor: Colors.transparent,
+            iconTheme: const IconThemeData(color: kSecondary),
+            title: Row(children: [
+              const Icon(Icons.admin_panel_settings_rounded, color: kSecondary, size: 22),
+              const SizedBox(width: 8),
+              Text('Admin', style: tsHeadlineMd(color: kText)),
+            ]),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: kSecondary,
+                    foregroundColor: const Color(0xFF1A1200),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const AdminRegisterScreen())),
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: const Text('Add business', style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
+          ),
+          SliverToBoxAdapter(child: _StatsRow(db: _db, onTap: (i) => _tab.animateTo(i))),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _TabBarHeader(TabBar(
+              controller: _tab,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              dividerColor: Colors.transparent,
+              indicatorSize: TabBarIndicatorSize.tab,
+              indicator: BoxDecoration(
+                color: kSecondary,
+                borderRadius: BorderRadius.circular(100),
+              ),
+              labelColor: const Color(0xFF1A1200),
+              unselectedLabelColor: kTextSub,
+              labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              labelStyle: const TextStyle(fontFamily: kFontBody, fontWeight: FontWeight.w700, fontSize: 13),
+              tabs: [
+                for (final t in _tabs)
+                  Tab(height: 36, child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(t.$1, size: 16),
+                    const SizedBox(width: 6),
+                    Text(t.$2),
+                  ])),
+              ],
+            )),
+          ),
+        ],
+        body: TabBarView(
           controller: _tab,
-          indicatorColor: kSecondary,
-          labelColor: kSecondary,
-          unselectedLabelColor: kOnSurfaceVariant,
-          labelStyle: const TextStyle(
-              fontFamily: kFontBody, fontWeight: FontWeight.w700, fontSize: 11),
-          tabs: const [
-            Tab(child: Text('PENDING',   style: TextStyle(fontSize: 9))),
-            Tab(child: Text('APPROVED', style: TextStyle(fontSize: 9))),
-            Tab(child: Text('REJECTED',   style: TextStyle(fontSize: 9))),
-            Tab(child: Text('MSGS',    style: TextStyle(fontSize: 9))),
-            Tab(child: Text('BOOK.',    style: TextStyle(fontSize: 9))),
-            Tab(child: Text('TRAVEL',   style: TextStyle(fontSize: 9))),
-            Tab(child: Text('ADD', style: TextStyle(fontSize: 9))),
-            Tab(child: Text('SERV.',    style: TextStyle(fontSize: 9))),
-            Tab(child: Text('ORDERS', style: TextStyle(fontSize: 9))),
+          children: [
+            _BusinessList(status: 'pending', db: _db),
+            _BusinessList(status: 'approved', db: _db),
+            _BusinessList(status: 'rejected', db: _db),
+            const ClaimsAdminTab(),
+            const ReportsAdminTab(),
+            const SuggestionsAdminTab(),
+            _ContactMessagesList(db: _db),
+            const BookingListScreen(),
+            _TravelRequestsList(db: _db),
+            // ─ SERVICES (anonymous providers) ─
+            Scaffold(
+              backgroundColor: Colors.transparent,
+              floatingActionButton: FloatingActionButton(
+                backgroundColor: kSecondary,
+                foregroundColor: const Color(0xFF1A1200),
+                onPressed: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const AddServiceScreen())),
+                child: const Icon(Icons.add_rounded),
+              ),
+              body: const ManageServicesTab(),
+            ),
+            // ─ BOOKINGS (service_bookings) ─
+            const ManageBookingsTab(),
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tab,
-        children: [
-          _BusinessList(status: 'pending', db: _db),
-          _BusinessList(status: 'approved', db: _db),
-          _BusinessList(status: 'rejected', db: _db),
-          _ContactMessagesList(db: _db),
-          const BookingListScreen(),
-          _TravelRequestsList(db: _db),
-          const AdminRegisterScreen(),
-          // ─ SERVICES (anonymous providers) ─
-          Scaffold(
-            backgroundColor: Colors.transparent,
-            floatingActionButton: FloatingActionButton(
-              backgroundColor: kSecondary,
-              foregroundColor: Color(0xFF1A1200),
-              onPressed: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const AddServiceScreen())),
-              child: const Icon(Icons.add_rounded),
-            ),
-            body: const ManageServicesTab(),
+    );
+  }
+}
+
+class _TabBarHeader extends SliverPersistentHeaderDelegate {
+  final TabBar bar;
+  _TabBarHeader(this.bar);
+  @override
+  double get minExtent => 48;
+  @override
+  double get maxExtent => 48;
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) =>
+      Container(color: kBg, child: bar);
+  @override
+  bool shouldRebuild(covariant _TabBarHeader old) => true;
+}
+
+// ── Overview: live counts, tap to open that tab ──
+class _StatsRow extends StatelessWidget {
+  final FirebaseFirestore db;
+  final ValueChanged<int> onTap;
+  const _StatsRow({required this.db, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: db.collection('businesses').snapshots(),
+      builder: (_, snap) {
+        final docs = snap.data?.docs ?? [];
+        int pending = 0, approved = 0, rejected = 0, imported = 0;
+        for (final d in docs) {
+          final m = d.data() as Map<String, dynamic>;
+          final s = m['status'] as String?;
+          if (s == null || s == 'pending') pending++;
+          if (s == 'approved') approved++;
+          if (s == 'rejected') rejected++;
+          if (m['source'] == 'osm') imported++;
+        }
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          child: Column(children: [
+            Row(children: [
+              _tile('Pending', pending, Icons.hourglass_top_rounded, kSecondary, () => onTap(0), highlight: pending > 0),
+              const SizedBox(width: 10),
+              _tile('Live', approved, Icons.verified_rounded, kGreen, () => onTap(1)),
+              const SizedBox(width: 10),
+              _tile('Rejected', rejected, Icons.block_rounded, kRed, () => onTap(2)),
+            ]),
+            const SizedBox(height: 8),
+            Text('${docs.length} businesses in total  ·  $imported imported from OpenStreetMap',
+                style: tsBodySm(color: kTextSub)),
+          ]),
+        );
+      },
+    );
+  }
+
+  Widget _tile(String label, int n, IconData icon, Color color, VoidCallback onTap, {bool highlight = false}) {
+    return Expanded(
+      child: Material(
+        color: highlight ? color.withOpacity(0.15) : kCard,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(height: 8),
+              Text('$n', style: tsHeadlineMd(color: kText)),
+              Text(label, style: tsBodySm(color: kTextSub)),
+            ]),
           ),
-          // ─ BOOKINGS (service_bookings) ─
-          const ManageBookingsTab(),
-        ],
+        ),
       ),
     );
   }
@@ -186,112 +315,143 @@ class _BusinessList extends StatefulWidget {
   State<_BusinessList> createState() => _BusinessListState();
 }
 
-class _BusinessListState extends State<_BusinessList> {
+class _BusinessListState extends State<_BusinessList> with AutomaticKeepAliveClientMixin {
   String _searchQuery = '';
+  String _source = 'all'; // all | owners | imported
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final status = widget.status;
     final db = widget.db;
     return Column(children: [
       Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
         child: TextField(
-          style: tsBodyLg(color: kOnSurface),
+          style: tsBodyLg(color: kText),
           decoration: InputDecoration(
-            hintText: 'Search business...',
+            hintText: 'Search name, city or country…',
             prefixIcon: const Icon(Icons.search_rounded, color: kSecondary),
             filled: true,
-            fillColor: kSurfaceContainer,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            fillColor: kCard,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
           ),
           onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
         ),
       ),
+      SizedBox(
+        height: 36,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          children: [
+            _filterChip('All', 'all'),
+            _filterChip('Registered by owners', 'owners'),
+            _filterChip('Imported (OSM)', 'imported'),
+          ],
+        ),
+      ),
       Expanded(
         child: StreamBuilder<QuerySnapshot>(
-      stream: db.collection('businesses').snapshots(),
-      builder: (context, snap) {
-        if (!snap.hasData) {
-          return const Center(
-              child: CircularProgressIndicator(
-                  color: kSecondary, strokeWidth: 1.5));
-        }
-        final docs = snap.data!.docs.where((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          final s = data['status'] as String?;
-          bool statusMatch;
-          if (status == 'pending') statusMatch = s == null || s == 'pending';
-          else statusMatch = s == status;
-          if (!statusMatch) return false;
-          if (_searchQuery.isEmpty) return true;
-          final name = (data['name'] as String? ?? '').toLowerCase();
-          return name.contains(_searchQuery);
-        }).toList();
+          stream: db.collection('businesses').snapshots(),
+          builder: (context, snap) {
+            if (!snap.hasData) {
+              return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+            }
+            final docs = snap.data!.docs.where((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              final s = data['status'] as String?;
+              final statusMatch = status == 'pending' ? (s == null || s == 'pending') : s == status;
+              if (!statusMatch) return false;
+              final imported = data['source'] == 'osm';
+              if (_source == 'owners' && imported) return false;
+              if (_source == 'imported' && !imported) return false;
+              if (_searchQuery.isEmpty) return true;
+              final hay = '${data['name'] ?? ''} ${data['address'] ?? ''} ${data['country'] ?? ''}'.toLowerCase();
+              return hay.contains(_searchQuery);
+            }).toList();
 
-        docs.sort((a, b) {
-          final aTime =
-              (a.data() as Map<String, dynamic>)['createdAt'] as Timestamp?;
-          final bTime =
-              (b.data() as Map<String, dynamic>)['createdAt'] as Timestamp?;
-          if (aTime == null && bTime == null) return 0;
-          if (aTime == null) return 1;
-          if (bTime == null) return -1;
-          return bTime.compareTo(aTime);
-        });
+            // Newest first; owner-registered before imported
+            docs.sort((a, b) {
+              final am = a.data() as Map<String, dynamic>, bm = b.data() as Map<String, dynamic>;
+              final ai = am['source'] == 'osm' ? 1 : 0, bi = bm['source'] == 'osm' ? 1 : 0;
+              if (ai != bi) return ai.compareTo(bi);
+              final aTime = am['createdAt'] as Timestamp?, bTime = bm['createdAt'] as Timestamp?;
+              if (aTime == null && bTime == null) return 0;
+              if (aTime == null) return 1;
+              if (bTime == null) return -1;
+              return bTime.compareTo(aTime);
+            });
 
-        if (docs.isEmpty) {
-          return Center(
-            child:
-                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(
-                status == 'pending'
-                    ? Icons.hourglass_empty_rounded
-                    : status == 'approved'
-                        ? Icons.check_circle_outline_rounded
-                        : Icons.cancel_outlined,
-                color: kOnSurfaceVariant,
-                size: 56,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                status == 'pending'
-                    ? 'No pending businesses'
-                    : status == 'approved'
-                        ? 'No approved businesses'
-                        : 'No rejected businesses',
-                style: tsBodySm(),
-                textAlign: TextAlign.center,
-              ),
-            ]),
-          );
-        }
+            if (docs.isEmpty) {
+              return Center(
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(status == 'pending'
+                          ? Icons.task_alt_rounded
+                          : status == 'approved' ? Icons.storefront_rounded : Icons.block_rounded,
+                      color: kTextSub.withOpacity(0.5), size: 52),
+                  const SizedBox(height: 12),
+                  Text(status == 'pending' ? 'All caught up — nothing to review' : 'Nothing here',
+                      style: tsTitleMd(color: kText)),
+                ]),
+              );
+            }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: docs.length,
-          itemBuilder: (context, i) {
-            final doc = docs[i];
-            final data = doc.data() as Map<String, dynamic>;
-            final business = Business.fromFirestore(data, doc.id);
-            return _AdminCard(
-              business: business,
-              docId: doc.id,
-              status: status,
-              ownerEmail: serviceStr(data['ownerEmail']),
-              ownerName: serviceStr(data['ownerName']),
-              db: db,
+            return ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 40),
+              itemCount: docs.length + 1,
+              itemBuilder: (context, i) {
+                if (i == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8, left: 4),
+                    child: Text('${docs.length} ${docs.length == 1 ? 'business' : 'businesses'}',
+                        style: tsBodySm(color: kTextSub)),
+                  );
+                }
+                final doc = docs[i - 1];
+                final data = doc.data() as Map<String, dynamic>;
+                return _AdminCard(
+                  key: ValueKey(doc.id),
+                  business: Business.fromFirestore(data, doc.id),
+                  docId: doc.id,
+                  status: status,
+                  ownerEmail: serviceStr(data['ownerEmail']),
+                  ownerName: serviceStr(data['ownerName']),
+                  db: db,
+                );
+              },
             );
           },
-        );
-      },
-    ),
+        ),
       ),
     ]);
   }
+
+  Widget _filterChip(String label, String value) {
+    final sel = _source == value;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: sel,
+        onSelected: (_) => setState(() => _source = value),
+        showCheckmark: false,
+        selectedColor: kSecondary.withOpacity(0.2),
+        backgroundColor: kCard,
+        side: BorderSide(color: sel ? kSecondary : Colors.transparent),
+        labelStyle: TextStyle(fontFamily: kFontBody, fontSize: 12, fontWeight: FontWeight.w600,
+            color: sel ? kSecondary : kText),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+      ),
+    );
+  }
 }
 
-class _AdminCard extends StatelessWidget {
+// ── One business: compact row, tap to expand details + all actions ──
+class _AdminCard extends StatefulWidget {
   final Business business;
   final String docId;
   final String status;
@@ -300,6 +460,7 @@ class _AdminCard extends StatelessWidget {
   final FirebaseFirestore db;
 
   const _AdminCard({
+    super.key,
     required this.business,
     required this.docId,
     required this.status,
@@ -308,275 +469,201 @@ class _AdminCard extends StatelessWidget {
     required this.db,
   });
 
-  Future<void> _updateStatus(BuildContext context, String newStatus) async {
-    await db.collection('businesses').doc(docId).update({
+  @override
+  State<_AdminCard> createState() => _AdminCardState();
+}
+
+class _AdminCardState extends State<_AdminCard> {
+  bool _open = false;
+
+  Business get business => widget.business;
+
+  Future<void> _updateStatus(String newStatus) async {
+    await widget.db.collection('businesses').doc(widget.docId).update({
       'status': newStatus,
       'reviewedAt': FieldValue.serverTimestamp(),
     });
-    if (context.mounted) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(newStatus == 'approved'
-            ? '✓ ${business.name} approved and published!'
-            : '✗ ${business.name} rejected.'),
+            ? '✓ ${business.name} is live'
+            : '✗ ${business.name} hidden'),
         backgroundColor: newStatus == 'approved' ? kGreen : kRed,
+        action: SnackBarAction(
+          label: 'Undo',
+          textColor: Colors.white,
+          onPressed: () => widget.db.collection('businesses').doc(widget.docId)
+              .update({'status': widget.status == 'pending' ? 'pending' : widget.status}),
+        ),
       ));
     }
   }
 
-  Future<void> _delete(BuildContext context) async {
+  Future<void> _delete() async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: kSurfaceContainerHigh,
+        backgroundColor: kCardHigh,
         title: Text('Delete business', style: tsHeadlineSm()),
-        content: Text('Are you sure you want to delete "${business.name}"?',
+        content: Text('Delete "${business.name}" for good? This can\'t be undone.\n\nTip: "Hide" keeps it so you can bring it back.',
             style: tsBodyLg()),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text('Cancel', style: tsBodySm())),
-          TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text('Delete', style: tsTitleMd(color: kRed))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel', style: tsBodySm())),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete', style: tsTitleMd(color: kRed))),
         ],
       ),
     );
     if (confirm == true) {
-      await db.collection('businesses').doc(docId).delete();
-      if (context.mounted) {
+      await widget.db.collection('businesses').doc(widget.docId).delete();
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('${business.name} deleted'),
-          backgroundColor: kSurfaceContainerHigh,
+          backgroundColor: kCardHigh,
         ));
       }
     }
   }
 
+  static const _emoji = {
+    'Restaurant': '🍽️', 'Shop': '🛍️', 'Cafe': '☕', 'Barber': '💇', 'Club': '🎵',
+    'Clinic': '🏥', 'Hotel': '🏨',
+  };
+
   @override
   Widget build(BuildContext context) {
+    final status = widget.status;
+    final imported = business.source == 'osm';
+    final statusColor = status == 'pending' ? kSecondary : status == 'approved' ? kGreen : kRed;
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: kSurfaceContainer,
+        color: kCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: status == 'pending'
-              ? kSecondary.withOpacity(0.2)
-              : status == 'approved'
-                  ? kGreen.withOpacity(0.2)
-                  : kRed.withOpacity(0.2),
-          width: 0.5,
-        ),
+        border: Border(left: BorderSide(color: statusColor, width: 3)),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        if (business.imageUrl.isNotEmpty)
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Image.network(
-              business.imageUrl,
-              height: 140,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                height: 80,
-                color: kSurfaceContainerHigh,
-                child: const Center(
-                    child: Icon(Icons.image_not_supported_rounded,
-                        color: kOnSurfaceVariant)),
-              ),
-            ),
-          ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Expanded(child: Text(business.name, style: tsHeadlineSm())),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: kSecondary.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(100),
+        InkWell(
+          onTap: () => setState(() => _open = !_open),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
+            child: Row(children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 52, height: 52,
+                  child: business.imageUrl.isNotEmpty
+                      ? Image.network(business.imageUrl, fit: BoxFit.cover, cacheWidth: 160,
+                          errorBuilder: (_, __, ___) => _emojiBox())
+                      : _emojiBox(),
                 ),
-                child: Text(business.category, style: tsLabel()),
               ),
+              const SizedBox(width: 12),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  Flexible(child: Text(business.name, maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: tsTitleLg(color: kText))),
+                  if (business.isPremium) ...[
+                    const SizedBox(width: 4),
+                    const Icon(Icons.star_rounded, color: kSecondary, size: 16),
+                  ],
+                ]),
+                const SizedBox(height: 2),
+                Text([business.category, if (business.country.isNotEmpty) business.country].join('  ·  '),
+                    style: tsBodySm(color: kSecondary).copyWith(fontWeight: FontWeight.w600)),
+                Text(imported ? 'Imported from OpenStreetMap' : (widget.ownerEmail.isNotEmpty ? widget.ownerEmail : 'No owner'),
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: tsBodySm(color: kTextSub)),
+              ])),
+              // Quick decision without opening the card
+              if (status == 'pending') ...[
+                _roundAction(Icons.close_rounded, kRed, () => _updateStatus('rejected')),
+                const SizedBox(width: 6),
+                _roundAction(Icons.check_rounded, kGreen, () => _updateStatus('approved')),
+              ] else
+                Icon(_open ? Icons.expand_less_rounded : Icons.expand_more_rounded, color: kTextSub),
             ]),
-            const SizedBox(height: 8),
-            Text(business.description,
-                style: tsBodySm(),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 12),
-            _infoRow(Icons.location_on_rounded, business.address),
-            _infoRow(Icons.phone_rounded, business.phone),
-            _infoRow(Icons.person_rounded, '$ownerName  •  $ownerEmail'),
-            if (business.openingHours.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                    color: kSurfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(10)),
-                child: Column(
-                  children: business.openingHours.entries
-                      .map((e) => Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Row(children: [
-                              Expanded(child: Text(e.key, style: tsBodySm())),
-                              Text(e.value,
-                                  style: tsBodySm(
-                                      color: (e.value == 'Stengt' || e.value == 'Closed')
-                                          ? kRed
-                                          : kOnSurface)),
-                            ]),
-                          ))
-                      .toList(),
-                ),
-              ),
-            ],
-            const SizedBox(height: 16),
-            _AdminActions(
-              business: business,
-              docId: docId,
-              status: status,
-              onUpdate: (s) => _updateStatus(context, s),
-              onDelete: () => _delete(context),
-            ),
-          ]),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          child: !_open ? const SizedBox(width: double.infinity) : Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Divider(color: kTextSub.withOpacity(0.15), height: 1),
+              const SizedBox(height: 12),
+              if (business.description.isNotEmpty) ...[
+                Text(business.description, style: tsBodySm(color: kText)),
+                const SizedBox(height: 10),
+              ],
+              _infoRow(Icons.location_on_rounded, business.address),
+              if (business.phone.isNotEmpty) _infoRow(Icons.phone_rounded, business.phone),
+              if (!imported && (widget.ownerName.isNotEmpty || widget.ownerEmail.isNotEmpty))
+                _infoRow(Icons.person_rounded, [widget.ownerName, widget.ownerEmail].where((s) => s.isNotEmpty).join('  ·  ')),
+              if (business.openingHours.isNotEmpty)
+                _infoRow(Icons.schedule_rounded,
+                    business.openingHours.entries.map((e) => '${e.key} ${e.value}').join('   ')),
+              const SizedBox(height: 12),
+              Wrap(spacing: 8, runSpacing: 8, children: [
+                if (status != 'approved')
+                  _pill(Icons.check_rounded, status == 'pending' ? 'Approve' : 'Make live', kGreen, () => _updateStatus('approved')),
+                if (status != 'rejected')
+                  _pill(Icons.visibility_off_rounded, 'Hide', kRed, () => _updateStatus('rejected')),
+                _pill(Icons.edit_rounded, 'Edit', kSecondary, () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => EditBusinessScreen(business: business, docId: widget.docId)))),
+                _pill(business.isPremium ? Icons.star_rounded : Icons.star_outline_rounded,
+                    business.isPremium ? 'Remove Premium' : 'Make Premium', kSecondary,
+                    () => widget.db.collection('businesses').doc(widget.docId).update({'isPremium': !business.isPremium})),
+                _pill(Icons.delete_outline_rounded, 'Delete', kRed, _delete),
+              ]),
+            ]),
+          ),
         ),
       ]),
     );
   }
+
+  Widget _emojiBox() => Container(
+        color: kSecondary.withOpacity(0.12),
+        alignment: Alignment.center,
+        child: Text(_emoji[business.category] ?? '🏠', style: const TextStyle(fontSize: 24)),
+      );
+
+  Widget _roundAction(IconData icon, Color color, VoidCallback onTap) => Material(
+        color: color.withOpacity(0.15),
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: SizedBox(width: 40, height: 40, child: Icon(icon, color: color, size: 22)),
+        ),
+      );
+
+  Widget _pill(IconData icon, String label, Color color, VoidCallback onTap) => Material(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(100),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(100),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(icon, color: color, size: 16),
+              const SizedBox(width: 6),
+              Text(label, style: tsTitleMd(color: color).copyWith(fontSize: 12)),
+            ]),
+          ),
+        ),
+      );
 
   Widget _infoRow(IconData icon, String text) => Padding(
         padding: const EdgeInsets.only(bottom: 6),
-        child: Row(children: [
-          Icon(icon, color: kSecondary, size: 14),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(icon, color: kSecondary, size: 15),
           const SizedBox(width: 8),
-          Expanded(
-              child: Text(text,
-                  style: tsBodySm(), overflow: TextOverflow.ellipsis)),
+          Expanded(child: Text(text, style: tsBodySm(color: kText))),
         ]),
       );
-}
-
-class _AdminActions extends StatelessWidget {
-  final Business business;
-  final String docId;
-  final String status;
-  final Function(String) onUpdate;
-  final VoidCallback onDelete;
-
-  const _AdminActions({
-    required this.business,
-    required this.docId,
-    required this.status,
-    required this.onUpdate,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(children: [
-      Row(children: [
-        if (status == 'pending') ...[
-          Expanded(
-              child: _btn(Icons.close_rounded, 'Reject', kRed,
-                  () => onUpdate('rejected'))),
-          const SizedBox(width: 8),
-          Expanded(
-              flex: 2,
-              child: _btn(Icons.check_rounded, 'Approve and publish', kGreen,
-                  () => onUpdate('approved'))),
-        ] else if (status == 'approved') ...[
-          Expanded(
-              child: _btn(Icons.block_rounded, 'Deactivate', kRed,
-                  () => onUpdate('rejected'))),
-          const SizedBox(width: 8),
-          Expanded(
-              child:
-                  _btn(Icons.delete_outline_rounded, 'Delete', kRed, onDelete)),
-        ] else ...[
-          Expanded(
-              child: _btn(Icons.check_rounded, 'Approve', kGreen,
-                  () => onUpdate('approved'))),
-          const SizedBox(width: 8),
-          Expanded(
-              child:
-                  _btn(Icons.delete_outline_rounded, 'Delete', kRed, onDelete)),
-        ],
-      ]),
-      const SizedBox(height: 8),
-      // Premium toggle
-      GestureDetector(
-        onTap: () {
-          FirebaseFirestore.instance.collection('businesses').doc(docId).update({'isPremium': !business.isPremium});
-        },
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: business.isPremium ? kSecondary.withOpacity(0.1) : kSurfaceContainerHigh,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: business.isPremium ? kSecondary : kOutlineVariant, width: 0.5),
-          ),
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(business.isPremium ? Icons.star_rounded : Icons.star_outline_rounded, color: kSecondary, size: 16),
-            const SizedBox(width: 6),
-            Text(business.isPremium ? '⭐ Remove Premium' : '⭐ Set as Premium', style: tsLabel(color: kSecondary)),
-          ]),
-        ),
-      ),
-      const SizedBox(height: 8),
-      GestureDetector(
-        onTap: () async {
-          await Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) =>
-                      EditBusinessScreen(business: business, docId: docId)));
-        },
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 11),
-          decoration: BoxDecoration(
-            color: kSecondary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: kSecondary.withOpacity(0.3), width: 0.5),
-          ),
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            const Icon(Icons.edit_rounded, color: kSecondary, size: 15),
-            const SizedBox(width: 6),
-            Text('Edit business',
-                style: tsTitleMd(color: kSecondary).copyWith(fontSize: 13)),
-          ]),
-        ),
-      ),
-    ]);
-  }
-
-  Widget _btn(IconData icon, String label, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 11),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withOpacity(0.3), width: 0.5),
-        ),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(icon, color: color, size: 15),
-          const SizedBox(width: 5),
-          Flexible(
-              child: Text(label,
-                  style: tsTitleMd(color: color).copyWith(fontSize: 12),
-                  overflow: TextOverflow.ellipsis)),
-        ]),
-      ),
-    );
-  }
 }
 
 class _ContactMessagesList extends StatelessWidget {
@@ -602,8 +689,8 @@ class _ContactMessagesList extends StatelessWidget {
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                const Icon(Icons.mail_outline_rounded,
-                    color: kOnSurfaceVariant, size: 52),
+                Icon(Icons.mail_outline_rounded,
+                    color: kTextSub, size: 52),
                 const SizedBox(height: 12),
                 Text('No messages yet', style: tsBodySm()),
               ]));
@@ -618,7 +705,7 @@ class _ContactMessagesList extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: kSurfaceContainer,
+                color: kCard,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: replied
@@ -650,7 +737,7 @@ class _ContactMessagesList extends StatelessWidget {
                           DateFormat('dd.MM HH:mm').format(
                               (data['createdAt'] as Timestamp).toDate()),
                           style:
-                              tsLabel(color: kOnSurfaceVariant.withOpacity(0.5))
+                              tsLabel(color: kTextSub.withOpacity(0.5))
                                   .copyWith(fontSize: 9),
                         ),
                     ]),
@@ -674,7 +761,7 @@ class _ContactMessagesList extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                          color: kSurfaceContainerHigh,
+                          color: kCardHigh,
                           borderRadius: BorderRadius.circular(10)),
                       child: Text(serviceStr(data['message']), style: tsBodyLg()),
                     ),
@@ -768,7 +855,7 @@ class _TravelRequestsList extends StatelessWidget {
       builder: (_, snap) {
         if (!snap.hasData) return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
         final docs = snap.data!.docs;
-        if (docs.isEmpty) return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.flight_rounded, size: 56, color: kOnSurfaceVariant), const SizedBox(height: 16), const Text('No travel requests yet')]));
+        if (docs.isEmpty) return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.flight_rounded, size: 56, color: kTextSub), const SizedBox(height: 16), const Text('No travel requests yet')]));
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: docs.length,
@@ -792,7 +879,7 @@ class _TravelRequestsList extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: kSurfaceContainer,
+                color: kCard,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: statusColor.withOpacity(0.3)),
               ),
@@ -816,7 +903,7 @@ class _TravelRequestsList extends StatelessWidget {
                 if (date.isNotEmpty) Text('📅 $date', style: tsBodySm()),
                 if (details.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text(details, style: tsBodySm(color: kOnSurfaceVariant)),
+                  Text(details, style: tsBodySm(color: kTextSub)),
                 ],
                 const SizedBox(height: 12),
                 Row(children: [

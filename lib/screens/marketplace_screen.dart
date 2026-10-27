@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -14,6 +15,31 @@ import '../utils/translations.dart';
 // ═══════════════════════════════════════════════════════════
 // MARKETPLACE SCREEN  (ListView + image gallery, no chat)
 // ═══════════════════════════════════════════════════════════
+
+/// Admin = Samuel. Admin sees and approves pending listings and can delete any listing.
+bool get _isAdminUser {
+  final u = FirebaseAuth.instance.currentUser;
+  return u != null && (u.uid == 'W3z67R3wiXUVvcPFDS0oxgfaDlj1' || u.email == 'samuelefriem@gmail.com');
+}
+
+/// Only real accounts (not anonymous guests) may sell.
+bool _canSell(User? u) => u != null && !u.isAnonymous;
+
+/// New listings wait for admin approval. Old listings (no field) count as approved.
+bool _isPending(Map d) => d['approved'] == false;
+
+String _mt(String en, String ti, String am) {
+  final l = languageNotifier.language;
+  return l == 'Tigrinya' ? ti : l == 'Amharic' ? am : en;
+}
+
+/// Small orange "waiting for approval" label.
+Widget _pendingBadge({double fontSize = 11}) => Container(
+  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+  decoration: BoxDecoration(color: const Color(0xFFF59E0B), borderRadius: BorderRadius.circular(100)),
+  child: Text(_mt('⏳ Waiting for approval', '⏳ ፍቓድ ይጽበ', '⏳ ማረጋገጫ በመጠባበቅ ላይ'),
+      style: TextStyle(color: const Color(0xFF1A1200), fontSize: fontSize, fontWeight: FontWeight.w700)),
+);
 
 /// Reads any Firestore value as a trimmed String (handles int, double, null).
 String _s(dynamic v) => v == null ? '' : v.toString().trim();
@@ -35,6 +61,7 @@ class MarketplaceScreen extends StatefulWidget {
 class _MarketplaceScreenState extends State<MarketplaceScreen> {
   final _db = FirebaseFirestore.instance;
   String _selectedCategory = 'All';
+  bool _pendingOnly = false;   // admin: show only listings waiting for approval
   String _nameFilter = '';
   bool _locating = false;
   String _cityFilter = '';
@@ -91,9 +118,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             iconTheme: const IconThemeData(color: kSecondary),
             title: Text(t('marketplace_title'), style: tsTitleMd(color: kSecondary)),
             actions: [
-              if (user != null)
+              if (_canSell(user))
                 GestureDetector(
-                  onTap: () => _showAddListing(context, user, t),
+                  onTap: () => _showAddListing(context, user!, t),
                   child: Container(
                     margin: const EdgeInsets.only(right: 16),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
@@ -256,9 +283,46 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 builder: (_, snap) {
                   if (!snap.hasData) return const Center(
                     child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
-                  _allDocs = snap.data!.docs;
+                  final me = user?.uid;
+                  final admin = _isAdminUser;
+                  final raw = snap.data!.docs;
+                  final pendingCount = raw.where((d) => _isPending(d.data() as Map)).length;
+                  // Public: approved only. Seller also sees own pending; admin sees all.
+                  _allDocs = raw.where((d) {
+                    final m = d.data() as Map;
+                    if (admin && _pendingOnly) return _isPending(m);
+                    return !_isPending(m) || admin || (me != null && _s(m['userId']) == me);
+                  }).toList();
                   final docs = _displayDocs;
+                  final adminBanner = (admin && (pendingCount > 0 || _pendingOnly))
+                      ? GestureDetector(
+                          onTap: () => setState(() => _pendingOnly = !_pendingOnly),
+                          child: Container(
+                            margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF59E0B).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.6))),
+                            child: Row(children: [
+                              const Icon(Icons.hourglass_top_rounded, color: Color(0xFFF59E0B), size: 20),
+                              const SizedBox(width: 10),
+                              Expanded(child: Text(_pendingOnly
+                                  ? _mt('Showing only pending listings ($pendingCount) — tap to show all',
+                                        'ፍቓድ ዝጽበዩ ጥራይ ($pendingCount) — ኩሉ ንምርኣይ ጠውቑ',
+                                        'ማረጋገጫ የሚጠብቁ ብቻ ($pendingCount) — ሁሉንም ለማየት ይንኩ')
+                                  : _mt('$pendingCount listing(s) waiting for approval — tap to review',
+                                        '$pendingCount መወዓውዒ ፍቓድ ይጽበዩ — ንምርኣይ ጠውቑ',
+                                        '$pendingCount ማስታወቂያ ማረጋገጫ ይጠብቃሉ — ለማየት ይንኩ'),
+                                  style: tsBodySm(color: kText))),
+                            ]),
+                          ))
+                      : null;
                   if (docs.isEmpty) {
+                    if (adminBanner != null) {
+                      return Column(children: [adminBanner,
+                        Expanded(child: Center(child: Text(t('marketplace_empty'), style: tsTitleLg())))]);
+                    }
                     return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                       const Text('🛒', style: TextStyle(fontSize: 56)),
                       const SizedBox(height: 16),
@@ -277,7 +341,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     groups.putIfAbsent(key, () => []).add(doc);
                   }
                   final keys = groups.keys.toList();
-                  return ListView.builder(
+                  final listView = ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                     itemCount: keys.length,
                     itemBuilder: (_, i) {
@@ -298,6 +362,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       );
                     },
                   );
+                  return adminBanner == null ? listView
+                      : Column(children: [adminBanner, Expanded(child: listView)]);
                 },
               ),
             ),
@@ -371,7 +437,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               GestureDetector(
                 onTap: uploading ? null : () async {
                   final picked = await ImagePicker().pickImage(
-                    source: ImageSource.gallery, imageQuality: 80);
+                    source: ImageSource.gallery, imageQuality: 80, maxWidth: 1600);
                   if (picked != null) setModal(() => selImage = File(picked.path));
                 },
                 child: Container(
@@ -452,9 +518,13 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     'imageUrl': imageUrl,
                     'sellerPhone': phoneCtrl.text.trim(),
                     'sellerName': user.displayName ?? '',
-                    'userId': user.uid,
+                    'userId': _s(existing?['userId']).isNotEmpty ? _s(existing?['userId']) : user.uid,
                     'updatedAt': FieldValue.serverTimestamp(),
+                    // New or edited listings wait for approval (admin's own are approved).
+                    'approved': _isAdminUser,
                   };
+                  if (_isAdminUser && docId != null) payload.remove('approved'); // admin edit keeps status
+                  if (_isAdminUser && docId != null) payload['sellerName'] = _s(existing?['sellerName']);
                   if (docId != null) {
                     await _db.collection('marketplace').doc(docId).update(payload);
                   } else {
@@ -462,6 +532,20 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     await _db.collection('marketplace').add(payload);
                   }
                   if (context.mounted) Navigator.pop(context);
+                  if (!_isAdminUser && context.mounted) {
+                    showDialog(context: context, builder: (dctx) => AlertDialog(
+                      backgroundColor: kCardHigh,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      title: Text(_mt('Sent for approval', 'ንፍቓድ ተሰዲዱ', 'ለማረጋገጫ ተልኳል'), style: tsHeadlineSm()),
+                      content: Text(_mt(
+                        'Thank you! Habesha Hub checks every listing before it is shown. You will see it in the marketplace when it is approved.',
+                        'የቐንየልና! Habesha Hub ነፍሲ ወከፍ መወዓውዒ ቅድሚ ምርኣዩ ይምርምሮ። ምስ ጸደቐ ኣብ ዕዳጋ ክርአ እዩ።',
+                        'እናመሰግናለን! Habesha Hub እያንዳንዱን ማስታወቂያ ከመታየቱ በፊት ይፈትሻል። ሲጸድቅ በገበያው ይታያል።'),
+                        style: tsBodyLg()),
+                      actions: [TextButton(onPressed: () => Navigator.pop(dctx),
+                          child: Text('OK', style: tsTitleMd(color: kSecondary)))],
+                    ));
+                  }
                 },
                 loading: uploading,
               ),
@@ -553,14 +637,13 @@ class _ListingCardState extends State<_ListingCard> {
             child: Stack(children: [
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                child: Image.network(
-                  images[0],
-                  height: 220, width: double.infinity, fit: BoxFit.cover,
-                  loadingBuilder: (_, child, prog) => prog == null ? child
-                      : Container(height: 220, color: kCardHigh,
-                          child: const Center(child: CircularProgressIndicator(
-                            color: kSecondary, strokeWidth: 1.5))),
-                  errorBuilder: (_, __, ___) => Container(height: 140,
+                child: CachedNetworkImage(
+                  imageUrl: images[0],
+                  height: 220, width: double.infinity, fit: BoxFit.cover, memCacheWidth: 1080,
+                  placeholder: (_, __) => Container(height: 220, color: kCardHigh,
+                      child: const Center(child: CircularProgressIndicator(
+                        color: kSecondary, strokeWidth: 1.5))),
+                  errorWidget: (_, __, ___) => Container(height: 140,
                       color: kCardHigh,
                       child: Center(child: Icon(
                         Icons.broken_image_rounded, color: kTextSub, size: 40))),
@@ -608,14 +691,18 @@ class _ListingCardState extends State<_ListingCard> {
             Row(children: [
               Expanded(child: Text(_s(d['title']),
                 style: tsHeadlineSm(), maxLines: 2, overflow: TextOverflow.ellipsis)),
-              if (widget.isMe) Row(mainAxisSize: MainAxisSize.min, children: [
-                GestureDetector(onTap: widget.onEdit,
-                  child: const Icon(Icons.edit_rounded, color: kSecondary, size: 18)),
-                const SizedBox(width: 12),
-                GestureDetector(onTap: widget.onDelete,
-                  child: const Icon(Icons.delete_outline_rounded, color: kRed, size: 18)),
+              if (widget.isMe || widget.onDelete != null) Row(mainAxisSize: MainAxisSize.min, children: [
+                if (widget.onEdit != null) ...[
+                  GestureDetector(onTap: widget.onEdit,
+                    child: const Icon(Icons.edit_rounded, color: kSecondary, size: 18)),
+                  const SizedBox(width: 12),
+                ],
+                if (widget.onDelete != null)
+                  GestureDetector(onTap: widget.onDelete,
+                    child: const Icon(Icons.delete_outline_rounded, color: kRed, size: 18)),
               ]),
             ]),
+            if (_isPending(d)) ...[const SizedBox(height: 6), _pendingBadge()],
             const SizedBox(height: 6),
             Row(children: [
               if (_s(d['price']).isNotEmpty) ...[
@@ -747,8 +834,8 @@ class _ListingCardState extends State<_ListingCard> {
                   itemCount: images.length,
                   onPageChanged: (i) => setD(() => current = i),
                   itemBuilder: (_, i) => InteractiveViewer(
-                    child: Image.network(images[i], fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => const Center(child: Icon(
+                    child: CachedNetworkImage(imageUrl: images[i], fit: BoxFit.contain,
+                      errorWidget: (_, __, ___) => const Center(child: Icon(
                         Icons.broken_image_rounded, color: Colors.white38, size: 60))),
                   ),
                 ),
@@ -862,8 +949,8 @@ class _ListingThumb extends StatelessWidget {
             imgs.isEmpty
                 ? Container(color: kCardHigh,
                     child: Icon(Icons.image_rounded, color: kTextSub, size: 32))
-                : Image.network(imgs.first, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(color: kCardHigh,
+                : CachedNetworkImage(imageUrl: imgs.first, fit: BoxFit.cover, memCacheWidth: 400,
+                    errorWidget: (_, __, ___) => Container(color: kCardHigh,
                       child: Icon(Icons.broken_image_rounded, color: kTextSub, size: 28))),
             if (price.isNotEmpty)
               Positioned(left: 6, bottom: 6,
@@ -872,6 +959,8 @@ class _ListingThumb extends StatelessWidget {
                   decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(100)),
                   child: Text(price, style: tsLabel(color: const Color(0xFF1A1200)).copyWith(fontSize: 10)),
                 )),
+            if (_isPending(data))
+              Positioned(left: 6, top: 6, child: _pendingBadge(fontSize: 9)),
             if (imgs.length > 1)
               Positioned(right: 6, top: 6,
                 child: Container(
@@ -980,7 +1069,9 @@ class SellerProfileScreen extends StatelessWidget {
                   .where('userId', isEqualTo: sellerKey).snapshots(),
               builder: (_, snap) {
                 if (!snap.hasData) return body(initial);
-                final docs = snap.data!.docs.toList()
+                final me = FirebaseAuth.instance.currentUser?.uid;
+                final docs = snap.data!.docs.where((d) =>
+                    !_isPending(d.data() as Map) || _isAdminUser || me == sellerKey).toList()
                   ..sort((a, b) {
                     final ta = (a.data() as Map)['createdAt'];
                     final tb = (b.data() as Map)['createdAt'];
@@ -1031,16 +1122,42 @@ class _ListingDetailScreen extends StatelessWidget {
           }
           final d = snap.data!.data() as Map<String, dynamic>;
           final isMe = me != null && me == _s(d['userId']);
+          final admin = _isAdminUser;
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
-            child: _ListingCard(
-              docId: docId,
-              data: d,
-              isMe: isMe,
-              t: t,
-              onEdit: isMe ? () => onEdit(docId, d) : null,
-              onDelete: isMe ? () => onDelete(ctx, docId) : null,
-            ),
+            child: Column(children: [
+              _ListingCard(
+                docId: docId,
+                data: d,
+                isMe: isMe,
+                t: t,
+                onEdit: isMe ? () => onEdit(docId, d) : null,
+                onDelete: (isMe || admin) ? () => onDelete(ctx, docId) : null,
+              ),
+              // ── Admin moderation ─────────────────────
+              if (admin) Row(children: [
+                if (_isPending(d)) ...[
+                  Expanded(child: ElevatedButton.icon(
+                    onPressed: () => FirebaseFirestore.instance.collection('marketplace').doc(docId)
+                        .update({'approved': true, 'approvedAt': FieldValue.serverTimestamp()}),
+                    icon: const Icon(Icons.check_circle_rounded, color: Colors.white),
+                    label: Text(_mt('Approve', 'ኣጽድቕ', 'አጽድቅ'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                    style: ElevatedButton.styleFrom(backgroundColor: kGreen,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                  )),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(child: OutlinedButton.icon(
+                  onPressed: () => onDelete(ctx, docId),
+                  icon: const Icon(Icons.delete_forever_rounded, color: kRed),
+                  label: Text(_isPending(d) ? _mt('Reject & delete', 'ንጸግ እሞ ደምስስ', 'ውድቅ አድርግና ሰርዝ') : _mt('Delete', 'ደምስስ', 'ሰርዝ'), style: tsTitleMd(color: kRed)),
+                  style: OutlinedButton.styleFrom(side: const BorderSide(color: kRed),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                )),
+              ]),
+            ]),
           );
         },
       ),

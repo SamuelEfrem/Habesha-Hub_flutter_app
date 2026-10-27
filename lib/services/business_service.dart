@@ -32,6 +32,27 @@ class BusinessService {
     }).toList();
   }
 
+  /// Only businesses near the user (instead of downloading all of them).
+  /// Firestore can filter one range, so we ask for a latitude band and
+  /// check the real distance here. 1° latitude ≈ 111 km.
+  Future<List<Business>> getBusinessesNear(double lat, double lng,
+      {double radiusKm = 50}) async {
+    final dLat = radiusKm / 111.0 + 0.05;
+    final snap = await _db
+        .collection('businesses')
+        .where('lat', isGreaterThanOrEqualTo: lat - dLat)
+        .where('lat', isLessThanOrEqualTo: lat + dLat)
+        .get();
+    return snap.docs
+        .where((d) {
+          final status = d.data()['status'] as String?;
+          return status == null || status == 'approved';
+        })
+        .map((d) => Business.fromFirestore(d.data(), d.id))
+        .where((b) => b.distanceTo(lat, lng) <= radiusKm)
+        .toList();
+  }
+
   Future<void> addBusiness(Business business) async {
     await _db.collection('businesses').add(business.toMap());
   }

@@ -3,6 +3,8 @@
 // for én tilbyder og legger dem inn i Firestore — med én kommando.
 //
 //   Bilder : Storage-zone  → mappe  "cameraman-1"
+//            (en fil som heter profile.jpg / avatar.png blir PROFILBILDET)
+//            Bilder over 500 KB får en liten kopi (1600px) i "_web/…" som appen bruker
 //   Videoer: Stream-bibliotek → Collection "Cameraman 1"
 //
 // Nøklene blir bare på PC-en din (ikke i appen).
@@ -112,9 +114,36 @@ async function listFolder(path) {
   for (const it of await r.json()) {
     const p = `${path}/${it.ObjectName}`;
     if (it.IsDirectory) out.push(...await listFolder(p));
-    else if (IMG.test(it.ObjectName)) out.push(`${CDN}/${p.split('/').map(encodeURIComponent).join('/')}`);
+    else if (IMG.test(it.ObjectName)) out.push({ path: p, size: it.Length });
   }
   return out;
+}
+const cdnUrl = p => `${CDN}/${p.split('/').map(encodeURIComponent).join('/')}`;
+
+// ── Small copies: big camera photos (10–20 MB) load slowly on phones.
+// Every photo over WEB_LIMIT gets a 1600px JPEG copy in "_web/<same path>.jpg"
+// (made once, originals are never touched) and the app uses the copy.
+const WEB_DIR   = '_web';
+const WEB_LIMIT = 500 * 1024;
+const WEB_SIZE  = 1600;
+async function webCopy(photo, existing) {
+  if (photo.size <= WEB_LIMIT) return cdnUrl(photo.path);
+  const webPath = `${WEB_DIR}/${photo.path.replace(/\.[^.]+$/, '')}.jpg`;
+  if (existing.has(webPath)) return cdnUrl(webPath);
+  const sharp = require('sharp');
+  const src = await fetch(`https://${HOST}/${ZONE}/${photo.path.split('/').map(encodeURIComponent).join('/')}`,
+    { headers: { AccessKey: KEY } });
+  if (!src.ok) throw new Error(`Storage ${src.status} (${photo.path})`);
+  const small = await sharp(Buffer.from(await src.arrayBuffer()))
+    .rotate()                                                       // keep camera orientation
+    .resize(WEB_SIZE, WEB_SIZE, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 80, mozjpeg: true })
+    .toBuffer();
+  const up = await fetch(`https://${HOST}/${ZONE}/${webPath.split('/').map(encodeURIComponent).join('/')}`,
+    { method: 'PUT', headers: { AccessKey: KEY, 'content-type': 'application/octet-stream' }, body: small });
+  if (!up.ok) throw new Error(`Storage upload ${up.status}: ${await up.text()}`);
+  console.log(`   🗜️  ${photo.path.split('/').pop()}: ${(photo.size / 1048576).toFixed(1)} MB → ${(small.length / 1024).toFixed(0)} KB`);
+  return cdnUrl(webPath);
 }
 async function getPhotos() {
   if (!ZONE || !KEY || !CDN) { console.log('⏭️  Hopper over bilder (BUNNY_ZONE/KEY/CDN mangler)'); return null; }
@@ -125,8 +154,11 @@ async function getPhotos() {
     console.error('   (Du blir spurt om passordet på nytt neste gang.)');
     return null;
   }
-  const photos = (await listFolder(FOLDER)).sort();
-  console.log(`📷 ${photos.length} bilder i Storage-mappen "${FOLDER}"`);
+  const files = (await listFolder(FOLDER)).sort((a, b) => a.path.localeCompare(b.path));
+  console.log(`📷 ${files.length} bilder i Storage-mappen "${FOLDER}"`);
+  const existing = new Set((await listFolder(`${WEB_DIR}/${FOLDER}`)).map(f => f.path));
+  const photos = [];
+  for (const f of files) photos.push(await webCopy(f, existing));
   return photos;
 }
 
@@ -178,6 +210,14 @@ async function run() {
   await loadKeys();
   let photos = has('videos-only') ? null : await getPhotos();
   let videos = has('photos-only') ? null : await getVideos();
+  // Profile picture: a file named profile.jpg / avatar.png … in the provider's folder
+  let profile = null;
+  if (photos) {
+    const isProfile = u => /\/(profile|avatar)[^/]*\.(jpe?g|png|webp)$/i.test(decodeURIComponent(u));
+    profile = photos.find(isProfile) || null;
+    photos = photos.filter(u => !isProfile(u));
+    if (profile) console.log('🖼️  Profilbilde funnet: ' + decodeURIComponent(profile.split('/').pop()));
+  }
   // Safety: an empty folder/collection (or a typo in the name) must not wipe everything
   if (photos && photos.length === 0 && !has('replace')) {
     console.log('⚠️  0 bilder funnet — beholder bildene som er der (bruk --replace for å tømme)');
@@ -187,7 +227,7 @@ async function run() {
     console.log('⚠️  0 videoer funnet — beholder videoene som er der (bruk --replace for å tømme)');
     videos = null;
   }
-  if (photos === null && videos === null) process.exit(1);
+  if (photos === null && videos === null && !profile) process.exit(1);
 
   const snap = await db.collection('anonymous_services').where('publicName', '==', NAME).get();
   if (snap.empty) { console.error(`❌ "${NAME}" finnes ikke i Firestore (publicName)`); process.exit(1); }
@@ -195,6 +235,7 @@ async function run() {
   for (const doc of snap.docs) {
     const d = doc.data();
     const upd = {};
+    if (profile) upd.profileImage = profile;
     if (photos) {
       // Mirror Bunny Storage: photos deleted in Bunny disappear from the app.
       // Photos from other places (e.g. uploaded from the phone) are kept.
@@ -217,7 +258,7 @@ async function run() {
       upd.sampleVideoUrl = FieldValue.delete();
     }
     await doc.ref.update(upd);
-    console.log(`✅ ${doc.id}: ${upd.sampleImages ? upd.sampleImages.length + ' bilder' : ''}` +
+    console.log(`✅ ${doc.id}: ${upd.profileImage ? 'profilbilde, ' : ''}${upd.sampleImages ? upd.sampleImages.length + ' bilder' : ''}` +
       `${upd.sampleImages && upd.sampleVideoUrls ? ', ' : ''}` +
       `${upd.sampleVideoUrls ? upd.sampleVideoUrls.length + ' videoer' : ''}`);
   }

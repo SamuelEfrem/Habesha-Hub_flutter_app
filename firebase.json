@@ -36,6 +36,13 @@
           "functionId": "providerPage",
           "region": "europe-west1"
         }
+      },
+      {
+        "source": "/b/**",
+        "function": {
+          "functionId": "businessPage",
+          "region": "europe-west1"
+        }
       }
     ]
   },
