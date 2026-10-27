@@ -3,8 +3,10 @@
 // dem inn i Firestore "businesses" — med adresse og GPS-posisjon.
 //
 //   Finner: alt merket cuisine=ethiopian/eritrean, pluss butikker,
-//           kafeer, frisører osv. med habesha-navn (Habesha, Addis Ababa,
-//           Asmara, Abyssinia, Ethiopian, Eritrean …)
+//           kafeer, frisører osv. med habesha-navn (Habesha, Addis,
+//           Asmara, Abyssinia, Ethiopian, Eritrean, Äthiopisch, Etiopisk …)
+//           i ~55 land (navnesøk hos OpenStreetMap Nominatim, 1 per sekund —
+//           første gang tar det ca. 15–20 minutter)
 //
 // Kjør:
 //   node tools/import_osm.js            (bare viser hva som blir lagt inn)
@@ -34,22 +36,10 @@ const opt   = k => { const a = args.find(x => x.startsWith(`--${k}=`)); return a
 const UA    = 'habesha-hub-import/1.0 (samuelefriem@gmail.com)';
 
 // ── 1. OpenStreetMap ───────────────────────────────────────
-// Habesha words in English, German, French, Italian, Swedish … ("thiopi" =
-// Ethiopian/Äthiopisch/Éthiopien, "etiop" = Etiopia/Etiopisk)
-const NAMES = 'habesha|habescha|abesha|abyssini|abissini|thiopi|etiop|eritr|erythr|rythr|addis([^o]|$)|asmara|injera|lalibela';
-const nameQuery = bbox => `
-   nwr["shop"]["name"~"${NAMES}",i](${bbox});
-   nwr["amenity"~"^(restaurant|cafe|fast_food|bar|pub|nightclub|clinic|doctors|dentist|pharmacy|money_transfer)$"]["name"~"${NAMES}",i](${bbox});
-   nwr["craft"]["name"~"${NAMES}",i](${bbox});
-   nwr["tourism"~"^(hotel|guest_house|hostel)$"]["name"~"${NAMES}",i](${bbox});`;
-// A name search over a big area is too heavy for the servers → the world in
-// 10° × 20° squares (south,west,north,east), one at a time
-const REGIONS = {};
-for (let s = -50; s < 72; s += 10)
-  for (let w = -180; w < 180; w += 20) REGIONS[`${s},${w}`] = `${s},${w},${Math.min(s + 10, 72)},${w + 20}`;
 const ENDPOINTS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// Places tagged cuisine=ethiopian/eritrean: one small Overpass query
 async function overpass(body) {
   const q = `[out:json][timeout:600];(${body});out center tags;`;
   for (let i = 0; i < 4; i++) {
@@ -66,26 +56,133 @@ async function overpass(body) {
   throw new Error('OpenStreetMap svarer ikke — prøv igjen senere');
 }
 
-// Every finished search is saved in .osm-cache.json, so if a region fails
-// the next run only asks for what is missing. --fresh starts over.
+// Shops, barbers, cafés … with a Habesha name: Nominatim name search per
+// country (a worldwide Overpass name scan is too heavy for the free servers).
+// Nominatim rules: max 1 request per second, a real User-Agent.
+const WORDS = ['habesha', 'abesha', 'ethiopian', 'ethiopia', 'eritrean', 'eritrea',
+  'abyssinia', 'addis', 'asmara', 'injera', 'lalibela', 'axum'];
+const LOCAL_WORDS = {
+  de: ['äthiopisch', 'eritreisch', 'habescha'], at: ['äthiopisch', 'eritreisch', 'habescha'],
+  ch: ['äthiopisch', 'eritreisch', 'éthiopien', 'érythréen'], fr: ['éthiopien', 'érythréen'],
+  be: ['éthiopien', 'érythréen', 'ethiopisch'], nl: ['ethiopisch', 'eritrees'],
+  lu: ['éthiopien'], ca: ['éthiopien', 'érythréen'], it: ['etiope', 'eritreo', 'etiopico'],
+  no: ['etiopisk', 'eritreisk'], se: ['etiopisk', 'eritreansk'], dk: ['etiopisk', 'eritreisk'],
+  fi: ['etiopialainen'], es: ['etíope'], pt: ['etíope'],
+};
+const COUNTRIES = ['us', 'ca', 'gb', 'ie', 'de', 'at', 'ch', 'fr', 'be', 'nl', 'lu', 'it', 'es', 'pt',
+  'no', 'se', 'dk', 'fi', 'is', 'pl', 'cz', 'gr', 'au', 'nz', 'za', 'ke', 'ug', 'tz', 'rw', 'ss',
+  'sd', 'dj', 'so', 'eg', 'ng', 'gh', 'il', 'lb', 'jo', 'sa', 'ae', 'qa', 'kw', 'bh', 'om', 'tr',
+  'cn', 'in', 'th', 'my', 'jp', 'kr', 'br', 'mx', 'ar',
+  'et', 'er'];
+const NAME_KINDS = {
+  amenity: ['restaurant', 'cafe', 'fast_food', 'bar', 'pub', 'nightclub', 'clinic', 'doctors',
+    'dentist', 'pharmacy', 'money_transfer', 'bureau_de_change', 'ice_cream'],
+  tourism: ['hotel', 'guest_house', 'hostel', 'motel', 'apartment'],
+  shop: null, craft: null,                         // null = every type
+};
+
+async function nominatimSearch(word, cc) {
+  const out = [];
+  let exclude = [];
+  for (let page = 0; page < 4; page++) {            // max 4 × 40 hits per word + country
+    await sleep(1100);
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&extratags=1` +
+      `&limit=40&countrycodes=${cc}&q=${encodeURIComponent(word)}` +
+      (exclude.length ? `&exclude_place_ids=${exclude.join(',')}` : '');
+    let r;
+    for (let tryNo = 0; tryNo < 3; tryNo++) {
+      try { r = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(30000) }); break; }
+      catch (_) { await sleep(5000); }
+    }
+    if (!r || !r.ok) throw new Error(`Nominatim ${r ? r.status : 'svarer ikke'}`);
+    const hits = await r.json();
+    out.push(...hits);
+    if (hits.length < 40) break;
+    exclude = [...exclude, ...hits.map(h => h.place_id)];
+  }
+  return out;
+}
+
+// Nominatim answer → same shape as an Overpass element, so the rest works the same
+function toElement(h) {
+  const a = h.address || {}, x = h.extratags || {};
+  return {
+    type: h.osm_type, id: h.osm_id, lat: +h.lat, lon: +h.lon,
+    tags: {
+      ...x,
+      name: h.name,
+      [h.category]: h.type,
+      'addr:street': a.road || a.pedestrian || a.square,
+      'addr:housenumber': a.house_number,
+      'addr:postcode': a.postcode,
+      'addr:city': a.city || a.town || a.village || a.suburb,
+    },
+  };
+}
+
+// Name matches that are not Habesha businesses (checked by hand)
+const NOT_HABESHA = /ambassador|embassy|ambassade|Addis Car|Addis Informatique|Maison Addis|Addis Matome|Addis Medical|Addis Ababa Courts|Addis Abeba\[r\]|Lalibela par|^Asmara$ .*interior/i;
+
+function isHabeshaBusiness(h, word) {
+  if (!h.name || !h.name.toLowerCase().includes(word.toLowerCase())) return false;
+  if (NOT_HABESHA.test(h.name) || (h.name === 'Asmara' && h.type === 'interior_decoration')) return false;
+  if (!(h.category in NAME_KINDS)) return false;
+  const kinds = NAME_KINDS[h.category];
+  return kinds === null || kinds.includes(h.type);
+}
+
+// Every finished search is saved in .osm-cache.json, so if one fails the
+// next run only asks for what is missing. --fresh starts over.
 const OSM_CACHE = path.join(__dirname, '..', '.osm-cache.json');
 async function loadOsm() {
   let done = {};
   if (!has('fresh')) try { done = JSON.parse(fs.readFileSync(OSM_CACHE, 'utf8')); } catch (_) {}
-  const parts = { 'Etiopisk/eritreisk mat': `nwr["cuisine"~"ethiopian|eritrean",i];` };
-  for (const [name, bbox] of Object.entries(REGIONS)) parts[`Navn: ${name}`] = nameQuery(bbox);
+  const save = () => fs.writeFileSync(OSM_CACHE, JSON.stringify(done));
   const failed = [];
-  for (const [name, q] of Object.entries(parts)) {
-    if (done[name]) { console.log(`   ✔ ${name}: ${done[name].length} (lagret fra før)`); continue; }
-    try {
-      done[name] = await overpass(q);
-      fs.writeFileSync(OSM_CACHE, JSON.stringify(done));
-      console.log(`   ✔ ${name}: ${done[name].length}`);
-    } catch (e) { failed.push(name); console.log(`   ✖ ${name}: ${e.message}`); }
+
+  const CUISINE = 'Etiopisk/eritreisk mat';
+  if (done[CUISINE]) console.log(`   ✔ ${CUISINE}: ${done[CUISINE].length} (lagret fra før)`);
+  else {
+    try { done[CUISINE] = await overpass(`nwr["cuisine"~"ethiopian|eritrean",i];`); save(); console.log(`   ✔ ${CUISINE}: ${done[CUISINE].length}`); }
+    catch (e) { failed.push(CUISINE); console.log(`   ✖ ${CUISINE}: ${e.message}`); }
   }
-  if (failed.length) console.log(`\n⚠️  ${failed.length} søk feilet (${failed.join(', ')}) — kjør på nytt senere for å hente dem.`);
+
+  let searches = 0, found = 0;
+  for (const cc of COUNTRIES) {
+    // In Ethiopia/Eritrea almost every name contains "Addis", "Ethiopia" … — only clear Habesha words there
+    // In Ethiopia/Eritrea almost every name says "Addis"/"Ethiopia"; in France, Ghana and
+    // South Africa "Addis" is an ordinary name → skip those words there
+    const words = (cc === 'et' || cc === 'er') ? ['habesha', 'injera']
+      : [...WORDS, ...(LOCAL_WORDS[cc] || [])].filter(w => !(w === 'addis' && ['fr', 'gh', 'za'].includes(cc)));
+    let inCountry = 0;
+    for (const w of words) {
+      const key = `Navn: ${cc} ${w}`;
+      if (!done[key]) {
+        try {
+          done[key] = (await nominatimSearch(w, cc)).filter(h => isHabeshaBusiness(h, w)).map(toElement);
+          save();
+          searches++;
+        } catch (e) { failed.push(key); continue; }
+      }
+      inCountry += done[key].length;
+    }
+    found += inCountry;
+    console.log(`   ✔ ${cc.toUpperCase()}: ${inCountry} treff`);
+  }
+  console.log(`   (${searches} nye søk, ${found} navnetreff totalt)`);
+  if (failed.length) console.log(`\n⚠️  ${failed.length} søk feilet — kjør på nytt senere for å hente dem: ${failed.slice(0, 10).join(', ')}`);
+
   const all = new Map();
-  for (const els of Object.values(done)) for (const e of els) all.set(`${e.type}_${e.id}`, e);
+  for (const [key, els] of Object.entries(done)) {
+    if (/^Navn: -?\d/.test(key)) continue;          // old grid searches (replaced)
+    if (/^Navn: (fr|gh|za) addis$/.test(key)) continue;
+    for (const e of els) {
+      const t = e.tags || {};
+      if (key.startsWith('Navn: ') && (NOT_HABESHA.test(t.name || '') ||
+          (t.name === 'Asmara' && t.shop === 'interior_decoration'))) continue;
+      all.set(`${e.type}_${e.id}`, e);
+    }
+  }
   return [...all.values()];
 }
 
@@ -98,6 +195,8 @@ function category(t) {
   if (['clinic', 'doctors', 'dentist', 'pharmacy'].includes(a)) return 'Clinic';
   if (['hairdresser', 'beauty'].includes(s) || t.craft === 'hairdresser') return 'Barber';
   if (['hotel', 'guest_house', 'hostel'].includes(t.tourism)) return 'Hotel';
+  if (s === 'travel_agency') return 'Other';
+  if (t.craft === 'caterer') return 'Restaurant';
   if (s) return 'Shop';
   if (t.cuisine) return 'Restaurant';
   return 'Other';
@@ -205,7 +304,7 @@ async function run() {
   const claimed = new Set(existing.filter(d => d.id.startsWith('osm_') &&
     (d.data().ownerId || d.data().status === 'rejected')).map(d => d.id));
 
-  const docs = [], skipped = [];
+  const docs = [], skipped = [], dupIds = [];
   let lookups = 0;
   for (const e of els) {
     const t = e.tags, lat = e.lat ?? e.center?.lat, lng = e.lon ?? e.center?.lon;
@@ -214,7 +313,7 @@ async function run() {
     if (claimed.has(id)) continue;
     // Same name within 2 km (some old entries only have the city as position)
     const dup = mine.find(b => km(lat, lng, b.lat || 0, b.lng || 0) < 2 && norm(b.name) && norm(b.name) === norm(t.name));
-    if (dup) { skipped.push(`${t.name}  (finnes allerede)`); continue; }
+    if (dup) { skipped.push(`${t.name}  (finnes allerede)`); dupIds.push(id); continue; }
     const cat = category(t);
     let address = osmAddress(t);
     if (!address) { address = await reverseAddress(lat, lng); lookups++; }
@@ -240,12 +339,32 @@ async function run() {
     console.log(`   • [${d.data.category}] ${d.data.name} — ${d.data.address || '(ingen adresse)'}, ${d.data.country}`);
   if (skipped.length) console.log('\n   Hoppet over:\n   ' + skipped.slice(0, 15).join('\n   '));
 
+  const already = new Set(existing.map(d => d.id));
+  const fresh = docs.filter(d => !already.has(d.id)).length;
+  // Imported earlier, but the same place is now also in the app as a real entry → hide the copy
+  const hideDups = dupIds.filter(id => already.has(id) &&
+    existing.find(d => d.id === id).data().status !== 'rejected');
+  console.log(`\n   ${fresh} nye, ${docs.length - fresh} finnes fra før (bare OSM-data oppdateres), ${hideDups.length} dubletter skjules`);
+
   if (!has('write')) { console.log('\nℹ️  Ingenting lagret. Kjør med --write for å lagre i Firestore.'); process.exit(0); }
+  // Already imported: refresh only what comes from OpenStreetMap —
+  // never reset ratings, photos, status or premium.
+  const OSM_FIELDS = ['name', 'category', 'address', 'lat', 'lng', 'country', 'phone', 'website', 'openingHours', 'osmId'];
   for (let i = 0; i < docs.length; i += 400) {
     const batch = db.batch();
-    for (const d of docs.slice(i, i + 400)) batch.set(db.collection('businesses').doc(d.id), d.data, { merge: true });
+    for (const d of docs.slice(i, i + 400)) {
+      const ref = db.collection('businesses').doc(d.id);
+      if (already.has(d.id)) batch.update(ref, Object.fromEntries(OSM_FIELDS.map(k => [k, d.data[k]])));
+      else batch.set(ref, d.data);
+    }
     await batch.commit();
     console.log(`   💾 ${Math.min(i + 400, docs.length)}/${docs.length} lagret`);
+  }
+  if (hideDups.length) {
+    const batch = db.batch();
+    for (const id of hideDups) batch.update(db.collection('businesses').doc(id), { status: 'rejected', hiddenReason: 'duplicate' });
+    await batch.commit();
+    console.log(`   🙈 ${hideDups.length} dubletter skjult`);
   }
   console.log('\n🎉 Ferdig!');
   process.exit(0);
