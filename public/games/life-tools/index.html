@@ -97,6 +97,9 @@ h2{font-size:1.15rem;margin:0}
 #unlockBox input{width:100%;box-sizing:border-box;margin:12px 0 8px;padding:14px;border-radius:12px;border:1px solid #2b3a4a;background:#0e141a;color:#fff;font-size:18px;letter-spacing:2px;text-transform:uppercase}
 #unlockBox .btn{display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;margin-top:8px}
 #unlockBox .wa{background:#25D366;color:#06210f}
+#unlockBox .pay{background:#D4AF37;color:#1A1200}
+#unlockBox .ub-sec{border:1px solid #2b3a4a;border-radius:14px;padding:12px;margin:10px 0}
+#unlockBox .ub-sec p{margin:6px 0}
 </style>
 
 <style>
@@ -176,17 +179,7 @@ const Q=[
 ["ሸሞንተ-ኩርናዕ ቀይሕ ምልክት «STOP» እንታይ ማለት እዩ?",["ቀስ ኢልካ ሕለፍ","ምሉእ ብምሉእ ደው በል፡ ድሕሪኡ ቅድሚ ሃብ","ቀንዲ ጽርግያ እዩ","መኪና ምቕማጥ ኣይፍቀድን"],1,"ኣብ STOP ምሉእ ብምሉእ ደው ክትብል ኣለካ፡ ድሕሪኡ ንኹሉ ትራፊክ ቅድሚ ሃቦ።"],
 ["ብጫ ኣርባዕተ-ኩርናዕ ምልክት ምስ ጻዕዳ ዶብ እንታይ ማለት እዩ?",["ኣብ ቀንዲ ጽርግያ ኣለኻ","ቅድሚ ሃብ","ስራሕ ጽርግያ","መዕረፊ ኣውቶቡስ"],0,"ኣብ ቀንዲ ጽርግያ ኣለኻ፡ ካብ ጎድናዊ ጽርግያታት ዝመጽኡ ቅድሚ ክህቡኻ ኣለዎም።"],
 ["እቲ ብጫ ኣርባዕተ-ኩርናዕ ምልክት ብጸሊም መስመር ተሰሪዙ እንተርኢኻ እንታይ ማለት እዩ?",["ቀንዲ ጽርግያ ይጅምር","ቀንዲ ጽርግያ ተወዲኡ","ጽርግያ ተዓጽዩ","ፍጥነት 50"],1,"ቀንዲ ጽርግያ ተወዲኡ ማለት እዩ፡ ሕጊ የማን ደጊሙ ይሰርሕ።"],
-["ሰማያዊ ክቢ ምልክት ብሓፈሻ እንታይ የርኢ?",["ክልከላ","ግዴታ (ክትገብሮ ዘለካ)","ሓደጋ","ሓበሬታ ጥራይ"],1,"ሰማያዊ ክቢ ምልክታት ግዴታ የርእዩ፡ ንኣብነት «ንየማን ጥራይ ኪድ»።"],
-["ቀይሕ ዶብ ዘለዎ ክቢ ምልክት ብሓፈሻ እንታይ የርኢ?",["ክልከላ","ግዴታ","ሓበሬታ","ቀንዲ ጽርግያ"],0,"ቀይሕ ዶብ ዘለዎም ክቢ ምልክታት ክልከላ የርእዩ፡ ንኣብነት «ምእታው ኣይፍቀድን»።"],
-["ሰለስተ-ኩርናዕ ምልክት ጫፉ ንላዕሊ ምስ ቀይሕ ዶብ እንታይ ዓይነት ምልክት እዩ?",["ምልክት ሓደጋ (ተጠንቀቕ)","ምልክት ግዴታ","ምልክት ክልከላ","ምልክት መንገዲ"],0,"እዚ ምልክት ሓደጋ እዩ፡ ኣብ ቅድሜኻ ሓደጋ ከም ዘሎ ይሕብር።"],
-["ናብ ሮቶንዳ ክትኣቱ ከለኻ መን ቅድሚ ኣለዎ?",["ንስኻ","እቶም ድሮ ኣብ ሮቶንዳ ዘለዉ","ካብ የማን ዝኣትዉ","ዝዓበየ መኪና"],1,"ኣብ ሮቶንዳ ዘለዉ መካይን ቅድሚ ኣለዎም፡ ንስኻ ተጸበ።"],
-["ካብ ሮቶንዳ ክትወጽእ ከለኻ እንታይ ትገብር?",["ዋላ ሓንቲ","ናብ የማን ፍረቻ ትህብ","ናብ ጸጋም ፍረቻ ትህብ","ጡሩምባ ትህብ"],1,"ክትወጽእ ከለኻ ናብ የማን ፍረቻ ሃብ፡ ካልኦት ክፈልጡ።"],
-["ምስቲ ኣብ ቅድሜኻ ዘሎ መኪና ክንደይ ርሕቀት ክትሕሉ ይምከር?",["1 ካልኢት","ብውሑዱ 3 ካልኢት","10 ሜትሮ ጥራይ","ርሕቀት ኣየድልን"],1,"«ሕጊ 3 ካልኢት»፡ ኣብ ዝናብ ወይ በረድ ድማ ዝያዳ።"],
-["ብሓፈሻ ንመኪና ብኣየናይ ጎድኒ ኢኻ ትሓልፎ?",["ብየማን","ብጸጋም","ብዝኾነ ጎድኒ","ብመንገዲ እግረኛ"],1,"ብሓፈሻ ብጸጋም ኢኻ ትሓልፍ።"],
-["ኣብ ወይ ቅድሚ መሳገሪ እግረኛ ንመኪና ምሕላፍ ይፍቀድ ድዩ?",["እወ","ኣይፍቀድን","ለይቲ ጥራይ","ቀልጢፍካ እንተኼድካ"],1,"ኣብ ወይ ቅድሚ መሳገሪ እግረኛ ንመኪና ምሕላፍ ኣይፍቀድን።"],
-["ቅድሚ መሳገሪ እግረኛ ኣብ ውሽጢ ክንደይ ሜትሮ መኪና ፓርክ ምግባር ኣይፍቀድን?",["1 ሜትሮ","5 ሜትሮ","20 ሜትሮ","50 ሜትሮ"],1,"ቅድሚ መሳገሪ እግረኛ ኣብ ውሽጢ 5 ሜትሮ መኪና ፓርክ ኣይትግበር።"],
-["ኣብ ጽርግያ ናይ 60 km/h ወይ ትሕቲኡ፡ ኣውቶቡስ ካብ መዕረፊ ክወጽእ ፍረቻ እንተሃበ እንታይ ትገብር?",["ትሓልፎ","ክወጽእ ተሕልፎ","ጡሩምባ ትህብ","ፍጥነት ትውስኽ"],1,"ኣብ ጽርግያታት 60 km/h ወይ ትሕቲኡ፡ ካብ መዕረፊ ዝወጽእ ኣውቶቡስ ክትሕልፎ ኣለካ።"],
-["ትራም ኣብ ጽርግያ ምስ ትራኸብ፡ ብሓፈሻ መን ቅድሚ ኣለዎ?",["መኪና","ትራም","እቲ ዝቐልጠፈ","ዋላ ሓደ"],1,"ብሓፈሻ ንትራም ቅድሚ ክትህቦ ኣለካ።"]
+["ሰማያዊ ክቢ ምልክት ብሓፈሻ እንታይ የርኢ?",["ክልከላ","ግዴታ (ክትገብሮ ዘለካ)","ሓደጋ","ሓበሬታ ጥራይ"],1,"ሰማያዊ ክቢ ምልክታት ግዴታ የርእዩ፡ ንኣብነት «ንየማን ጥራይ ኪድ»።"]
 ];
 const FREE_Q=50;
 
@@ -431,7 +424,7 @@ function buyOld(k,msgEl){
   if(msgEl)msgEl.textContent="ክፍሊት ኣብ ውሽጢ ኣፕ ሓበሻ ሃብ ጥራይ ይሰርሕ። · ክፍያ በሐበሻ ሀብ አፕ ውስጥ ብቻ ይሰራል።"}
 
 /* ---------- unlock with a code (sent on WhatsApp) ---------- */
-const WA_NUMBER="4796988155", PRO_TOTAL=450, IN_APP_CH=()=>window.HabeshaApp&&typeof HabeshaApp.postMessage==="function";
+const WA_NUMBER="4797374482", PRO_RULES=275, IN_APP_CH=()=>window.HabeshaApp&&typeof HabeshaApp.postMessage==="function";
 const WA_TEXT={theory_pro:"ሰላም! ኣብ Habesha Hub 450 ተወሳኺ ሕቶታት ቲዮሪ መንጃ ፍቓድ ክኸፍት እደሊ። Hello! I want to unlock the 450 extra driving theory questions in Habesha Hub.",
   lang_pro:"ሰላም! ኣብ Habesha Hub ተወሳኺ ትምህርቲ ቋንቋ ክኸፍት እደሊ። Hello! I want to unlock the extra language topics in Habesha Hub."};
 function waUrl(k){return "https://wa.me/"+WA_NUMBER+"?text="+encodeURIComponent(WA_TEXT[k]||WA_TEXT.theory_pro)}
@@ -439,14 +432,20 @@ function buy(k){openUnlock(k)}
 function openUnlock(k){closeUnlock();const d=document.createElement("div");d.id="unlockBox";
   d.innerHTML=`<div class="ub-in"><button class="ub-x" aria-label="close">✕</button>
    <h3>🔓 ክፈት · Unlock</h3>
-   <p class="muted">1. ብ WhatsApp ርኸበና፡ ኮድ ክንሰደልካ ኢና።<br>2. ኮድ ኣብዚ ኣእትዎ። ኮድ ንሓደ ቁጽሪ ተሌፎን ጥራይ ይሰርሕ።</p>
+   <div class="ub-sec"><b>🇪🇺 ኣብ ኤውሮጳ · Europe</b>
+   <p class="muted">ኣብ ኣፕ ብ Google Play / App Store ክፈል። ብቕጽበት ይኽፈት። · Pay in the app, unlocks instantly.</p>
+   <button class="btn pay" id="ubPay">💳 ክፈል · Pay ${PRICE[k]||""}</button></div>
+   <div class="ub-sec"><b>🌍 ኣብ ኣፍሪቃ · Africa</b>
+   <p class="muted">1. ብ WhatsApp (+47 973 74 482) ርኸበና፡ ኮድ ክንሰደልካ ኢና።<br>2. ኮድ ኣብዚ ኣእትዎ። ኮድ ንሓደ ቁጽሪ ተሌፎን ጥራይ ይሰርሕ።</p>
    <a class="btn wa" id="ubWa" href="${waUrl(k)}" target="_blank" rel="noopener">💬 WhatsApp</a>
    <input id="ubCode" maxlength="14" placeholder="ኮድ · Code (e.g. HH7K3P92)" autocomplete="one-time-code" autocapitalize="characters">
    <button class="btn" id="ubGo">ክፈት · Unlock</button>
-   <p class="muted" id="ubMsg"></p></div>`;
+   <p class="muted" id="ubMsg"></p></div></div>`;
   document.body.appendChild(d);
   d.querySelector(".ub-x").onclick=closeUnlock;d.onclick=e=>{if(e.target===d)closeUnlock()};
   $("ubWa").onclick=e=>{if(IN_APP_CH()){e.preventDefault();HabeshaApp.postMessage(JSON.stringify({type:"open",url:waUrl(k)}))}};
+  $("ubPay").onclick=()=>{if(IN_APP_CH()){HabeshaApp.postMessage(JSON.stringify({type:"buy",product:k}));$("ubMsg").textContent="…"}
+    else $("ubMsg").textContent="ክፍሊት ኣብ ኣፕ Habesha Hub ጥራይ · Payment works in the Habesha Hub app"};
   $("ubGo").onclick=()=>{const code=$("ubCode").value.trim();if(code.length<6){$("ubMsg").textContent="ኮድ ኣእትው · Enter the code";return}
     if(!IN_APP_CH()){$("ubMsg").textContent="ኮድ ኣብ ኣፕ Habesha Hub ጥራይ ይሰርሕ · Codes work in the Habesha Hub app";return}
     $("ubGo").disabled=true;$("ubMsg").textContent="…";HabeshaApp.postMessage(JSON.stringify({type:"redeem",product:k,code}))}}
@@ -465,8 +464,10 @@ const SIGNQ=buildSignQuestions();
 const ALLQ=[...RULES,...SIGNQ];
 RULES.forEach(x=>x.free=true);SIGNQ.filter((x,i)=>i%7===0).slice(0,20).forEach(x=>x.free=true);
 const FREE_N=ALLQ.filter(x=>x.free).length;
+const PRO_TOTAL=PRO_RULES+SIGNQ.filter(x=>!x.free).length;
 let run=null;
 function pool(cat){const pro=isPro("theory_pro");return ALLQ.map((q,i)=>i).filter(i=>(pro||ALLQ[i].free)&&(!cat||ALLQ[i].cat===cat))}
+const examN=()=>isPro("theory_pro")?45:20, examMaxWrong=()=>isPro("theory_pro")?7:3;
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function drawTheoryHome(){if(run)return;const pro=isPro("theory_pro");
   $("qhead").hidden=true;$("qprog").hidden=true;
@@ -475,7 +476,7 @@ function drawTheoryHome(){if(run)return;const pro=isPro("theory_pro");
    <div class="signrow">${["give","stop","prio","speed50","noEntry","deer"].map(id=>signSVG(id,44)).join("")}</div>
    <button class="btn" data-run="rule" style="text-align:left">📘 ልምምድ ሕግታት<small>${nr} ሕቶታት፡ መልሲ ብቐጥታ ትርኢ</small></button>
    <button class="btn" data-run="sign" style="text-align:left">🚸 ልምምድ ምልክታት<small>${ns} ሕቶታት ብስእሊ ምልክታት</small></button>
-   <button class="btn" data-run="exam" style="text-align:left">📝 ፈተና ከም ናይ ሓቂ<small>45 ሕቶታት፡ ክሳብ 7 ጌጋ ትሓልፍ፡ ውጽኢት ኣብ መወዳእታ</small></button>
+   <button class="btn" data-run="exam" style="text-align:left">📝 ፈተና ከም ናይ ሓቂ<small>${examN()} ሕቶታት፡ ክሳብ ${examMaxWrong()} ጌጋ ትሓልፍ፡ ውጽኢት ኣብ መወዳእታ</small></button>
    <button class="btn ghost" data-run="gallery">📖 ኩሎም ምልክታት ተማሃር (${SIGNS.length})</button>
    ${pro?"":`<div class="lock"><div><b>🔒 ${PRO_TOTAL} ተወሳኺ ሕቶታት</b><p class="muted">ምልክታት፡ መብራህቲ፡ መስመራት ጽርግያ፡ ቀዳማይ ረድኤት፡ ኣውቶስትራዳ፡ ነጥብታት</p></div><button class="btn" data-buy="theory_pro">🔓 ክፈት ብኮድ</button></div><p class="muted" id="buyMsg"></p>`}`}
 $("qbody").addEventListener("click",e=>{
@@ -485,7 +486,7 @@ function gallery(){run={mode:"gallery"};$("qhead").hidden=true;$("qprog").hidden
   const groups=[["warn","ምልክታት ሓደጋ"],["prio","ምልክታት ቅድሚ"],["speed","ፍጥነት"],["prohib","ምልክታት ክልከላ"],["mand","ምልክታት ግዴታ"],["info","ምልክታት ሓበሬታ"],["light","መብራህቲ ትራፊክ"],["mark","መስመራት ጽርግያ"]];
   $("qbody").innerHTML=`<button class="btn ghost" id="gBack">← ተመለስ</button>`+groups.map(([g,n])=>`<h3 style="margin:6px 0 0">${n}</h3><div class="gallery">${SIGNS.filter(s=>s[4]===g).map(s=>`<div class="gitem">${signSVG(s[0],72)}<span>${esc(s[3])}</span></div>`).join("")}</div>`).join("");
   $("gBack").onclick=()=>{run=null;drawTheoryHome()}}
-function startRun(mode){const p=shuffle(pool(mode==="exam"?null:mode));run={mode,order:mode==="exam"?p.slice(0,45):p,i:0,score:0,wrong:0,answered:false,answers:[]};showQ()}
+function startRun(mode){const p=shuffle(pool(mode==="exam"?null:mode));run={mode,order:mode==="exam"?p.slice(0,examN()):p,i:0,score:0,wrong:0,answered:false,answers:[]};showQ()}
 const optHTML=(o,i)=>typeof o==="object"?`<button data-i="${i}" class="sopt">${signSVG(o.s,84)}</button>`:`<button data-i="${i}">${esc(o)}</button>`;
 function showQ(){const n=run.order.length;
   if(run.i>=n){finish();return}
@@ -504,7 +505,7 @@ function showQ(){const n=run.order.length;
   $("quit").onclick=()=>{run=null;drawTheoryHome()}}
 function finish(){const n=run.order.length;$("qp").style.width="100%";$("qs").textContent="";$("qn").textContent="";
   let html;
-  if(run.mode==="exam"){const pass=run.wrong<=7;
+  if(run.mode==="exam"){const pass=run.wrong<=examMaxWrong();
     const wrongList=run.answers.filter(a=>a.i!==ALLQ[a.q].c).map(a=>{const q=ALLQ[a.q],right=q.o[q.c];
       return `<li>${q.img?signSVG(q.img,48):""}<b>${esc(q.q)}</b><br><span class="muted">✓ ${typeof right==="object"?signSVG(right.s,40):esc(right)} ${esc(q.ex)}</span></li>`}).join("");
     html=`<div class="result"><b>${run.score}/${n}</b><p class="q">${pass?"ሓሊፍካ! 🎉":"ኣይሓለፍካን"} · ${run.wrong} ጌጋ (ክሳብ 7 ይፍቀድ)</p></div>${wrongList?`<h3 style="margin:0">ዝተጋገኻዮም</h3><ul class="wrongs">${wrongList}</ul>`:""}`}

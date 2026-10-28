@@ -521,3 +521,97 @@ exports.redeemCode = onCall({ maxInstances: 5 }, async (req) => {
     return { product: c.product };
   });
 });
+
+
+// ═══════════════════════════════════════════════════════════
+// verifyPurchase — unlock after a Google Play / App Store purchase.
+// The app sends the purchase; we ask Google/Apple if it is real, then
+// set users/{uid}.unlocks[product]. One purchase unlocks ONE account
+// (purchases/{id} remembers who used it).
+//
+// Setup (once):
+//  Android: Play Console → Setup → API access → link the Google Cloud
+//           project, grant the Cloud Functions service account
+//           "View financial data" + "Manage orders".
+//  iOS:     App Store Connect → Users and Access → Integrations →
+//           In-App Purchase → create a key, then in Google Cloud Secret
+//           Manager create APPSTORE_KEY_ID, APPSTORE_ISSUER_ID and
+//           APPSTORE_KEY_P8 (the .p8 file text).
+// ═══════════════════════════════════════════════════════════
+const crypto = require('crypto');
+const { GoogleAuth } = require('google-auth-library');
+const ANDROID_PACKAGE = 'no.habesha.hub';
+const IOS_BUNDLES = ['no.habesha.hub', 'com.example.habeshaHub'];
+const PROJECT = 'habesha-hub-7bd1d';
+
+async function googleToken(scope) {
+  const client = await new GoogleAuth({ scopes: [scope] }).getClient();
+  return (await client.getAccessToken()).token;
+}
+
+async function androidPurchaseOk(productId, token) {
+  const t = await googleToken('https://www.googleapis.com/auth/androidpublisher');
+  const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${ANDROID_PACKAGE}` +
+    `/purchases/products/${encodeURIComponent(productId)}/tokens/${encodeURIComponent(token)}`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${t}` } });
+  if (!r.ok) { console.error('androidpublisher', r.status, await r.text()); return null; }
+  const p = await r.json();
+  return p.purchaseState === 0 ? { id: 'a_' + (p.orderId || crypto.createHash('sha256').update(token).digest('hex')) } : null;
+}
+
+async function secret(name) {
+  const t = await googleToken('https://www.googleapis.com/auth/cloud-platform');
+  const r = await fetch(`https://secretmanager.googleapis.com/v1/projects/${PROJECT}/secrets/${name}/versions/latest:access`,
+    { headers: { Authorization: `Bearer ${t}` } });
+  if (!r.ok) return null;
+  return Buffer.from((await r.json()).payload.data, 'base64').toString('utf8');
+}
+
+const b64url = b => Buffer.from(b).toString('base64').replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+async function iosPurchaseOk(productId, transactionId) {
+  const [kid, iss, p8] = await Promise.all([secret('APPSTORE_KEY_ID'), secret('APPSTORE_ISSUER_ID'), secret('APPSTORE_KEY_P8')]);
+  if (!kid || !iss || !p8) throw new HttpsError('failed-precondition', 'ios-not-configured');
+  const now = Math.floor(Date.now() / 1000);
+  for (const bid of IOS_BUNDLES) {
+    const head = b64url(JSON.stringify({ alg: 'ES256', kid, typ: 'JWT' }));
+    const body = b64url(JSON.stringify({ iss, iat: now, exp: now + 600, aud: 'appstoreconnect-v1', bid }));
+    const sig = crypto.sign('sha256', Buffer.from(`${head}.${body}`), { key: p8, dsaEncoding: 'ieee-p1363' });
+    const jwt = `${head}.${body}.${b64url(sig)}`;
+    for (const host of ['api.storekit.itunes.apple.com', 'api.storekit-sandbox.itunes.apple.com']) {
+      const r = await fetch(`https://${host}/inApps/v1/transactions/${encodeURIComponent(transactionId)}`,
+        { headers: { Authorization: `Bearer ${jwt}` } });
+      if (!r.ok) continue;
+      const signed = (await r.json()).signedTransactionInfo;
+      // Came straight from Apple over HTTPS → read the payload
+      const info = JSON.parse(Buffer.from(signed.split('.')[1], 'base64').toString('utf8'));
+      if (info.productId === productId && IOS_BUNDLES.includes(info.bundleId) && !info.revocationDate) {
+        return { id: 'i_' + (info.originalTransactionId || info.transactionId) };
+      }
+      return null;
+    }
+  }
+  return null;
+}
+
+exports.verifyPurchase = onCall({ maxInstances: 5 }, async (req) => {
+  const uid = req.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'login');
+  const { platform, productId, token, transactionId } = req.data || {};
+  if (!PRODUCTS.includes(productId)) throw new HttpsError('invalid-argument', 'product');
+
+  let ok = null;
+  if (platform === 'android' && typeof token === 'string') ok = await androidPurchaseOk(productId, token);
+  else if (platform === 'ios' && typeof transactionId === 'string') ok = await iosPurchaseOk(productId, transactionId);
+  else throw new HttpsError('invalid-argument', 'platform');
+  if (!ok) throw new HttpsError('permission-denied', 'not-paid');
+
+  const db = getFirestore();
+  const ref = db.collection('purchases').doc(ok.id);
+  await db.runTransaction(async (tx) => {
+    const s = await tx.get(ref);
+    if (s.exists && s.data().uid !== uid) throw new HttpsError('already-exists', 'used');
+    if (!s.exists) tx.set(ref, { uid, productId, platform, at: UnlockFV.serverTimestamp() });
+    tx.set(db.collection('users').doc(uid), { unlocks: { [productId]: true } }, { merge: true });
+  });
+  return { product: productId };
+});

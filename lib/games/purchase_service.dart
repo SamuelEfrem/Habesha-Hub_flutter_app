@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io' show Platform;
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -62,16 +64,38 @@ class PurchaseService {
   Future<void> _onPurchases(List<PurchaseDetails> list) async {
     for (final p in list) {
       if (p.status == PurchaseStatus.purchased || p.status == PurchaseStatus.restored) {
-        // NOTE: for real protection, verify p.verificationData on your server
-        // (for example a Firebase Cloud Function) before unlocking.
-        await _markOwned(p.productID);
-        onUnlocked?.call(p.productID);
+        // The server asks Google/Apple if the purchase is real and unlocks the account
+        final error = await _verifyOnServer(p);
+        if (error == null) {
+          await _markOwned(p.productID);
+          onUnlocked?.call(p.productID);
+        } else {
+          onError?.call(error);
+        }
       } else if (p.status == PurchaseStatus.error) {
         onError?.call(p.error?.message ?? 'Purchase failed');
       }
       if (p.pendingCompletePurchase) {
         await _iap.completePurchase(p);
       }
+    }
+  }
+
+  Future<String?> _verifyOnServer(PurchaseDetails p) async {
+    try {
+      await FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('verifyPurchase').call({
+        'productId': p.productID,
+        'platform': Platform.isIOS ? 'ios' : 'android',
+        if (Platform.isAndroid) 'token': p.verificationData.serverVerificationData,
+        if (Platform.isIOS) 'transactionId': p.purchaseID,
+      });
+      return null;
+    } on FirebaseFunctionsException catch (e) {
+      if (e.message == 'login') return 'Please log in first, then tap "Restore purchases".';
+      if (e.message == 'used') return 'This purchase is already used by another account.';
+      return 'Could not confirm the payment (${e.message}). Tap "Restore purchases" to try again.';
+    } catch (e) {
+      return 'Could not confirm the payment. Tap "Restore purchases" to try again.';
     }
   }
 

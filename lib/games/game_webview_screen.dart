@@ -5,6 +5,8 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../screens/auth_screen.dart';
 import 'purchase_service.dart';
 import 'unlock_service.dart';
 
@@ -53,9 +55,8 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
       platform.setMediaPlaybackRequiresUserGesture(false);
     }
 
-    _purchases.onUnlocked = (id) {
-      _controller.runJavaScript("window.habeshaUnlock && window.habeshaUnlock('$id')");
-    };
+    // After a confirmed purchase: send the paid questions + unlock to the page
+    _purchases.onUnlocked = (id) => _sendUnlocked();
     _purchases.onError = (msg) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     };
@@ -67,7 +68,7 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
       final product = data['product'];
       final type = data['type'];
       if (type == 'buy' && product is String && PurchaseService.productIds.contains(product)) {
-        _purchases.buy(product);
+        _buy(product);
       } else if (type == 'open' && data['url'] is String) {
         _openExternal(data['url'] as String);
       } else if (type == 'redeem' && data['code'] is String) {
@@ -76,6 +77,18 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
     } catch (_) {
       // ignore messages we don't understand
     }
+  }
+
+  // A purchase is tied to an account, so log in first
+  Future<void> _buy(String product) async {
+    var user = FirebaseAuth.instance.currentUser;
+    if (user == null || user.isAnonymous) {
+      await Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const AuthScreen(returnOnLogin: true)));
+      user = FirebaseAuth.instance.currentUser;
+      if (user == null || user.isAnonymous) return;
+    }
+    await _purchases.buy(product);
   }
 
   // Only WhatsApp links leave the app (the page asks to contact the admin)
