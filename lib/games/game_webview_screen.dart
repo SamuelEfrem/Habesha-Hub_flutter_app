@@ -33,6 +33,7 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
 
     final PlatformWebViewControllerCreationParams params =
         WebViewPlatform.instance is WebKitWebViewPlatform
@@ -158,6 +159,7 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
     _purchases.onUnlocked = null;
     _purchases.onError = null;
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     super.dispose();
   }
 

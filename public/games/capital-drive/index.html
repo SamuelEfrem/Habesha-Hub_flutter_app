@@ -69,6 +69,32 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
 .app .stage{aspect-ratio:auto;height:calc(100dvh - 120px);min-height:300px}
 </style>
 <script>if(new URLSearchParams(location.search).get("app")==="1")document.documentElement.classList.add("app")</script>
+<style>
+/* Controls: bigger and higher up, out of the phone's gesture area */
+.pedals{bottom:calc(26px + env(safe-area-inset-bottom,0px))!important;align-items:flex-end}
+.pedals button{width:74px!important;height:74px!important;font-size:1.6rem!important}
+.wheelpad{pointer-events:auto;width:150px;height:150px;border-radius:50%;display:grid;place-items:center;touch-action:none;
+  background:radial-gradient(circle,rgba(0,0,0,.25),rgba(0,0,0,.45));border:2px solid rgba(255,255,255,.3)}
+.wheel{font-size:5.2rem;line-height:1;color:#fff;opacity:.9;transition:transform .05s;pointer-events:none;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.hornb{bottom:calc(40px + env(safe-area-inset-bottom,0px))!important}
+.speedo{bottom:calc(122px + env(safe-area-inset-bottom,0px))!important}
+/* Tap the game: hide the top bar for more space */
+.focus .top,.focus .cities{display:none!important}
+.focus.app .stage{height:calc(100dvh - 12px)!important}
+.tapHint{position:absolute;left:50%;top:8px;transform:translateX(-50%);font-size:.7rem;color:#fff;opacity:.6;pointer-events:none;text-shadow:0 1px 4px #000}
+/* Sideways phone: the game uses the whole screen */
+@media (orientation:landscape) and (max-height:560px){
+  .top,.cities{display:none!important}
+  .app .stage,.stage{height:calc(100dvh - 8px)!important;aspect-ratio:auto!important;border-radius:0}
+  .wrap{padding:0!important;max-width:none!important}
+  .wheelpad{width:130px;height:130px}.wheel{font-size:4.4rem}
+  .pedals{bottom:calc(12px + env(safe-area-inset-bottom,0px))!important}
+  .speedo{bottom:110px!important}
+}
+/* Crash flash */
+.hitflash{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle,transparent 40%,rgba(255,0,0,.45));opacity:0;transition:opacity .4s}
+.hitflash.on{opacity:1;transition:none}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -80,11 +106,11 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
       <span class="c"><span id="hc">–</span><div class="arrow" id="arrow">↑</div></span>
       <span id="hr">–</span>
     </div>
-    <div class="count" id="count" hidden></div>
+    <div class="count" id="count" hidden></div><div class="hitflash" id="hitflash"></div><div class="tapHint" id="tapHint">⇕</div>
     <canvas class="mini" id="mini" width="220" height="220" aria-label="Map"></canvas>
     <div class="speedo"><b id="kmh">0</b><span>km/h</span></div>
     <div class="pedals">
-      <div><button id="bL" aria-label="Steer left">◀</button><button id="bR" aria-label="Steer right">▶</button></div>
+      <div class="wheelpad" id="wheel" aria-label="Steering wheel: drag left or right"><div class="wheel" id="wheelK">☸</div><button id="bL" hidden></button><button id="bR" hidden></button></div>
       <div><button id="bN" aria-label="Boost">⚡</button><button id="bB" aria-label="Brake">■</button><button id="bG" aria-label="Gas">▲</button></div>
     </div>
     <button class="hornb" id="horn" aria-label="Horn">📯</button>
@@ -116,11 +142,15 @@ let cityKey="asmara";
 
 /* ---------- renderer ---------- */
 const stage=document.getElementById("stage");
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});
-renderer.setPixelRatio(Math.min(1.75,window.devicePixelRatio||1));
+// Phones: no MSAA, simpler shadows, fewer people/cars, and the resolution adapts to the frame rate
+const MOBILE=matchMedia("(pointer:coarse)").matches;
+const renderer=new THREE.WebGLRenderer({antialias:!MOBILE,powerPreference:"high-performance"});
+const PR_MAX=Math.min(MOBILE?1.5:1.75,window.devicePixelRatio||1);
+let PR=MOBILE?Math.min(1,PR_MAX):PR_MAX;
+renderer.setPixelRatio(PR);
 renderer.outputEncoding=THREE.sRGBEncoding;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=MOBILE?THREE.PCFShadowMap:THREE.PCFSoftShadowMap;
 stage.prepend(renderer.domElement);
 const pmrem=new THREE.PMREMGenerator(renderer);
 const cam=new THREE.PerspectiveCamera(60,1,.1,1500);
@@ -246,7 +276,7 @@ function build(key){
   scene.fog=new THREE.Fog(C.fog,C.fogD[0],C.fogD[1]);
   hemi=new THREE.HemisphereLight(C.night?0x6f86b8:0xdfeaff,0x5a4a3a,C.night?.35:.55);scene.add(hemi);
   sun=new THREE.DirectionalLight(C.night?0x8fa8e8:(C.elev<20?0xffc98a:0xfff0d8),C.night?.25:4.2);
-  sun.userData.dir=sunDir.clone();sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-.0004;sun.shadow.normalBias=.02;
+  sun.userData.dir=sunDir.clone();sun.castShadow=true;sun.shadow.mapSize.set(MOBILE?1024:2048,MOBILE?1024:2048);sun.shadow.bias=-.0004;sun.shadow.normalBias=.02;
   Object.assign(sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:1,far:400});scene.add(sun);scene.add(sun.target);
   // ground
   const gm=STD(C.ground,{roughness:1,map:TEX.ground});const g=new THREE.Mesh(new THREE.PlaneGeometry(1400,1400),gm);g.rotation.x=-Math.PI/2;g.receiveShadow=true;world.add(g);
@@ -292,7 +322,7 @@ function build(key){
     m.scale.y=h/55;m.position.set(Math.cos(a)*r,-6,Math.sin(a)*r);world.add(m)}
   // traffic
   traffic=[];
-  for(let n=0;n<28;n++){
+  for(let n=0;n<(MOBILE?16:28);n++){
     const vert=Math.random()<.5,i=Math.floor(Math.random()*(N+1)),dir=Math.random()<.5?1:-1;
     const isBoda=C.boda&&Math.random()<.45;
     const m=isBoda?bodaMesh():carMesh(Math.random()<.5?C.taxi:[0xd9dde2,0x23272e,0x8b1e1e,0x9aa5ad,0xe8e2d0][n%5],!isBoda&&Math.random()<.5);
@@ -393,6 +423,20 @@ function chime(f,dur,vol){const c=audio();if(!c)return;const t=c.currentTime,o=c
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||.18,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+dur);
   o.connect(g);o2.connect(g);g.connect(SND.sfx);o.start(t);o2.start(t);o.stop(t+dur+.05);o2.stop(t+dur+.05)}
 function tone(f,dur,type,vol){chime(f,Math.max(.15,dur),(vol||.15)*.9)}
+// Crash: metal crunch + glass, vibration, red flash, camera shake, damage
+let shake=0,damage=0,smokeT=0;
+function crash(power){const c=audio();shake=Math.min(1,.3+power/25);damage=Math.min(10,damage+power/12);
+  const f=$("hitflash");f.classList.add("on");setTimeout(()=>f.classList.remove("on"),60);
+  if(navigator.vibrate)navigator.vibrate(power>12?[60,40,80]:40);
+  if(!c||!SND.on||!SND.noise)return;const t=c.currentTime;
+  const n=c.createBufferSource();n.buffer=SND.noise;const bp=c.createBiquadFilter();bp.type="lowpass";bp.frequency.value=1800;const g=c.createGain();
+  g.gain.setValueAtTime(Math.min(.9,.3+power/30),t);g.gain.exponentialRampToValueAtTime(.001,t+.45);n.connect(bp).connect(g).connect(c.destination);n.start(t);n.stop(t+.5);
+  const o=c.createOscillator();o.type="square";o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(40,t+.25);const g2=c.createGain();g2.gain.setValueAtTime(.25,t);g2.gain.exponentialRampToValueAtTime(.001,t+.3);o.connect(g2).connect(c.destination);o.start(t);o.stop(t+.32);
+  if(power>14){const gl=c.createBufferSource();gl.buffer=SND.noise;const hp=c.createBiquadFilter();hp.type="highpass";hp.frequency.value=5000;const g3=c.createGain();g3.gain.setValueAtTime(.35,t+.05);g3.gain.exponentialRampToValueAtTime(.001,t+.6);gl.connect(hp).connect(g3).connect(c.destination);gl.start(t+.05);gl.stop(t+.65)}}
+// A short "aah!" when a pedestrian is hit (formant-filtered voice-like sound)
+function ouch(){const c=audio();if(!c||!SND.on)return;const t=c.currentTime,o=c.createOscillator();o.type="sawtooth";o.frequency.setValueAtTime(320,t);o.frequency.linearRampToValueAtTime(220,t+.55);
+  const out=c.createGain();out.gain.setValueAtTime(0,t);out.gain.linearRampToValueAtTime(.3,t+.04);out.gain.exponentialRampToValueAtTime(.001,t+.6);
+  [[750,6],[1200,8]].forEach(([fq,q])=>{const f=c.createBiquadFilter();f.type="bandpass";f.frequency.value=fq;f.Q.value=q;o.connect(f).connect(out)});out.connect(c.destination);o.start(t);o.stop(t+.62)}
 function thud(){const c=audio();if(!c)return;const t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type="sine";
   o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(40,t+.25);g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);
   o.connect(g).connect(SND.sfx);o.start(t);o.stop(t+.32)}
@@ -485,13 +529,16 @@ function personMesh(){const g=new THREE.Group();const sk=STD(SKIN[Math.floor(Mat
   if(Math.random()<.35){const sc=new THREE.Mesh(new THREE.BoxGeometry(.5,.5,.28),STD(0xf6f2ea));sc.position.y=1.25;sc.scale.set(1.05,1,1.05);g.add(sc)}
   g.userData={legs:[leg(-.12),leg(.12)],arms:[arm(-.32),arm(.32)]};return g}
 function addPeople(){people=[];
-  for(let n=0;n<150;n++){const bi=Math.floor(Math.random()*N),bj=Math.floor(Math.random()*N);
+  for(let n=0;n<(MOBILE?60:150);n++){const bi=Math.floor(Math.random()*N),bj=Math.floor(Math.random()*N);
     const cx=roadPos(bi)+CELL/2,cz=roadPos(bj)+CELL/2,m=personMesh();world.add(m);
     people.push({m,cx,cz,r:BLK/2-1.5,t:Math.random()*4,sp:1.1+Math.random()*.7,dir:Math.random()<.5?1:-1,off:0,ph:Math.random()*6})}}
 function perim(p){const s=((p.t%4)+4)%4,side=Math.floor(s),f=s-side,r=p.r-p.off;let x,z,hx,hz;
   if(side===0){x=-r+2*r*f;z=-r;hx=1;hz=0}else if(side===1){x=r;z=-r+2*r*f;hx=0;hz=1}else if(side===2){x=r-2*r*f;z=r;hx=-1;hz=0}else{x=-r;z=r-2*r*f;hx=0;hz=-1}
   return{x:p.cx+x,z:p.cz+z,hx:hx*p.dir,hz:hz*p.dir}}
 function stepPeople(dt,now){people.forEach(p=>{
+  if(p.down>0){p.down-=dt;p.m.rotation.x=-Math.PI/2*Math.min(1,(4-p.down)*4);if(p.down<=0){p.m.rotation.x=0;p.t+=.5}return}
+  const pos0=perim(p);if(Math.hypot(pos0.x-player.x,pos0.z-player.z)<1.5&&Math.abs(player.v)>5){p.down=4;ouch();crash(Math.abs(player.v)*.6);
+    if(mode==="taxi")G.time=Math.max(0,G.time-5);return}
   const pos=perim(p);const near=Math.hypot(pos.x-player.x,pos.z-player.z)<4.5&&Math.abs(player.v)>2;
   p.off+=((near?1.2:0)-p.off)*Math.min(1,dt*5);
   if(!near)p.t+=p.dir*p.sp*dt/(2*p.r);
@@ -663,20 +710,31 @@ addEventListener("keyup",e=>K[e.key.toLowerCase()]=false);
 const P={};[["bL","l"],["bR","r"],["bG","g"],["bB","b"],["bN","n"]].forEach(([id,k])=>{const el=$(id);
   el.addEventListener("pointerdown",e=>{e.preventDefault();audio();P[k]=true;el.classList.add("on");el.setPointerCapture(e.pointerId)});
   ["pointerup","pointercancel","pointerleave"].forEach(ev=>el.addEventListener(ev,()=>{P[k]=false;el.classList.remove("on")}))});
+// Steering wheel: drag left/right from where you touch, like turning a real wheel
+(function(){const pad=$("wheel"),k=$("wheelK");let id=null,x0=0;
+  pad.addEventListener("pointerdown",e=>{e.preventDefault();audio();id=e.pointerId;x0=e.clientX;pad.setPointerCapture(id);P.steer=0});
+  pad.addEventListener("pointermove",e=>{if(e.pointerId!==id)return;const v=Math.max(-1,Math.min(1,(e.clientX-x0)/55));P.steer=v;k.style.transform=`rotate(${v*120}deg)`});
+  const up=e=>{if(e.pointerId!==id)return;id=null;P.steer=null;k.style.transform=""};pad.addEventListener("pointerup",up);pad.addEventListener("pointercancel",up)})();
 function blocked(x,z){if(Math.abs(x)>HALF+5||Math.abs(z)>HALF+5)return true;return buildings.some(b=>Math.abs(x-b.x)<b.w/2+1.2&&Math.abs(z-b.z)<b.d/2+1.2)}
 function resize(){const r=stage.getBoundingClientRect();if(!r.width)return;renderer.setSize(r.width,r.height,false);cam.aspect=r.width/r.height;cam.updateProjectionMatrix()}
 new ResizeObserver(resize).observe(stage);
+// Tap the 3D view (not a button) → hide/show the top bar
+stage.addEventListener("click",e=>{if(e.target.closest("button,.wheelpad,.overlay"))return;document.documentElement.classList.toggle("focus");setTimeout(resize,50)});
 
 /* ---------- main loop ---------- */
 let last=performance.now();
-function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;const C=CITIES[cityKey];
+const FPS={t:0,n:0};
+function adaptQuality(dt){FPS.t+=dt;FPS.n++;if(FPS.t<2)return;const ms=FPS.t/FPS.n*1000;FPS.t=0;FPS.n=0;
+  let np=PR;if(ms>24&&PR>.6)np=Math.max(.6,PR-.2);else if(ms<15&&PR<PR_MAX)np=Math.min(PR_MAX,PR+.1);
+  if(np!==PR){PR=np;renderer.setPixelRatio(PR);resize()}}
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;const C=CITIES[cityKey];adaptQuality(dt);
   if(R&&R.finished==null){const left=R.start-now;$("count").hidden=left<-700;
     if(left>-700)$("count").textContent=left>0?Math.ceil(left/1000):T("go");
     const sec=left>0?Math.ceil(left/1000):0;if(sec>=1&&sec<=3&&!R.said[sec]){R.said[sec]=1;say("count"+sec)}
     if(left<=0&&!R.said.go){R.said.go=1;say("go")}
     if(left<=0)G.frozen=false}
   let gas=false,brk=false,steerIn=0;
-  if(G.on&&!G.frozen&&!(R&&R.finished!=null)){gas=K.arrowup||K.w||P.g;brk=K.arrowdown||K.s||P.b;steerIn=((K.arrowright||K.d||P.r)?1:0)-((K.arrowleft||K.a||P.l)?1:0)}
+  if(G.on&&!G.frozen&&!(R&&R.finished!=null)){gas=K.arrowup||K.w||P.g;brk=K.arrowdown||K.s||P.b;steerIn=P.steer!=null?P.steer:((K.arrowright||K.d||P.r)?1:0)-((K.arrowleft||K.a||P.l)?1:0)}
   if(R&&R.finished!=null&&now-R.start-R.finished>600)$("count").hidden=true;
   const grip=C.snow?.75:1;
   const wantBoost=(K.shift||K.n||P.n)&&G.on&&!G.frozen&&!(R&&R.finished!=null);
@@ -689,7 +747,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;const C=CITIE
   player.steer+=(steerIn-player.steer)*Math.min(1,dt*6);
   player.a+=player.steer*1.8*dt*Math.max(-1,Math.min(1,player.v/8));
   const nx=player.x+Math.sin(player.a)*player.v*dt,nz=player.z-Math.cos(player.a)*player.v*dt;
-  if(!blocked(nx,nz)){player.x=nx;player.z=nz}else{if(Math.abs(player.v)>6)thud();player.v*=-.3}
+  if(!blocked(nx,nz)){player.x=nx;player.z=nz}else{const hit=Math.abs(player.v);if(hit>6)crash(hit);else if(hit>2)thud();player.v*=-.3}
   if(mode==="taxi"&&G.on){G.time-=dt;
     if(Math.hypot(player.x-target.x,player.z-target.z)<5){if(G.pick){G.pick=false;say("pickup")}else{G.score++;G.pick=true;G.time+=12;say("fare")}newTarget()}
     if(G.time<=0){G.on=false;G.time=0;say("finish");showMenu(`<h2>${esc(T("shiftOver",{city:cityName(cityKey)}))}</h2><p>${esc(T("delivered",{n:G.score}))}</p><button class="btn ghost" data-act="taxi">${esc(T("driveAgain"))}</button><button class="btn ghost" data-act="menu">${esc(T("menu"))}</button>`)}}
@@ -708,7 +766,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;const C=CITIE
     if(c.vert){c.m.position.set(roadPos(c.i)+(c.dir<0?off:-off),0,c.t);c.m.rotation.y=c.dir<0?0:Math.PI}
     else{c.m.position.set(c.t,0,roadPos(c.i)+(c.dir>0?off:-off));c.m.rotation.y=c.dir>0?-Math.PI/2:Math.PI/2}
     if(c.m.userData.wheels)c.m.userData.wheels.forEach(w=>w.children.forEach(k=>k.rotation.x+=c.sp*dt/.42));
-    if(G.on&&Math.hypot(c.m.position.x-player.x,c.m.position.z-player.z)<2.6){if(Math.abs(player.v)>4)thud();player.v*=-.4;if(mode==="taxi")G.time=Math.max(0,G.time-2)}});
+    if(G.on&&Math.hypot(c.m.position.x-player.x,c.m.position.z-player.z)<2.6){if(Math.abs(player.v)>4)crash(Math.abs(player.v)+c.sp*.5);player.v*=-.4;if(mode==="taxi")G.time=Math.max(0,G.time-2)}});
   ring.rotation.z+=dt*1.5;ring.position.y=1.2+Math.sin(now/300)*.25;
   if(snow){const p=snow.geometry.attributes.position;for(let i=0;i<p.count;i++){let y=p.getY(i)-5*dt;if(y<0)y=50;p.setY(i,y)}p.needsUpdate=true;snow.position.set(player.x,0,player.z)}
   sun.position.copy(sun.userData.dir).multiplyScalar(150).add(new THREE.Vector3(player.x,0,player.z));sun.target.position.set(player.x,0,player.z);
@@ -719,8 +777,19 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;const C=CITIE
   const tg=mode==="taxi"?target:(R?nextWP(R.done):null);
   $("arrow").style.visibility=tg?"visible":"hidden";
   if(tg){const ang=Math.atan2(tg.x-player.x,-(tg.z-player.z))-player.a;$("arrow").style.transform=`rotate(${ang}rad)`}
+  if(shake>0){shake=Math.max(0,shake-dt*2.2);cam.position.x+=(Math.random()-.5)*shake*.8;cam.position.y+=(Math.random()-.5)*shake*.5}
+  ud.body.rotation.z+=damage*.004;ud.body.position.y=-damage*.012;
+  if(damage>=3){smokeT-=dt;if(smokeT<=0){smokeT=Math.max(.05,.35-damage*.03);puff(player.x+Math.sin(player.a)*1.8,player.z-Math.cos(player.a)*1.8)}}
+  stepPuffs(dt);
   hud(now);
   renderer.render(scene,cam);requestAnimationFrame(loop)}
+// grey smoke puffs from the hood when the car is damaged
+const puffs=[];let puffMat=null;
+function puff(x,z){if(!puffMat){const t=canvasTex(64,64,(g)=>{const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"rgba(90,90,90,.8)");gr.addColorStop(1,"rgba(90,90,90,0)");g.fillStyle=gr;g.fillRect(0,0,64,64)});
+  puffMat=new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false})}
+  const sp=new THREE.Sprite(puffMat.clone());sp.position.set(x,1.3,z);sp.scale.setScalar(1);scene.add(sp);puffs.push({sp,life:1.4})}
+function stepPuffs(dt){for(let i=puffs.length-1;i>=0;i--){const q=puffs[i];q.life-=dt;q.sp.position.y+=dt*1.6;q.sp.scale.setScalar(1+(1.4-q.life)*2.2);q.sp.material.opacity=Math.max(0,q.life/1.4)*.8;
+  if(q.life<=0){scene.remove(q.sp);q.sp.material.dispose();puffs.splice(i,1)}}}
 const startCity=QS.get("city");
 makeShared();setCity(CITIES[startCity]?startCity:"asmara");setLang(lang);mainMenu();ring.visible=false;requestAnimationFrame(loop);
 </script>

@@ -17,6 +17,8 @@ import 'screens/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Portrait app; games allow landscape while they are open
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   await initializeDateFormatting('nb', null);
 

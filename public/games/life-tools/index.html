@@ -498,6 +498,7 @@ function drawTheoryHome(){if(run)return;const pro=isPro("theory_pro");
    <button class="btn" data-run="rule" style="text-align:left">📘 ልምምድ ሕግታት<small>${nr} ሕቶታት፡ መልሲ ብቐጥታ ትርኢ</small></button>
    <button class="btn" data-run="sign" style="text-align:left">🚸 ልምምድ ምልክታት<small>${ns} ሕቶታት ብስእሊ ምልክታት</small></button>
    <button class="btn" data-run="exam" style="text-align:left">📝 ፈተና ከም ናይ ሓቂ<small>${examN()} ሕቶታት፡ ክሳብ ${examMaxWrong()} ጌጋ ትሓልፍ፡ ውጽኢት ኣብ መወዳእታ</small></button>
+   <a class="btn" href="../driving/${location.search}" style="text-align:left;text-decoration:none;background:#1f7a4a">🚦 ፈተና ምዝዋር ብመኪና<small>${pro?"ምስ መምህር ብድምጺ፡ ሕግታት ትራፊክ፡ ፓርክ":"🔒 ምስ ምሉእ ኮርስ ይኽፈት"}</small></a>
    <button class="btn ghost" data-run="gallery">📖 ኩሎም ምልክታት ተማሃር (${SIGNS.length})</button>
    ${pro?"":`<div class="lock"><div><b>🔒 ${PRO_TOTAL} ተወሳኺ ሕቶታት</b><p class="muted">ምልክታት፡ መብራህቲ፡ መስመራት ጽርግያ፡ ቀዳማይ ረድኤት፡ ኣውቶስትራዳ፡ ነጥብታት</p></div><button class="btn" data-buy="theory_pro">🔓 ክፈት ብኮድ</button></div><p class="muted" id="buyMsg"></p>`}`}
 $("qbody").addEventListener("click",e=>{

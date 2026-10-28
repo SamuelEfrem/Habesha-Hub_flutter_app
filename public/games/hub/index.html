@@ -53,6 +53,19 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
 .codebox{text-align:center;font:800 2rem var(--display);letter-spacing:.2em;color:var(--gold)}
 canvas{display:block;width:100%;max-width:100%;border-radius:14px;background:var(--stage);touch-action:none}
 
+/* In the app: no stripe (the app has its own top bar) */
+.app .tilet{display:none}
+/* Boards and the Genna field fill the screen without scrolling, also sideways */
+.dama{width:min(100%,calc(100vh - 230px));margin:0 auto}
+#gc{width:auto;max-width:100%;height:min(calc(100vh - 230px),calc((100vw - 64px)*1.444));margin:0 auto}
+@media (orientation:landscape) and (max-height:560px){
+  .wrap{max-width:none}
+  #play{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"area who" "area status" "area after";align-items:start;gap:10px}
+  #area{grid-area:area}#who{grid-area:who}#status{grid-area:status}#afterRow{grid-area:after}
+  .dama{width:calc(100vh - 40px)}
+  #gc{height:calc(100vh - 40px)}
+  .bar{position:sticky;top:0}
+}
 /* Dama */
 .dama{display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;max-width:100%;border-radius:10px;overflow:hidden;border:4px solid #5a3b22}
 .dama div{display:grid;place-items:center;min-width:0}
@@ -228,6 +241,11 @@ const TX={
  gennaAbout:["The Christmas stick-and-ball game. Drag your stick (bottom) to hit the ball into the top goal. First to 3 wins.","ናይ ልደት ጸወታ ዱላን ኩዕሶን። ዱላኻ (ታሕቲ) ስሓብ፡ ኩዕሶ ናብ ላዕለዋይ ሸቶ ኣእቱ። ቅድም 3 ዘእተወ ይዕወት።","የገና ጨዋታ በዱላና በኳስ። ዱላህን (ከታች) ጎትት፣ ኳሷን ወደ ላይኛው ግብ አስገባ። መጀመሪያ 3 ያገባ ያሸንፋል።"],
  riddleAbout:["The evening riddle game. If you can't answer, you must give a town.","ናይ ምሸት ጸወታ ሕንቅልሕንቅሊተይ። እንተዘይመለስካ ዓዲ ትህብ።","የምሽት የእንቆቅልሽ ጨዋታ። መመለስ ካልቻልክ አገር ትሰጣለህ።"],
  giveTown:["I give up: give a town","ተሰዒረ፡ ዓዲ ሃብ","ተሸነፍኩ፣ አገር ስጥ"],nextRiddle:["Next riddle","ቀጻሊ","ቀጣይ"],
+ youScore:["You score! ⚽","ኣእቲኻ! ⚽","አገባህ! ⚽"],cpuScore:["Computer scores!","ኮምፒተር ኣእትዩ!","ኮምፒውተር አገባ!"],
+ youWin:["You win! 🎉 Play again","ተዓዊትካ! 🎉 ደጊምካ ተጻወት","አሸነፍክ! 🎉 እንደገና ተጫወት"],cpuWin:["Computer wins. Play again","ኮምፒተር ተዓዊቱ። ደጊምካ ተጻወት","ኮምፒውተር አሸነፈ። እንደገና ተጫወት"],
+ correct:["Correct! 🎉","ቅኑዕ! 🎉","ትክክል! 🎉"],gaveTown:["You gave {t}. The answer: {a}.","{t} ሂብካ። መልሱ፦ {a}።","{t} ሰጠህ። መልሱ፦ {a}።"],
+ notQuite:["Not quite. The answer: {a}.","ኣይኮነን። መልሱ፦ {a}።","አይደለም። መልሱ፦ {a}።"],whichTown:["Which town will you give?","ኣየናይ ዓዲ ክትህብ ኢኻ?","የትኛውን አገር ትሰጣለህ?"],
+ tagDrive:["Practical driving test · traffic rules · voice","ፈተና ምዝዋር · ሕግታት ትራፊክ · ድምጺ መምህር","የመንጃ ተግባር ፈተና · የትራፊክ ሕግ · የአስተማሪ ድምፅ"],
  keberoAbout:["Tap the drum when the ring closes on it, like at a wedding.","ከም ኣብ መርዓ፡ ቀለበት ምስ በጽሐ ከበሮ ውቕዕ።","እንደ ሰርግ፣ ቀለበቱ ሲደርስ ከበሮውን ምታ።"],
  ruleDama:["Simple rules: pieces move forward diagonally, jump to capture, and become king at the far side. Rules differ between villages.","ቀሊል ሕጊ፦ ጠጠራት ብሰያፍ ንቕድሚት ይኸዱ፡ ብምዝላል ይበልዑ፡ መወዳእታ ምስ በጽሑ ንጉስ ይኾኑ።","ቀላል ህግ፦ ጠጠሮች በሰያፍ ወደ ፊት ይሄዳሉ፣ በመዝለል ይበላሉ፣ መጨረሻ ሲደርሱ ንጉሥ ይሆናሉ።"],
  ruleGeb:["Pick one of your pits (bottom row). Seeds go counter-clockwise. If your last seed makes 2 or 3 on the other side, you take them.","ሓደ ካብ ጉድጓዳትካ (ታሕቲ) ምረጽ። ፍረታት ንጸጋም ይኸዱ። እታ ናይ መወዳእታ ፍረ ኣብ ናይ ተጻራሪ 2 ወይ 3 እንተገበረት ትወስዶም።","ከጉድጓዶችህ (ከታች) አንዱን ምረጥ። ፍሬዎቹ ወደ ግራ ይሄዳሉ። የመጨረሻዋ ፍሬ በተቃዋሚው በኩል 2 ወይም 3 ካደረገች ትወስዳቸዋለህ።"],
@@ -242,18 +260,20 @@ function T(k,v){let s=(TX[k]||[k])[LI[lang]]||(TX[k]||[k])[0];if(v)Object.keys(v
 function applyStatic(){document.querySelectorAll("[data-t]").forEach(el=>el.textContent=T(el.dataset.t));
   [...$("langs").children].forEach(b=>b.setAttribute("aria-pressed",b.dataset.l===lang));document.documentElement.lang=lang}
 $("langs").onclick=e=>{const b=e.target.closest("button[data-l]");if(!b)return;lang=b.dataset.l;try{localStorage.setItem("hg-lang",lang)}catch(err){}
-  applyStatic();renderHome();if(M)redraw();else if(cur&&GAMES[cur])showModes()};
+  applyStatic();renderHome();if(M)redraw();else if(cur&&GAMES[cur])showModes();if(cur==="hinq"&&!rDone)rShow()};
 
 /* ================= HOME ================= */
 const GAMES_META=[
- {id:"dama",ic:"⚫",n:"Dama",gz:"ዳማ",kind:"board"},{id:"gebeta",ic:"🫘",n:"Gebeta",gz:"ገበጣ",kind:"board"},
+ {id:"dama",ic:"⚫",n:"Dama",gz:"ዳማ",kind:"board"},
  {id:"genna",ic:"🏑",n:"Genna",gz:"ገና",kind:"solo"},{id:"hinq",ic:"❓",n:"Riddles",gz:"ሕንቅልሕንቅሊተይ",kind:"solo"}
 ];
 const IN_APP=QS.get("app")==="1"||!!window.HabeshaNet;
+if(QS.get("app")==="1")document.documentElement.classList.add("app");
 const RACE_URL=IN_APP?`../capital-drive/?app=1`:"../capital-drive/";
 function renderHome(){
   const card=g=>`<button class="card" data-g="${g.id}"><span class="ic">${g.ic}</span><b>${esc(g.n)}</b><span class="gz">${g.gz}</span><span class="tg">${esc(g.kind==="board"?T("tagOnline"):T("tagSolo"))}</span></button>`;
   $("homeGrid").innerHTML=`<a class="card big" id="raceCard" href="${RACE_URL}${IN_APP?"&lang="+lang:""}" ${IN_APP?"":'target="_blank" rel="noopener"'}><span class="ic">🏎️</span><span><b>Capital Racing 3D</b><br><span class="tg">${esc(T("tagRace"))}</span></span></a>
+   <a class="card big" href="../driving/?${IN_APP?"app=1&":""}lang=${lang}" style="background:linear-gradient(120deg,#0f4a2c,#0b2a1a)"><span class="ic">🚦</span><span><b>Driving test · ፈተና ምዝዋር</b><br><span class="tg">${esc(T("tagDrive"))} 🔒</span></span></a>
    <a class="card big" href="../fidel/?${IN_APP?"app=1&":""}lang=${lang}" style="background:linear-gradient(120deg,#5a3d0c,#2b1d06)"><span class="ic">👶</span><span><b>Fidel · ፊደል</b><br><span class="tg">ሀ ሁ ሂ ሃ ሄ ህ ሆ — kids learn to read</span></span></a>
    <div class="sect" style="grid-column:1/-1">${esc(T("boardSect"))}</div>${GAMES_META.filter(g=>g.kind==="board").map(card).join("")}
    <div class="sect" style="grid-column:1/-1">${esc(T("soloSect"))}</div>${GAMES_META.filter(g=>g.kind==="solo").map(card).join("")}`}
@@ -330,7 +350,7 @@ $("afterRow").addEventListener("click",e=>{if(e.target.id==="againBtn")newRound(
 /* ================= DAMA ================= */
 let DSEL=-1;
 const DAMA={rule:"ruleDama",
- init(first){const b=Array(64).fill("");for(let i=0;i<64;i++){const r=i>>3,c=i&7;if((r+c)%2===1){if(r<3)b[i]="b";else if(r>4)b[i]="a"}}DSEL=-1;return{b,turn:first||0,chain:-1,winner:null,last:null}},
+ init(first){const b=Array(64).fill("");for(let i=0;i<64;i++){const r=i>>3,c=i&7;if((r+c)%2===1){if(r<2)b[i]="b";else if(r>5)b[i]="a"}}DSEL=-1;return{b,turn:first||0,chain:-1,winner:null,last:null}},
  own(p){return p?(p.toLowerCase()==="a"?0:1):-1},
  moves(st,i,onlyJ){const p=st.b[i];if(!p)return[];const o=DAMA.own(p),king=p!==p.toLowerCase(),r=i>>3,c=i&7;
   const dirs=king?[[1,1],[1,-1],[-1,1],[-1,-1]]:o===0?[[-1,1],[-1,-1]]:[[1,1],[1,-1]];const out=[];
@@ -432,7 +452,7 @@ const LUDO={rule:"ruleLudo",aiDelay:700,
   el.innerHTML=`<div class="ludo" id="lboard">${h}</div>`;
   $("lboard").onclick=e=>{if(e.target.id==="rollBtn"){v.move({a:"roll"});return}const t=e.target.closest(".tok.can");if(t)v.move({a:"move",k:+t.dataset.k})}}
 };
-const GAMES={dama:DAMA,gebeta:GEBETA};
+const GAMES={dama:DAMA};
 
 /* ================= GENNA ================= */
 const gc=$("gc"),g=gc.getContext("2d"),W=360,H=520,GW=120;
@@ -448,7 +468,7 @@ function gnDraw(){
   stick(GN.p,css("--cream"));stick(GN.c,"#26201c");
   const b=GN.ball;g.fillStyle="#d9b38c";g.beginPath();g.arc(b.x,b.y,b.r,0,7);g.fill();
 }
-function hit(o,b){const dx=b.x-o.x,dy=b.y-o.y,d=Math.hypot(dx,dy);if(d<o.r+b.r){const nx=dx/d,ny=dy/d;
+function hit(o,b){const dx=b.x-o.x,dy=b.y-o.y,d=Math.hypot(dx,dy);if(d<o.r+b.r){tick(o===GN.p?520:330,.08);if(o===GN.p&&navigator.vibrate)navigator.vibrate(15);const nx=dx/d,ny=dy/d;
   const sp=Math.max(5,Math.hypot(b.vx,b.vy)+.6);b.vx=nx*sp+(o.vx||0)*.3;b.vy=ny*sp+(o.vy||0)*.3;b.x=o.x+nx*(o.r+b.r+1);b.y=o.y+ny*(o.r+b.r+1)}}
 function gnStep(){
   if(!GN.on)return;
@@ -459,39 +479,58 @@ function gnStep(){
   b.x+=b.vx;b.y+=b.vy;b.vx*=.995;b.vy*=.995;
   if(b.x<b.r||b.x>W-b.r){b.vx*=-1;b.x=Math.max(b.r,Math.min(W-b.r,b.x))}
   const inGoal=Math.abs(b.x-W/2)<GW/2;
-  if(b.y<b.r){if(inGoal){GN.ys++;return gnGoal("You score!",-1)}b.vy=Math.abs(b.vy);b.y=b.r}
-  if(b.y>H-b.r){if(inGoal){GN.cs++;return gnGoal("Computer scores!",1)}b.vy=-Math.abs(b.vy);b.y=H-b.r}
+  if(b.y<b.r){if(inGoal){GN.ys++;return gnGoal(T("youScore"),-1)}b.vy=Math.abs(b.vy);b.y=b.r}
+  if(b.y>H-b.r){if(inGoal){GN.cs++;return gnGoal(T("cpuScore"),1)}b.vy=-Math.abs(b.vy);b.y=H-b.r}
   hit(p,b);hit(c,b);
   const sp=Math.hypot(b.vx,b.vy);if(sp>11){b.vx*=11/sp;b.vy*=11/sp}
   gnDraw();requestAnimationFrame(gnStep);
 }
 function gnGoal(t,dir){
   $("gnY").textContent=GN.ys;$("gnC").textContent=GN.cs;GN.on=false;
-  if(GN.ys>=3||GN.cs>=3){$("gnStart").textContent=GN.ys>=3?"You win! Play again":"Computer wins. Play again";$("gnStart").hidden=false;GN.ys=GN.cs=0;gnReset(1);gnDraw();return}
+  if(GN.ys>=3||GN.cs>=3){$("gnStart").textContent=GN.ys>=3?T("youWin"):T("cpuWin");$("gnStart").hidden=false;GN.ys=GN.cs=0;gnReset(1);gnDraw();return}
   gnReset(dir);gnDraw();g.fillStyle="rgba(0,0,0,.5)";g.fillRect(0,H/2-30,W,60);g.fillStyle="#fff";g.font="800 24px Sora, sans-serif";g.textAlign="center";g.fillText(t,W/2,H/2+8);
   setTimeout(()=>{GN.on=true;requestAnimationFrame(gnStep)},1200);
 }
-function gnPtr(e){const r=gc.getBoundingClientRect();GN.p.x=Math.max(22,Math.min(W-22,(e.clientX-r.left)/r.width*W));GN.p.y=Math.max(H/2+22,Math.min(H-22,(e.clientY-r.top)/r.height*H))}
-gc.addEventListener("pointermove",gnPtr);gc.addEventListener("pointerdown",e=>{gc.setPointerCapture(e.pointerId);gnPtr(e)});
+// The stick is drawn 70px above the finger, so the finger never hides it
+const FINGER=70;
+function gnPtr(e){const r=gc.getBoundingClientRect();GN.p.x=Math.max(22,Math.min(W-22,(e.clientX-r.left)/r.width*W));GN.p.y=Math.max(H/2+22,Math.min(H-22,(e.clientY-r.top)/r.height*H-FINGER))}
+let AC=null;function tick(f,d){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime,o=AC.createOscillator(),g2=AC.createGain();o.frequency.value=f;o.type="triangle";g2.gain.setValueAtTime(.25,t);g2.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g2).connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
+gc.addEventListener("pointermove",gnPtr);gc.addEventListener("touchmove",e=>e.preventDefault(),{passive:false});gc.addEventListener("pointerdown",e=>{gc.setPointerCapture(e.pointerId);gnPtr(e)});
 $("gnStart").onclick=()=>{$("gnY").textContent=0;$("gnC").textContent=0;$("gnStart").hidden=true;gnReset(1);GN.on=true;requestAnimationFrame(gnStep)};
 gnDraw();
 /* ================= RIDDLES ================= */
 const RID=[
- {q:"I have many eyes but I cannot see, and I am born on a mitad.",a:"Injera",o:["Injera","A sieve","Bread","A net"]},
- {q:"Black when you buy me, red when you use me, grey when you throw me away.",a:"Charcoal",o:["Coffee","Charcoal","Berbere","Incense"]},
- {q:"I have a long neck but no head, and I wear a grass hat when I boil.",a:"Jebena",o:["A bottle","Jebena","A goose","A lamp"]},
- {q:"I visit you three times; the third time I bring a blessing.",a:"Coffee",o:["The priest","Rain","Coffee","Grandma"]},
- {q:"The more you take, the more you leave behind.",a:"Footsteps",o:["Money","Footsteps","Injera","Time"]}
+ {q:["I have many eyes but I cannot see, and I am born on a mitad.","ብዙሕ ዓይኒ ኣለኒ ግን ኣይርእን፡ ኣብ ምጣድ እውለድ።","ብዙ ዓይን አለኝ ግን አላይም፣ በምጣድ ላይ እወለዳለሁ።"],
+  o:[["Injera","A sieve","Bread","A net"],["እንጀራ","መንፋት","ባኒ","መርበብ"],["እንጀራ","ወንፊት","ዳቦ","መረብ"]],a:0},
+ {q:["Black when you buy me, red when you use me, grey when you throw me away.","ክትዕድገኒ ከለኻ ጸሊም፡ ክትጥቀመኒ ከለኻ ቀይሕ፡ ክትድርብየኒ ከለኻ ሓሙኽሹኽ።","ስትገዛኝ ጥቁር፣ ስትጠቀመኝ ቀይ፣ ስትጥለኝ ግራጫ።"],
+  o:[["Coffee","Charcoal","Berbere","Incense"],["ቡን","ፈሓም","በርበረ","ዕጣን"],["ቡና","ከሰል","በርበሬ","ዕጣን"]],a:1},
+ {q:["I have a long neck but no head, and I boil coffee for the family.","ነዊሕ ክሳድ ኣለኒ ርእሲ ግን የብለይን፡ ንስድራ ቡን ኣፍልሕ።","ረዥም አንገት አለኝ ጭንቅላት ግን የለኝም፣ ለቤተሰብ ቡና አፈላለሁ።"],
+  o:[["A bottle","Jebena","A goose","A lamp"],["ጥርሙዝ","ጀበና","ዕዋፍ","መብራህቲ"],["ጠርሙስ","ጀበና","ዝይ","መብራት"]],a:1},
+ {q:["I visit you three times; the third time I bring a blessing.","ሰለስተ ግዜ እበጽሓካ፡ ኣብ ሳልሳይ በረኸት የምጽእ።","ሶስት ጊዜ እጎበኝሃለሁ፣ በሶስተኛው በረከት አመጣለሁ።"],
+  o:[["The priest","Rain","Coffee (abol, tona, bereka)","Grandma"],["ቀሺ","ዝናብ","ቡን (ኣቦል፡ ቶና፡ በረኸት)","ዓባይ"],["ቄስ","ዝናብ","ቡና (አቦል፣ ቶና፣ በረካ)","አያት"]],a:2},
+ {q:["The more you take, the more you leave behind.","ብዝበዝሐ ዝወሰድካ፡ ብዝበዝሐ ትገድፍ።","ብዙ በወሰድክ ቁጥር ብዙ ትተዋለህ።"],
+  o:[["Money","Footsteps","Injera","Time"],["ገንዘብ","ኣሰር እግሪ","እንጀራ","ግዜ"],["ገንዘብ","ዱካ","እንጀራ","ጊዜ"]],a:1},
+ {q:["I am full of holes but I still hold water.","ብዙሕ ነቓዕ ኣለኒ ግን ማይ እሕዝ።","በቀዳዳ የተሞላሁ ነኝ ግን ውሃ እይዛለሁ።"],
+  o:[["A sponge","A jebena","A mesob","A rock"],["ስፖንጅ","ጀበና","መሶብ","እምኒ"],["ስፖንጅ","ጀበና","መሶብ","ድንጋይ"]],a:0},
+ {q:["I have a basket body and a lid hat; the family eats from me together.","ኣካለይ ዓቢ ሙዳይ፡ ቆብዐይ መኽደን፡ ስድራ ብሓባር ካባይ ይበልዑ።","ሰውነቴ ቅርጫት ኮፍያዬ ክዳን፣ ቤተሰብ አብረው ከእኔ ይበላሉ።"],
+  o:[["A table","A mesob","A pot","A plate"],["ጠረጴዛ","መሶብ","ድስቲ","ሸሓኒ"],["ጠረጴዛ","መሶብ","ድስት","ሳህን"]],a:1},
+ {q:["I run all day but never get tired, and I never leave my bed.","ምሉእ መዓልቲ እጎዪ ግን ኣይደክምን፡ ካብ ዓራተይ ኣይወጽእን።","ቀኑን ሙሉ እሮጣለሁ ግን አልደክምም፣ ከአልጋዬም አልወጣም።"],
+  o:[["A river","A horse","The sun","A clock"],["ሩባ","ፈረስ","ጸሓይ","ሰዓት"],["ወንዝ","ፈረስ","ፀሐይ","ሰዓት"]],a:0},
+ {q:["I am red and hot, and every Habesha kitchen needs me.","ቀይሕን ሃሩርን እየ፡ ኩሉ ክሽነ ሓበሻ የድልየኒ።","ቀይና ትኩስ ነኝ፣ እያንዳንዱ የሐበሻ ኩሽና ያስፈልገኛል።"],
+  o:[["Tomato","Berbere","Fire","Wine"],["ኮሚደረ","በርበረ","ሓዊ","ነቢት"],["ቲማቲም","በርበሬ","እሳት","ወይን"]],a:1},
+ {q:["I wear white and walk to church at dawn.","ጻዕዳ እኽደን፡ ንግሆ ናብ ቤተ ክርስትያን እኸይድ።","ነጭ እለብሳለሁ፣ በማለዳ ወደ ቤተ ክርስቲያን እሄዳለሁ።"],
+  o:[["A cloud","A person in netsela","A dove","Milk"],["ደበና","ሰብ ምስ ነጸላ","ርግቢት","ጸባ"],["ደመና","ነጠላ የለበሰ ሰው","ርግብ","ወተት"]],a:1}
 ];
 const TOWNS=["ኣስመራ","ከረን","ምጽዋዕ","መቐለ","ኣክሱም","ጎንደር","ላሊበላ","ኣዲስ ኣበባ"];
 let ri=0,rDone=false;
-function rShow(){const r=RID[ri];rDone=false;$("rQ").textContent=r.q;
-  $("rOpts").innerHTML=r.o.map(o=>`<button>${o}</button>`).join("");$("rTowns").hidden=true;$("rGive").hidden=false;$("rMsg").textContent="";$("rNext").hidden=true}
-function rReveal(won,town){rDone=true;const r=RID[ri];[...$("rOpts").children].forEach(b=>b.classList.add(b.textContent===r.a?"ok":"no"));
+const RL=()=>LI[lang]||0;
+function rShow(){const r=RID[ri];rDone=false;$("rQ").textContent=r.q[RL()];
+  $("rOpts").innerHTML=r.o[RL()].map((o,i)=>`<button data-i="${i}">${o}</button>`).join("");$("rTowns").hidden=true;$("rGive").hidden=false;$("rMsg").textContent="";$("rNext").hidden=true}
+function rReveal(won,town){rDone=true;const r=RID[ri],ans=r.o[RL()][r.a];[...$("rOpts").children].forEach(b=>b.classList.add(+b.dataset.i===r.a?"ok":"no"));
   $("rGive").hidden=true;$("rTowns").hidden=true;
-  $("rMsg").textContent=won?"Correct! 🎉":town?`You gave ${town}. The answer: ${r.a}.`:`Not quite. The answer: ${r.a}.`;$("rNext").hidden=false}
-$("rOpts").onclick=e=>{const b=e.target.closest("button");if(!b||rDone)return;rReveal(b.textContent===RID[ri].a)};
-$("rGive").onclick=()=>{$("rTowns").innerHTML=TOWNS.map(t=>`<button lang="ti">${t}</button>`).join("");$("rTowns").hidden=false;$("rMsg").textContent="Which town will you give?"};
+  $("rMsg").textContent=won?T("correct"):town?T("gaveTown",{t:town,a:ans}):T("notQuite",{a:ans});$("rNext").hidden=false}
+$("rOpts").onclick=e=>{const b=e.target.closest("button");if(!b||rDone)return;rReveal(+b.dataset.i===RID[ri].a)};
+$("rGive").onclick=()=>{$("rTowns").innerHTML=TOWNS.map(t=>`<button lang="ti">${t}</button>`).join("");$("rTowns").hidden=false;$("rMsg").textContent=T("whichTown")};
 $("rTowns").onclick=e=>{const b=e.target.closest("button");if(b)rReveal(false,b.textContent)};
 $("rNext").onclick=()=>{ri=(ri+1)%RID.length;rShow()};rShow();
 applyStatic();renderHome();show("home");
