@@ -684,7 +684,7 @@ function onlineLobby(){if(!nroom)return;if(R&&R.finished==null&&mode==="online")
 function hostStart(){if(!nroom)return;raceId=Math.random().toString(36).slice(2,9);startAtWall=Date.now()+5000;
   nroom.presence({state:"grid",raceId,startAt:startAtWall,done:0,fin:null}).catch(()=>{});beginOnline()}
 function adoptStart(peers){if(R||!nroom)return;
-  const host=peers.find(p=>!p.sameTab&&p.presence&&p.presence.state==="grid"&&p.presence.raceId&&typeof p.presence.startAt==="number"&&p.presence.startAt>Date.now()+500&&p.presence.startAt<Date.now()+15000);
+  const host=peers.find(p=>!p.sameTab&&p.presence&&(p.presence.state==="grid"||p.presence.state==="racing")&&p.presence.raceId&&typeof p.presence.startAt==="number"&&p.presence.startAt>Date.now()+500&&p.presence.startAt<Date.now()+15000);
   if(!host)return;raceId=String(host.presence.raceId).slice(0,12);startAtWall=host.presence.startAt;
   nroom.presence({state:"grid",raceId,startAt:startAtWall,done:0,fin:null}).catch(()=>{});beginOnline()}
 function beginOnline(){
