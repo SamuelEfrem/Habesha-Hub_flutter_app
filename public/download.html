@@ -1,19 +1,38 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Last ned Habesha Hub</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Download Habesha Hub</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<meta property="og:title" content="Download Habesha Hub">
+<meta property="og:description" content="1,200+ Ethiopian & Eritrean places in 50+ countries. Free, in English, ትግርኛ and አማርኛ.">
+<meta property="og:image" content="https://habesha-hub.no/img/og.jpg">
 <script>
+  // Send phones straight to the right store
   var ua = navigator.userAgent.toLowerCase();
-  if (/iphone|ipad|ipod|mac/.test(ua)) {
-    window.location.href = "https://apps.apple.com/app/habesha-hub/id6764527251";
-  } else {
-    window.location.href = "https://play.google.com/store/apps/details?id=no.habesha.hub";
+  if (/iphone|ipad|ipod|macintosh/.test(ua) && 'ontouchend' in document) {
+    location.replace("https://apps.apple.com/app/habesha-hub/id6764527251");
+  } else if (/android/.test(ua)) {
+    location.replace("https://play.google.com/store/apps/details?id=no.habesha.hub");
   }
 </script>
-<meta http-equiv="refresh" content="0;url=https://play.google.com/store/apps/details?id=no.habesha.hub">
+<style>
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#111110;color:#F0ECE8;font-family:system-ui,'Noto Sans Ethiopic',sans-serif;text-align:center;padding:20px}
+img{width:96px;height:96px;border-radius:50%;border:2px solid #D4AF37}
+h1{color:#D4AF37;font-family:Georgia,serif;font-style:italic}
+a{display:block;margin:12px auto;max-width:260px;padding:14px;border-radius:14px;text-decoration:none;font-weight:700;background:#D4AF37;color:#1A1200}
+a.o{background:transparent;color:#D4AF37;border:1px solid #D4AF37}
+</style>
 </head>
 <body>
-<p>Laster ned...</p>
+<div>
+  <img src="/img/icon-192.png" alt="">
+  <h1>Habesha Hub</h1>
+  <p>Get the free app · ኣፕ ብነጻ ኣውርድ · መተግበሪያውን በነጻ ያውርዱ</p>
+  <a href="https://apps.apple.com/app/habesha-hub/id6764527251">App Store</a>
+  <a href="https://play.google.com/store/apps/details?id=no.habesha.hub">Google Play</a>
+  <a class="o" href="/">habesha-hub.no</a>
+</div>
 </body>
 </html>
