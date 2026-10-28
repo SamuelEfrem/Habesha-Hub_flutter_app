@@ -141,6 +141,11 @@ class AppTranslations {
     'Clinic': {'Tigrinya': 'ክሊኒክ', 'Amharic': 'ክሊኒክ'},
     'Closed': {'Tigrinya': 'ዕጹው', 'Amharic': 'ዝግ'},
     // ── Redesign (Oct 2026) ──
+    'Turn on location': {'Tigrinya': 'ቦታ ኣብርህ', 'Amharic': 'አካባቢን ያብሩ'},
+    'Habesha Hub needs your location to show Habesha places near you.': {'Tigrinya': 'ሓበሻ ሃብ ኣብ ጥቓኻ ዘለዉ ቦታታት ሓበሻ ንምርኣይ ቦታኻ የድልዮ።', 'Amharic': 'ሐበሻ ሃብ በአቅራቢያዎ ያሉ የሐበሻ ቦታዎችን ለማሳየት አካባቢዎን ይፈልጋል።'},
+    'Location is blocked for Habesha Hub. Open settings → Permissions → Location → Allow.': {'Tigrinya': 'ቦታ ንሓበሻ ሃብ ተዓጽዩ ኣሎ። ቅጥዕታት ክፈት → ፍቓዳት → ቦታ → ፍቐድ።', 'Amharic': 'አካባቢ ለሐበሻ ሃብ ታግዷል። ቅንብሮችን ይክፈቱ → ፈቃዶች → አካባቢ → ይፍቀዱ።'},
+    'Not now': {'Tigrinya': 'ሕጂ ኣይኮነን', 'Amharic': 'አሁን አይደለም'},
+    'Turn on': {'Tigrinya': 'ኣብርህ', 'Amharic': 'አብራ'},
     'Please log in first': {'Tigrinya': 'በጃኻ ቅድም እቶ', 'Amharic': 'እባክዎ መጀመሪያ ይግቡ'},
     'Phone number not verified': {'Tigrinya': 'ቁጽሪ ተሌፎን ኣይተረጋገጸን', 'Amharic': 'ስልክ ቁጥር አልተረጋገጠም'},
     'This code belongs to another phone number': {'Tigrinya': 'እዚ ኮድ ናይ ካልእ ቁጽሪ ተሌፎን እዩ', 'Amharic': 'ይህ ኮድ የሌላ ስልክ ቁጥር ነው'},

@@ -25,7 +25,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, WidgetsBindingObserver {
   final _service = BusinessService();
   final _searchController = TextEditingController();
   late AnimationController _listAnim;
@@ -80,19 +80,92 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _pulseAnim = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1800))
       ..repeat(reverse: true);
-    _autoSearch();
+    WidgetsBinding.instance.addObserver(this);
+    // Every app start: ask for location until it is on, then search
+    WidgetsBinding.instance.addPostFrameCallback((_) => _searchNearby());
   }
 
-  // Search right away if the user already allowed location (no popup on start)
-  Future<void> _autoSearch() async {
-    final perm = await Geolocator.checkPermission();
-    if (perm == LocationPermission.always || perm == LocationPermission.whileInUse) {
-      if (await Geolocator.isLocationServiceEnabled()) _searchNearby();
+  bool _askedThisStart = false;   // "Not now" → don't ask again until next start
+  bool _waitingForSettings = false;
+
+  // Back from the phone's settings → try again
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _waitingForSettings) {
+      _waitingForSettings = false;
+      _searchNearby();
     }
+  }
+
+  /// Location service on + permission given? Otherwise ask (system dialog,
+  /// or our dialog that opens the right settings page).
+  Future<bool> _ensureLocation() async {
+    if (!await Geolocator.isLocationServiceEnabled()) {
+      if (_askedThisStart) return false;
+      final go = await _locationDialog(
+          tr('Turn on location'),
+          tr('Habesha Hub needs your location to show Habesha places near you.'));
+      if (go) {
+        _waitingForSettings = true;
+        await Geolocator.openLocationSettings();
+      } else {
+        _askedThisStart = true;
+      }
+      return false;
+    }
+    var perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.denied) {
+      perm = await Geolocator.requestPermission();
+    }
+    if (perm == LocationPermission.deniedForever) {
+      if (_askedThisStart) return false;
+      final go = await _locationDialog(
+          tr('Allow location'),
+          tr('Location is blocked for Habesha Hub. Open settings → Permissions → Location → Allow.'));
+      if (go) {
+        _waitingForSettings = true;
+        await Geolocator.openAppSettings();
+      } else {
+        _askedThisStart = true;
+      }
+      return false;
+    }
+    return perm == LocationPermission.always || perm == LocationPermission.whileInUse;
+  }
+
+  Future<bool> _locationDialog(String title, String text) async {
+    if (!mounted) return false;
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: kCardHigh,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+            icon: Container(
+              width: 64, height: 64,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: kPrimaryContainer.withOpacity(0.35)),
+              child: const Icon(Icons.location_on_rounded, color: kSecondary, size: 34),
+            ),
+            title: Text(title, textAlign: TextAlign.center, style: tsHeadlineSm(color: kText)),
+            content: Text(text, textAlign: TextAlign.center, style: tsBodyLg(color: kTextSub)),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(tr('Not now'), style: tsTitleMd(color: kTextSub))),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: kSecondary, foregroundColor: const Color(0xFF1A1200)),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(tr('Turn on'), style: const TextStyle(fontWeight: FontWeight.w800)),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _listAnim.dispose();
     _pulseAnim.dispose();
     _searchController.dispose();
@@ -106,18 +179,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       _isSearching = true;
     });
     try {
-      bool enabled = await Geolocator.isLocationServiceEnabled();
-      if (!enabled) {
-        setState(() => _isSearching = false);
+      if (!await _ensureLocation()) {
+        if (mounted) setState(() => _isSearching = false);
         return;
-      }
-      LocationPermission perm = await Geolocator.checkPermission();
-      if (perm == LocationPermission.denied) {
-        perm = await Geolocator.requestPermission();
-        if (perm == LocationPermission.denied) {
-          setState(() => _isSearching = false);
-          return;
-        }
       }
       final pos = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
