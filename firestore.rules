@@ -180,8 +180,24 @@ service cloud.firestore {
 
     // ── Users (FCM token etc.) ─────────────────────────────
     match /users/{userId} {
-      allow read, write: if signedIn() && uid() == userId;
-      allow read: if isAdmin();
+      // "unlocks" is set only by the redeemCode function, never by the app
+      allow read: if (signedIn() && uid() == userId) || isAdmin();
+      allow create: if signedIn() && uid() == userId
+        && !request.resource.data.keys().hasAny(['unlocks', 'unlockPhone']);
+      allow update: if signedIn() && uid() == userId
+        && !changed().hasAny(['unlocks', 'unlockPhone']);
+      allow delete: if signedIn() && uid() == userId;
+    }
+
+    // ── Paid content unlocked with a code (see redeemCode) ─
+    match /unlock_codes/{code} {
+      allow read, write: if isAdmin();
+    }
+    // Extra driving theory questions: only for users who unlocked theory_pro
+    match /theory_pro/{doc} {
+      allow read: if isAdmin() || (signedIn()
+        && get(/databases/$(database)/documents/users/$(uid())).data.get('unlocks', {}).get('theory_pro', false) == true);
+      allow write: if isAdmin();
     }
 
     // ── Contact form ───────────────────────────────────────

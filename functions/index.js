@@ -1,6 +1,6 @@
 const { onDocumentCreated, onDocumentUpdated, onDocumentWritten } = require('firebase-functions/v2/firestore');
 const { setGlobalOptions } = require('firebase-functions/v2');
-const { onRequest }        = require('firebase-functions/v2/https');
+const { onRequest, onCall, HttpsError } = require('firebase-functions/v2/https');
 const { defineSecret }     = require('firebase-functions/params');
 const { initializeApp }     = require('firebase-admin/app');
 
@@ -479,4 +479,45 @@ exports.notifyClaimApproved = onDocumentUpdated('claims/{id}', async (event) => 
     notification: { title: '✅ Your business is yours', body: `You can now edit ${after.businessName || 'your business'} — add photos, hours and your menu.` },
     apns: { payload: { aps: { sound: 'default' } } },
   }).catch(e => console.error('notifyClaimApproved', e.message));
+});
+
+
+// ═══════════════════════════════════════════════════════════
+// redeemCode — unlock paid content (e.g. 450 extra driving theory
+// questions) with a code the admin sends on WhatsApp.
+// unlock_codes/{CODE} = { product, phone, used, createdAt }
+// A code works ONCE and only for the phone number it was made for:
+// the user must be signed in with that (SMS-verified) number.
+// ═══════════════════════════════════════════════════════════
+const { FieldValue: UnlockFV } = require('firebase-admin/firestore');
+const PRODUCTS = ['theory_pro', 'lang_pro'];
+const digits = s => String(s || '').replace(/[^\d]/g, '');
+// Same number written as +4741234567, 004741234567 or 41234567 (Norway)
+const samePhone = (a, b) => {
+  const x = digits(a).replace(/^00/, ''), y = digits(b).replace(/^00/, '');
+  return x === y || x.endsWith(y) && y.length >= 8 || y.endsWith(x) && x.length >= 8;
+};
+
+exports.redeemCode = onCall({ maxInstances: 5 }, async (req) => {
+  const uid = req.auth?.uid;
+  const phone = req.auth?.token?.phone_number;
+  if (!uid) throw new HttpsError('unauthenticated', 'login');
+  if (!phone) throw new HttpsError('failed-precondition', 'phone');      // app asks for SMS verification
+  const code = String(req.data?.code || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (code.length < 6) throw new HttpsError('invalid-argument', 'code');
+
+  const db = getFirestore();
+  const codeRef = db.collection('unlock_codes').doc(code);
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(codeRef);
+    if (!snap.exists) throw new HttpsError('not-found', 'code');
+    const c = snap.data();
+    if (!PRODUCTS.includes(c.product)) throw new HttpsError('not-found', 'code');
+    if (!samePhone(c.phone, phone)) throw new HttpsError('permission-denied', 'other-phone');
+    if (c.used && c.usedBy !== uid) throw new HttpsError('already-exists', 'used');
+    tx.update(codeRef, { used: true, usedBy: uid, usedAt: UnlockFV.serverTimestamp() });
+    tx.set(db.collection('users').doc(uid),
+      { unlocks: { [c.product]: true }, unlockPhone: phone }, { merge: true });
+    return { product: c.product };
+  });
 });

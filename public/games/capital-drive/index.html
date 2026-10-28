@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Capital Racing 3D</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;800&family=Noto+Sans+Ethiopic:wght@500;700;800&display=swap">
+<style>
+/* Layout: city picker row, then one full-width 3D stage with HUD, speedometer, target arrow, touch pedals and a menu card over it */
+:root{--bg:#0b1118;--ink:#f3f6fa;--muted:#a3b1c2;--gold:#f7c948;--line:#223142;--good:#3ccf8e;--display:"Sora","Noto Sans Ethiopic",system-ui,sans-serif;color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--display)}
+.wrap{max-width:1000px;margin:0 auto;padding-block:16px 32px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:12px}
+h1{margin:0;font-weight:800;font-size:1.6rem}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.langs{display:flex;gap:6px;align-items:center}
+.langs button,.snd{font:800 .9rem var(--display);border:2px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:6px 12px;cursor:pointer}
+.langs button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.hornb{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;width:56px;height:56px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.4);color:#fff;font-size:1.4rem;touch-action:none;backdrop-filter:blur(4px);cursor:pointer}
+.cities{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.cities button{flex:0 0 auto;font:800 .95rem var(--display);border:2px solid var(--line);background:transparent;color:var(--muted);border-radius:12px;padding:9px 14px;cursor:pointer}
+.cities button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#2a1d00}
+.cities button small{display:block;font-size:.68rem;font-weight:600;opacity:.8}
+button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.stage{position:relative;width:100%;aspect-ratio:16/9;border-radius:18px;overflow:hidden;border:2px solid var(--line);touch-action:none;user-select:none;-webkit-user-select:none;background:#000}
+@media (max-width:640px){.stage{aspect-ratio:3/4}}
+.stage canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;top:10px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;font-weight:800;font-variant-numeric:tabular-nums;text-shadow:0 2px 8px rgba(0,0,0,.8);pointer-events:none}
+.hud .c{text-align:center}
+.hud small{display:block;font-size:.72rem;font-weight:600;opacity:.85}
+.arrow{width:46px;height:46px;margin:4px auto 0;display:grid;place-items:center;background:rgba(0,0,0,.45);border-radius:50%;font-size:1.6rem;color:var(--gold);backdrop-filter:blur(4px)}
+.speedo{position:absolute;right:14px;bottom:92px;text-align:right;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,.8);pointer-events:none;font-variant-numeric:tabular-nums}
+.speedo b{font-size:2.2rem;line-height:1;display:block}
+.speedo span{font-size:.75rem;opacity:.85}
+@media (hover:hover) and (pointer:fine){.speedo{bottom:14px}}
+.stage .mini{position:absolute;top:72px;right:12px;width:110px;height:110px;border-radius:12px;background:rgba(0,0,0,.35);pointer-events:none}
+@media (hover:hover) and (pointer:fine){#bN{display:none}}
+.count{position:absolute;inset:0;display:grid;place-items:center;font:800 5rem var(--display);color:var(--gold);text-shadow:0 4px 20px rgba(0,0,0,.7);pointer-events:none}
+.pedals{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;padding:12px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));pointer-events:none}
+.pedals div{display:flex;gap:10px}
+.pedals button{pointer-events:auto;width:64px;height:64px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.4);color:#fff;font:800 1.4rem var(--display);touch-action:none;backdrop-filter:blur(4px)}
+.pedals button.on{background:rgba(247,201,72,.6)}
+@media (hover:hover) and (pointer:fine){.pedals{display:none}}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;background:rgba(6,10,16,.5);overflow:auto;padding:12px}
+.box{background:rgba(12,18,28,.94);border:2px solid var(--line);border-radius:18px;padding:18px;width:min(360px,100%);display:flex;flex-direction:column;gap:10px;backdrop-filter:blur(6px)}
+.box h2{margin:0;font-size:1.25rem;text-align:center}
+.box p{margin:0;color:var(--muted);font-family:system-ui,sans-serif;font-size:.9rem;line-height:1.45;text-align:center}
+.btn{font:800 1rem var(--display);border:0;border-radius:12px;padding:12px 14px;background:var(--gold);color:#2a1d00;cursor:pointer;text-align:left}
+.btn small{display:block;font-weight:600;font-size:.75rem;opacity:.75}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line);text-align:center}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:8px}
+.row input{flex:1;min-width:0;font:700 1rem var(--display);padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:#0b1118;color:var(--ink)}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-family:system-ui,sans-serif}
+.list li{display:flex;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-variant-numeric:tabular-nums}
+.list li.me{border-color:var(--gold)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.help{color:var(--muted);font-family:system-ui,sans-serif;font-size:.88rem;margin:0;line-height:1.5}
+</style>
+
+<style>
+[hidden]{display:none!important}
+html,body{margin:0;-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.app .wrap{padding-block:6px;gap:8px;padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+.app h1,.app .help{display:none}
+.app .top{justify-content:flex-end;padding-left:44px}
+.app .stage{aspect-ratio:auto;height:calc(100dvh - 120px);min-height:300px}
+</style>
+<script>if(new URLSearchParams(location.search).get("app")==="1")document.documentElement.classList.add("app")</script>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>Capital Racing 3D</h1><div class="langs" id="langs"><button data-l="en" aria-pressed="true">EN</button><button data-l="ti" aria-pressed="false" lang="ti">ትግርኛ</button><button data-l="am" aria-pressed="false" lang="am">አማርኛ</button><button class="snd" id="mus" aria-label="Music on or off">🎵</button><button class="snd" id="snd" aria-label="Sound on or off">🔊</button></div></div>
+  <div class="cities" id="cities"></div>
+  <div class="stage" id="stage">
+    <div class="hud">
+      <span id="hl">–</span>
+      <span class="c"><span id="hc">–</span><div class="arrow" id="arrow">↑</div></span>
+      <span id="hr">–</span>
+    </div>
+    <div class="count" id="count" hidden></div>
+    <canvas class="mini" id="mini" width="220" height="220" aria-label="Map"></canvas>
+    <div class="speedo"><b id="kmh">0</b><span>km/h</span></div>
+    <div class="pedals">
+      <div><button id="bL" aria-label="Steer left">◀</button><button id="bR" aria-label="Steer right">▶</button></div>
+      <div><button id="bN" aria-label="Boost">⚡</button><button id="bB" aria-label="Brake">■</button><button id="bG" aria-label="Gas">▲</button></div>
+    </div>
+    <button class="hornb" id="horn" aria-label="Horn">📯</button>
+    <div class="overlay" id="ov"><div class="box" id="menu"></div></div>
+  </div>
+  <p class="help">Race the computer or real people in four capitals. Computer: arrow keys or WASD, Shift for boost, H for the horn. 🎵 turns the Habesha music on or off. Phone: the round buttons. Switch the language at the top: English, Tigrinya or Amharic. Online races: quick races match whoever is online in the same city; friends races use a shared code. Kampala drives on the left, like in real life.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Sky.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="../shared/firebase-config.js"></script>
+<script src="../shared/net-firebase.js"></script>
+<script>
+const CITIES={
+ kampala:{name:"Kampala",tag:"Uganda · drive left",side:-1,elev:12,az:250,turb:4,ray:2.8,exp:.55,fog:0xe6c49a,fogD:[160,650],ground:0x6f8f3f,walk:0xb5a490,
+   bld:[0xf2efe6,0xe9d7b5,0xd9e6e8,0xf0b890,0xcfd8c4,0xe6e0d0],hmin:4,hmax:18,player:0xf4f4f4,taxi:0x2a5bd7,boda:true,landmark:"mosque",hills:0x5a7f35,trees:.25,night:0},
+ addis:{name:"Addis Ababa",tag:"Ethiopia · drive right",side:1,elev:55,az:170,turb:3,ray:2.6,exp:.5,fog:0xcfe0ee,fogD:[180,700],ground:0x8e7e60,walk:0xa8a39a,
+   bld:[0xf1eee6,0xd8d3c6,0xbcd0e0,0xe8c99a,0xc7c2b8,0x9fb7c9],hmin:8,hmax:40,player:0x1f6fd1,taxi:0x1f6fd1,landmark:"meskel",hills:0x667a46,trees:.12,night:0},
+ asmara:{name:"Asmara",tag:"Eritrea · drive right",side:1,elev:28,az:230,turb:2.5,ray:2.6,exp:.52,fog:0xe9dcc2,fogD:[180,700],ground:0xc2a172,walk:0xd6c6a6,
+   bld:[0xf3d7a1,0xe8b7a0,0xbfd9c9,0xf1e3c4,0xd4c0e0,0xf2c9b6],hmin:4,hmax:13,player:0xc81e1e,taxi:0xf2c230,palms:true,landmark:"tagliero",hills:0x8d7a5a,trees:.2,night:0},
+ oslo:{name:"Oslo",tag:"Norway · drive right",side:1,elev:-1.5,az:240,turb:2,ray:3,exp:.42,fog:0x34445f,fogD:[60,320],ground:0xeef2f6,walk:0xd9dee4,
+   bld:[0xe9e4dc,0xc9b49a,0xa8b5c3,0x8f3b2e,0xdcd6cc,0x6e7f6a],hmin:7,hmax:20,player:0x16233a,taxi:0x111111,snow:true,landmark:"opera",hills:0x7d8f99,trees:.15,night:1}
+};
+const ORDER=["kampala","addis","asmara","oslo"];
+let cityKey="asmara";
+
+/* ---------- renderer ---------- */
+const stage=document.getElementById("stage");
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});
+renderer.setPixelRatio(Math.min(1.75,window.devicePixelRatio||1));
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+stage.prepend(renderer.domElement);
+const pmrem=new THREE.PMREMGenerator(renderer);
+const cam=new THREE.PerspectiveCamera(60,1,.1,1500);
+
+/* ---------- procedural textures ---------- */
+function canvasTex(w,h,draw,repeat){const c=document.createElement("canvas");c.width=w;c.height=h;draw(c.getContext("2d"),w,h);
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=renderer.capabilities.getMaxAnisotropy();t.encoding=THREE.sRGBEncoding;if(repeat)t.repeat.set(...repeat);return t}
+function noise(g,w,h,base,amt,n){g.fillStyle=base;g.fillRect(0,0,w,h);for(let i=0;i<n;i++){const v=Math.random()*amt;g.fillStyle=`rgba(${Math.random()<.5?"0,0,0":"255,255,255"},${v})`;g.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*2,1+Math.random()*2)}}
+const hex=c=>"#"+c.toString(16).padStart(6,"0");
+const TEX={};
+function makeShared(){
+  TEX.road=canvasTex(256,512,(g,w,h)=>{noise(g,w,h,"#404246",.06,6000);
+    g.fillStyle="rgba(0,0,0,.18)";for(let i=0;i<6;i++)g.fillRect(Math.random()*w,0,8+Math.random()*20,h);
+    g.fillStyle="#e8e4d6";g.fillRect(10,0,6,h);g.fillRect(w-16,0,6,h);
+    g.fillStyle="#f1e9c8";for(let y=0;y<h;y+=128)g.fillRect(w/2-3,y,6,64);});
+  TEX.inter=canvasTex(256,256,(g,w,h)=>{noise(g,w,h,"#404246",.06,4000)});
+  TEX.walk=canvasTex(256,256,(g,w,h)=>{noise(g,w,h,"#b9b4aa",.12,4000);g.strokeStyle="rgba(0,0,0,.22)";g.lineWidth=2;for(let i=0;i<=w;i+=32){g.beginPath();g.moveTo(i,0);g.lineTo(i,h);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(w,i);g.stroke()}},[6,6]);
+  TEX.ground=canvasTex(512,512,(g,w,h)=>noise(g,w,h,"#ffffff",.12,30000),[60,60]);
+}
+function facade(base,night){ // texture covers 12m x 12m: 4 floors x 4 windows
+  const lit=[];
+  const map=canvasTex(256,256,(g,w,h)=>{noise(g,w,h,hex(base),.08,5000);
+    for(let f=0;f<4;f++)for(let i=0;i<4;i++){const x=i*64+14,y=f*64+12;
+      g.fillStyle="rgba(0,0,0,.25)";g.fillRect(x-3,y-3,42,46);
+      const on=night&&Math.random()<.45;lit.push(on);
+      const gr=g.createLinearGradient(x,y,x+36,y+40);gr.addColorStop(0,on?"#ffd89a":"#5d7488");gr.addColorStop(1,on?"#f2a54a":"#1c2733");g.fillStyle=gr;g.fillRect(x,y,36,40);
+      g.fillStyle="rgba(255,255,255,.15)";g.fillRect(x+17,y,2,40);
+      g.fillStyle="rgba(0,0,0,.15)";g.fillRect(0,f*64+60,w,4);}
+  });
+  let em=null;
+  if(night){let k=0;em=canvasTex(256,256,(g,w,h)=>{g.fillStyle="#000";g.fillRect(0,0,w,h);
+    for(let f=0;f<4;f++)for(let i=0;i<4;i++){if(lit[k++]){g.fillStyle="#ffcf8a";g.fillRect(i*64+14,f*64+12,36,40)}}})}
+  return {map,em};
+}
+
+/* ---------- materials ---------- */
+const STD=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.85,metalness:0},o));
+function box(w,h,d,mat,x,y,z,parent){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof mat==="number"?STD(mat):mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;(parent||world).add(m);return m}
+
+/* ---------- vehicles ---------- */
+const glassMat=STD(0x0d141c,{roughness:.05,metalness:.9});
+const tireMat=STD(0x111111,{roughness:.9});
+const rimMat=STD(0xc9ced6,{roughness:.25,metalness:1});
+const headMat=new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xfff3d6,emissiveIntensity:2});
+const tailMat=new THREE.MeshStandardMaterial({color:0x550000,emissive:0xff1a1a,emissiveIntensity:1.6});
+function carMesh(color,taxi){
+  const g=new THREE.Group(),body=new THREE.Group();g.add(body);
+  const paint=STD(color,{roughness:.28,metalness:.55,envMapIntensity:1.2});
+  box(2.0,.55,4.4,paint,0,.72,0,body);           // lower body
+  box(2.04,.18,4.3,STD(0x1a1a1a,{roughness:.6}),0,.42,0,body); // skirts
+  box(1.96,.32,1.2,paint,0,1.06,-1.55,body);      // hood
+  box(1.96,.3,.9,paint,0,1.05,1.75,body);         // trunk
+  const cab=box(1.78,.62,2.2,glassMat,0,1.3,.15,body); // glass cabin
+  box(1.82,.08,2.0,paint,0,1.64,.2,body);         // roof
+  box(.06,.62,.1,paint,.88,1.3,-.92,body);box(.06,.62,.1,paint,-.88,1.3,-.92,body);
+  [[-.7,-2.2],[.7,-2.2]].forEach(([x,z])=>box(.42,.16,.06,headMat,x,.86,z,body));
+  [[-.72,2.21],[.72,2.21]].forEach(([x,z])=>box(.46,.14,.05,tailMat,x,.88,z,body));
+  box(1.2,.14,.05,STD(0x222222),0,.66,-2.21,body); // grille
+  if(taxi){box(.9,.26,.36,new THREE.MeshStandardMaterial({color:0xf7c948,emissive:0xf7c948,emissiveIntensity:.6}),0,1.81,.2,body)}
+  const wheels=[];
+  [[-1.0,-1.45],[1.0,-1.45],[-1.0,1.45],[1.0,1.45]].forEach(([x,z],i)=>{const w=new THREE.Group();w.position.set(x,.42,z);g.add(w);
+    const t=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.3,20),tireMat);t.rotation.z=Math.PI/2;t.castShadow=true;w.add(t);
+    const r=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,.32,12),rimMat);r.rotation.z=Math.PI/2;w.add(r);wheels.push(w)});
+  g.userData={body,wheels};return g}
+function bodaMesh(){const g=new THREE.Group();
+  box(.35,.5,1.7,STD(0xb3202a,{roughness:.35,metalness:.4}),0,.75,0,g);
+  [-.65,.65].forEach(z=>{const t=new THREE.Mesh(new THREE.CylinderGeometry(.33,.33,.12,16),tireMat);t.rotation.z=Math.PI/2;t.position.set(0,.33,z);g.add(t)});
+  box(.5,.75,.35,STD(0x2c3e66),0,1.45,.1,g);box(.32,.32,.32,STD(0x6b4226),0,2.05,.05,g);box(.36,.2,.36,STD(0xf2c230,{roughness:.3}),0,2.25,.05,g);
+  box(.7,.06,.06,STD(0x333333,{metalness:.8,roughness:.3}),0,1.25,-.55,g);
+  return g}
+
+/* ---------- world ---------- */
+let scene,world,sky,sun,hemi,buildings=[],traffic=[],snow=null,ring=null,target=null,glows=[];
+const N=7,BLK=30,RD=12,CELL=BLK+RD,HALF=N*CELL/2;
+const roadPos=i=>-HALF+i*CELL+RD/2;
+
+function landmark(kind){const g=new THREE.Group();world.add(g);
+  const white=STD(0xf4f1ea,{roughness:.6}),cream=STD(0xe2dccd,{roughness:.7});
+  if(kind==="tagliero"){box(5.5,13,5.5,white,0,6.5,0,g);box(3.6,4,3.6,cream,0,15,0,g);box(1,5,1,white,0,19,0,g);
+    [-1,1].forEach(s=>{const w=box(15,.9,5.5,white,s*10.2,8,0,g);w.rotation.z=s*-.04;box(14,.5,5,STD(0xd9b54a,{roughness:.5}),s*10,8.7,0,g)});
+    box(16,2.4,9,cream,0,1.2,0,g);box(15.5,1.2,8.6,glassMat,0,2.4,0,g);}
+  if(kind==="opera"){const roof=box(26,1,20,STD(0xf7f9fb,{roughness:.4}),0,4,0,g);roof.rotation.x=-.3;
+    box(10,12,8,glassMat,2,6,-4,g);box(6,16,6,STD(0xd8dde2,{roughness:.5,metalness:.3}),-6,8,-6,g);}
+  if(kind==="meskel"){for(let i=0;i<5;i++)box(26-i*2,1,4,STD(0xc7b28d),0,.5+i,-5-i*2.2,g);
+    box(.8,16,.8,STD(0xd9b54a,{metalness:.6,roughness:.35}),0,8,6,g);box(5,.8,.8,STD(0xd9b54a,{metalness:.6,roughness:.35}),0,12.5,6,g);}
+  if(kind==="mosque"){box(16,6,16,white,0,3,0,g);
+    const d=new THREE.Mesh(new THREE.SphereGeometry(6,32,16,0,Math.PI*2,0,Math.PI/2),STD(0xe8e2d0,{roughness:.4}));d.position.y=6;d.castShadow=true;g.add(d);
+    const mn=new THREE.Mesh(new THREE.CylinderGeometry(.9,1.1,24,16),white);mn.position.set(9,12,9);mn.castShadow=true;g.add(mn);
+    const tp=new THREE.Mesh(new THREE.ConeGeometry(1.2,3,16),STD(0x2e8b57,{roughness:.4}));tp.position.set(9,25.5,9);g.add(tp);}
+  return g}
+
+function glowSprite(color,size){
+  const t=canvasTex(64,64,(g,w,h)=>{const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"rgba(255,255,255,1)");gr.addColorStop(.25,"rgba(255,255,255,.5)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,64,64)});
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,color,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));s.scale.set(size,size,1);return s}
+
+function tree(x,z,palm){const g=new THREE.Group();g.position.set(x,0,z);world.add(g);
+  if(palm){const t=new THREE.Mesh(new THREE.CylinderGeometry(.22,.38,8,8),STD(0x8a6a44));t.position.y=4;t.castShadow=true;g.add(t);
+    for(let k=0;k<7;k++){const f=box(.6,.08,4.2,STD(0x3f7f34,{side:THREE.DoubleSide}),0,8,0,g);f.geometry.translate(0,0,2);f.rotation.set(.55,k*.9,0)}}
+  else{const t=new THREE.Mesh(new THREE.CylinderGeometry(.2,.32,3.2,8),STD(0x5a3e28));t.position.y=1.6;t.castShadow=true;g.add(t);
+    for(let k=0;k<4;k++){const c=new THREE.Mesh(new THREE.IcosahedronGeometry(1.6+Math.random()*.8,1),STD(0x4a7a30,{flatShading:true}));
+      c.position.set((Math.random()-.5)*1.6,3.6+Math.random()*1.4,(Math.random()-.5)*1.6);c.castShadow=true;g.add(c)}}}
+
+function lamp(x,z,rotY,night){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rotY;world.add(g);
+  const steel=STD(0x5b6066,{metalness:.7,roughness:.4});
+  const p=new THREE.Mesh(new THREE.CylinderGeometry(.09,.13,7,8),steel);p.position.y=3.5;p.castShadow=true;g.add(p);
+  box(.12,.12,1.8,steel,0,7,.85,g);
+  box(.5,.14,.7,new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xffd9a0,emissiveIntensity:night?3:0}),0,6.9,1.7,g);
+  if(night){const s=glowSprite(0xffc070,5);s.position.set(0,6.7,1.7);g.add(s);
+    const pool=new THREE.Mesh(new THREE.CircleGeometry(4,24),new THREE.MeshBasicMaterial({color:0xffb860,transparent:true,opacity:.18,depthWrite:false,blending:THREE.AdditiveBlending}));
+    pool.rotation.x=-Math.PI/2;pool.position.set(0,.06,2.4);g.add(pool)}}
+
+function build(key){
+  const C=CITIES[key];
+  scene=new THREE.Scene();world=new THREE.Group();scene.add(world);
+  renderer.toneMappingExposure=C.exp;
+  // sky & sun
+  sky=new THREE.Sky();sky.scale.setScalar(4000);const u=sky.material.uniforms;
+  u.turbidity.value=C.turb;u.rayleigh.value=C.ray;u.mieCoefficient.value=.005;u.mieDirectionalG.value=.8;
+  const sunDir=new THREE.Vector3().setFromSphericalCoords(1,THREE.MathUtils.degToRad(90-C.elev),THREE.MathUtils.degToRad(C.az));
+  u.sunPosition.value.copy(sunDir);scene.add(sky);
+  const envScene=new THREE.Scene();const sky2=sky.clone();envScene.add(sky2);
+  scene.environment=pmrem.fromScene(envScene).texture;
+  scene.fog=new THREE.Fog(C.fog,C.fogD[0],C.fogD[1]);
+  hemi=new THREE.HemisphereLight(C.night?0x6f86b8:0xdfeaff,0x5a4a3a,C.night?.35:.55);scene.add(hemi);
+  sun=new THREE.DirectionalLight(C.night?0x8fa8e8:(C.elev<20?0xffc98a:0xfff0d8),C.night?.25:4.2);
+  sun.userData.dir=sunDir.clone();sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-.0004;sun.shadow.normalBias=.02;
+  Object.assign(sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:1,far:400});scene.add(sun);scene.add(sun.target);
+  // ground
+  const gm=STD(C.ground,{roughness:1,map:TEX.ground});const g=new THREE.Mesh(new THREE.PlaneGeometry(1400,1400),gm);g.rotation.x=-Math.PI/2;g.receiveShadow=true;world.add(g);
+  // roads
+  const roadMat=STD(0xffffff,{map:TEX.road,roughness:C.snow?.55:.92,metalness:C.snow?.15:0});
+  const len=N*CELL+RD;
+  for(let i=0;i<=N;i++){
+    const tv=TEX.road.clone();tv.needsUpdate=true;tv.repeat.set(1,len/24);
+    const mv=roadMat.clone();mv.map=tv;
+    const v=new THREE.Mesh(new THREE.PlaneGeometry(RD,len),mv);v.rotation.x=-Math.PI/2;v.position.set(roadPos(i),.02,0);v.receiveShadow=true;world.add(v);
+    const h=v.clone();h.rotation.z=Math.PI/2;h.position.set(0,.021,roadPos(i));world.add(h);
+  }
+  const interMat=STD(0xffffff,{map:TEX.inter,roughness:C.snow?.55:.92});
+  for(let i=0;i<=N;i++)for(let j=0;j<=N;j++){const m=new THREE.Mesh(new THREE.PlaneGeometry(RD,RD),interMat);m.rotation.x=-Math.PI/2;m.position.set(roadPos(i),.03,roadPos(j));m.receiveShadow=true;world.add(m)}
+  // facades
+  const facs=C.bld.map(c=>facade(c,C.night));
+  const roofMat=STD(C.snow?0xf4f7fa:0x6e6a64,{roughness:.9});
+  const walkMat=STD(C.walk,{map:TEX.walk,roughness:.95});
+  buildings=[];glows=[];
+  for(let bi=0;bi<N;bi++)for(let bj=0;bj<N;bj++){
+    const cx=roadPos(bi)+CELL/2,cz=roadPos(bj)+CELL/2;
+    box(BLK,.25,BLK,walkMat,cx,.125,cz);
+    box(BLK+.3,.2,BLK+.3,STD(0x8d8a84),cx,.1,cz);
+    // lamps on block corners
+    [[-1,-1],[1,1]].forEach(([sx,sz])=>lamp(cx+sx*(BLK/2-.6),cz+sz*(BLK/2-.6),sx>0?Math.PI*.75:-Math.PI*.25,C.night));
+    if(bi===3&&bj===3){landmark(C.landmark).position.set(cx,.25,cz);buildings.push({x:cx,z:cz,w:BLK-2,d:BLK-2});continue}
+    for(const[ox,oz]of[[-7,-7],[7,-7],[-7,7],[7,7]]){
+      if(Math.random()<C.trees){tree(cx+ox,cz+oz,C.palms);continue}
+      const h=Math.round((C.hmin+Math.random()*(C.hmax-C.hmin)*(Math.random()<.15?1.6:1))/3)*3;
+      const fi=Math.floor(Math.random()*facs.length),F=facs[fi];
+      const fm=STD(0xffffff,{map:F.map,roughness:.75});if(F.em){fm.emissiveMap=F.em;fm.emissive=new THREE.Color(0xffc887);fm.emissiveIntensity=1.4}
+      const geo=new THREE.BoxGeometry(11,h,11);const uv=geo.attributes.uv;
+      for(let k=0;k<uv.count;k++){const face=Math.floor(k/4);if(face===2||face===3)continue;uv.setXY(k,uv.getX(k)*11/12,uv.getY(k)*h/12)}
+      const b=new THREE.Mesh(geo,[fm,fm,roofMat,roofMat,fm,fm]);b.position.set(cx+ox,h/2+.25,cz+oz);b.castShadow=true;b.receiveShadow=true;world.add(b);
+      box(11.4,.5,11.4,STD(C.snow?0xf4f7fa:0x8a857c),cx+ox,h+.5,cz+oz);
+      if(h>15&&!C.snow)box(2.5,1.6,2.5,STD(0x9aa0a6,{metalness:.5,roughness:.5}),cx+ox+2,h+1.5,cz+oz-2);
+      buildings.push({x:cx+ox,z:cz+oz,w:11,d:11});
+    }
+  }
+  // hills
+  for(let i=0;i<34;i++){const a=i/34*Math.PI*2,r=HALF+60+Math.random()*90,h=25+Math.random()*50;
+    const m=new THREE.Mesh(new THREE.IcosahedronGeometry(40+Math.random()*30,2),STD(C.snow?0xe9eef3:C.hills,{flatShading:true,roughness:1}));
+    m.scale.y=h/55;m.position.set(Math.cos(a)*r,-6,Math.sin(a)*r);world.add(m)}
+  // traffic
+  traffic=[];
+  for(let n=0;n<28;n++){
+    const vert=Math.random()<.5,i=Math.floor(Math.random()*(N+1)),dir=Math.random()<.5?1:-1;
+    const isBoda=C.boda&&Math.random()<.45;
+    const m=isBoda?bodaMesh():carMesh(Math.random()<.5?C.taxi:[0xd9dde2,0x23272e,0x8b1e1e,0x9aa5ad,0xe8e2d0][n%5],!isBoda&&Math.random()<.5);
+    world.add(m);traffic.push({m,vert,i,dir,t:(Math.random()-.5)*N*CELL,sp:(isBoda?11:8)+Math.random()*5,boda:isBoda});
+  }
+  // snow
+  snow=null;
+  if(C.snow){const n=2500,geo=new THREE.BufferGeometry(),p=new Float32Array(n*3);for(let i=0;i<n;i++){p[i*3]=(Math.random()-.5)*120;p[i*3+1]=Math.random()*50;p[i*3+2]=(Math.random()-.5)*120}
+    geo.setAttribute("position",new THREE.BufferAttribute(p,3));
+    const st=canvasTex(32,32,(g)=>{const gr=g.createRadialGradient(16,16,0,16,16,16);gr.addColorStop(0,"rgba(255,255,255,1)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,32,32)});
+    snow=new THREE.Points(geo,new THREE.PointsMaterial({color:0xffffff,size:.45,map:st,transparent:true,depthWrite:false}));scene.add(snow)}
+  // player
+  player.mesh=carMesh(C.player,true);scene.add(player.mesh);
+  if(C.night){[-.7,.7].forEach(x=>{const s=glowSprite(0xfff3d6,2.2);s.position.set(x,.86,-2.3);player.mesh.userData.body.add(s)});
+    const beam=new THREE.SpotLight(0xfff1d6,3,60,.5,.6,1);beam.position.set(0,1,-2);beam.target.position.set(0,0,-20);player.mesh.add(beam);player.mesh.add(beam.target);}
+  ring=new THREE.Mesh(new THREE.TorusGeometry(4,.35,12,48),new THREE.MeshBasicMaterial({color:0xffd34d}));ring.rotation.x=Math.PI/2;scene.add(ring);
+  const beamM=new THREE.Mesh(new THREE.CylinderGeometry(.6,.6,60,16,1,true),new THREE.MeshBasicMaterial({color:0xffd34d,transparent:true,opacity:.28,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));
+  beamM.position.set(0,0,-30);beamM.rotation.x=-Math.PI/2;ring.add(beamM);
+}
+
+
+const $=id=>document.getElementById(id);
+/* ================= LANGUAGE ================= */
+const I18N={
+ en:{taxi:"Taxi shift",taxiSub:"Pick up and drop off passengers before time runs out",race:"Race the computer",raceSub:"2 laps through the city against 3 local drivers",
+  online:"Race online",onlineSub:"Random players or friends with a code",pick:"Pick up passenger",drop:"Drop off passenger",fares:"Fares",lap:"Lap",pos:"Pos",
+  finished:"Finished!",go:"GO!",finish:"FINISH",win:"You win!",place:"You finished #{n}",again:"Race again",menu:"Menu",back:"Back",
+  quick:"Quick race",quickSub:"Anyone online in {city}",create:"Create friends race",createSub:"Get a code to send on WhatsApp",join:"Join",code:"Friend's code",
+  nick:"Your racer name",start:"Start race now",startSub1:"You can start alone; others join the next race",startSubN:"{n} racers ready",leave:"Leave",
+  sendCode:"Send this code to your friends:",waiting:"Waiting for racers in {city}…",shiftOver:"Shift over in {city}",delivered:"Passengers delivered: {n}",
+  driveAgain:"Drive again",you:"You",connecting:"Connecting…",noConnect:"Couldn't connect. Try again in a moment.",friends:"Friends race",
+  offline:"Online racing isn't available here. In the app it works for everyone who is signed in.",onlineIntro:"Race real people in {city}.",racing:"racing…",laps:"laps",
+  left:"drive left",right:"drive right",horn:"Horn",sound:"Sound",record:"New record!",best:"Best"},
+ ti:{taxi:"ስራሕ ታክሲ",taxiSub:"ግዜ ከይወድአ ተሳፈርቲ ኣልዕል ኣውርድ",race:"ምስ ኮምፒተር ተወዳደር",raceSub:"2 ዙር ኣብ ከተማ ምስ 3 መራሕቲ መካይን",
+  online:"ኦንላይን ውድድር",onlineSub:"ምስ ዝኾነ ሰብ ወይ ምስ ኣዕሩኽ ብኮድ",pick:"ተሳፋሪ ኣልዕል",drop:"ተሳፋሪ ኣውርድ",fares:"ተሳፈርቲ",lap:"ዙር",pos:"ደረጃ",
+  finished:"ወዲእካ!",go:"ጀምር!",finish:"መወዳእታ",win:"ተዓዊትካ!",place:"{n}ይ ወጺእካ",again:"ደጊምካ ተወዳደር",menu:"ዝርዝር",back:"ተመለስ",
+  quick:"ቅልጡፍ ውድድር",quickSub:"ኣብ {city} ዘሎ ዝኾነ ሰብ",create:"ምስ ኣዕሩኽ ውድድር ፍጠር",createSub:"ብዋትስኣፕ ዝስደድ ኮድ ውሰድ",join:"ተጸንበር",code:"ኮድ ዓርኪ",
+  nick:"ስምካ",start:"ሕጂ ጀምር",startSub1:"በይንኻ ክትጅምር ትኽእል ኢኻ",startSubN:"{n} ተወዳደርቲ ድሉዋት",leave:"ውጻእ",
+  sendCode:"ነዚ ኮድ ናብ ኣዕሩኽካ ስደድ፦",waiting:"ኣብ {city} ተወዳደርቲ ይጽበ ኣሎ…",shiftOver:"ስራሕ ኣብ {city} ተወዲኡ",delivered:"ዘብጻሕካዮም ተሳፈርቲ፦ {n}",
+  driveAgain:"ደጊምካ ዘውር",you:"ንስኻ",connecting:"ይራኸብ ኣሎ…",noConnect:"ክራኸብ ኣይከኣለን። ደሓር ፈትን።",friends:"ውድድር ኣዕሩኽ",
+  offline:"ኦንላይን ውድድር ኣብዚ ኣይሰርሕን። ኣብ ኣፕ ንኹሉ ዝኣተወ ሰብ ይሰርሕ።",onlineIntro:"ኣብ {city} ምስ ሓቀኛታት ሰባት ተወዳደር።",racing:"ይወዳደር…",laps:"ዙር",
+  left:"ብጸጋም",right:"ብየማን",horn:"ጡሩምባ",sound:"ድምጺ",record:"ሓድሽ ሪኮርድ!",best:"ዝበለጸ"},
+ am:{taxi:"የታክሲ ስራ",taxiSub:"ጊዜው ሳያልቅ ተሳፋሪዎችን ጫን አውርድ",race:"ከኮምፒውተር ጋር ተወዳደር",raceSub:"2 ዙር በከተማው ከ3 አሽከርካሪዎች ጋር",
+  online:"ኦንላይን ውድድር",onlineSub:"ከማንኛውም ሰው ወይም ከጓደኞች በኮድ",pick:"ተሳፋሪ ጫን",drop:"ተሳፋሪ አውርድ",fares:"ተሳፋሪዎች",lap:"ዙር",pos:"ደረጃ",
+  finished:"ጨርሰሃል!",go:"ጀምር!",finish:"መጨረሻ",win:"አሸነፍክ!",place:"{n}ኛ ወጥተሃል",again:"እንደገና ተወዳደር",menu:"ዝርዝር",back:"ተመለስ",
+  quick:"ፈጣን ውድድር",quickSub:"በ{city} ያለ ማንኛውም ሰው",create:"ከጓደኞች ጋር ውድድር ፍጠር",createSub:"በዋትስአፕ የሚላክ ኮድ ውሰድ",join:"ተቀላቀል",code:"የጓደኛ ኮድ",
+  nick:"ስምህ",start:"አሁን ጀምር",startSub1:"ብቻህን መጀመር ትችላለህ",startSubN:"{n} ተወዳዳሪዎች ዝግጁ ናቸው",leave:"ውጣ",
+  sendCode:"ይህን ኮድ ለጓደኞችህ ላክ፦",waiting:"በ{city} ተወዳዳሪዎችን በመጠበቅ ላይ…",shiftOver:"በ{city} ስራው አልቋል",delivered:"ያደረስካቸው ተሳፋሪዎች፦ {n}",
+  driveAgain:"እንደገና ንዳ",you:"አንተ",connecting:"በመገናኘት ላይ…",noConnect:"መገናኘት አልተቻለም። ቆይተህ ሞክር።",friends:"የጓደኞች ውድድር",
+  offline:"ኦንላይን ውድድር እዚህ አይሰራም። በአፑ ውስጥ ለገባ ሁሉ ይሰራል።",onlineIntro:"በ{city} ከእውነተኛ ሰዎች ጋር ተወዳደር።",racing:"በውድድር ላይ…",laps:"ዙር",
+  left:"በግራ",right:"በቀኝ",horn:"ጥሩምባ",sound:"ድምፅ",record:"አዲስ ሪከርድ!",best:"ምርጥ"}
+};
+const CITY_I18N={kampala:{en:"Kampala",ti:"ካምፓላ",am:"ካምፓላ",c:{en:"Uganda",ti:"ኡጋንዳ",am:"ኡጋንዳ"}},addis:{en:"Addis Ababa",ti:"ኣዲስ ኣበባ",am:"አዲስ አበባ",c:{en:"Ethiopia",ti:"ኢትዮጵያ",am:"ኢትዮጵያ"}},
+ asmara:{en:"Asmara",ti:"ኣስመራ",am:"አስመራ",c:{en:"Eritrea",ti:"ኤርትራ",am:"ኤርትራ"}},oslo:{en:"Oslo",ti:"ኦስሎ",am:"ኦስሎ",c:{en:"Norway",ti:"ኖርወይ",am:"ኖርዌይ"}}};
+const QS=new URLSearchParams(location.search);
+let lang=(QS.get("lang")||"").slice(0,2);
+if(!I18N[lang]){try{lang=localStorage.getItem("cd-lang")||""}catch(e){}}
+if(!I18N[lang])lang="en";
+function T(k,vars){let s=(I18N[lang]&&I18N[lang][k])||I18N.en[k]||k;if(vars)Object.keys(vars).forEach(v=>s=s.split("{"+v+"}").join(vars[v]));return s}
+const cityName=k=>CITY_I18N[k][lang];
+const cityTag=k=>CITY_I18N[k].c[lang]+" · "+(CITIES[k].side<0?T("left"):T("right"));
+function setLang(l){if(!I18N[l])return;lang=l;try{localStorage.setItem("cd-lang",l)}catch(e){}document.documentElement.lang=l;
+  [...$("langs").children].forEach(b=>b.setAttribute("aria-pressed",b.dataset.l===l));renderCities();$("horn").setAttribute("aria-label",T("horn"));
+  if(mode==="menu"&&!nroom)mainMenu();else if(nroom&&!R)onlineLobby()}
+
+/* ================= SOUND, MUSIC & VOICE ================= */
+// Engine: two detuned oscillators through a soft-clipping filter, with gears; tyre squeal and wind from filtered noise.
+// Music: original slow 6/8 piece in the tizita minor scale: krar-like plucks (Karplus-Strong), a masenqo-like bowed line, soft kebero.
+// Voice lines play from voice/<lang>/<key>.mp3 when those recordings exist; otherwise a soft chime plays.
+const SND={ctx:null,on:true,music:true,cache:{}};
+try{SND.on=localStorage.getItem("cd-sound")!=="off";SND.music=localStorage.getItem("cd-music")!=="off"}catch(e){}
+function noiseBuf(c,sec){const b=c.createBuffer(1,c.sampleRate*sec,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b}
+function audio(){if(SND.ctx){if(SND.ctx.state==="suspended")SND.ctx.resume();return SND.ctx}
+  try{SND.ctx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return null}
+  const c=SND.ctx;
+  const comp=c.createDynamicsCompressor();comp.threshold.value=-18;comp.ratio.value=4;comp.connect(c.destination);
+  SND.sfx=c.createGain();SND.sfx.gain.value=SND.on?1:0;SND.sfx.connect(comp);
+  SND.mus=c.createGain();SND.mus.gain.value=SND.music?.32:0;SND.mus.connect(comp);
+  // engine
+  SND.o1=c.createOscillator();SND.o1.type="sawtooth";SND.o2=c.createOscillator();SND.o2.type="triangle";
+  SND.ef=c.createBiquadFilter();SND.ef.type="lowpass";SND.ef.frequency.value=500;SND.ef.Q.value=2;
+  const ws=c.createWaveShaper();const cv=new Float32Array(256);for(let i=0;i<256;i++){const x=i/128-1;cv[i]=Math.tanh(2.2*x)}ws.curve=cv;
+  SND.eg=c.createGain();SND.eg.gain.value=0;
+  const g1=c.createGain();g1.gain.value=.5;const g2=c.createGain();g2.gain.value=.8;
+  SND.o1.connect(g1).connect(SND.ef);SND.o2.connect(g2).connect(SND.ef);SND.ef.connect(ws).connect(SND.eg).connect(SND.sfx);
+  SND.o1.start();SND.o2.start();
+  // tyres + wind
+  const nb=noiseBuf(c,2);
+  const n1=c.createBufferSource();n1.buffer=nb;n1.loop=true;const bp=c.createBiquadFilter();bp.type="bandpass";bp.frequency.value=1900;bp.Q.value=9;
+  SND.tg=c.createGain();SND.tg.gain.value=0;n1.connect(bp).connect(SND.tg).connect(SND.sfx);n1.start();
+  const n2=c.createBufferSource();n2.buffer=nb;n2.loop=true;const lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.value=700;
+  SND.wg=c.createGain();SND.wg.gain.value=0;n2.connect(lp).connect(SND.wg).connect(SND.sfx);n2.start();
+  SND.noise=nb;
+  if(SND.music)Music.start();
+  return c}
+function chime(f,dur,vol){const c=audio();if(!c)return;const t=c.currentTime,o=c.createOscillator(),o2=c.createOscillator(),g=c.createGain();
+  o.type="sine";o2.type="sine";o.frequency.value=f;o2.frequency.value=f*2.01;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||.18,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.connect(g);o2.connect(g);g.connect(SND.sfx);o.start(t);o2.start(t);o.stop(t+dur+.05);o2.stop(t+dur+.05)}
+function tone(f,dur,type,vol){chime(f,Math.max(.15,dur),(vol||.15)*.9)}
+function thud(){const c=audio();if(!c)return;const t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type="sine";
+  o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(40,t+.25);g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);
+  o.connect(g).connect(SND.sfx);o.start(t);o.stop(t+.32)}
+function horn(){const c=audio();if(!c)return;const t=c.currentTime,lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.value=1800;const g=c.createGain();
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.09,t+.02);g.gain.setValueAtTime(.09,t+.4);g.gain.linearRampToValueAtTime(0,t+.48);
+  [415,523].forEach(f=>{const o=c.createOscillator();o.type="square";o.frequency.value=f;o.connect(lp);o.start(t);o.stop(t+.5)});lp.connect(g).connect(SND.sfx)}
+function whoosh(){const c=audio();if(!c)return;const t=c.currentTime,s=c.createBufferSource();s.buffer=SND.noise;const f=c.createBiquadFilter();f.type="bandpass";f.Q.value=1.5;
+  f.frequency.setValueAtTime(300,t);f.frequency.exponentialRampToValueAtTime(3000,t+.6);const g=c.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.35,t+.1);g.gain.exponentialRampToValueAtTime(.001,t+.9);
+  s.connect(f).connect(g).connect(SND.sfx);s.start(t);s.stop(t+1)}
+const VOICE_FALLBACK={count3:[660,.3],count2:[660,.3],count1:[660,.3],go:[990,.7],win:[880,1],finish:[784,.8],fare:[1175,.3],pickup:[988,.3],lap:[740,.5]};
+function say(key){if(!SND.on)return;const src=`voice/${lang}/${key}.mp3`;
+  const fb=()=>{const f=VOICE_FALLBACK[key];if(f)chime(f[0],f[1],.2)};
+  if(SND.cache[src]===false){fb();return}
+  const a=new Audio(src);a.onerror=()=>{SND.cache[src]=false;fb()};a.play().then(()=>{SND.cache[src]=true}).catch(()=>{if(SND.cache[src]!==true){SND.cache[src]=false;fb()}})}
+let gear=1,lastGear=1,shiftDip=0;
+function engineTick(steer){if(!SND.ctx)return;const c=SND.ctx,t=c.currentTime,v=Math.abs(player.v),max=player.vmax||32;
+  const edges=[0,6,12,18,24,30,99];let g=1;while(g<5&&v>edges[g])g++;
+  if(g!==lastGear){shiftDip=.12;lastGear=g}gear=g;
+  const lo=edges[g-1],hi=Math.min(edges[g],max+2);const frac=Math.max(0,Math.min(1,(v-lo)/Math.max(1,hi-lo)));
+  const rpm=(G.on?900:800)+frac*5200+(g===1?v*80:0);
+  const f=rpm/60*2;SND.o1.frequency.setTargetAtTime(f,t,.06);SND.o2.frequency.setTargetAtTime(f*.5*1.01,t,.06);
+  const thr=player.thr||0;SND.ef.frequency.setTargetAtTime(350+thr*900+frac*700,t,.08);
+  shiftDip=Math.max(0,shiftDip-.016);
+  SND.eg.gain.setTargetAtTime(G.on?(.05+thr*.06+frac*.02)*(1-shiftDip*4):.0,t,.08);
+  const slip=Math.abs(steer||0)*Math.max(0,v-16)/16;SND.tg.gain.setTargetAtTime(Math.min(.12,slip*.12),t,.05);
+  SND.wg.gain.setTargetAtTime(Math.min(.12,(v/40)*(v/40)*.14),t,.2)}
+function toggleSound(){SND.on=!SND.on;try{localStorage.setItem("cd-sound",SND.on?"on":"off")}catch(e){}$("snd").textContent=SND.on?"🔊":"🔇";const c=audio();if(c)SND.sfx.gain.setTargetAtTime(SND.on?1:0,c.currentTime,.05)}
+function toggleMusic(){SND.music=!SND.music;try{localStorage.setItem("cd-music",SND.music?"on":"off")}catch(e){}$("mus").style.opacity=SND.music?1:.45;const c=audio();
+  if(c){SND.mus.gain.setTargetAtTime(SND.music?.32:0,c.currentTime,.3);if(SND.music)Music.start()}}
+
+/* ---------- original slow Habesha-style music ---------- */
+const Music={on:false,timer:null,next:0,step:0,ks:{},
+  // tizita minor on A: A B C E F (MIDI 57 59 60 64 65), two octaves
+  scale:[45,47,48,52,53,57,59,60,64,65,69,71,72,76,77],
+  midi(m){return 440*Math.pow(2,(m-69)/12)},
+  pluck(m){if(this.ks[m])return this.ks[m];const c=SND.ctx,sr=c.sampleRate,f=this.midi(m),N=Math.round(sr/f),len=Math.floor(sr*2.2);
+    const b=c.createBuffer(1,len,sr),d=b.getChannelData(0),buf=new Float32Array(N);for(let i=0;i<N;i++)buf[i]=Math.random()*2-1;
+    let p=0;for(let i=0;i<len;i++){const nx=(p+1)%N;const v=(buf[p]+buf[nx])*.5*.996;d[i]=buf[p];buf[p]=v;p=nx}
+    return this.ks[m]=b},
+  start(){if(this.on||!SND.ctx)return;this.on=true;this.next=SND.ctx.currentTime+.2;this.step=0;this.timer=setInterval(()=>this.tick(),90)},
+  // 6/8 at a slow dotted-quarter pulse: one eighth = 0.3 s; a bar = 6 eighths
+  E:.3,
+  // krar ostinato (scale indices) for a 4-bar cycle, one value per eighth (-1 = rest)
+  krar:[[5,7,8,7,5,2],[5,7,9,8,7,5],[4,7,8,7,4,2],[3,5,7,5,4,2]],
+  bass:[0,0,3,2],
+  // masenqo line: [scale index, length in eighths] over 8 bars (48 eighths)
+  mel:[[10,6],[11,3],[10,3],[9,6],[8,6],[9,3],[10,3],[11,6],[12,4],[11,2],[10,6],
+       [10,3],[9,3],[8,6],[7,3],[8,3],[9,6],[8,9],[7,3],[5,6],[7,6]],
+  tick(){if(!SND.music){return}const c=SND.ctx;while(this.next<c.currentTime+.5){this.play(this.step,this.next);this.next+=this.E;this.step++}},
+  play(s,t){const bar=Math.floor(s/6)%4,e=s%6;
+    const k=this.krar[bar][e];if(k>=0)this.note(this.scale[k]+12,t,.16);
+    if(e===0)this.note(this.scale[this.bass[bar]],t,.22);
+    // kebero: dum on 1 and 4, tek on 3 and 6
+    if(e===0||e===3)this.drum(t,e===0?.35:.22);if(e===2||e===5)this.tek(t,.06);
+    // melody (starts after 2 bars, then loops every 8 bars)
+    if(s>=12){if(!this.melLen)this.melLen=this.mel.reduce((x,y)=>x+y[1],0);const ms=(s-12)%this.melLen;let acc=0;for(const[d,len]of this.mel){if(acc===ms){this.bow(this.scale[d],t,len*this.E);break}acc+=len;if(acc>ms)break}}},
+  note(m,t,vol){const c=SND.ctx,src=c.createBufferSource();src.buffer=this.pluck(m);const g=c.createGain();g.gain.value=vol;
+    const f=c.createBiquadFilter();f.type="lowpass";f.frequency.value=2600;src.connect(f).connect(g).connect(SND.mus);src.start(t);src.stop(t+2.2)},
+  bow(m,t,dur){const c=SND.ctx,o=c.createOscillator();o.type="sawtooth";const f0=this.midi(m);
+    o.frequency.setValueAtTime(f0*.985,t);o.frequency.exponentialRampToValueAtTime(f0,t+.12);
+    const lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=5.2;lg.gain.value=f0*.006;lfo.connect(lg).connect(o.frequency);
+    const bp=c.createBiquadFilter();bp.type="bandpass";bp.frequency.value=1100;bp.Q.value=1.1;const lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.value=2400;
+    const g=c.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.06,t+.25);g.gain.setValueAtTime(.06,t+dur-.25);g.gain.linearRampToValueAtTime(0,t+dur);
+    o.connect(bp).connect(lp).connect(g).connect(SND.mus);o.start(t);lfo.start(t);o.stop(t+dur+.05);lfo.stop(t+dur+.05)},
+  drum(t,vol){const c=SND.ctx,o=c.createOscillator(),g=c.createGain();o.type="sine";o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(55,t+.18);
+    g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+.35);o.connect(g).connect(SND.mus);o.start(t);o.stop(t+.4)},
+  tek(t,vol){const c=SND.ctx,s=c.createBufferSource();s.buffer=SND.noise;const f=c.createBiquadFilter();f.type="bandpass";f.frequency.value=2500;f.Q.value=2;
+    const g=c.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+.07);s.connect(f).connect(g).connect(SND.mus);s.start(t,Math.random());s.stop(t+.08)}
+};
+
+/* ================= GAME STATE ================= */
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const player={x:0,z:0,a:0,v:0,steer:0,roll:0,pitch:0,mesh:null};
+let mode="menu";
+let G={on:false,frozen:false,score:0,time:60,pick:true};
+let R=null;
+const LAPS=2, ROUTE=[[1,1],[6,1],[6,4],[3,4],[3,6],[1,6]];
+let WP=[];
+let people=[], ais=[], ghosts={};
+
+/* ---------- pedestrians ---------- */
+const SKIN=[0x5a3622,0x6b4226,0x8d5524,0x3f2516,0xc68642,0xe0ac69,0xf1c27d];
+const CLOTH=[0xf6f2ea,0x1f6fd1,0xc81e1e,0x2e8b57,0xf2c230,0x333a44,0x8e44ad,0xe67e22,0xffffff];
+function personMesh(){const g=new THREE.Group();const sk=STD(SKIN[Math.floor(Math.random()*SKIN.length)]),sh=STD(CLOTH[Math.floor(Math.random()*CLOTH.length)]),pa=STD([0x22252b,0x3b4a66,0x6b5a46,0xf6f2ea][Math.floor(Math.random()*4)]);
+  g.scale.setScalar(.9+Math.random()*.2);
+  const leg=(x)=>{const p=new THREE.Group();p.position.set(x,.9,0);const m=new THREE.Mesh(new THREE.BoxGeometry(.18,.9,.2),pa);m.position.y=-.45;m.castShadow=true;p.add(m);g.add(p);return p};
+  const arm=(x)=>{const p=new THREE.Group();p.position.set(x,1.5,0);const m=new THREE.Mesh(new THREE.BoxGeometry(.13,.65,.15),sh);m.position.y=-.32;p.add(m);g.add(p);return p};
+  const t=new THREE.Mesh(new THREE.BoxGeometry(.48,.62,.26),sh);t.position.y=1.22;t.castShadow=true;g.add(t);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(.15,12,10),sk);h.position.y=1.7;h.castShadow=true;g.add(h);
+  if(Math.random()<.35){const sc=new THREE.Mesh(new THREE.BoxGeometry(.5,.5,.28),STD(0xf6f2ea));sc.position.y=1.25;sc.scale.set(1.05,1,1.05);g.add(sc)}
+  g.userData={legs:[leg(-.12),leg(.12)],arms:[arm(-.32),arm(.32)]};return g}
+function addPeople(){people=[];
+  for(let n=0;n<150;n++){const bi=Math.floor(Math.random()*N),bj=Math.floor(Math.random()*N);
+    const cx=roadPos(bi)+CELL/2,cz=roadPos(bj)+CELL/2,m=personMesh();world.add(m);
+    people.push({m,cx,cz,r:BLK/2-1.5,t:Math.random()*4,sp:1.1+Math.random()*.7,dir:Math.random()<.5?1:-1,off:0,ph:Math.random()*6})}}
+function perim(p){const s=((p.t%4)+4)%4,side=Math.floor(s),f=s-side,r=p.r-p.off;let x,z,hx,hz;
+  if(side===0){x=-r+2*r*f;z=-r;hx=1;hz=0}else if(side===1){x=r;z=-r+2*r*f;hx=0;hz=1}else if(side===2){x=r-2*r*f;z=r;hx=-1;hz=0}else{x=-r;z=r-2*r*f;hx=0;hz=-1}
+  return{x:p.cx+x,z:p.cz+z,hx:hx*p.dir,hz:hz*p.dir}}
+function stepPeople(dt,now){people.forEach(p=>{
+  const pos=perim(p);const near=Math.hypot(pos.x-player.x,pos.z-player.z)<4.5&&Math.abs(player.v)>2;
+  p.off+=((near?1.2:0)-p.off)*Math.min(1,dt*5);
+  if(!near)p.t+=p.dir*p.sp*dt/(2*p.r);
+  const q=perim(p);p.m.position.set(q.x,.25,q.z);p.m.rotation.y=Math.atan2(q.hx,q.hz);
+  const sw=near?0:Math.sin(now/180*p.sp+p.ph)*.5,u=p.m.userData;
+  u.legs[0].rotation.x=sw;u.legs[1].rotation.x=-sw;u.arms[0].rotation.x=near?-2.6:-sw*.8;u.arms[1].rotation.x=near?-2.6:sw*.8;})}
+
+/* ---------- name tag ---------- */
+function nameTag(text,color){const t=canvasTex(256,64,(g,w,h)=>{g.fillStyle="rgba(0,0,0,.55)";g.beginPath();g.roundRect?g.roundRect(4,8,w-8,48,24):g.rect(4,8,w-8,48);g.fill();
+  g.fillStyle=color;g.beginPath();g.arc(32,32,10,0,7);g.fill();g.fillStyle="#fff";g.font="700 26px 'Noto Sans Ethiopic', Sora, sans-serif";g.textBaseline="middle";g.fillText(String(text).slice(0,14),52,33)});
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,transparent:true}));s.scale.set(2.6,.65,1);s.position.y=2.7;s.renderOrder=10;return s}
+
+/* ---------- city + mode setup ---------- */
+function renderCities(){$("cities").innerHTML=ORDER.map(k=>`<button data-k="${k}" aria-pressed="${k===cityKey}">${esc(cityName(k))}<small>${esc(cityTag(k))}</small></button>`).join("")}
+function setCity(key){cityKey=key;build(key);addPeople();WP=ROUTE.map(([i,j])=>({x:roadPos(i),z:roadPos(j)}));ais=[];ghosts={};renderCities();resize()}
+function placeAt(x,z,a){player.x=x;player.z=z;player.a=a;player.v=0;player.steer=0;cam.position.set(x-Math.sin(a)*11,5,z+Math.cos(a)*11)}
+
+/* ---------- menu ---------- */
+function showMenu(html){$("menu").innerHTML=html;$("ov").hidden=false}
+function mainMenu(){mode="menu";G.on=false;clearRace();if(ring)ring.visible=false;
+  placeAt(roadPos(3)+3.2*CITIES[cityKey].side,roadPos(5),0);
+  showMenu(`<h2>${esc(cityName(cityKey))}</h2><p>${esc(cityTag(cityKey))}</p>
+   <button class="btn" data-act="race">🏁 ${esc(T("race"))}<small>${esc(T("raceSub"))}</small></button>
+   <button class="btn" data-act="online">🌍 ${esc(T("online"))}<small>${esc(T("onlineSub"))}</small></button>`);hud(performance.now())}
+$("menu").addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b||b.disabled)return;const a=b.dataset.act;audio();
+  if(a==="taxi")startTaxi();if(a==="race")startRace("ai");if(a==="online")onlineMenu();if(a==="menu"){leaveOnline();mainMenu()}
+  if(a==="quick")joinOnline("quick-"+cityKey);
+  if(a==="create"){const code=Math.random().toString(36).slice(2,7);joinOnline(`f-${cityKey}-${code}`,code)}
+  if(a==="join"){const code=($("code").value||"").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,8);if(code)joinOnline(`f-${cityKey}-${code}`,code)}
+  if(a==="start")hostStart();if(a==="again"){if(mode==="online")onlineLobby();else startRace("ai")}});
+
+/* ---------- taxi ---------- */
+function newTarget(){let ix,iz;do{ix=Math.floor(Math.random()*(N+1));iz=Math.floor(Math.random()*(N+1))}while(Math.hypot(roadPos(ix)-player.x,roadPos(iz)-player.z)<50);
+  target={x:roadPos(ix),z:roadPos(iz)};ring.position.set(target.x,1.2,target.z)}
+function startTaxi(){mode="taxi";clearRace();placeAt(roadPos(3)+3.2*CITIES[cityKey].side,roadPos(5),0);G={on:true,frozen:false,score:0,time:60,pick:true};newTarget();$("ov").hidden=true;ring.visible=true;say("go")}
+
+/* ---------- racing ---------- */
+const AI_NAMES={kampala:["Okello","Nakato","Ssemanda"],addis:["Abebe","Selam","Dawit"],asmara:["Tesfay","Senait","Kibrom"],oslo:["Ola","Ingrid","Lars"]};
+const AI_NAMES_GEEZ={addis:["አበበ","ሰላም","ዳዊት"],asmara:["ተስፋይ","ሰናይት","ክብሮም"]};
+const AI_COL=[0x2e8b57,0xf2c230,0x8e44ad];
+function gridSpot(slot){const a=Math.PI/2,side=CITIES[cityKey].side;const row=Math.floor(slot/2),col=slot%2;
+  return{x:WP[0].x+14-row*7,z:WP[0].z+(col?2.2:-2.2)+side*1,a}}
+function clearRace(){ais.forEach(a=>scene.remove(a.mesh));ais=[];Object.values(ghosts).forEach(g=>scene.remove(g.mesh));ghosts={};R=null;$("count").hidden=true;
+  if(player.mesh&&player.mesh.userData.tag){player.mesh.remove(player.mesh.userData.tag);player.mesh.userData.tag=null}}
+function startRace(kind,opts={}){clearRace();mode=kind==="ai"?"race":"online";
+  const slot=opts.slot||0;const sp=gridSpot(slot);placeAt(sp.x,sp.z,sp.a);
+  R={kind,start:opts.startAt||performance.now()+3500,done:0,finished:null,said:{}};
+  if(kind==="ai"){const names=(lang!=="en"&&AI_NAMES_GEEZ[cityKey])||AI_NAMES[cityKey];
+    names.forEach((n,i)=>{const s=gridSpot(i+1);const m=carMesh(AI_COL[i],false);scene.add(m);m.add(nameTag(n,"#"+AI_COL[i].toString(16).padStart(6,"0")));
+    ais.push({name:n,mesh:m,x:s.x,z:s.z,a:s.a,v:0,done:0,maxV:24+i*1.6+Math.random()*2,lane:CITIES[cityKey].side*(1.5+i*1.2)*(i%2?1:-1)*.8,finished:null,color:AI_COL[i]})})}
+  G={on:true,frozen:true,score:0,time:0,pick:true};ring.visible=true;setRing();$("ov").hidden=true}
+function nextWP(done){return WP[(done+1)%WP.length]}
+function setRing(){if(!R)return;const w=nextWP(R.done);ring.position.set(w.x,1.2,w.z)}
+function progress(done,x,z){const a=WP[done%WP.length],b=nextWP(done);const seg=Math.hypot(b.x-a.x,b.z-a.z)||1;return done+Math.max(0,1-Math.hypot(b.x-x,b.z-z)/seg)}
+const TOTAL=()=>LAPS*WP.length;
+function fmt(ms){const s=ms/1000;return Math.floor(s/60)+":"+(s%60).toFixed(1).padStart(4,"0")}
+function stepAI(dt,now){ais.forEach(c=>{
+  if(c.finished||now<R.start){c.mesh.position.set(c.x,0,c.z);c.mesh.rotation.y=-c.a;return}
+  const w0=nextWP(c.done),pv=WP[c.done%WP.length];const sx=w0.x-pv.x,sz=w0.z-pv.z;const sl=Math.hypot(sx,sz)||1;const lx=-sz/sl,lz=sx/sl;
+  const w={x:w0.x+lx*c.lane,z:w0.z+lz*c.lane};const dx=w.x-c.x,dz=w.z-c.z,d=Math.hypot(dx,dz);
+  const want=Math.atan2(dx,-dz);let diff=want-c.a;while(diff>Math.PI)diff-=2*Math.PI;while(diff<-Math.PI)diff+=2*Math.PI;
+  c.a+=Math.max(-2.4*dt,Math.min(2.4*dt,diff));
+  const tv=d<26?c.maxV*.5:c.maxV;c.v+=(tv-c.v)*Math.min(1,dt*(c.v<tv?.9:2.5));
+  c.x+=Math.sin(c.a)*c.v*dt;c.z-=Math.cos(c.a)*c.v*dt;
+  if(d<7){c.done++;if(c.done>=TOTAL())c.finished=now-R.start}
+  c.mesh.position.set(c.x,0,c.z);c.mesh.rotation.y=-c.a;c.mesh.userData.wheels.forEach(wh=>wh.children.forEach(k=>k.rotation.x+=c.v*dt/.42));
+  const cd=Math.hypot(c.x-player.x,c.z-player.z);if(cd<3.4){const ux=(c.x-player.x)/(cd||1),uz=(c.z-player.z)/(cd||1);c.x=player.x+ux*3.4;c.z=player.z+uz*3.4;if(!c.hit){player.v*=.8;c.v*=.85;c.hit=1;thud()}}else c.hit=0})}
+function standings(){
+  const rows=[{name:T("you"),me:true,color:"#"+CITIES[cityKey].player.toString(16).padStart(6,"0"),p:R.finished!=null?1e6-R.finished:progress(R.done,player.x,player.z),t:R.finished}];
+  ais.forEach(c=>rows.push({name:c.name,color:"#"+c.color.toString(16).padStart(6,"0"),p:c.finished!=null?1e6-c.finished:progress(c.done,c.x,c.z),t:c.finished}));
+  Object.values(ghosts).forEach(g=>{const pr=g.pres;rows.push({name:pr.nick||"Racer",color:pr.color||"#fff",p:pr.fin!=null?1e6-pr.fin:(pr.done||0)+.5,t:pr.fin!=null?pr.fin:null})});
+  return rows.sort((a,b)=>b.p-a.p)}
+function finishRace(now){R.finished=now-R.start;try{const k="cd-best-"+cityKey,b=+localStorage.getItem(k)||0;R.record=!b||R.finished<b;R.best=R.record?R.finished:b;if(R.record)localStorage.setItem(k,String(Math.round(R.finished)))}catch(e){}if(mode==="online"&&nroom)nroom.presence({state:"done",fin:Math.round(R.finished),done:R.done}).catch(()=>{});
+  const pos=standings().findIndex(r=>r.me)+1;say(pos===1?"win":"finish");
+  setTimeout(()=>showResults(),mode==="online"?1500:900)}
+function showResults(){if(!R)return;const rows=standings();const myPos=rows.findIndex(r=>r.me)+1;
+  showMenu(`<h2>${myPos===1?"🏆 "+esc(T("win")):esc(T("place",{n:myPos}))}</h2><p>${esc(cityName(cityKey))} · ${LAPS} ${esc(T("laps"))}${R.best?` · ${R.record?"🏅 "+esc(T("record")):esc(T("best"))+" "+fmt(R.best)}`:""}</p>
+   <ul class="list">${rows.map((r,i)=>`<li class="${r.me?"me":""}"><span><span class="dot" style="background:${esc(r.color)}"></span>${i+1}. ${esc(r.name)}</span><span>${r.t!=null?fmt(r.t):esc(T("racing"))}</span></li>`).join("")}</ul>
+   <button class="btn ghost" data-act="again">${esc(T("again"))}</button><button class="btn ghost" data-act="menu">${esc(T("menu"))}</button>`)}
+
+/* ---------- online ----------
+   One interface, two backends:
+   - inside Claude: the artifact "room" capability
+   - inside the Habesha Hub app: window.HabeshaNet (Firebase Realtime Database, see net-firebase.js) */
+let room=null,nroom=null,unsubPeers=null,myNick="",myColor="#f7c948",roomCode=null,raceId=null,startAtWall=0;
+(async()=>{try{if(window.HabeshaNet){room=await window.HabeshaNet.init()}else if(window.claude&&claude.use){room=await claude.use("room")}}catch(e){room=null}})();
+try{myNick=QS.get("name")||localStorage.getItem("cd-nick")||""}catch(e){}
+function onlineMenu(){mode="menu";
+  if(!room){showMenu(`<h2>${esc(T("online"))}</h2><p>${esc(T("offline"))}</p><button class="btn ghost" data-act="menu">${esc(T("back"))}</button>`);return}
+  showMenu(`<h2>${esc(T("online"))}</h2><p>${esc(T("onlineIntro",{city:cityName(cityKey)}))}</p>
+   <div class="row"><input id="nick" maxlength="14" placeholder="${esc(T("nick"))}" value="${esc(myNick)}"></div>
+   <button class="btn" data-act="quick">⚡ ${esc(T("quick"))}<small>${esc(T("quickSub",{city:cityName(cityKey)}))}</small></button>
+   <button class="btn" data-act="create">👥 ${esc(T("create"))}<small>${esc(T("createSub"))}</small></button>
+   <div class="row"><input id="code" maxlength="8" placeholder="${esc(T("code"))}" autocomplete="off"><button class="btn ghost" data-act="join" style="flex:0 0 auto">${esc(T("join"))}</button></div>
+   <button class="btn ghost" data-act="menu">${esc(T("back"))}</button>`)}
+async function joinOnline(name,code){
+  myNick=(($("nick")&&$("nick").value)||myNick||"Racer").trim().slice(0,14)||"Racer";try{localStorage.setItem("cd-nick",myNick)}catch(e){}
+  myColor=["#e74c3c","#3498db","#2ecc71","#f1c40f","#9b59b6","#e67e22","#1abc9c"][Math.floor(Math.random()*7)];
+  roomCode=code||null;leaveOnline();showMenu(`<h2>${esc(T("connecting"))}</h2>`);
+  try{nroom=await room.join(name)}catch(e){showMenu(`<h2>${esc(T("online"))}</h2><p>${esc(T("noConnect"))}</p><button class="btn ghost" data-act="menu">${esc(T("back"))}</button>`);return}
+  mode="online";raceId=null;
+  await nroom.presence({nick:myNick,color:myColor,state:"lobby",raceId:null,startAt:null,x:null,z:null,a:null,done:0,fin:null}).catch(()=>{});
+  unsubPeers=nroom.onPeers(ch=>{adoptStart(ch.peers);if(!R)onlineLobby();else syncGhosts(ch.peers)});
+  onlineLobby()}
+function leaveOnline(){if(unsubPeers){unsubPeers();unsubPeers=null}if(nroom){nroom.leave().catch(()=>{});nroom=null}}
+function onlineLobby(){if(!nroom)return;if(R&&R.finished==null&&mode==="online")return;
+  if(R&&R.finished!=null){clearRace();nroom.presence({state:"lobby",raceId:null,startAt:null,done:0,fin:null}).catch(()=>{})}
+  const ps=nroom.peers().filter(p=>p.kind==="viewer");
+  showMenu(`<h2>${esc(roomCode?T("friends"):T("quick"))} · ${esc(cityName(cityKey))}</h2>
+   ${roomCode?`<p>${esc(T("sendCode"))}<br><b style="font-size:1.6rem;color:var(--gold);letter-spacing:.15em">${esc(roomCode)}</b></p>`:`<p>${esc(T("waiting",{city:cityName(cityKey)}))}</p>`}
+   <ul class="list">${ps.map(p=>`<li class="${p.sameTab?"me":""}"><span><span class="dot" style="background:${/^#[0-9a-f]{6}$/i.test(p.presence.color||"")?p.presence.color:"#fff"}"></span>${esc(p.presence.nick||"Racer")}${p.sameTab?" ("+esc(T("you"))+")":""}</span></li>`).join("")}</ul>
+   <button class="btn" data-act="start" ${ps.length<1?"disabled":""}>${esc(T("start"))}<small>${esc(ps.length>1?T("startSubN",{n:ps.length}):T("startSub1"))}</small></button>
+   <button class="btn ghost" data-act="menu">${esc(T("leave"))}</button>`)}
+function hostStart(){if(!nroom)return;raceId=Math.random().toString(36).slice(2,9);startAtWall=Date.now()+5000;
+  nroom.presence({state:"grid",raceId,startAt:startAtWall,done:0,fin:null}).catch(()=>{});beginOnline()}
+function adoptStart(peers){if(R||!nroom)return;
+  const host=peers.find(p=>!p.sameTab&&p.presence&&p.presence.state==="grid"&&p.presence.raceId&&typeof p.presence.startAt==="number"&&p.presence.startAt>Date.now()+500&&p.presence.startAt<Date.now()+15000);
+  if(!host)return;raceId=String(host.presence.raceId).slice(0,12);startAtWall=host.presence.startAt;
+  nroom.presence({state:"grid",raceId,startAt:startAtWall,done:0,fin:null}).catch(()=>{});beginOnline()}
+function beginOnline(){
+  const racers=nroom.peers().filter(p=>p.sameTab||(p.presence&&p.presence.raceId===raceId)).map(p=>p.peer).sort();
+  const me=nroom.peers().find(p=>p.sameTab);const slot=Math.max(0,racers.indexOf(me?me.peer:""))%6;
+  startRace("online",{slot,startAt:performance.now()+(startAtWall-Date.now())});
+  player.mesh.userData.tag=nameTag(myNick,myColor);player.mesh.add(player.mesh.userData.tag);
+  syncGhosts(nroom.peers())}
+function syncGhosts(peers){if(!R||mode!=="online")return;const seen={};
+  peers.forEach(p=>{if(p.sameTab||!p.presence||p.presence.raceId!==raceId)return;seen[p.peer]=1;
+    let g=ghosts[p.peer];if(!g){const col=/^#[0-9a-f]{6}$/i.test(p.presence.color||"")?p.presence.color:"#ffffff";
+      const m=carMesh(parseInt(col.slice(1),16),false);m.add(nameTag(p.presence.nick||"Racer",col));scene.add(m);g=ghosts[p.peer]={mesh:m,x:0,z:0,a:0,pres:{}}}
+    g.pres=p.presence;});
+  Object.keys(ghosts).forEach(k=>{if(!seen[k]){scene.remove(ghosts[k].mesh);delete ghosts[k]}})}
+let lastSend=0;
+function sendPos(now){if(!nroom||!R||now-lastSend<66)return;lastSend=now;
+  nroom.presence({x:+player.x.toFixed(2),z:+player.z.toFixed(2),a:+player.a.toFixed(3),done:R.done,state:R.finished!=null?"done":"racing"}).catch(()=>{})}
+function stepGhosts(dt){Object.values(ghosts).forEach(g=>{const p=g.pres;if(typeof p.x!=="number"||typeof p.z!=="number")return;
+  if(!g.init){g.x=p.x;g.z=p.z;g.a=p.a||0;g.init=1}
+  g.x+=(p.x-g.x)*Math.min(1,dt*8);g.z+=(p.z-g.z)*Math.min(1,dt*8);let da=(p.a||0)-g.a;while(da>Math.PI)da-=2*Math.PI;while(da<-Math.PI)da+=2*Math.PI;g.a+=da*Math.min(1,dt*8);
+  g.mesh.position.set(g.x,0,g.z);g.mesh.rotation.y=-g.a})}
+
+
+/* ---------- minimap ---------- */
+let miniF=0;
+function drawMini(){const cv=$("mini");if(!cv)return;const g=cv.getContext("2d"),W=cv.width,S=W/(2*HALF+12),o=W/2;
+  const X=x=>o+x*S,Z=z=>o+z*S;g.clearRect(0,0,W,W);
+  g.strokeStyle="rgba(255,255,255,.28)";g.lineWidth=RD*S*.6;for(let i=0;i<=N;i++){const p=roadPos(i);g.beginPath();g.moveTo(X(p),Z(-HALF));g.lineTo(X(p),Z(HALF));g.stroke();g.beginPath();g.moveTo(X(-HALF),Z(p));g.lineTo(X(HALF),Z(p));g.stroke()}
+  if(R&&WP.length){g.strokeStyle="rgba(247,201,72,.85)";g.lineWidth=3;g.beginPath();WP.forEach((w,i)=>i?g.lineTo(X(w.x),Z(w.z)):g.moveTo(X(w.x),Z(w.z)));g.closePath();g.stroke();
+    const nw=nextWP(R.done);g.fillStyle="#f7c948";g.beginPath();g.arc(X(nw.x),Z(nw.z),5,0,7);g.fill()}
+  const dot=(x,z,col,r)=>{g.fillStyle=col;g.beginPath();g.arc(X(x),Z(z),r,0,7);g.fill()};
+  ais.forEach(c=>dot(c.x,c.z,"#"+c.color.toString(16).padStart(6,"0"),4));
+  Object.values(ghosts).forEach(gh=>dot(gh.x,gh.z,(gh.pres&&gh.pres.color)||"#fff",4));
+  g.save();g.translate(X(player.x),Z(player.z));g.rotate(player.a);g.fillStyle="#fff";g.strokeStyle="#000";g.lineWidth=1.5;
+  g.beginPath();g.moveTo(0,-8);g.lineTo(5,6);g.lineTo(-5,6);g.closePath();g.fill();g.stroke();g.restore()}
+
+/* ---------- HUD ---------- */
+function hud(now){const C=CITIES[cityKey];
+  if(mode==="taxi"){$("hl").innerHTML=`${esc(T("fares"))} ${G.score}<small>${esc(cityTag(cityKey))}</small>`;$("hc").textContent=G.pick?T("pick"):T("drop");$("hr").textContent=Math.ceil(G.time)+" s";return}
+  if(R){const rows=standings();const pos=rows.findIndex(r=>r.me)+1;const lap=Math.min(LAPS,Math.floor(R.done/WP.length)+1);
+    $("hl").innerHTML=`${esc(T("pos"))} ${pos}/${rows.length}<small>${esc(cityTag(cityKey))}</small>`;$("hc").textContent=R.finished!=null?T("finished"):`${T("lap")} ${lap}/${LAPS}`;
+    $("hr").textContent=now<R.start?"0:00.0":fmt((R.finished!=null?R.finished:now-R.start));return}
+  $("hl").innerHTML=`<small>${esc(cityTag(cityKey))}</small>`;$("hc").textContent="";$("hr").textContent=""}
+
+/* ---------- input ---------- */
+$("langs").onclick=e=>{const b=e.target.closest("button[data-l]");if(b)setLang(b.dataset.l)};
+$("cities").onclick=e=>{const b=e.target.closest("button[data-k]");if(!b)return;leaveOnline();setCity(b.dataset.k);mainMenu()};
+$("snd").onclick=toggleSound;$("snd").textContent=SND.on?"🔊":"🔇";$("mus").onclick=toggleMusic;$("mus").style.opacity=SND.music?1:.45;
+$("horn").addEventListener("pointerdown",e=>{e.preventDefault();horn()});
+const K={};addEventListener("keydown",e=>{if(e.target.tagName==="INPUT")return;const k=e.key.toLowerCase();K[k]=true;if(e.key.startsWith("Arrow")||k===" ")e.preventDefault();if(k==="h"&&!e.repeat)horn();audio()});
+addEventListener("keyup",e=>K[e.key.toLowerCase()]=false);
+const P={};[["bL","l"],["bR","r"],["bG","g"],["bB","b"],["bN","n"]].forEach(([id,k])=>{const el=$(id);
+  el.addEventListener("pointerdown",e=>{e.preventDefault();audio();P[k]=true;el.classList.add("on");el.setPointerCapture(e.pointerId)});
+  ["pointerup","pointercancel","pointerleave"].forEach(ev=>el.addEventListener(ev,()=>{P[k]=false;el.classList.remove("on")}))});
+function blocked(x,z){if(Math.abs(x)>HALF+5||Math.abs(z)>HALF+5)return true;return buildings.some(b=>Math.abs(x-b.x)<b.w/2+1.2&&Math.abs(z-b.z)<b.d/2+1.2)}
+function resize(){const r=stage.getBoundingClientRect();if(!r.width)return;renderer.setSize(r.width,r.height,false);cam.aspect=r.width/r.height;cam.updateProjectionMatrix()}
+new ResizeObserver(resize).observe(stage);
+
+/* ---------- main loop ---------- */
+let last=performance.now();
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;const C=CITIES[cityKey];
+  if(R&&R.finished==null){const left=R.start-now;$("count").hidden=left<-700;
+    if(left>-700)$("count").textContent=left>0?Math.ceil(left/1000):T("go");
+    const sec=left>0?Math.ceil(left/1000):0;if(sec>=1&&sec<=3&&!R.said[sec]){R.said[sec]=1;say("count"+sec)}
+    if(left<=0&&!R.said.go){R.said.go=1;say("go")}
+    if(left<=0)G.frozen=false}
+  let gas=false,brk=false,steerIn=0;
+  if(G.on&&!G.frozen&&!(R&&R.finished!=null)){gas=K.arrowup||K.w||P.g;brk=K.arrowdown||K.s||P.b;steerIn=((K.arrowright||K.d||P.r)?1:0)-((K.arrowleft||K.a||P.l)?1:0)}
+  if(R&&R.finished!=null&&now-R.start-R.finished>600)$("count").hidden=true;
+  const grip=C.snow?.75:1;
+  const wantBoost=(K.shift||K.n||P.n)&&G.on&&!G.frozen&&!(R&&R.finished!=null);
+  if(wantBoost&&(player.boostCd||0)<=0){player.boost=2.5;player.boostCd=8;whoosh()}
+  player.boost=Math.max(0,(player.boost||0)-dt);player.boostCd=Math.max(0,(player.boostCd||0)-dt);
+  player.vmax=player.boost>0?42:32;player.thr+=((gas?1:0)-(player.thr||0))*Math.min(1,dt*6);
+  if(gas)player.v+=(player.boost>0?30:20)*dt*grip;if(brk)player.v-=(player.v>0?32:14)*dt*grip;
+  player.v-=player.v*.85*dt;player.v=Math.max(-8,Math.min(player.vmax,player.v));
+  $("bN").style.opacity=player.boostCd>0?.35:1;
+  player.steer+=(steerIn-player.steer)*Math.min(1,dt*6);
+  player.a+=player.steer*1.8*dt*Math.max(-1,Math.min(1,player.v/8));
+  const nx=player.x+Math.sin(player.a)*player.v*dt,nz=player.z-Math.cos(player.a)*player.v*dt;
+  if(!blocked(nx,nz)){player.x=nx;player.z=nz}else{if(Math.abs(player.v)>6)thud();player.v*=-.3}
+  if(mode==="taxi"&&G.on){G.time-=dt;
+    if(Math.hypot(player.x-target.x,player.z-target.z)<5){if(G.pick){G.pick=false;say("pickup")}else{G.score++;G.pick=true;G.time+=12;say("fare")}newTarget()}
+    if(G.time<=0){G.on=false;G.time=0;say("finish");showMenu(`<h2>${esc(T("shiftOver",{city:cityName(cityKey)}))}</h2><p>${esc(T("delivered",{n:G.score}))}</p><button class="btn ghost" data-act="taxi">${esc(T("driveAgain"))}</button><button class="btn ghost" data-act="menu">${esc(T("menu"))}</button>`)}}
+  if(R){if(R.finished==null){const w=nextWP(R.done);if(Math.hypot(player.x-w.x,player.z-w.z)<8){R.done++;
+        if(R.done>=TOTAL()){ring.visible=false;$("count").hidden=false;$("count").textContent=T("finish");finishRace(now)}else{if(R.done%WP.length===0)say("lap");setRing()}}}
+    stepAI(dt,now);if(mode==="online"){sendPos(now);stepGhosts(dt)}}
+  stepPeople(dt,now);engineTick(player.steer);if((miniF=(miniF+1)%3)===0)drawMini();
+  const pm=player.mesh,ud=pm.userData;pm.position.set(player.x,0,player.z);pm.rotation.y=-player.a;
+  player.roll+=((-player.steer*player.v/32)*.09-player.roll)*Math.min(1,dt*5);
+  player.pitch+=(((gas?-1:0)+(brk&&player.v>0?1:0))*.03-player.pitch)*Math.min(1,dt*4);
+  ud.body.rotation.z=player.roll;ud.body.rotation.x=player.pitch;
+  ud.wheels.forEach((w,i)=>{w.children.forEach(c=>c.rotation.x+=player.v*dt/.42);if(i<2)w.rotation.y=-player.steer*.45});
+  $("kmh").textContent=Math.round(Math.abs(player.v)*3.6);
+  traffic.forEach((c,idx)=>{const show=!R||idx%2===0;c.m.visible=show;if(!show)return;
+    c.t+=c.dir*c.sp*dt;if(c.t>HALF)c.t=-HALF;if(c.t<-HALF)c.t=HALF;const off=3.2*C.side;
+    if(c.vert){c.m.position.set(roadPos(c.i)+(c.dir<0?off:-off),0,c.t);c.m.rotation.y=c.dir<0?0:Math.PI}
+    else{c.m.position.set(c.t,0,roadPos(c.i)+(c.dir>0?off:-off));c.m.rotation.y=c.dir>0?-Math.PI/2:Math.PI/2}
+    if(c.m.userData.wheels)c.m.userData.wheels.forEach(w=>w.children.forEach(k=>k.rotation.x+=c.sp*dt/.42));
+    if(G.on&&Math.hypot(c.m.position.x-player.x,c.m.position.z-player.z)<2.6){if(Math.abs(player.v)>4)thud();player.v*=-.4;if(mode==="taxi")G.time=Math.max(0,G.time-2)}});
+  ring.rotation.z+=dt*1.5;ring.position.y=1.2+Math.sin(now/300)*.25;
+  if(snow){const p=snow.geometry.attributes.position;for(let i=0;i<p.count;i++){let y=p.getY(i)-5*dt;if(y<0)y=50;p.setY(i,y)}p.needsUpdate=true;snow.position.set(player.x,0,player.z)}
+  sun.position.copy(sun.userData.dir).multiplyScalar(150).add(new THREE.Vector3(player.x,0,player.z));sun.target.position.set(player.x,0,player.z);
+  const sp=Math.min(1.3,Math.abs(player.v)/32),back=10+sp*3,cx=player.x-Math.sin(player.a)*back,cz=player.z+Math.cos(player.a)*back;
+  cam.position.x+=(cx-cam.position.x)*Math.min(1,dt*4);cam.position.z+=(cz-cam.position.z)*Math.min(1,dt*4);cam.position.y+=(5.2+sp*.8-cam.position.y)*Math.min(1,dt*3);
+  cam.fov+=(58+sp*14+(player.boost>0?8:0)-cam.fov)*Math.min(1,dt*3);cam.updateProjectionMatrix();
+  cam.lookAt(player.x+Math.sin(player.a)*9,2.2,player.z-Math.cos(player.a)*9);
+  const tg=mode==="taxi"?target:(R?nextWP(R.done):null);
+  $("arrow").style.visibility=tg?"visible":"hidden";
+  if(tg){const ang=Math.atan2(tg.x-player.x,-(tg.z-player.z))-player.a;$("arrow").style.transform=`rotate(${ang}rad)`}
+  hud(now);
+  renderer.render(scene,cam);requestAnimationFrame(loop)}
+const startCity=QS.get("city");
+makeShared();setCity(CITIES[startCity]?startCity:"asmara");setLang(lang);mainMenu();ring.visible=false;requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

@@ -17,6 +17,7 @@ import 'habesha_tok_screen.dart';
 import '../utils/translations.dart';
 import 'community_screens.dart';
 import 'map_screen.dart';
+import '../games/games_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -221,6 +222,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 slivers: [
                   SliverToBoxAdapter(child: _buildSearchRow(t)),
                   SliverToBoxAdapter(child: _buildMarketplaceBanner(t)),
+                  SliverToBoxAdapter(child: _buildGamesBanner()),
                   if (_hasSearched) ...[
                     SliverToBoxAdapter(child: _buildCategoryChips()),
                     const SliverToBoxAdapter(child: SizedBox(height: 14)),
@@ -333,6 +335,47 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         ),
       ]),
+    );
+  }
+
+  // Games & Life Tools (web pages opened inside the app)
+  Widget _buildGamesBanner() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+      child: Material(
+        borderRadius: BorderRadius.circular(18),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GamesScreen())),
+          child: Ink(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF8B0000), Color(0xFF3A0A0A)],
+                begin: Alignment.topLeft, end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: kSecondary.withOpacity(0.4)),
+            ),
+            child: Row(children: [
+              Container(
+                width: 48, height: 48,
+                decoration: BoxDecoration(color: Colors.black.withOpacity(0.25), borderRadius: BorderRadius.circular(14)),
+                alignment: Alignment.center,
+                child: const Text('🎮', style: TextStyle(fontSize: 24)),
+              ),
+              const SizedBox(width: 14),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(tr('Games & Tools'), style: tsTitleLg(color: Colors.white)),
+                const SizedBox(height: 2),
+                Text(tr('Dama, Gebeta, racing, driving theory & more'),
+                    style: tsBodySm(color: Colors.white70)),
+              ])),
+              const Icon(Icons.chevron_right_rounded, color: kSecondary),
+            ]),
+          ),
+        ),
+      ),
     );
   }
 

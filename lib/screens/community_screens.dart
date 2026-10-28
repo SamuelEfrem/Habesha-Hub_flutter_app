@@ -1,8 +1,10 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/business.dart';
 import '../theme/app_theme.dart';
 import '../utils/translations.dart';
@@ -571,5 +573,115 @@ class SuggestionsAdminTab extends StatelessWidget {
         ]);
       },
     );
+  }
+}
+
+// ── Codes that unlock paid content (sent to the customer on WhatsApp) ──
+class UnlockCodesAdminTab extends StatefulWidget {
+  const UnlockCodesAdminTab({super.key});
+  @override
+  State<UnlockCodesAdminTab> createState() => _UnlockCodesAdminTabState();
+}
+
+class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
+  final _phone = TextEditingController(text: '+47');
+  String _product = 'theory_pro';
+  bool _busy = false;
+
+  static const _products = {'theory_pro': '🚗 Driving theory (450)', 'lang_pro': '🗣️ Languages'};
+  // No 0/O or 1/I so codes are easy to read out
+  static const _chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+  final _rnd = Random.secure();
+  String _newCode() => 'HH${List.generate(6, (_) => _chars[_rnd.nextInt(_chars.length)]).join()}';
+
+  String get _cleanPhone {
+    var p = _phone.text.replaceAll(RegExp(r'[^\d+]'), '');
+    if (p.startsWith('00')) p = '+${p.substring(2)}';
+    if (!p.startsWith('+') && p.length == 8) p = '+47$p';   // Norwegian number without country code
+    return p;
+  }
+
+  Future<void> _create() async {
+    final phone = _cleanPhone;
+    if (phone.replaceAll('+', '').length < 8) {
+      _toast(context, 'Write the full phone number, e.g. +47 412 34 567', color: kRed);
+      return;
+    }
+    setState(() => _busy = true);
+    var code = _newCode();
+    while ((await _db.collection('unlock_codes').doc(code).get()).exists) { code = _newCode(); }
+    await _db.collection('unlock_codes').doc(code).set({
+      'product': _product, 'phone': phone, 'used': false, 'createdAt': FieldValue.serverTimestamp(),
+    });
+    setState(() => _busy = false);
+    if (mounted) _sendOnWhatsApp(code, phone, _product);
+  }
+
+  void _sendOnWhatsApp(String code, String phone, String product) {
+    final what = product == 'theory_pro' ? '450 extra driving theory questions' : 'the extra language topics';
+    final msg = 'Habesha Hub 🔓\nYour code: $code\n\nOpen Games & Tools → Life Tools → "Unlock" and type the code. '
+        'It works only with this phone number ($phone).\nThis unlocks $what.\n\n'
+        'ኮድካ: $code — ኣብ Games & Tools → Life Tools → "ክፈት ብኮድ" ኣእትዎ።';
+    launchUrl(Uri.parse('https://wa.me/${phone.replaceAll('+', '')}?text=${Uri.encodeComponent(msg)}'),
+        mode: LaunchMode.externalApplication);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(padding: const EdgeInsets.all(16), children: [
+      _adminCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('New code', style: tsTitleLg(color: kText)),
+        const SizedBox(height: 4),
+        Text('Works once, only for this phone number (the customer verifies it by SMS).',
+            style: tsBodySm(color: kTextSub)),
+        const SizedBox(height: 12),
+        _field(_phone, 'Customer phone number', type: TextInputType.phone, icon: Icons.phone_rounded),
+        Wrap(spacing: 8, children: [
+          for (final e in _products.entries)
+            ChoiceChip(
+              label: Text(e.value), selected: _product == e.key, showCheckmark: false,
+              onSelected: (_) => setState(() => _product = e.key),
+              selectedColor: kSecondary, backgroundColor: kCardHigh, side: BorderSide.none,
+              labelStyle: TextStyle(fontFamily: kFontBody, fontWeight: FontWeight.w600,
+                  color: _product == e.key ? const Color(0xFF1A1200) : kText),
+            ),
+        ]),
+        const SizedBox(height: 12),
+        goldButton('Make code & send on WhatsApp', _busy ? null : _create, loading: _busy, icon: Icons.key_rounded),
+      ])),
+      const SizedBox(height: 8),
+      Text('Codes', style: tsTitleMd(color: kTextSub)),
+      const SizedBox(height: 8),
+      StreamBuilder<QuerySnapshot>(
+        stream: _db.collection('unlock_codes').orderBy('createdAt', descending: true).limit(50).snapshots(),
+        builder: (_, snap) {
+          if (!snap.hasData) return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+          if (snap.data!.docs.isEmpty) return _empty(Icons.key_rounded, 'No codes yet');
+          return Column(children: [
+            for (final d in snap.data!.docs) Builder(builder: (_) {
+              final c = d.data() as Map<String, dynamic>;
+              final used = c['used'] == true;
+              return _adminCard(edge: used ? kGreen : kSecondary, child: Row(children: [
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SelectableText(d.id, style: tsTitleLg(color: kText).copyWith(letterSpacing: 2)),
+                  Text('${_products[c['product']] ?? c['product']}  ·  ${c['phone'] ?? ''}', style: tsBodySm(color: kTextSub)),
+                  Text(used ? '✓ Used ${_when(c['usedAt'])}' : 'Not used yet · ${_when(c['createdAt'])}',
+                      style: tsBodySm(color: used ? kGreen : kSecondary)),
+                ])),
+                if (!used) ...[
+                  IconButton(tooltip: 'Send on WhatsApp',
+                      onPressed: () => _sendOnWhatsApp(d.id, '${c['phone']}', '${c['product']}'),
+                      icon: const Icon(Icons.send_rounded, color: kSecondary)),
+                  IconButton(tooltip: 'Delete',
+                      onPressed: () => d.reference.delete(),
+                      icon: const Icon(Icons.delete_outline_rounded, color: kRed)),
+                ],
+              ]));
+            }),
+          ]);
+        },
+      ),
+    ]);
   }
 }

@@ -67,3 +67,4 @@ functions/node_modules/
 .osm-address-cache.json
 .osm-cache.json
 android/.kotlin/
+tools/private/
