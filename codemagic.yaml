@@ -1,0 +1,43 @@
+# Codemagic: builds the iPhone app on a cloud Mac and uploads it to TestFlight / App Store Connect.
+# One-time setup in codemagic.io:
+#   1. Teams → Integrations → App Store Connect → add the API key (.p8, Key ID, Issuer ID), name it "habesha_hub_asc".
+#   2. App → Environment variables → group "app_store": APP_STORE_APPLE_ID = the app's Apple ID
+#      (App Store Connect → Habesha Hub → App Information → "Apple ID", a number).
+# Then: Start new build → workflow "iOS release".
+workflows:
+  ios-release:
+    name: iOS release
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: habesha_hub_asc
+    environment:
+      groups:
+        - app_store
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.example.habeshaHub
+    triggering:
+      events: []          # start builds by hand only
+    scripts:
+      - name: Signing files
+        script: xcode-project use-profiles
+      - name: Packages
+        script: |
+          flutter pub get
+          cd ios && pod install --repo-update
+      - name: Build the .ipa (build number = latest on App Store Connect + 1)
+        script: |
+          LATEST=$(app-store-connect get-latest-build-number "$APP_STORE_APPLE_ID" || echo 0)
+          flutter build ipa --release --build-number=$((LATEST + 1)) \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false   # submit for review yourself in App Store Connect after testing
