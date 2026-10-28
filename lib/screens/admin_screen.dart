@@ -528,7 +528,7 @@ class _AdminCardState extends State<_AdminCard> {
 
   static const _emoji = {
     'Restaurant': '🍽️', 'Shop': '🛍️', 'Cafe': '☕', 'Barber': '💇', 'Club': '🎵',
-    'Clinic': '🏥', 'Hotel': '🏨',
+    'Clinic': '🏥', 'Hotel': '🏨', 'Church': '⛪', 'Association': '🤝',
   };
 
   @override

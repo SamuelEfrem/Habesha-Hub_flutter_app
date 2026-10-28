@@ -77,6 +77,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     {'key': 'Furniture',   'emoji': '🛋️'},
     {'key': 'Food',        'emoji': '🍽️'},
     {'key': 'Books',       'emoji': '📚'},
+    {'key': 'Jobs',        'emoji': '💼'},
+    {'key': 'Housing',     'emoji': '🏠'},
+    {'key': 'Events',      'emoji': '📅'},
     {'key': 'Other',       'emoji': '📦'},
   ];
 

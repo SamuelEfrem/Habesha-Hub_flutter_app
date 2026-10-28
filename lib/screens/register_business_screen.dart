@@ -67,7 +67,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       'Other': 'other',
     };
     final tKey = keyMap[key];
-    if (tKey == null) return key;
+    if (tKey == null) return tr(key);
     return languageNotifier.t(tKey);
   }
   final _cats = [
@@ -81,6 +81,8 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
     {'name': 'Music', 'icon': Icons.queue_music_rounded},
     {'name': 'Decoration', 'icon': Icons.celebration_rounded},
     {'name': 'Taxi', 'icon': Icons.local_taxi_rounded},
+    {'name': 'Church', 'icon': Icons.church_rounded},
+    {'name': 'Association', 'icon': Icons.groups_rounded},
     {'name': 'Hotel', 'icon': Icons.bed_rounded},
     {'name': 'Hotel', 'icon': Icons.bed_rounded},
     {'name': 'Other', 'icon': Icons.storefront_rounded},

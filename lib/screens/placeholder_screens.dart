@@ -59,7 +59,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   String _category = '';
   String _query = '';
 
-  static const _categoryOrder = ['Restaurant', 'Cafe', 'Shop', 'Barber', 'Club', 'Clinic', 'Hotel',
+  static const _categoryOrder = ['Restaurant', 'Cafe', 'Shop', 'Barber', 'Church', 'Association', 'Club', 'Clinic', 'Hotel',
     'Photographer', 'Music', 'Decoration', 'Taxi', 'Other'];
 
   @override
@@ -198,12 +198,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
             if (_country.isNotEmpty) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
+                // Country and city share the free width (long names get "…"), Map stays right
                 child: Row(children: [
-                  _pickerButton('${countryFlag(_country)}  ${tr(_country)}', _showCountrySheet),
-                  const SizedBox(width: 10),
-                  if (_cities.isNotEmpty)
-                    Flexible(child: _pickerButton(_city.isEmpty ? t('all_cities') : _city, _showCitySheet)),
-                  const Spacer(),
+                  Expanded(
+                    child: Row(children: [
+                      Flexible(child: _pickerButton('${countryFlag(_country)}  ${tr(_country)}', _showCountrySheet)),
+                      if (_cities.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Flexible(child: _pickerButton(_city.isEmpty ? t('all_cities') : _city, _showCitySheet)),
+                      ],
+                    ]),
+                  ),
+                  const SizedBox(width: 8),
                   if (_results.isNotEmpty)
                     mapButton(() => Navigator.push(context, MaterialPageRoute(
                         builder: (_) => BusinessesMapScreen(

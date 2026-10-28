@@ -48,6 +48,8 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
     {'name': 'Barber', 'icon': Icons.content_cut_rounded},
     {'name': 'Club', 'icon': Icons.music_note_rounded},
     {'name': 'Clinic', 'icon': Icons.local_hospital_rounded},
+    {'name': 'Church', 'icon': Icons.church_rounded},
+    {'name': 'Association', 'icon': Icons.groups_rounded},
     {'name': 'Other', 'icon': Icons.storefront_rounded},
   ];
 

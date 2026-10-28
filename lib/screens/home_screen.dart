@@ -49,6 +49,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     {'key': 'Barber', 'emoji': '✂'},
 
     {'key': 'Hotel', 'emoji': '🏨'},
+    {'key': 'Church', 'emoji': '⛪'},
+    {'key': 'Association', 'emoji': '🤝'},
     {'key': 'Other', 'emoji': '📦'},
   ];
 
@@ -68,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
       'Other': 'other',
     };
     final tKey = keyMap[key];
-    if (tKey == null) return key;
+    if (tKey == null) return tr(key);
     return languageNotifier.t(tKey);
   }
 

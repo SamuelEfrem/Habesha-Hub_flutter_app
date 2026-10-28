@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ti">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ፊደል – Habesha Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@500;700;900&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Kids' Ge'ez letter game: Learn (tap families, hear/see sounds) and Quiz (pick the sound) */
+:root{--bg:#0f1d2b;--card:#17293b;--line:#2a4560;--ink:#f3f7fb;--muted:#a9bed2;--gold:#f6c445;--green:#3ccf7e;--red:#ff6b6b;
+  --gz:'Noto Sans Ethiopic',sans-serif;--ui:'Fredoka','Noto Sans Ethiopic',system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 50% -20%,#24456a,var(--bg) 60%);color:var(--ink);font-family:var(--ui);min-height:100vh}
+.tilet{height:10px;background:repeating-linear-gradient(90deg,#e64b3c 0 18px,#f6c445 18px 30px,#3ccf7e 30px 48px,#f6c445 48px 60px)}
+.wrap{max-width:640px;margin:0 auto;padding:14px 16px 40px}
+header{display:flex;align-items:center;gap:10px;margin:10px 0 14px}
+header h1{margin:0;font-size:1.6rem}
+header h1 span{display:block;font-family:var(--gz);color:var(--gold);font-size:1rem}
+.langs{margin-left:auto;display:flex;gap:4px}
+.langs button,.tabs button{border:1px solid var(--line);background:var(--card);color:var(--ink);font:700 .85rem var(--ui);padding:6px 10px;border-radius:999px;cursor:pointer}
+.langs button.on,.tabs button.on{background:var(--gold);color:#2a1d00;border-color:var(--gold)}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button{flex:1;padding:10px;font-size:1rem}
+.fams{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.fams button{aspect-ratio:1;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;font:900 1.6rem var(--gz);cursor:pointer;transition:transform .1s}
+.fams button:active{transform:scale(.92)}
+.fams button.on{border-color:var(--gold);background:#2b3d18}
+.row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:14px 0}
+.row button{border:0;border-radius:16px;background:linear-gradient(160deg,#284866,#1b3249);color:var(--ink);padding:10px 0;cursor:pointer}
+.row b{display:block;font:900 2.1rem var(--gz)}
+.row small{color:var(--gold);font-weight:700}
+.big{text-align:center;padding:18px;border-radius:22px;background:var(--card);border:2px solid var(--line)}
+.big .glyph{font:900 7rem/1 var(--gz);margin:6px 0 4px;text-shadow:0 6px 0 rgba(0,0,0,.25)}
+.big .say{color:var(--gold);font-weight:700;font-size:1.3rem}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.opts button{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:16px 8px;font:700 1.6rem var(--ui);cursor:pointer}
+.opts button.ok{background:var(--green);border-color:var(--green);color:#03250f}
+.opts button.no{background:var(--red);border-color:var(--red);color:#2a0303}
+.score{display:flex;justify-content:space-between;color:var(--muted);font-weight:700;margin-bottom:8px}
+.stars{color:var(--gold);letter-spacing:2px}
+.muted{color:var(--muted)}
+.burst{position:fixed;inset:0;pointer-events:none;display:grid;place-items:center;font-size:5rem;opacity:0;transition:opacity .2s}
+.burst.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="tilet"></div>
+<div class="wrap">
+  <header>
+    <h1>Fidel <span>ፊደል ተማሃር</span></h1>
+    <div class="langs" id="langs"><button data-l="ti">ትግ</button><button data-l="am">አማ</button><button data-l="en">EN</button></div>
+  </header>
+  <div class="tabs" id="tabs"><button data-t="learn" class="on" id="tLearn"></button><button data-t="quiz" id="tQuiz"></button></div>
+
+  <section id="learn">
+    <p class="muted" id="learnHint"></p>
+    <div class="fams" id="fams"></div>
+    <div class="row" id="row"></div>
+    <div class="big" id="bigCard"><div class="glyph" id="bigG">ሀ</div><div class="say" id="bigS">hä</div></div>
+  </section>
+
+  <section id="quiz" hidden>
+    <div class="score"><span id="qLevel"></span><span class="stars" id="qStars"></span></div>
+    <div class="big"><p class="muted" id="qAsk"></p><div class="glyph" id="qG"></div></div>
+    <div class="opts" id="opts"></div>
+  </section>
+</div>
+<div class="burst" id="burst">⭐</div>
+
+<script>
+// Base letters (Unicode code points); each family has 7 forms: ä u i a e ə o
+const FAM=[[0x1200,"h"],[0x1208,"l"],[0x1210,"ḥ"],[0x1218,"m"],[0x1228,"r"],[0x1230,"s"],[0x1238,"sh"],[0x1240,"q"],
+ [0x1250,"qh"],[0x1260,"b"],[0x1268,"v"],[0x1270,"t"],[0x1278,"ch"],[0x1290,"n"],[0x1298,"ny"],[0x12A0,"'"],[0x12A8,"k"],
+ [0x12B8,"kh"],[0x12C8,"w"],[0x12D0,"ʿ"],[0x12D8,"z"],[0x12E0,"zh"],[0x12E8,"y"],[0x12F0,"d"],[0x1300,"j"],[0x1308,"g"],
+ [0x1320,"t'"],[0x1328,"ch'"],[0x1330,"p'"],[0x1338,"ts'"],[0x1348,"f"],[0x1350,"p"]];
+const VOW=["ä","u","i","a","e","ə","o"];
+const glyph=(f,v)=>String.fromCodePoint(FAM[f][0]+v);
+const sound=(f,v)=>(FAM[f][1]==="'"||FAM[f][1]==="ʿ"?"":FAM[f][1])+VOW[v];
+
+const UI={
+ ti:{learn:"ተማሃር",quiz:"ፈትን",hint:"ፊደል ጠውቕ፡ ድሕሪኡ ነፍሲ ወከፍ ድምጺ ርአ።",ask:"እዚ ፊደል ከመይ ይንበብ?",level:"ደረጃ",great:"ጽቡቕ!"},
+ am:{learn:"ተማር",quiz:"ፈትን",hint:"ፊደል ይንኩ፣ ከዚያ እያንዳንዱን ድምፅ ይመልከቱ።",ask:"ይህ ፊደል እንዴት ይነበባል?",level:"ደረጃ",great:"ጎበዝ!"},
+ en:{learn:"Learn",quiz:"Quiz",hint:"Tap a letter family, then each sound.",ask:"How do you say this letter?",level:"Level",great:"Great!"}};
+const QS=new URLSearchParams(location.search);
+let lang=QS.get("lang")||"ti";try{lang=localStorage.getItem("fd-lang")||lang}catch(e){}
+if(!UI[lang])lang="ti";
+const $=id=>document.getElementById(id);
+
+// Speak through the app (phone TTS) when inside Habesha Hub, else the browser
+function speak(t){
+  if(window.HabeshaApp&&typeof HabeshaApp.postMessage==="function"){HabeshaApp.postMessage(JSON.stringify({type:"speak",text:t,lang:lang==="ti"?"ti-ER":"am-ET"}));return}
+  try{const u=new SpeechSynthesisUtterance(t);u.lang="am-ET";u.rate=.7;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+window.habeshaSpeakResult=function(){};
+
+let fam=0;
+function drawLearn(){
+  $("fams").innerHTML=FAM.map((f,i)=>`<button data-f="${i}" class="${i===fam?"on":""}">${glyph(i,0)}</button>`).join("");
+  $("row").innerHTML=VOW.map((v,j)=>`<button data-v="${j}"><b>${glyph(fam,j)}</b><small>${sound(fam,j)}</small></button>`).join("");
+  showBig(fam,0)}
+function showBig(f,v){$("bigG").textContent=glyph(f,v);$("bigS").textContent=sound(f,v)}
+$("fams").onclick=e=>{const b=e.target.closest("[data-f]");if(!b)return;fam=+b.dataset.f;drawLearn();speak(glyph(fam,0))};
+$("row").onclick=e=>{const b=e.target.closest("[data-v]");if(!b)return;const v=+b.dataset.v;showBig(fam,v);speak(glyph(fam,v))};
+
+// Quiz: levels grow from the first families to all of them
+let level=1,stars=0,answer=null;
+try{level=+localStorage.getItem("fd-level")||1}catch(e){}
+function nextQ(){
+  const maxF=Math.min(FAM.length,3+level*3), f=Math.floor(Math.random()*maxF), v=Math.floor(Math.random()*7);
+  answer=sound(f,v);const set=new Set([answer]);
+  while(set.size<4){const ff=Math.floor(Math.random()*maxF),vv=Math.floor(Math.random()*7);set.add(sound(ff,vv))}
+  const o=[...set].sort(()=>Math.random()-.5);
+  $("qG").textContent=glyph(f,v);$("qAsk").textContent=UI[lang].ask;
+  $("opts").innerHTML=o.map(x=>`<button data-a="${x}">${x}</button>`).join("");
+  $("qLevel").textContent=`${UI[lang].level} ${level}`;$("qStars").textContent="⭐".repeat(stars)+"☆".repeat(5-stars)}
+$("opts").onclick=e=>{const b=e.target.closest("[data-a]");if(!b||$("opts").dataset.lock)return;$("opts").dataset.lock=1;
+  const ok=b.dataset.a===answer;b.classList.add(ok?"ok":"no");
+  if(!ok)[...$("opts").children].find(x=>x.dataset.a===answer).classList.add("ok");
+  if(ok){stars++;if(stars>=5){stars=0;level++;try{localStorage.setItem("fd-level",level)}catch(e){}burst("🏆")}else burst("⭐")}
+  setTimeout(()=>{delete $("opts").dataset.lock;nextQ()},ok?700:1400)};
+function burst(t){const x=$("burst");x.textContent=t;x.classList.add("on");setTimeout(()=>x.classList.remove("on"),500)}
+
+function setLang(l){lang=l;try{localStorage.setItem("fd-lang",l)}catch(e){}
+  [...$("langs").children].forEach(b=>b.classList.toggle("on",b.dataset.l===l));
+  $("tLearn").textContent="📖 "+UI[l].learn;$("tQuiz").textContent="🎯 "+UI[l].quiz;$("learnHint").textContent=UI[l].hint;
+  if(!$("quiz").hidden)nextQ()}
+$("langs").onclick=e=>{const b=e.target.closest("[data-l]");if(b)setLang(b.dataset.l)};
+$("tabs").onclick=e=>{const b=e.target.closest("[data-t]");if(!b)return;
+  [...$("tabs").children].forEach(x=>x.classList.toggle("on",x===b));
+  $("learn").hidden=b.dataset.t!=="learn";$("quiz").hidden=b.dataset.t!=="quiz";if(b.dataset.t==="quiz")nextQ()};
+setLang(lang);drawLearn();
+</script>
+</body>
+</html>

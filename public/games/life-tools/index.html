@@ -100,6 +100,14 @@ h2{font-size:1.15rem;margin:0}
 #unlockBox .pay{background:#D4AF37;color:#1A1200}
 #unlockBox .ub-sec{border:1px solid #2b3a4a;border-radius:14px;padding:12px;margin:10px 0}
 #unlockBox .ub-sec p{margin:6px 0}
+.guides details{border:1px solid var(--line);border-radius:14px;background:var(--bg);margin-bottom:8px}
+.guides summary{cursor:pointer;padding:12px 14px;font-weight:800;list-style:none;display:flex;gap:10px;align-items:center}
+.guides summary::-webkit-details-marker{display:none}
+.guides summary::after{content:"+";margin-left:auto;color:var(--accent);font-size:1.3rem}
+.guides details[open] summary::after{content:"–"}
+.guides .body{padding:0 14px 14px;line-height:1.6}
+.guides .body p{margin:6px 0}
+.guides a.link{display:inline-block;margin-top:6px;font-weight:800;color:var(--accent);text-decoration:none}
 </style>
 
 <style>
@@ -117,6 +125,7 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
     <button role="tab" data-t="teori" aria-selected="true">መንጃ ፍቓድ</button>
     <button role="tab" data-t="lang" aria-selected="false">ቋንቋ</button>
     <button role="tab" data-t="cal" aria-selected="false">ዓውደ ኣዋርሕ</button>
+    <button role="tab" data-t="new" aria-selected="false">ሓደሽቲ</button>
   </nav>
 
   <section id="teori" class="card">
@@ -136,6 +145,15 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
     <div class="switch" id="modeRow"><span class="muted" id="modeTxt"></span><button id="mode"></button></div>
     <ul class="phrases" id="phrases"></ul>
     <p class="note" id="voiceNote"></p>
+  </section>
+  <!-- NEWCOMERS -->
+  <section id="new" class="card" hidden>
+    <h2 id="nwTitle">🧭 ሓገዝ ንሓደሽቲ ኣብ ኖርወይ</h2>
+    <div class="chips" id="nwLang">
+      <button data-k="ti" aria-pressed="true">ትግርኛ</button><button data-k="am" aria-pressed="false">አማርኛ</button><button data-k="en" aria-pressed="false">English</button>
+    </div>
+    <div id="nwList" class="guides"></div>
+    <p class="note" id="nwNote"></p>
   </section>
   <!-- CALENDAR -->
   <section id="cal" class="card" hidden>
@@ -409,7 +427,17 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"
 const QS=new URLSearchParams(location.search);
 $("tabs").onclick=e=>{const b=e.target.closest("button");if(!b)return;
   [...$("tabs").children].forEach(x=>x.setAttribute("aria-selected",x===b));
-  ["teori","lang","cal"].forEach(t=>$(t).hidden=t!==b.dataset.t)};
+  ["teori","lang","cal","new"].forEach(t=>$(t).hidden=t!==b.dataset.t)};
+
+/* ---------- newcomers (Norway) ---------- */
+const NW=[["🗣️","https://www.tolkeportalen.no",{"ti":["ናጻ ተርጓሚ (tolk) መሰልካ እዩ","ኣብ ሓኪም፡ ሆስፒታል፡ NAV፡ ፖሊስ፡ ቤት ትምህርትን barnevern ን ኖርወይኛ ጽቡቕ እንተዘይተዛሪብካ ተርጓሚ ሕተት። ብሕጊ ኣብ ቤት ጽሕፈት መንግስቲ ክፍሊት ኣይትኸፍልን። \"Jeg trenger tolk på tigrinja\" በል።"],"am":["ነጻ አስተርጓሚ (tolk) መብትዎ ነው","በሐኪም፣ ሆስፒታል፣ NAV፣ ፖሊስ፣ ትምህርት ቤት እና barnevern ኖርዌይኛ በደንብ ካልተናገሩ አስተርጓሚ ይጠይቁ። በመንግሥት ቢሮዎች አይከፍሉም። \"Jeg trenger tolk på amharisk\" ይበሉ።"],"en":["Free interpreter (tolk) is your right","At the doctor, hospital, NAV, police, school and child welfare (barnevern), ask for an interpreter if your Norwegian is not good enough. Public offices pay for it. Say: \"Jeg trenger tolk på tigrinja / amharisk\"."]}],["🚨","https://www.helsenorge.no/en/legevakt/",{"ti":["ቁጽሪ ህጹጽ ተሌፎን","113 ኣምቡላንስ · 112 ፖሊስ · 110 ሓዊ ኣጥፋኢ · 116 117 legevakt (ሓኪም ምሸትን ቀዳመ-ሰንበትን)። ኣብ ህጹጽ ኩነታት ብእንግሊዝኛ ክትዛረብ ትኽእል።"],"am":["የአደጋ ጊዜ ስልክ ቁጥሮች","113 አምቡላንስ · 112 ፖሊስ · 110 እሳት አደጋ · 116 117 legevakt (የማታ እና የሳምንት መጨረሻ ሐኪም)። በአደጋ ጊዜ በእንግሊዝኛ መናገር ይችላሉ።"],"en":["Emergency numbers","113 ambulance · 112 police · 110 fire · 116 117 legevakt (out-of-hours doctor). You can speak English in an emergency."]}],["🩺","https://www.helsenorge.no",{"ti":["ናይ ገዛ ሓኪም (fastlege)","ኩሉ ኣብ ኖርወይ ዝተመዝገበ ሰብ fastlege ይረክብ። ኣብ helsenorge.no ብ BankID ሓኪምካ ምረጽ ወይ ቀይር። ንሕማም ቅድም ናብ fastlege ደውል፡ ንህጹጽ ናብ 116 117።"],"am":["የቤተሰብ ሐኪም (fastlege)","በኖርዌይ የተመዘገበ ሁሉ fastlege ያገኛል። በ helsenorge.no በ BankID ሐኪምዎን ይምረጡ ወይም ይቀይሩ። ለህመም መጀመሪያ ለ fastlege ይደውሉ፣ ለአስቸኳይ 116 117።"],"en":["Your own doctor (fastlege)","Everyone registered in Norway gets a GP. Choose or change your doctor on helsenorge.no with BankID. Call your GP first when sick; for urgent help call 116 117."]}],["🪪","https://www.skatteetaten.no/en/person/foreign/",{"ti":["ቁጽሪ መለለዪ፡ ካርድ ግብሪ (skattekort)","ብዘይ fødselsnummer ወይ D-nummer ስራሕ፡ ባንክን ሓኪምን ኣጸጋሚ እዩ። ኣብ Skatteetaten ተመዝገብ። ቅድሚ ፈለማ ደሞዝ skattekort ኣብ skatteetaten.no ሕተት፡ ዘይብልካ እንተኾይኑ 50% ግብሪ ትኸፍል።"],"am":["መለያ ቁጥር እና የግብር ካርድ (skattekort)","ያለ fødselsnummer ወይም D-nummer ሥራ፣ ባንክ እና ሐኪም ከባድ ነው። በ Skatteetaten ይመዝገቡ። ከመጀመሪያ ደሞዝ በፊት skattekort በ skatteetaten.no ይጠይቁ፤ ከሌለዎት 50% ግብር ይከፍላሉ።"],"en":["ID number and tax card (skattekort)","Without a fødselsnummer or D-number, work, bank and doctor are hard. Register with Skatteetaten. Order a tax card on skatteetaten.no before your first salary — without it 50% tax is taken."]}],["🏦","https://www.bankid.no/en/",{"ti":["ሕሳብ ባንክን BankID ን","BankID ንኹሉ ዲጂታል ኣገልግሎት (NAV፡ ሓኪም፡ ግብሪ) የድሊ። ምስ ቁጽሪ መለለዪ ኖርወይ፡ ፓስፖርት ወይ ካርድ መንነትን ሕሳብ ባንክን ናብ ባንክካ ኪድ። ኮድ BankID ንማንም ኣይትሃብ።"],"am":["የባንክ ሂሳብ እና BankID","BankID ለሁሉም ዲጂታል አገልግሎት (NAV፣ ሐኪም፣ ግብር) ያስፈልጋል። ከኖርዌይ መለያ ቁጥር፣ ፓስፖርት ወይም መታወቂያ ጋር ወደ ባንክዎ ይሂዱ። የ BankID ኮድዎን ለማንም አይስጡ።"],"en":["Bank account and BankID","BankID is needed for almost every digital service (NAV, doctor, tax). Go to your bank with your Norwegian ID number and passport or ID card. Never give your BankID code to anyone."]}],["💼","https://www.nav.no/en/home",{"ti":["NAV — ስራሕን ሓገዝን","ስራሕ ምስ ዘይብልካ ኣብ nav.no ከም ስራሕ ደላዪ ተመዝገብ። NAV ኣብ ስራሕ ምድላይ፡ ኮርሳትን ገንዘባዊ ሓገዝን ይሕግዝ። ኣብ ኮሙን ዘሎ ቤት ጽሕፈት NAV ምስ ተርጓሚ ክትበጽሕ ትኽእል።"],"am":["NAV — ሥራ እና እርዳታ","ሥራ ከሌለዎት በ nav.no እንደ ሥራ ፈላጊ ይመዝገቡ። NAV ሥራ በመፈለግ፣ በኮርሶች እና በገንዘብ እርዳታ ይረዳል። በቀበሌዎ ያለውን የ NAV ቢሮ ከአስተርጓሚ ጋር መጎብኘት ይችላሉ።"],"en":["NAV — work and support","If you have no job, register as a job seeker on nav.no. NAV helps with job search, courses and financial support. You can visit your local NAV office with an interpreter."]}],["🏠","https://www.leieboerforeningen.no",{"ti":["ገዛ ምክራይ","ኣብ finn.no ገዛ ድለ። ቅድሚ ምኽፋል ጽሑፍ ውዕል (husleiekontrakt) ሕተት። ዋሕስ (depositum) ዝለዓለ 6 ወርሒ ክራይ እዩ፡ ኣብ ብሽምካ ዝተኸፍተ depositumskonto ክኸውን ኣለዎ — ገንዘብ ናብ ውልቃዊ ሕሳብ ወናኒ ገዛ ኣይትልኣኽ።"],"am":["ቤት መከራየት","በ finn.no ቤት ይፈልጉ። ከመክፈልዎ በፊት የጽሑፍ ውል (husleiekontrakt) ይጠይቁ። መያዣ (depositum) ቢበዛ የ6 ወር ኪራይ ነው፤ በስምዎ በተከፈተ depositumskonto መሆን አለበት — ገንዘብ ወደ ባለቤቱ የግል ሂሳብ አይላኩ።"],"en":["Renting a home","Look on finn.no. Ask for a written contract (husleiekontrakt) before paying. The deposit is at most 6 months' rent and must go into a deposit account (depositumskonto) in your name — never to the landlord's private account."]}],["🛂","https://www.udi.no/en/",{"ti":["UDI — ፍቓድ መንበሪ፡ ምትእኽኻብ ስድራ","ፍቓድካ ቅድሚ ምውዳኡ ኣብ udi.no ኣሐድሶ። ምትእኽኻብ ስድራ (familiegjenforening) ኣብ UDI ይሕተት። ንጉዳይ ሕጊ ብነጻ ሓገዝ ኣሎ: NOAS (ዑቕባ)፡ JussBuss፡ Jushjelpa።"],"am":["UDI — የመኖሪያ ፈቃድ እና ቤተሰብ ማገናኘት","ፈቃድዎ ከማለቁ በፊት በ udi.no ያድሱ። ቤተሰብ ማገናኘት (familiegjenforening) በ UDI ይጠየቃል። ለሕግ ጉዳዮች ነጻ እርዳታ አለ፦ NOAS (ጥገኝነት)፣ JussBuss፣ Jushjelpa።"],"en":["UDI — residence permit and family","Renew your permit on udi.no before it expires. Family reunification (familiegjenforening) is applied for through UDI. Free legal help: NOAS (asylum), JussBuss, Jushjelpa."]}],["📚","https://www.imdi.no/en/",{"ti":["ፕሮግራም መእተዊ፡ ትምህርቲ ኖርወይኛ","ስደተኛታት ብኮሙን ናብ introduksjonsprogrammet ይኣትዉ: ትምህርቲ ኖርወይኛ፡ ፍልጠት ሕብረተሰብን ስራሕን። ኖርወይኛ ቀልጢፍካ ምምሃር ንስራሕን መንበሪን ቀንዲ እዩ።"],"am":["የመግቢያ ፕሮግራም እና የኖርዌይኛ ትምህርት","ስደተኞች በቀበሌው በኩል ወደ introduksjonsprogrammet ይገባሉ፦ የኖርዌይኛ ትምህርት፣ የማኅበረሰብ እውቀት እና ሥራ። ኖርዌይኛ በፍጥነት መማር ለሥራ እና ለመኖሪያ ዋና ነው።"],"en":["Introduction programme and Norwegian","Refugees join the introduction programme through their municipality: Norwegian lessons, society knowledge and work practice. Learning Norwegian quickly is key for work and permits."]}],["🧒","https://www.udir.no/in-english/",{"ti":["መዋእለ ህጻናትን ቤት ትምህርትን","ንመዋእለ ህጻናት (barnehage) ኣብ ኮሙን ሕተት — ንድሕሪ ገደብ ዕለት ቅድሚ ግዜ። ቤት ትምህርቲ ካብ 6 ክሳብ 16 ዓመት ግዴታ እዩ። ኣብ ርክብ ወለዲ ተርጓሚ ክትሓትት መሰልካ እዩ።"],"am":["መዋለ ሕፃናት እና ትምህርት ቤት","ለመዋለ ሕፃናት (barnehage) በቀበሌው ቀደም ብለው ያመልክቱ። ትምህርት ቤት ከ6 እስከ 16 ዓመት ግዴታ ነው። በወላጅ ስብሰባ አስተርጓሚ መጠየቅ መብትዎ ነው።"],"en":["Kindergarten and school","Apply for kindergarten (barnehage) through your municipality, early. School is compulsory from age 6 to 16. You have the right to an interpreter at parent meetings."]}]];
+const NW_TITLE={"ti":"🧭 ሓገዝ ንሓደሽቲ ኣብ ኖርወይ","am":"🧭 ለአዲስ መጤዎች እርዳታ በኖርዌይ","en":"🧭 Help for newcomers in Norway"},NW_NOTE={"ti":"ሓበሬታ ሓፈሻዊ እዩ። ንውልቃዊ ጉዳይካ ኩሉ ግዜ ኣብቲ ወግዓዊ መርበብ ኣረጋግጽ።","am":"መረጃው አጠቃላይ ነው። ለግል ጉዳይዎ ሁልጊዜ በይፋዊው ድረ-ገጽ ያረጋግጡ።","en":"General information. Always check the official website for your own case."},NW_OPEN={"ti":"ወግዓዊ መርበብ ክፈት →","am":"ይፋዊ ድረ-ገጽ ይክፈቱ →","en":"Open official website →"};
+let nwL="ti";try{nwL=localStorage.getItem("lt-nw")||(QS.get("lang")==="am"?"am":QS.get("lang")==="en"?"en":"ti")}catch(e){}
+function drawNew(){$("nwTitle").textContent=NW_TITLE[nwL];$("nwNote").textContent=NW_NOTE[nwL];
+  [...$("nwLang").children].forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===nwL));
+  $("nwList").innerHTML=NW.map(([e,url,t])=>`<details><summary><span>${e}</span>${esc(t[nwL][0])}</summary><div class="body"><p>${esc(t[nwL][1])}</p><a class="link" href="${url}" target="_blank" rel="noopener">${NW_OPEN[nwL]}</a></div></details>`).join("")}
+$("nwLang").onclick=e=>{const b=e.target.closest("button");if(!b)return;nwL=b.dataset.k;try{localStorage.setItem("lt-nw",nwL)}catch(err){}drawNew()};
+drawNew();
 
 /* ---------- purchases ----------
    In the app, Flutter listens on the JavaScript channel "HabeshaApp" for {type:"buy",product}

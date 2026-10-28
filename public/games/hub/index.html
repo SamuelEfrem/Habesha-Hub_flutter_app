@@ -254,6 +254,7 @@ const RACE_URL=IN_APP?`../capital-drive/?app=1`:"../capital-drive/";
 function renderHome(){
   const card=g=>`<button class="card" data-g="${g.id}"><span class="ic">${g.ic}</span><b>${esc(g.n)}</b><span class="gz">${g.gz}</span><span class="tg">${esc(g.kind==="board"?T("tagOnline"):T("tagSolo"))}</span></button>`;
   $("homeGrid").innerHTML=`<a class="card big" id="raceCard" href="${RACE_URL}${IN_APP?"&lang="+lang:""}" ${IN_APP?"":'target="_blank" rel="noopener"'}><span class="ic">🏎️</span><span><b>Capital Racing 3D</b><br><span class="tg">${esc(T("tagRace"))}</span></span></a>
+   <a class="card big" href="../fidel/?${IN_APP?"app=1&":""}lang=${lang}" style="background:linear-gradient(120deg,#5a3d0c,#2b1d06)"><span class="ic">👶</span><span><b>Fidel · ፊደል</b><br><span class="tg">ሀ ሁ ሂ ሃ ሄ ህ ሆ — kids learn to read</span></span></a>
    <div class="sect" style="grid-column:1/-1">${esc(T("boardSect"))}</div>${GAMES_META.filter(g=>g.kind==="board").map(card).join("")}
    <div class="sect" style="grid-column:1/-1">${esc(T("soloSect"))}</div>${GAMES_META.filter(g=>g.kind==="solo").map(card).join("")}`}
 let cur=null;

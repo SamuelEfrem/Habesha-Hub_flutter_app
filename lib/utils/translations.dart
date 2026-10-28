@@ -141,6 +141,11 @@ class AppTranslations {
     'Clinic': {'Tigrinya': 'ክሊኒክ', 'Amharic': 'ክሊኒክ'},
     'Closed': {'Tigrinya': 'ዕጹው', 'Amharic': 'ዝግ'},
     // ── Redesign (Oct 2026) ──
+    'Church': {'Tigrinya': 'ቤተ ክርስትያን', 'Amharic': 'ቤተ ክርስቲያን'},
+    'Association': {'Tigrinya': 'ማሕበር / ዕቁብ', 'Amharic': 'ማኅበር / ዕድር'},
+    'Jobs': {'Tigrinya': 'ስራሕ', 'Amharic': 'ሥራ'},
+    'Housing': {'Tigrinya': 'ገዛ', 'Amharic': 'ቤት'},
+    'Events': {'Tigrinya': 'ፍሉያት ኣጋጣሚታት', 'Amharic': 'ዝግጅቶች'},
     'Turn on location': {'Tigrinya': 'ቦታ ኣብርህ', 'Amharic': 'አካባቢን ያብሩ'},
     'Habesha Hub needs your location to show Habesha places near you.': {'Tigrinya': 'ሓበሻ ሃብ ኣብ ጥቓኻ ዘለዉ ቦታታት ሓበሻ ንምርኣይ ቦታኻ የድልዮ።', 'Amharic': 'ሐበሻ ሃብ በአቅራቢያዎ ያሉ የሐበሻ ቦታዎችን ለማሳየት አካባቢዎን ይፈልጋል።'},
     'Location is blocked for Habesha Hub. Open settings → Permissions → Location → Allow.': {'Tigrinya': 'ቦታ ንሓበሻ ሃብ ተዓጽዩ ኣሎ። ቅጥዕታት ክፈት → ፍቓዳት → ቦታ → ፍቐድ።', 'Amharic': 'አካባቢ ለሐበሻ ሃብ ታግዷል። ቅንብሮችን ይክፈቱ → ፈቃዶች → አካባቢ → ይፍቀዱ።'},

@@ -81,6 +81,19 @@ const NAME_KINDS = {
   shop: null, craft: null,                         // null = every type
 };
 
+// Habesha churches: search these words per country, keep only places of
+// worship whose name is clearly Ethiopian/Eritrean (not every "St. Mary")
+const CHURCH_WORDS = ['tewahedo', 'ethiopian orthodox', 'eritrean orthodox', 'ethiopian church',
+  'eritrean church', 'ethiopian evangelical', 'eritrean evangelical', 'medhane alem', 'kidane mehret',
+  'debre', 'abune', 'selassie church'];
+const HABESHA_CHURCH = /ethiopi|eritr|tewahedo|habesha|abyssin|medhane|kidane|debre|selassie|abune|ተዋሕዶ|ቤተ ክርስቲያን|ቤተ ክርስትያን/i;
+// Not Habesha churches even though the name matches (Hebrew Israelite, Rastafari)
+const NOT_HABESHA_CHURCH = /hebrew|israelite|synagogue|haile selassie i|rastafari/i;
+function isHabeshaChurch(h) {
+  return h.category === 'amenity' && h.type === 'place_of_worship' && !!h.name
+    && HABESHA_CHURCH.test(h.name) && !NOT_HABESHA_CHURCH.test(h.name);
+}
+
 async function nominatimSearch(word, cc) {
   const out = [];
   let exclude = [];
@@ -170,6 +183,20 @@ async function loadOsm() {
     console.log(`   ✔ ${cc.toUpperCase()}: ${inCountry} treff`);
   }
   console.log(`   (${searches} nye søk, ${found} navnetreff totalt)`);
+
+  // Churches (not in Ethiopia/Eritrea — there almost every church would match)
+  let churches = 0;
+  for (const cc of COUNTRIES.filter(c => c !== 'et' && c !== 'er')) {
+    for (const w of CHURCH_WORDS) {
+      const key = `Kirke: ${cc} ${w}`;
+      if (!done[key]) {
+        try { done[key] = (await nominatimSearch(w, cc)).filter(isHabeshaChurch).map(toElement); save(); }
+        catch (e) { failed.push(key); continue; }
+      }
+      churches += done[key].length;
+    }
+  }
+  console.log(`   ⛪ ${churches} kirketreff`);
   if (failed.length) console.log(`\n⚠️  ${failed.length} søk feilet — kjør på nytt senere for å hente dem: ${failed.slice(0, 10).join(', ')}`);
 
   const all = new Map();
@@ -178,6 +205,7 @@ async function loadOsm() {
     if (/^Navn: (fr|gh|za) addis$/.test(key)) continue;
     for (const e of els) {
       const t = e.tags || {};
+      if (key.startsWith('Kirke: ') && NOT_HABESHA_CHURCH.test(t.name || '')) continue;
       if (key.startsWith('Navn: ') && (NOT_HABESHA.test(t.name || '') ||
           (t.name === 'Asmara' && t.shop === 'interior_decoration'))) continue;
       all.set(`${e.type}_${e.id}`, e);
@@ -195,6 +223,7 @@ function category(t) {
   if (['clinic', 'doctors', 'dentist', 'pharmacy'].includes(a)) return 'Clinic';
   if (['hairdresser', 'beauty'].includes(s) || t.craft === 'hairdresser') return 'Barber';
   if (['hotel', 'guest_house', 'hostel'].includes(t.tourism)) return 'Hotel';
+  if (a === 'place_of_worship') return t.religion === 'muslim' ? 'Other' : 'Church';
   if (s === 'travel_agency') return 'Other';
   if (t.craft === 'caterer') return 'Restaurant';
   if (s) return 'Shop';
@@ -275,6 +304,11 @@ function description(t, cat) {
   const c = (t.cuisine || '').toLowerCase();
   const kind = c.includes('eritrean') && !c.includes('ethiopian') ? 'Eritrean'
     : c.includes('ethiopian') && c.includes('eritrean') ? 'Ethiopian & Eritrean' : 'Habesha';
+  if (cat === 'Church') {
+    const n = (t.name || '').toLowerCase() + ' ' + (t.denomination || '').toLowerCase();
+    if (/evangel|pente|protestant|lutheran|baptist/.test(n)) return t.description || 'Habesha evangelical church';
+    return t.description || (/eritr/.test(n) ? 'Eritrean Orthodox Tewahedo church' : 'Ethiopian Orthodox Tewahedo church');
+  }
   const what = { Restaurant: 'restaurant', Cafe: 'café', Club: 'bar', Clinic: 'clinic', Barber: 'hair salon',
     Hotel: 'hotel', Shop: 'shop', Other: 'business' }[cat];
   return t.description || `${kind} ${what}`;
