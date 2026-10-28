@@ -827,7 +827,8 @@ function newRoute(redraw){makeRoute();build("lesson");traffic.forEach(t=>t.m.vis
 function drawMenu(){TI=TXT[LANG];document.documentElement.lang=LANG;preloadVoice();$("lB").textContent=PED[LANG][0];$("lG").textContent=PED[LANG][1];$("mistL").textContent=TI.mist;
   $("hTitle").textContent=TI.title;$("hSub").textContent=TI.sub;let total=0;try{total=+localStorage.getItem("dl-stars")||0}catch(e){}$("hStars").textContent=total?"⭐ "+total:"";
   const langs=`<p class="small">${TI.lang}</p><div class="langs" id="dLangs">${[["ti","ትግርኛ"],["am","አማርኛ"],["en","English"],["no","Norsk"]].map(([k,n])=>`<button data-l="${k}" class="${k===LANG?"on":""}">${n}</button>`).join("")}</div>`;
-  if(!PRO&&QSD.get("app")==="1"&&performance.now()<2500){$("menu").innerHTML=`<h2>${TI.title}</h2><p>…</p>`;$("ov").hidden=false;setTimeout(()=>{if(!L||!L.on)drawMenu()},2600-performance.now());return}
+  // slow phones: give the app up to 7 s to send the unlock before showing the lock screen
+  if(!PRO&&QSD.get("app")==="1"&&performance.now()<7000){$("menu").innerHTML=`<h2>${TI.title}</h2><p>…</p>`;$("ov").hidden=false;setTimeout(()=>{if(!L||!L.on)drawMenu()},7100-performance.now());return}
   if(!PRO){$("menu").innerHTML=`<h2>🔒 ${TI.title}</h2><p>${TI.locked}</p><p class="small">${TI.lockHow}</p><button class="btn" id="back">← ${TI.backTxt}</button>`;$("ov").hidden=false;
     $("back").onclick=()=>{location.href="../life-tools/"+location.search};return}
   $("menu").innerHTML=`<h2>${TI.choose}</h2><div class="dests" id="dests">${DESTS.map(([k,ic],i)=>`<button data-i="${i}" class="${i===destI?"on":""}"><b>${ic}</b>${esc(TI.dest[k])}</button>`).join("")}</div>
