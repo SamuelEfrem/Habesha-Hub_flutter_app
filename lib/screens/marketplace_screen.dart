@@ -6,6 +6,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
@@ -121,9 +123,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             iconTheme: const IconThemeData(color: kSecondary),
             title: Text(t('marketplace_title'), style: tsTitleMd(color: kSecondary)),
             actions: [
-              if (_canSell(user))
-                GestureDetector(
-                  onTap: () => _showAddListing(context, user!, t),
+              GestureDetector(
+                  onTap: () => _sell(context, t),
                   child: Container(
                     margin: const EdgeInsets.only(right: 16),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
@@ -133,18 +134,6 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       const SizedBox(width: 4),
                       Text(t('marketplace_sell'), style: tsTitleMd(color: const Color(0xFF1A1200)).copyWith(fontSize: 12)),
                     ]),
-                  ),
-                )
-              else
-                GestureDetector(
-                  onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const AuthScreen(returnOnLogin: true))),
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 16),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                    decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(100)),
-                    child: Text(t('login'),
-                      style: tsTitleMd(color: const Color(0xFF1A1200)).copyWith(fontSize: 12)),
                   ),
                 ),
             ],
@@ -397,6 +386,21 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     if (ok == true) _db.collection('marketplace').doc(docId).delete();
   }
 
+  /// Sell: guests log in or register first, then the form opens right away.
+  Future<void> _sell(BuildContext context, String Function(String) t) async {
+    var u = FirebaseAuth.instance.currentUser;
+    if (!_canSell(u)) {
+      await Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const AuthScreen(returnOnLogin: true)));
+      u = FirebaseAuth.instance.currentUser;
+      if (mounted) setState(() {});
+      if (!_canSell(u) || !context.mounted) return;
+    }
+    _showAddListing(context, u!, t);
+  }
+
+  static const _maxPhotos = 8;
+
   void _showAddListing(
     BuildContext context,
     User user,
@@ -409,9 +413,19 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     final priceCtrl = TextEditingController(text: _s(existing?['price']));
     final cityCtrl  = TextEditingController(text: _s(existing?['city']));
     final phoneCtrl = TextEditingController(text: _s(existing?['sellerPhone']));
+    final nameCtrl  = TextEditingController(
+        text: _s(existing?['sellerName']).isNotEmpty ? _s(existing?['sellerName']) : _s(user.displayName));
+    if (nameCtrl.text.isEmpty) {
+      SharedPreferences.getInstance().then((p) {
+        if (nameCtrl.text.isEmpty) nameCtrl.text = p.getString('nickname') ?? '';
+      });
+    }
     String selCat = _s(existing?['category']).isEmpty ? 'Other' : _s(existing?['category']);
-    File? selImage;
+    // Photos already online (kept when editing) + new ones from the gallery
+    final keptPhotos = <String>[..._sList(existing?['imageUrl']), ..._sList(existing?['extraImages'])];
+    final newPhotos = <File>[];
     bool uploading = false;
+    String error = '';
 
     showModalBottomSheet(
       context: context,
@@ -436,37 +450,47 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               Text(existing != null ? t('marketplace_edit') : t('marketplace_add'),
                 style: tsHeadlineSm(color: kSecondary)),
               const SizedBox(height: 20),
-              // Image picker
-              GestureDetector(
-                onTap: uploading ? null : () async {
-                  final picked = await ImagePicker().pickImage(
-                    source: ImageSource.gallery, imageQuality: 80, maxWidth: 1600);
-                  if (picked != null) setModal(() => selImage = File(picked.path));
-                },
-                child: Container(
-                  height: 160, width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: kCardHigh,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: kSecondary.withOpacity(0.3))),
-                  child: selImage != null
-                      ? ClipRRect(
+              // Photos: up to 8, the first one is the cover
+              SizedBox(
+                height: 110,
+                child: ListView(scrollDirection: Axis.horizontal, children: [
+                  for (var i = 0; i < keptPhotos.length; i++)
+                    _photoTile(Image.network(keptPhotos[i], fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_rounded, color: kSecondary)),
+                      cover: i == 0,
+                      onRemove: uploading ? null : () => setModal(() => keptPhotos.removeAt(i))),
+                  for (var i = 0; i < newPhotos.length; i++)
+                    _photoTile(Image.file(newPhotos[i], fit: BoxFit.cover),
+                      cover: keptPhotos.isEmpty && i == 0,
+                      onRemove: uploading ? null : () => setModal(() => newPhotos.removeAt(i))),
+                  if (keptPhotos.length + newPhotos.length < _maxPhotos)
+                    GestureDetector(
+                      onTap: uploading ? null : () async {
+                        final picked = await ImagePicker().pickMultiImage(imageQuality: 80, maxWidth: 1600);
+                        final room = _maxPhotos - keptPhotos.length - newPhotos.length;
+                        setModal(() => newPhotos.addAll(picked.take(room).map((x) => File(x.path))));
+                      },
+                      child: Container(
+                        width: 110,
+                        decoration: BoxDecoration(
+                          color: kCardHigh,
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.file(selImage!, fit: BoxFit.cover))
-                      : _s(existing?['imageUrl']).isNotEmpty
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(_s(existing?['imageUrl']), fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Center(child: Icon(
-                                  Icons.broken_image_rounded, color: kSecondary, size: 36))))
-                          : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                              const Icon(Icons.add_photo_alternate_rounded,
-                                color: kSecondary, size: 36),
-                              const SizedBox(height: 8),
-                              Text(t('add_photo'), style: tsBodySm(color: kSecondary)),
-                            ]),
-                ),
+                          border: Border.all(color: kSecondary.withOpacity(0.3))),
+                        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          const Icon(Icons.add_photo_alternate_rounded, color: kSecondary, size: 30),
+                          const SizedBox(height: 6),
+                          Text('${keptPhotos.length + newPhotos.length}/$_maxPhotos',
+                              style: tsBodySm(color: kSecondary)),
+                        ]),
+                      ),
+                    ),
+                ]),
               ),
+              const SizedBox(height: 4),
+              Text(_mt('Add up to 8 photos. The first one is the cover.',
+                       'ክሳብ 8 ስእልታት ወስኽ። እታ ቀዳመይቲ ናይ ቅድሚት እያ።',
+                       'እስከ 8 ፎቶዎች ይጨምሩ። የመጀመሪያው የፊት ገጽ ነው።'),
+                  style: tsBodySm(color: kTextSub)),
               const SizedBox(height: 16),
               // Category chips
               Wrap(
@@ -499,40 +523,63 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               const SizedBox(height: 12),
               _field(phoneCtrl, t('phone'),
                 Icons.phone_rounded, keyboardType: TextInputType.phone),
+              const SizedBox(height: 12),
+              _field(nameCtrl, _mt('Your name (shown to buyers)', 'ስምካ (ንዓደግቲ ዝርአ)', 'ስምዎ (ለገዢዎች የሚታይ)'),
+                Icons.person_rounded),
+              if (error.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(error, style: tsBodySm(color: kRed)),
+              ],
               const SizedBox(height: 24),
               primaryButton(
                 uploading ? '' : t('marketplace_post'),
                 uploading ? null : () async {
-                  if (titleCtrl.text.trim().isEmpty) return;
-                  setModal(() => uploading = true);
-                  String imageUrl = _s(existing?['imageUrl']);
-                  if (selImage != null) {
-                    final ref = FirebaseStorage.instance.ref(
-                      'marketplace/${user.uid}/${DateTime.now().millisecondsSinceEpoch}.jpg');
-                    await ref.putFile(selImage!);
-                    imageUrl = await ref.getDownloadURL();
+                  if (titleCtrl.text.trim().isEmpty || nameCtrl.text.trim().isEmpty) {
+                    setModal(() => error = _mt('Please write a title and your name.',
+                        'በጃኻ ኣርእስትን ስምካን ጽሓፍ።', 'እባክዎ ርዕስና ስምዎን ይጻፉ።'));
+                    return;
                   }
-                  final payload = {
-                    'title': titleCtrl.text.trim(),
-                    'description': descCtrl.text.trim(),
-                    'price': priceCtrl.text.trim(),
-                    'city': cityCtrl.text.trim(),
-                    'category': selCat,
-                    'imageUrl': imageUrl,
-                    'sellerPhone': phoneCtrl.text.trim(),
-                    'sellerName': user.displayName ?? '',
-                    'userId': _s(existing?['userId']).isNotEmpty ? _s(existing?['userId']) : user.uid,
-                    'updatedAt': FieldValue.serverTimestamp(),
-                    // New or edited listings wait for approval (admin's own are approved).
-                    'approved': _isAdminUser,
-                  };
-                  if (_isAdminUser && docId != null) payload.remove('approved'); // admin edit keeps status
-                  if (_isAdminUser && docId != null) payload['sellerName'] = _s(existing?['sellerName']);
-                  if (docId != null) {
-                    await _db.collection('marketplace').doc(docId).update(payload);
-                  } else {
-                    payload['createdAt'] = FieldValue.serverTimestamp();
-                    await _db.collection('marketplace').add(payload);
+                  setModal(() { uploading = true; error = ''; });
+                  try {
+                    final urls = [...keptPhotos];
+                    for (final f in newPhotos) {
+                      final ref = FirebaseStorage.instance.ref(
+                        'marketplace/${user.uid}/${DateTime.now().millisecondsSinceEpoch}_${urls.length}.jpg');
+                      await ref.putFile(f, SettableMetadata(contentType: 'image/jpeg'));
+                      urls.add(await ref.getDownloadURL());
+                    }
+                    final sellerName = nameCtrl.text.trim();
+                    if (_s(user.displayName).isEmpty) await user.updateDisplayName(sellerName);
+                    final payload = {
+                      'title': titleCtrl.text.trim(),
+                      'description': descCtrl.text.trim(),
+                      'price': priceCtrl.text.trim(),
+                      'city': cityCtrl.text.trim(),
+                      'category': selCat,
+                      'imageUrl': urls.isEmpty ? '' : urls.first,
+                      'extraImages': urls.skip(1).toList(),
+                      'sellerPhone': phoneCtrl.text.trim(),
+                      'sellerName': sellerName,
+                      'userId': _s(existing?['userId']).isNotEmpty ? _s(existing?['userId']) : user.uid,
+                      'updatedAt': FieldValue.serverTimestamp(),
+                      // New or edited listings wait for approval (admin's own are approved).
+                      'approved': _isAdminUser,
+                    };
+                    if (_isAdminUser && docId != null) payload.remove('approved'); // admin edit keeps status
+                    if (docId != null) {
+                      await _db.collection('marketplace').doc(docId).update(payload);
+                    } else {
+                      payload['createdAt'] = FieldValue.serverTimestamp();
+                      await _db.collection('marketplace').add(payload);
+                    }
+                  } catch (e) {
+                    setModal(() {
+                      uploading = false;
+                      error = _mt('Could not post. Check your internet and try again.',
+                          'ክለጠፍ ኣይከኣለን። ኢንተርነትካ ርአ እሞ ደጊምካ ፈትን።',
+                          'መለጠፍ አልተቻለም። ኢንተርኔትዎን ያረጋግጡና እንደገና ይሞክሩ።');
+                    });
+                    return;
                   }
                   if (context.mounted) Navigator.pop(context);
                   if (!_isAdminUser && context.mounted) {
@@ -557,6 +604,31 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// One photo in the form: thumbnail, "cover" label on the first, ✕ to remove.
+  Widget _photoTile(Widget img, {required bool cover, VoidCallback? onRemove}) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Stack(children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: SizedBox(width: 110, height: 110, child: img)),
+        if (cover)
+          Positioned(left: 6, bottom: 6, child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(100)),
+            child: Text(_mt('Cover', 'ቅድሚት', 'ፊት'),
+                style: const TextStyle(color: Color(0xFF1A1200), fontSize: 10, fontWeight: FontWeight.w700)))),
+        if (onRemove != null)
+          Positioned(right: 4, top: 4, child: GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+              child: const Icon(Icons.close_rounded, color: Colors.white, size: 16)))),
+      ]),
     );
   }
 
@@ -749,8 +821,18 @@ class _ListingCardState extends State<_ListingCard> {
             Row(children: [
               Icon(Icons.person_outline_rounded, color: kTextSub, size: 14),
               const SizedBox(width: 4),
-              Text(_s(d['sellerName']), style: tsBodySm(color: kTextSub)),
+              Flexible(child: Text(
+                  _s(d['sellerName']).isEmpty ? _mt('Seller', 'ሻያጢ', 'ሻጭ') : _s(d['sellerName']),
+                  style: tsBodySm(color: kTextSub), overflow: TextOverflow.ellipsis)),
               const Spacer(),
+              GestureDetector(
+                onTap: () => _shareListing(d),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: kCardHigh, shape: BoxShape.circle),
+                  child: const Icon(Icons.share_rounded, color: kSecondary, size: 16)),
+              ),
               if (_s(d['sellerPhone']).isNotEmpty)
                 GestureDetector(
                   onTap: () => _showSellerContact(context, d, widget.t),
@@ -771,6 +853,21 @@ class _ListingCardState extends State<_ListingCard> {
         ),
       ]),
     );
+  }
+
+  /// Share a listing on WhatsApp, Facebook, SMS… (title, price, place, seller, app link)
+  void _shareListing(Map<String, dynamic> d) {
+    final lines = <String>[
+      '🛍️ ${_s(d['title'])}${_s(d['price']).isNotEmpty ? ' — ${_s(d['price'])}' : ''}',
+      if (_s(d['city']).isNotEmpty) '📍 ${_s(d['city'])}',
+      if (_s(d['description']).isNotEmpty)
+        _s(d['description']).length > 160 ? '${_s(d['description']).substring(0, 160)}…' : _s(d['description']),
+      if (_s(d['sellerName']).isNotEmpty) '👤 ${_s(d['sellerName'])}',
+      if (_s(d['sellerPhone']).isNotEmpty) '📞 ${_s(d['sellerPhone'])}',
+      '',
+      '${_mt('Seen on Habesha Hub', 'ኣብ ሓበሻ ሃብ ዝተረኽበ', 'በሐበሻ ሀብ ላይ የታየ')}: https://habesha-hub.no/download.html',
+    ];
+    Share.share(lines.join('\n'));
   }
 
   void _showSellerContact(

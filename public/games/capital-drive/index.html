@@ -36,6 +36,8 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
 @media (hover:hover) and (pointer:fine){.speedo{bottom:14px}}
 .stage .mini{position:absolute;top:72px;right:12px;width:110px;height:110px;border-radius:12px;background:rgba(0,0,0,.35);pointer-events:none}
 @media (hover:hover) and (pointer:fine){#bN{display:none}}
+.winban{position:absolute;left:50%;top:22%;transform:translateX(-50%);background:linear-gradient(135deg,#f7c948,#e0a800);color:#2a1d00;font:800 1.6rem var(--display);padding:12px 24px;border-radius:18px;box-shadow:0 10px 40px rgba(0,0,0,.5);pointer-events:none;white-space:nowrap;animation:winpop .4s ease-out}
+@keyframes winpop{from{transform:translateX(-50%) scale(.4);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
 .count{position:absolute;inset:0;display:grid;place-items:center;font:800 5rem var(--display);color:var(--gold);text-shadow:0 4px 20px rgba(0,0,0,.7);pointer-events:none}
 .pedals{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;padding:12px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));pointer-events:none}
 .pedals div{display:flex;gap:10px}
@@ -68,6 +70,7 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
 .app .top{justify-content:flex-end;padding-left:44px}
 .app .stage{aspect-ratio:auto;height:calc(100dvh - 120px);min-height:300px}
 </style>
+<script src="../shared/audio-guard.js"></script>
 <script>if(new URLSearchParams(location.search).get("app")==="1")document.documentElement.classList.add("app")</script>
 <style>
 /* Controls: bigger and higher up, out of the phone's gesture area */
@@ -106,7 +109,7 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
       <span class="c"><span id="hc">–</span><div class="arrow" id="arrow">↑</div></span>
       <span id="hr">–</span>
     </div>
-    <div class="count" id="count" hidden></div><div class="hitflash" id="hitflash"></div><div class="tapHint" id="tapHint">⇕</div>
+    <div class="count" id="count" hidden></div><div class="winban" id="winBan" hidden></div><div class="hitflash" id="hitflash"></div><div class="tapHint" id="tapHint">⇕</div>
     <canvas class="mini" id="mini" width="220" height="220" aria-label="Map"></canvas>
     <div class="speedo"><b id="kmh">0</b><span>km/h</span></div>
     <div class="pedals">
@@ -353,7 +356,7 @@ const I18N={
   online:"Race online",onlineSub:"Random players or friends with a code",pick:"Pick up passenger",drop:"Drop off passenger",fares:"Fares",lap:"Lap",pos:"Pos",
   finished:"Finished!",go:"GO!",finish:"FINISH",win:"You win!",place:"You finished #{n}",again:"Race again",menu:"Menu",back:"Back",
   quick:"Quick race",quickSub:"Anyone online in {city}",create:"Create friends race",createSub:"Get a code to send on WhatsApp",join:"Join",code:"Friend's code",
-  nick:"Your racer name",start:"Start race now",startSub1:"You can start alone; others join the next race",startSubN:"{n} racers ready",leave:"Leave",
+  nick:"Your racer name",start:"Start race now",waitFriend:"Waiting for your friend to join…",shareWa:"Send invite on WhatsApp",invite:"Race me in {city} on Habesha Hub! Tap the link or use code {c}:",winsAnn:"🏆 {n} wins!",youWin:"🏆 You win!",startSub1:"You can start alone; others join the next race",startSubN:"{n} racers ready",leave:"Leave",
   sendCode:"Send this code to your friends:",waiting:"Waiting for racers in {city}…",shiftOver:"Shift over in {city}",delivered:"Passengers delivered: {n}",
   driveAgain:"Drive again",you:"You",connecting:"Connecting…",noConnect:"Couldn't connect. Try again in a moment.",friends:"Friends race",
   offline:"Online racing isn't available here. In the app it works for everyone who is signed in.",onlineIntro:"Race real people in {city}.",racing:"racing…",laps:"laps",
@@ -362,7 +365,7 @@ const I18N={
   online:"ኦንላይን ውድድር",onlineSub:"ምስ ዝኾነ ሰብ ወይ ምስ ኣዕሩኽ ብኮድ",pick:"ተሳፋሪ ኣልዕል",drop:"ተሳፋሪ ኣውርድ",fares:"ተሳፈርቲ",lap:"ዙር",pos:"ደረጃ",
   finished:"ወዲእካ!",go:"ጀምር!",finish:"መወዳእታ",win:"ተዓዊትካ!",place:"{n}ይ ወጺእካ",again:"ደጊምካ ተወዳደር",menu:"ዝርዝር",back:"ተመለስ",
   quick:"ቅልጡፍ ውድድር",quickSub:"ኣብ {city} ዘሎ ዝኾነ ሰብ",create:"ምስ ኣዕሩኽ ውድድር ፍጠር",createSub:"ብዋትስኣፕ ዝስደድ ኮድ ውሰድ",join:"ተጸንበር",code:"ኮድ ዓርኪ",
-  nick:"ስምካ",start:"ሕጂ ጀምር",startSub1:"በይንኻ ክትጅምር ትኽእል ኢኻ",startSubN:"{n} ተወዳደርቲ ድሉዋት",leave:"ውጻእ",
+  nick:"ስምካ",start:"ሕጂ ጀምር",waitFriend:"ዓርክኻ ክሳብ ዝኣቱ ይጽበ…",shareWa:"ብዋትስኣፕ ዕድመ ስደድ",invite:"ኣብ {city} ምሳይ ተወዳደር ኣብ ሓበሻ ሃብ! ነቲ ሊንክ ጠውቕ ወይ ኮድ {c} ተጠቐም:",winsAnn:"🏆 {n} ተዓዊቱ!",youWin:"🏆 ተዓዊትካ!",startSub1:"በይንኻ ክትጅምር ትኽእል ኢኻ",startSubN:"{n} ተወዳደርቲ ድሉዋት",leave:"ውጻእ",
   sendCode:"ነዚ ኮድ ናብ ኣዕሩኽካ ስደድ፦",waiting:"ኣብ {city} ተወዳደርቲ ይጽበ ኣሎ…",shiftOver:"ስራሕ ኣብ {city} ተወዲኡ",delivered:"ዘብጻሕካዮም ተሳፈርቲ፦ {n}",
   driveAgain:"ደጊምካ ዘውር",you:"ንስኻ",connecting:"ይራኸብ ኣሎ…",noConnect:"ክራኸብ ኣይከኣለን። ደሓር ፈትን።",friends:"ውድድር ኣዕሩኽ",
   offline:"ኦንላይን ውድድር ኣብዚ ኣይሰርሕን። ኣብ ኣፕ ንኹሉ ዝኣተወ ሰብ ይሰርሕ።",onlineIntro:"ኣብ {city} ምስ ሓቀኛታት ሰባት ተወዳደር።",racing:"ይወዳደር…",laps:"ዙር",
@@ -371,7 +374,7 @@ const I18N={
   online:"ኦንላይን ውድድር",onlineSub:"ከማንኛውም ሰው ወይም ከጓደኞች በኮድ",pick:"ተሳፋሪ ጫን",drop:"ተሳፋሪ አውርድ",fares:"ተሳፋሪዎች",lap:"ዙር",pos:"ደረጃ",
   finished:"ጨርሰሃል!",go:"ጀምር!",finish:"መጨረሻ",win:"አሸነፍክ!",place:"{n}ኛ ወጥተሃል",again:"እንደገና ተወዳደር",menu:"ዝርዝር",back:"ተመለስ",
   quick:"ፈጣን ውድድር",quickSub:"በ{city} ያለ ማንኛውም ሰው",create:"ከጓደኞች ጋር ውድድር ፍጠር",createSub:"በዋትስአፕ የሚላክ ኮድ ውሰድ",join:"ተቀላቀል",code:"የጓደኛ ኮድ",
-  nick:"ስምህ",start:"አሁን ጀምር",startSub1:"ብቻህን መጀመር ትችላለህ",startSubN:"{n} ተወዳዳሪዎች ዝግጁ ናቸው",leave:"ውጣ",
+  nick:"ስምህ",start:"አሁን ጀምር",waitFriend:"ጓደኛህ እስኪገባ በመጠበቅ ላይ…",shareWa:"በዋትስአፕ ግብዣ ላክ",invite:"በ{city} ከእኔ ጋር ተወዳደር በሐበሻ ሀብ! ሊንኩን ንካ ወይም ኮድ {c} ተጠቀም:",winsAnn:"🏆 {n} አሸነፈ!",youWin:"🏆 አሸነፍክ!",startSub1:"ብቻህን መጀመር ትችላለህ",startSubN:"{n} ተወዳዳሪዎች ዝግጁ ናቸው",leave:"ውጣ",
   sendCode:"ይህን ኮድ ለጓደኞችህ ላክ፦",waiting:"በ{city} ተወዳዳሪዎችን በመጠበቅ ላይ…",shiftOver:"በ{city} ስራው አልቋል",delivered:"ያደረስካቸው ተሳፋሪዎች፦ {n}",
   driveAgain:"እንደገና ንዳ",you:"አንተ",connecting:"በመገናኘት ላይ…",noConnect:"መገናኘት አልተቻለም። ቆይተህ ሞክር።",friends:"የጓደኞች ውድድር",
   offline:"ኦንላይን ውድድር እዚህ አይሰራም። በአፑ ውስጥ ለገባ ሁሉ ይሰራል።",onlineIntro:"በ{city} ከእውነተኛ ሰዎች ጋር ተወዳደር።",racing:"በውድድር ላይ…",laps:"ዙር",
@@ -558,7 +561,7 @@ function nameTag(text,color){const t=canvasTex(256,64,(g,w,h)=>{g.fillStyle="rgb
 
 /* ---------- city + mode setup ---------- */
 function renderCities(){$("cities").innerHTML=ORDER.map(k=>`<button data-k="${k}" aria-pressed="${k===cityKey}">${esc(cityName(k))}<small>${esc(cityTag(k))}</small></button>`).join("")}
-function setCity(key){cityKey=key;build(key);addPeople();WP=ROUTE.map(([i,j])=>({x:roadPos(i),z:roadPos(j)}));ais=[];ghosts={};renderCities();resize()}
+function setCity(key){cityKey=key;build(key);addPeople();WP=ROUTE.map(([i,j])=>({x:roadPos(i),z:roadPos(j)}));addFinish();ais=[];ghosts={};renderCities();resize()}
 function placeAt(x,z,a){player.x=x;player.z=z;player.a=a;player.v=0;player.steer=0;cam.position.set(x-Math.sin(a)*11,5,z+Math.cos(a)*11)}
 
 /* ---------- menu ---------- */
@@ -571,8 +574,9 @@ function mainMenu(){mode="menu";G.on=false;clearRace();if(ring)ring.visible=fals
 $("menu").addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b||b.disabled)return;const a=b.dataset.act;audio();
   if(a==="taxi")startTaxi();if(a==="race")startRace("ai");if(a==="online")onlineMenu();if(a==="menu"){leaveOnline();mainMenu()}
   if(a==="quick")joinOnline("quick-"+cityKey);
-  if(a==="create"){const code=Math.random().toString(36).slice(2,7);joinOnline(`f-${cityKey}-${code}`,code)}
-  if(a==="join"){const code=($("code").value||"").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,8);if(code)joinOnline(`f-${cityKey}-${code}`,code)}
+  if(a==="create"){const code=CITY_LETTER[cityKey]+Math.random().toString(36).slice(2,6);joinFriend(code)}
+  if(a==="join"){const code=($("code").value||"").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,8);if(code)joinFriend(code)}
+  if(a==="wa")shareRace()
   if(a==="start")hostStart();if(a==="again"){if(mode==="online")onlineLobby();else startRace("ai")}});
 
 /* ---------- taxi ---------- */
@@ -596,6 +600,18 @@ function startRace(kind,opts={}){clearRace();mode=kind==="ai"?"race":"online";
     ais.push({name:n,mesh:m,x:s.x,z:s.z,a:s.a,v:0,done:0,maxV:24+i*1.6+Math.random()*2,lane:CITIES[cityKey].side*(1.5+i*1.2)*(i%2?1:-1)*.8,finished:null,color:AI_COL[i]})})}
   G={on:true,frozen:true,score:0,time:0,pick:true};ring.visible=true;setRing();$("ov").hidden=true}
 function nextWP(done){return WP[(done+1)%WP.length]}
+function addFinish(){const w=WP[0],z=w.z+RD/2+1.5;
+  const cv=document.createElement("canvas");cv.width=128;cv.height=32;const g=cv.getContext("2d");
+  for(let i=0;i<16;i++)for(let j=0;j<4;j++){g.fillStyle=(i+j)%2?"#111":"#fff";g.fillRect(i*8,j*8,8,8)}
+  const tex=new THREE.CanvasTexture(cv);tex.magFilter=THREE.NearestFilter;
+  const strip=new THREE.Mesh(new THREE.PlaneGeometry(RD,2.2),new THREE.MeshBasicMaterial({map:tex}));strip.rotation.x=-Math.PI/2;strip.position.set(w.x,.07,z);world.add(strip);
+  const postM=new THREE.MeshStandardMaterial({color:0xe74c3c,roughness:.5});
+  [-1,1].forEach(sd=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,7,10),postM);p.position.set(w.x+sd*(RD/2+.6),3.5,z);world.add(p)});
+  const bc=document.createElement("canvas");bc.width=512;bc.height=96;const b=bc.getContext("2d");
+  for(let i=0;i<32;i++){b.fillStyle=i%2?"#111":"#fff";b.fillRect(i*16,0,16,12);b.fillStyle=i%2?"#fff":"#111";b.fillRect(i*16,84,16,12)}
+  b.fillStyle="#d52b1e";b.fillRect(0,12,512,72);b.fillStyle="#fff";b.font="bold 56px Arial";b.textAlign="center";b.textBaseline="middle";b.fillText("FINISH · መወዳእታ",256,50);
+  const ban=new THREE.Mesh(new THREE.PlaneGeometry(RD+1.6,2.2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(bc),side:THREE.DoubleSide}));
+  ban.position.set(w.x,6.4,z);world.add(ban)}
 function setRing(){if(!R)return;const w=nextWP(R.done);ring.position.set(w.x,1.2,w.z)}
 function progress(done,x,z){const a=WP[done%WP.length],b=nextWP(done);const seg=Math.hypot(b.x-a.x,b.z-a.z)||1;return done+Math.max(0,1-Math.hypot(b.x-x,b.z-z)/seg)}
 const TOTAL=()=>LAPS*WP.length;
@@ -631,6 +647,8 @@ function showResults(){if(!R)return;const rows=standings();const myPos=rows.find
 let room=null,nroom=null,unsubPeers=null,myNick="",myColor="#f7c948",roomCode=null,raceId=null,startAtWall=0;
 (async()=>{try{if(window.HabeshaNet){room=await window.HabeshaNet.init()}else if(window.claude&&claude.use){room=await claude.use("room")}}catch(e){room=null}})();
 try{myNick=QS.get("name")||localStorage.getItem("cd-nick")||""}catch(e){}
+{const jc=(QS.get("join")||"").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,8);
+  if(jc){let tries=0;const t=setInterval(()=>{if(room||++tries>40){clearInterval(t);if(room)joinFriend(jc)}},250)}}
 function onlineMenu(){mode="menu";
   if(!room){showMenu(`<h2>${esc(T("online"))}</h2><p>${esc(T("offline"))}</p><button class="btn ghost" data-act="menu">${esc(T("back"))}</button>`);return}
   showMenu(`<h2>${esc(T("online"))}</h2><p>${esc(T("onlineIntro",{city:cityName(cityKey)}))}</p>
@@ -648,14 +666,20 @@ async function joinOnline(name,code){
   await nroom.presence({nick:myNick,color:myColor,state:"lobby",raceId:null,startAt:null,x:null,z:null,a:null,done:0,fin:null}).catch(()=>{});
   unsubPeers=nroom.onPeers(ch=>{adoptStart(ch.peers);if(!R)onlineLobby();else syncGhosts(ch.peers)});
   onlineLobby()}
+const CITY_LETTER={kampala:"k",addis:"a",asmara:"s",oslo:"o"};
+function joinFriend(code){const c=Object.keys(CITY_LETTER).find(k=>CITY_LETTER[k]===code[0]);if(c&&c!==cityKey)setCity(c);joinOnline("f-race-"+code,code)}
+// WhatsApp invite with a link that opens the race and joins this room
+function shareRace(){if(!roomCode)return;const url=`https://habesha-hub.no/games/capital-drive/?join=${roomCode}&lang=${lang}`;
+  const txt=T("invite",{city:cityName(cityKey),c:roomCode})+"\n"+url,wa="https://wa.me/?text="+encodeURIComponent(txt);
+  if(window.HabeshaApp&&typeof HabeshaApp.postMessage==="function")HabeshaApp.postMessage(JSON.stringify({type:"open",url:wa}));else window.open(wa,"_blank")}
 function leaveOnline(){if(unsubPeers){unsubPeers();unsubPeers=null}if(nroom){nroom.leave().catch(()=>{});nroom=null}}
 function onlineLobby(){if(!nroom)return;if(R&&R.finished==null&&mode==="online")return;
   if(R&&R.finished!=null){clearRace();nroom.presence({state:"lobby",raceId:null,startAt:null,done:0,fin:null}).catch(()=>{})}
   const ps=nroom.peers().filter(p=>p.kind==="viewer");
   showMenu(`<h2>${esc(roomCode?T("friends"):T("quick"))} · ${esc(cityName(cityKey))}</h2>
-   ${roomCode?`<p>${esc(T("sendCode"))}<br><b style="font-size:1.6rem;color:var(--gold);letter-spacing:.15em">${esc(roomCode)}</b></p>`:`<p>${esc(T("waiting",{city:cityName(cityKey)}))}</p>`}
+   ${roomCode?`<p>${esc(T("sendCode"))}<br><b style="font-size:1.6rem;color:var(--gold);letter-spacing:.15em">${esc(roomCode)}</b></p><button class="btn" data-act="wa" style="background:#25D366;color:#06210f">💬 ${esc(T("shareWa"))}</button>`:`<p>${esc(T("waiting",{city:cityName(cityKey)}))}</p>`}
    <ul class="list">${ps.map(p=>`<li class="${p.sameTab?"me":""}"><span><span class="dot" style="background:${/^#[0-9a-f]{6}$/i.test(p.presence.color||"")?p.presence.color:"#fff"}"></span>${esc(p.presence.nick||"Racer")}${p.sameTab?" ("+esc(T("you"))+")":""}</span></li>`).join("")}</ul>
-   <button class="btn" data-act="start" ${ps.length<1?"disabled":""}>${esc(T("start"))}<small>${esc(ps.length>1?T("startSubN",{n:ps.length}):T("startSub1"))}</small></button>
+   <button class="btn" data-act="start" ${ps.length<(roomCode?2:1)?"disabled":""}>${esc(T("start"))}<small>${esc(ps.length>1?T("startSubN",{n:ps.length}):roomCode?T("waitFriend"):T("startSub1"))}</small></button>
    <button class="btn ghost" data-act="menu">${esc(T("leave"))}</button>`)}
 function hostStart(){if(!nroom)return;raceId=Math.random().toString(36).slice(2,9);startAtWall=Date.now()+5000;
   nroom.presence({state:"grid",raceId,startAt:startAtWall,done:0,fin:null}).catch(()=>{});beginOnline()}
@@ -686,15 +710,16 @@ function stepGhosts(dt){Object.values(ghosts).forEach(g=>{const p=g.pres;if(type
 
 /* ---------- minimap ---------- */
 let miniF=0;
-function drawMini(){const cv=$("mini");if(!cv)return;const g=cv.getContext("2d"),W=cv.width,S=W/(2*HALF+12),o=W/2;
-  const X=x=>o+x*S,Z=z=>o+z*S;g.clearRect(0,0,W,W);
+function drawMini(){const cv=$("mini");if(!cv)return;const g=cv.getContext("2d"),W=cv.width,S=W/190,o=W/2;
+  const X=x=>x*S,Z=z=>z*S;g.clearRect(0,0,W,W);g.save();g.translate(o,o*1.15);g.rotate(-player.a);g.translate(-player.x*S,-player.z*S);
   g.strokeStyle="rgba(255,255,255,.28)";g.lineWidth=RD*S*.6;for(let i=0;i<=N;i++){const p=roadPos(i);g.beginPath();g.moveTo(X(p),Z(-HALF));g.lineTo(X(p),Z(HALF));g.stroke();g.beginPath();g.moveTo(X(-HALF),Z(p));g.lineTo(X(HALF),Z(p));g.stroke()}
   if(R&&WP.length){g.strokeStyle="rgba(247,201,72,.85)";g.lineWidth=3;g.beginPath();WP.forEach((w,i)=>i?g.lineTo(X(w.x),Z(w.z)):g.moveTo(X(w.x),Z(w.z)));g.closePath();g.stroke();
     const nw=nextWP(R.done);g.fillStyle="#f7c948";g.beginPath();g.arc(X(nw.x),Z(nw.z),5,0,7);g.fill()}
   const dot=(x,z,col,r)=>{g.fillStyle=col;g.beginPath();g.arc(X(x),Z(z),r,0,7);g.fill()};
   ais.forEach(c=>dot(c.x,c.z,"#"+c.color.toString(16).padStart(6,"0"),4));
   Object.values(ghosts).forEach(gh=>dot(gh.x,gh.z,(gh.pres&&gh.pres.color)||"#fff",4));
-  g.save();g.translate(X(player.x),Z(player.z));g.rotate(player.a);g.fillStyle="#fff";g.strokeStyle="#000";g.lineWidth=1.5;
+  {const w=WP[0];if(w){g.fillStyle="#fff";g.fillRect(X(w.x-RD/2),Z(w.z+RD/2+1),RD*S,4)}}
+  g.restore();g.save();g.translate(o,o*1.15);g.fillStyle="#fff";g.strokeStyle="#000";g.lineWidth=1.5;
   g.beginPath();g.moveTo(0,-8);g.lineTo(5,6);g.lineTo(-5,6);g.closePath();g.fill();g.stroke();g.restore()}
 
 /* ---------- HUD ---------- */
@@ -758,7 +783,9 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;const C=CITIE
     if(G.time<=0){G.on=false;G.time=0;say("finish");showMenu(`<h2>${esc(T("shiftOver",{city:cityName(cityKey)}))}</h2><p>${esc(T("delivered",{n:G.score}))}</p><button class="btn ghost" data-act="taxi">${esc(T("driveAgain"))}</button><button class="btn ghost" data-act="menu">${esc(T("menu"))}</button>`)}}
   if(R){if(R.finished==null){const w=nextWP(R.done);if(Math.hypot(player.x-w.x,player.z-w.z)<8){R.done++;
         if(R.done>=TOTAL()){ring.visible=false;$("count").hidden=false;$("count").textContent=T("finish");finishRace(now)}else{if(R.done%WP.length===0)say("lap");setRing()}}}
-    stepAI(dt,now);if(mode==="online"){sendPos(now);stepGhosts(dt)}}
+    stepAI(dt,now);if(mode==="online"){sendPos(now);stepGhosts(dt)}
+    if(!R.winner){const fin=standings().filter(r=>r.t!=null).sort((a,b)=>a.t-b.t)[0];if(fin){R.winner=fin.name;
+      const el=$("winBan");el.textContent=fin.me?T("youWin"):T("winsAnn",{n:fin.name});el.hidden=false;setTimeout(()=>el.hidden=true,3500);if(!fin.me)chime(660,.5,.2)}}}
   stepPeople(dt,now);engineTick(player.steer);if((miniF=(miniF+1)%3)===0)drawMini();
   const pm=player.mesh,ud=pm.userData;pm.position.set(player.x,0,player.z);pm.rotation.y=-player.a;
   player.roll+=((-player.steer*player.v/32)*.09-player.roll)*Math.min(1,dt*5);

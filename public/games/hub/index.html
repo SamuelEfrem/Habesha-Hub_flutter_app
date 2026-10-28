@@ -108,6 +108,7 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 .app .wrap{padding-top:52px}
 </style>
+<script src="../shared/audio-guard.js"></script>
 <script>if(new URLSearchParams(location.search).get("app")==="1")document.documentElement.classList.add("app")</script>
 </head>
 <body>
@@ -192,6 +193,7 @@ const TX={
  friend:["Play with a friend","ምስ ዓርኪ ተጻወት","ከጓደኛ ጋር ተጫወት"],friendSub:["Create a code and send it on WhatsApp","ኮድ ፍጠርን ብዋትስኣፕ ስደድን","ኮድ ፍጠርና በዋትስአፕ ላክ"],
  quick:["Random online player","ምስ ዝኾነ ሰብ ኦንላይን","ከማንኛውም ሰው ኦንላይን"],quickSub:["Anyone using the app right now","ሕጂ ነቲ ኣፕ ዝጥቀም ዝኾነ ሰብ","አሁን አፑን የሚጠቀም ማንኛውም ሰው"],
  join:["Join","ተጸንበር","ተቀላቀል"],code:["Friend's code","ኮድ ዓርኪ","የጓደኛ ኮድ"],name:["Your name","ስምካ","ስምህ"],
+ shareWa:["Send invite on WhatsApp","ብዋትስኣፕ ዕድመ ስደድ","በዋትስአፕ ግብዣ ላክ"],invite:["Play {g} with me on Habesha Hub! Tap the link or use code {c}:","ምሳይ {g} ኣብ ሓበሻ ሃብ ተጻወት! ነቲ ሊንክ ጠውቕ ወይ ኮድ {c} ተጠቐም:","ከእኔ ጋር {g} በሐበሻ ሀብ ተጫወት! ሊንኩን ንካ ወይም ኮድ {c} ተጠቀም:"],
  sendCode:["Send this code to your friend","ነዚ ኮድ ናብ ዓርክኻ ስደድ","ይህን ኮድ ለጓደኛህ ላክ"],waitFriend:["Waiting for your friend…","ዓርክኻ ይጽበ ኣሎ…","ጓደኛህን በመጠበቅ ላይ…"],
  searching:["Looking for a player…","ተጻዋታይ ይደሊ ኣሎ…","ተጫዋች በመፈለግ ላይ…"],full:["This game is full. Try another code.","እዚ ጸወታ መሊኡ እዩ። ካልእ ኮድ ፈትን።","ይህ ጨዋታ ሞልቷል። ሌላ ኮድ ሞክር።"],
  yourTurn:["Your turn","ተራኻ","ተራህ ነው"],theirTurn:["{n}'s turn","ተራ {n}","የ{n} ተራ"],win:["You win! 🎉","ተዓዊትካ! 🎉","አሸነፍክ! 🎉"],lose:["{n} wins","{n} ተዓዊቱ","{n} አሸንፏል"],draw:["Draw","ማዕረ","አቻ"],
@@ -272,27 +274,32 @@ function canMove(){return M&&M.st&&M.st.winner==null&&M.st.turn===M.seat&&(M.mod
 function doMove(mv){if(!canMove())return;M.st=G().apply(clone(M.st),mv,M.seat);M.v++;if(M.mode==="online")publish();redraw();if(M.mode==="ai")aiStep()}
 async function aiStep(){const my=M;while(M===my&&M.st.winner==null&&M.st.turn===1){await sleep(G().aiDelay||650);if(M!==my)return;const mv=G().ai(M.st,1);if(!mv)break;M.st=G().apply(clone(M.st),mv,1);redraw()}}
 function newRound(){if(!M)return;M.round=(M.round||0)+1;M.st=G().init(M.round%2);M.v++;if(M.mode==="online")publish();redraw();if(M.mode==="ai")aiStep()}
-async function startOnline(name,code){
+async function startOnline(name,code,qi){
   const net=await getNet();
   if(!net){$("modeMsg").textContent=T("noOnline");return}
   leaveMatch();
-  M={mode:"online",seat:-1,st:null,v:0,code,names:[myNick||"Player",""],jt:Date.now()+Math.random(),opp:null,r:null,round:0};
+  M={mode:"online",seat:-1,st:null,v:0,code,qi:qi||0,names:[myNick||"Player",""],jt:Date.now()+Math.random(),opp:null,r:null,round:0};
   showPlay();$("area").innerHTML="";$("who").innerHTML="";$("status").textContent=T("connecting");$("afterRow").innerHTML=`<button class="btn ghost" id="toModes">${esc(T("modes"))}</button>`;
   try{M.r=await net.join(name)}catch(e){$("status").textContent=T("noConnect");return}
   await M.r.presence({nick:myNick||"Player",g:cur,jt:M.jt,v:0,st:null}).catch(()=>{});
   M.unsub=M.r.onPeers(ch=>sync(ch.peers));sync(M.r.peers());
 }
+// WhatsApp invite: the link opens this game and joins the friend's room
+function shareInvite(code){const url=`https://habesha-hub.no/games/hub/?game=${cur}&join=${code}&lang=${lang}`;
+  const txt=T("invite",{g:T(cur),c:code})+"\n"+url,wa="https://wa.me/?text="+encodeURIComponent(txt);
+  if(window.HabeshaApp&&typeof HabeshaApp.postMessage==="function")HabeshaApp.postMessage(JSON.stringify({type:"open",url:wa}));else window.open(wa,"_blank")}
 function publish(){if(M&&M.r)M.r.presence({v:M.v,st:JSON.stringify(M.st)}).catch(()=>{})}
 function sync(peers){if(!M||M.mode!=="online")return;
   const s=peers.filter(p=>p.presence&&p.presence.g===cur&&typeof p.presence.jt==="number").sort((a,b)=>a.presence.jt-b.presence.jt);
   const meI=s.findIndex(p=>p.sameTab);
   if(meI<0)return;
-  if(meI>1){$("status").textContent=T("full");$("area").innerHTML="";return}
+  if(meI>1){if(!M.code&&M.qi<30){const q=M.qi+1;startOnline(`q-${cur}-${q}`,null,q);return}$("status").textContent=T("full");$("area").innerHTML="";return}
   M.seat=meI;const opp=s[1-meI]||null;
   if(M.opp&&!opp&&M.st&&M.st.winner==null){M.opp=null;$("status").textContent=T("left");return}
   M.opp=opp;M.names=[];M.names[meI]=myNick||"Player";M.names[1-meI]=opp?String(opp.presence.nick||"Player").slice(0,14):"…";
   s.slice(0,2).forEach(p=>{const v=+p.presence.v||0;if(v>M.v&&typeof p.presence.st==="string"){try{M.st=JSON.parse(p.presence.st);M.v=v}catch(e){}}});
-  if(!opp&&!M.st){$("who").innerHTML="";$("area").innerHTML=M.code?`<p class="about" style="text-align:center">${esc(T("sendCode"))}</p><div class="codebox">${esc(M.code)}</div>`:"";
+  if(!opp&&!M.st){$("who").innerHTML="";$("area").innerHTML=M.code?`<p class="about" style="text-align:center">${esc(T("sendCode"))}</p><div class="codebox">${esc(M.code)}</div><button class="btn" id="waShare" style="background:#25D366;color:#06210f;text-align:center;margin-top:10px">💬 ${esc(T("shareWa"))}</button>`:"";
+    const wb=$("waShare");if(wb)wb.onclick=()=>shareInvite(M.code);
     $("status").textContent=M.code?T("waitFriend"):T("searching");return}
   if(opp&&!M.st&&meI===0){M.st=G().init(0);M.v=1;publish()}
   if(M.st)redraw();
@@ -420,6 +427,8 @@ $("rGive").onclick=()=>{$("rTowns").innerHTML=TOWNS.map(t=>`<button lang="ti">${
 $("rTowns").onclick=e=>{const b=e.target.closest("button");if(b)rReveal(false,b.textContent)};
 $("rNext").onclick=()=>{ri=(ri+1)%RID.length;rShow()};rShow();
 applyStatic();renderHome();show("home");
+{const jc=(QS.get("join")||"").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,8),jg=QS.get("game");
+ if(jc&&GAMES[jg]){cur=jg;show("board");$("bTitle").textContent=T(jg);showModes();startOnline(`f-${jg}-${jc}`,jc)}}
 </script>
 
 </body>

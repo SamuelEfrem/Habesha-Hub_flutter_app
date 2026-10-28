@@ -23,15 +23,27 @@ class GameWebViewScreen extends StatefulWidget {
   State<GameWebViewScreen> createState() => _GameWebViewScreenState();
 }
 
-class _GameWebViewScreenState extends State<GameWebViewScreen> {
+class _GameWebViewScreenState extends State<GameWebViewScreen> with WidgetsBindingObserver {
   late final WebViewController _controller;
   int _progress = 0;
   final _purchases = PurchaseService.instance;
   final _tts = FlutterTts();
 
+  // Game music must stop when the app goes to the background (audio-guard.js in the pages)
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      _tts.stop();
+      _controller.runJavaScript('window.habeshaPause && window.habeshaPause()').catchError((_) {});
+    } else if (state == AppLifecycleState.resumed) {
+      _controller.runJavaScript('window.habeshaResume && window.habeshaResume()').catchError((_) {});
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
 
@@ -155,6 +167,10 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // Leaving the game: silence it and unload the page so no music keeps playing
+    _controller.runJavaScript('window.habeshaPause && window.habeshaPause()').catchError((_) {});
+    _controller.loadRequest(Uri.parse('about:blank')).catchError((_) {});
     _tts.stop();
     _purchases.onUnlocked = null;
     _purchases.onError = null;
