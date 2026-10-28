@@ -177,6 +177,26 @@ footer{border-top:1px solid var(--line);padding:46px 0 calc(40px + env(safe-area
 .foot{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-start}
 .foot a{color:var(--sub);text-decoration:none}.foot a:hover{color:var(--gold)}
 .foot ul{list-style:none;display:flex;gap:18px;flex-wrap:wrap}
+
+/* New in the app: video + feature cards with how-to steps */
+.vid{margin:44px auto 0;max-width:900px;border-radius:22px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 70px rgba(0,0,0,.55);background:#000}
+.vid video{display:block;width:100%;height:auto;aspect-ratio:16/9}
+.vid-cap{text-align:center;color:var(--sub);font-size:14px;margin-top:12px}
+.new-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:40px}
+.nf{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.nf .pic{background:#0b1118;display:flex;justify-content:center;align-items:flex-start;gap:10px;padding:18px 18px 0;height:260px;overflow:hidden}
+.nf .pic img{width:44%;max-width:210px;height:auto;align-self:flex-start;border-radius:16px 16px 0 0;border:1px solid var(--line);border-bottom:0}
+.nf .pic.wide img{width:100%;max-width:none;height:100%;object-fit:cover;align-self:center;border-radius:14px;border-bottom:1px solid var(--line);object-position:center}
+.nf .pic.wide{align-items:center;padding:18px}
+.nf .txt{padding:22px}
+.nf .tag{display:inline-block;font-size:12px;font-weight:800;color:#1A1200;background:var(--gold);border-radius:100px;padding:3px 10px;margin-bottom:10px}
+.nf h3{font-size:19px;margin-bottom:6px}
+.nf p{color:var(--sub);font-size:14.5px}
+.nf ol{margin:12px 0 0;padding-left:20px;color:var(--ink,#eee);font-size:14px;line-height:1.6}
+.nf ol li::marker{color:var(--gold);font-weight:800}
+.nf.full{grid-column:1/-1}
+.nf .ics{font-size:38px;letter-spacing:8px;padding:30px 22px 0}
+@media(max-width:820px){.new-grid{grid-template-columns:1fr}.nf .pic{height:220px}}
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
 .reveal.in{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}.float{animation:none}html{scroll-behavior:auto}}
@@ -189,6 +209,7 @@ footer{border-top:1px solid var(--line);padding:46px 0 calc(40px + env(safe-area
     <a class="logo" href="#top"><img src="/img/icon-192.png" alt=""><span>Habesha Hub</span></a>
     <ul class="links">
       <li><a href="#features" data-i18n="nav_features">Features</a></li>
+      <li><a href="#new" data-i18n="nav_new">New</a></li>
       <li><a href="#screens" data-i18n="nav_screens">Screens</a></li>
       <li><a href="#world" data-i18n="nav_world">Countries</a></li>
       <li><a href="#business" data-i18n="nav_business">For businesses</a></li>
@@ -268,6 +289,27 @@ footer{border-top:1px solid var(--line);padding:46px 0 calc(40px + env(safe-area
       <div class="feat reveal"><div class="ic">🛍️</div><h3 data-i18n="f5_t">Marketplace</h3><p data-i18n="f5_p">Buy and sell second-hand items in your community — safely checked before they go live.</p></div>
       <div class="feat reveal"><div class="ic">✦</div><h3 data-i18n="f6_t">AI assistant</h3><p data-i18n="f6_p">Ask in your own language: “Where can I eat Eritrean food tonight?” — and get an answer.</p></div>
       <div class="feat big reveal"><div class="ic">🗣️</div><h3 data-i18n="f7_t">English · ትግርኛ · አማርኛ</h3><p data-i18n="f7_p">The whole app speaks your language. Switch any time, plus light and dark mode for day and night.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- NEW IN THE APP -->
+<section id="new" style="padding-top:40px">
+  <div class="wrap">
+    <div class="center reveal">
+      <span class="eyebrow" data-i18n="new_eyebrow">🆕 New in the app</span>
+      <h2 data-i18n="new_h2">Learn, play and settle in</h2>
+      <p class="lead" style="margin:0 auto" data-i18n="new_lead">A driving test with a Tigrinya-speaking instructor, 500 theory questions, Habesha games, Fidel for kids and help for newcomers — all inside Habesha Hub.</p>
+    </div>
+    <div class="vid reveal"><video controls playsinline preload="none" poster="/video/how-to.jpg"><source src="/video/how-to.mp4" type="video/mp4"></video></div>
+    <p class="vid-cap" data-i18n="vid_cap">▶ Watch: how to use the games and the driving test (1 min)</p>
+    <div class="new-grid">
+      <div class="nf reveal"><div class="pic wide"><img src="/img/new/drive.webp" alt="Driving test" loading="lazy"></div><div class="txt"><span class="tag" data-i18n="n1_tag">🔑 Opens with the theory code</span><br><h3 data-i18n="n1_t">🚦 Practical driving test</h3><p data-i18n="n1_p">Drive a real 3D town with a driving instructor who speaks Tigrinya, Amharic, English or Norwegian. Traffic lights, STOP, give way, zebra crossings, speed limits, GPS and parking. Get “ኣንበሳ!” when you drive well and “ኣታ ቀስ በል!” when you speed.</p><ol data-i18n="n1_s"><li>Open <b>Games &amp; Tools › Habesha Games › 🚦 Driving test</b></li><li>Choose where to drive (hospital, school, church…) and the instructor language</li><li>Press <b>Start</b>. Steer with the wheel, gas and brake on the right, <b>D/R</b> for reverse</li><li>Follow the voice and the GPS, then stop inside the <b>P</b> bay to finish</li></ol></div></div>
+      <div class="nf reveal"><div class="pic"><img src="/img/new/theory.webp" alt="Driving theory" loading="lazy"><img src="/img/new/drive_menu.webp" alt="Choose destination" loading="lazy"></div><div class="txt"><span class="tag" data-i18n="n2_tag">ብትግርኛ</span><br><h3 data-i18n="n2_t">📘 Driving theory — 500 questions</h3><p data-i18n="n2_p">Norwegian class B theory in Tigrinya with road signs: practice rules, practice signs and a real exam. 20 + 20 + 20 questions are free.</p><ol data-i18n="n2_s"><li>Open <b>Games &amp; Tools › Life Tools › Driving licence</b></li><li>Practice rules, signs, or take the exam</li><li>For the full course and the practical test: write <b>help</b> on WhatsApp to <b>+47 973 74 482</b> to get your personal code</li><li>Tap <b>Unlock with code</b> and type it in</li></ol></div></div>
+      <div class="nf reveal"><div class="pic wide"><img src="/img/new/race.webp" alt="Capital Racing 3D" loading="lazy"></div><div class="txt"><h3 data-i18n="n3_t">🏎️ Capital Racing 3D</h3><p data-i18n="n3_p">Race through Asmara, Addis Ababa, Kampala and Oslo against the computer or real people online. Taxi mode, crashes, and a countdown in Tigrinya.</p><ol data-i18n="n3_s"><li>Open <b>Habesha Games › Capital Racing 3D</b></li><li>Choose a city and race the computer or go online</li><li>Turn the phone sideways and tap the game to hide the top bar</li></ol></div></div>
+      <div class="nf reveal"><div class="pic"><img src="/img/new/hub.webp" alt="Habesha Games" loading="lazy"><img src="/img/new/genna.webp" alt="Genna" loading="lazy"></div><div class="txt"><h3 data-i18n="n4_t">🎲 Habesha games</h3><p data-i18n="n4_p">Dama with a friend or anyone online, Genna (the Christmas stick game) and riddles in your language.</p><ol data-i18n="n4_s"><li>Open <b>Habesha Games</b> and pick a game</li><li>Dama: play the computer, create a code for a friend, or play a random player</li><li>Choose EN, ትግ or አማ at the top: all texts follow</li></ol></div></div>
+      <div class="nf reveal"><div class="pic"><img src="/img/new/fidel.webp" alt="Fidel for kids" loading="lazy"><img src="/img/new/riddle.webp" alt="Riddles" loading="lazy"></div><div class="txt"><h3 data-i18n="n5_t">👶 Fidel for kids</h3><p data-i18n="n5_p">Children tap a letter family, see and hear every sound, then play the quiz to earn stars and go up levels.</p><ol data-i18n="n5_s"><li>Open <b>Habesha Games › Fidel</b></li><li><b>Learn</b>: tap ሀ ለ ሐ… and each of the 7 sounds</li><li><b>Quiz</b>: pick the right sound — 5 stars = next level</li></ol></div></div>
+      <div class="nf reveal full"><div class="ics">⛪ 🤝 💼 🏠 🎉 🧭</div><div class="txt"><h3 data-i18n="n6_t">🤝 Community & newcomers</h3><p data-i18n="n6_p">Find Habesha churches and associations near you, jobs, housing and events in the Marketplace, and step-by-step guides for newcomers to Norway (ID number, bank, BankID, NAV, school and more) in Tigrinya and Amharic.</p><ol data-i18n="n6_s"><li>Home: tap <b>Church ⛪</b> or <b>Association 🤝</b> to see the nearest</li><li>Marketplace: choose <b>Jobs, Housing</b> or <b>Events</b>, or post your own</li><li>Life Tools › <b>Newcomers</b> for the guides</li><li>Own a business? Find it in the app and tap <b>Claim</b>, or suggest a new one</li></ol></div></div>
     </div>
   </div>
 </section>
@@ -481,7 +523,31 @@ var T = {
   q4:'ትካለይ የለን ወይ ጌጋ እዩ — እንታይ ክገብር?', a4:'ኣብ ኣፕ ክፈቶ “እዚ ትካልካ ድዩ?” ጠውቕ ክትወስዶ፡ ወይ “ጌጋ ሓበሬታ ሓብር”። ፈጺሙ የለን ዶ? ኣብ ዳህስስ “ትካል ኣመሓይሽ” ተጠቐም።',
   q5:'ኣየኖት ቋንቋታት?', a5:'English፡ ትግርኛን ኣምሓርኛን። ኣብ ኣፕ ኣብ ዝደለኻዮ ግዜ ክትቅይር ትኽእል።',
   d_h2:'ዓለም ሓበሻኻ ክትረክብ ድሉው ዲኻ?', d_lead:'ሎሚ ሓበሻ ሃብ ኣውርድ — ብነጻ፡ ብቋንቋኻ፡ ኣብ ዝኾንካዮ።',
-  ft_tag:'ማሕበረሰብ ሓበሻኻ ኣብ ጁባኻ።', ft_privacy:'ውልቃዊ ሓበሬታ', ft_contact:'ርኸቡና', ft_osm:'ሓበሬታ ካርታ © OpenStreetMap contributors'
+  ft_tag:'ማሕበረሰብ ሓበሻኻ ኣብ ጁባኻ።', ft_privacy:'ውልቃዊ ሓበሬታ', ft_contact:'ርኸቡና', ft_osm:'ሓበሬታ ካርታ © OpenStreetMap contributors',
+  nav_new:"ሓድሽ",
+  new_eyebrow:"🆕 ሓድሽ ኣብ ኣፕ",
+  new_h2:"ተማሃር፡ ተጻወት፡ ተቐመጥ",
+  new_lead:"ፈተና ምዝዋር ምስ መምህር ብትግርኛ፡ 500 ሕቶታት ቲዮሪ፡ ጸወታታት ሓበሻ፡ ፊደል ንቖልዑን ሓገዝ ንሓደስቲ መጻእትን — ኩሉ ኣብ ውሽጢ ሓበሻ ሃብ።",
+  vid_cap:"▶ ርአ: ጸወታታትን ፈተና ምዝዋርን ከመይ ትጥቀመሎም (1 ደቒቕ)",
+  n1_tag:"🔑 ብኮድ ቲዮሪ ይኽፈት",
+  n1_t:"🚦 ፈተና ምዝዋር ብመኪና",
+  n1_p:"ኣብ 3D ከተማ ምስ መምህር ብትግርኛ፡ ኣምሓርኛ፡ እንግሊዝኛ ወይ ኖርወይኛ ዝዛረብ ዘውር። መብራህቲ ትራፊክ፡ STOP፡ ቅድሚ ሃብ፡ መሳገሪ እግረኛ፡ ደረት ፍጥነት፡ GPSን ፓርክን። ጽቡቕ ምስ ዘወርካ «ኣንበሳ!»፡ ምስ ቀልጠፍካ «ኣታ ቀስ በል!» ትሰምዕ።",
+  n1_s:"<li><b>ጸወታታትን መሳርሒታትን › ጸወታታት ሓበሻ › 🚦 ፈተና ምዝዋር</b> ክፈት</li><li>ናበይ ክትከይድ (ሆስፒታል፡ ቤት ትምህርቲ፡ ቤተ ክርስትያን…)ን ቋንቋ መምህርን ምረጽ</li><li><b>ጀምር</b> ጠውቕ። ብመሪሕ ዘውር፡ ነዳድን ፍሬንን ኣብ የማን፡ <b>D/R</b> ንድሕሪት</li><li>ድምጺ መምህርን GPSን ተኸተል፡ ኣብ መወዳእታ ኣብ ቦታ <b>P</b> ደው በል</li>",
+  n2_t:"📘 ቲዮሪ መንጃ ፍቓድ — 500 ሕቶታት",
+  n2_p:"ቲዮሪ መንጃ ፍቓድ ኖርወይ ክፍሊ B ብትግርኛ ምስ ምልክታት ጽርግያ: ልምምድ ሕግታት፡ ልምምድ ምልክታትን ፈተና ከም ናይ ሓቂን። 20 + 20 + 20 ሕቶታት ብነጻ።",
+  n2_s:"<li><b>ጸወታታትን መሳርሒታትን › ሓገዝ ሂወት › መንጃ ፍቓድ</b> ክፈት</li><li>ሕግታት፡ ምልክታት ተለማመድ ወይ ፈተና ውሰድ</li><li>ንምሉእ ኮርስን ፈተና ምዝዋርን: ኣብ WhatsApp <b>+47 973 74 482</b> «<b>help</b>» ጽሓፍ፡ ናትካ ኮድ ክትረክብ</li><li><b>ክፈት ብኮድ</b> ጠውቕ እሞ ኮድ ጽሓፍ</li>",
+  n3_t:"🏎️ ውድድር መኪና 3D",
+  n3_p:"ኣብ ኣስመራ፡ ኣዲስ ኣበባ፡ ካምፓላን ኦስሎን ምስ ኮምፒተር ወይ ኦንላይን ምስ ሰባት ተወዳደር። ታክሲ፡ ግጭትን ቆጸራ ብትግርኛን።",
+  n3_s:"<li><b>ጸወታታት ሓበሻ › ውድድር መኪና 3D</b> ክፈት</li><li>ከተማ ምረጽ፡ ምስ ኮምፒተር ወይ ኦንላይን ተወዳደር</li><li>ስልክኻ ብጎኑ ግበሮ፡ ጸወታ ጠውቕ እሞ ላዕለዋይ ክፋል ይሕባእ</li>",
+  n4_t:"🎲 ጸወታታት ሓበሻ",
+  n4_p:"ዳማ ምስ ዓርኪ ወይ ኦንላይን፡ ገና (ጸወታ ልደት)ን ሕንቅልሕንቅሊተይ ብቋንቋኻን።",
+  n4_s:"<li><b>ጸወታታት ሓበሻ</b> ክፈት እሞ ጸወታ ምረጽ</li><li>ዳማ: ምስ ኮምፒተር፡ ብኮድ ምስ ዓርኪ ወይ ምስ ዝኾነ ሰብ ተጻወት</li><li>ኣብ ላዕሊ EN፡ ትግ ወይ አማ ምረጽ: ኩሉ ጽሑፍ ይቕየር</li>",
+  n5_t:"👶 ፊደል ንቖልዑ",
+  n5_p:"ቈልዑ ፊደል ይጠውቑ፡ ነፍሲ ወከፍ ድምጺ ይርእዩን ይሰምዑን፡ ድሕሪኡ ብፈተና ኮኾብ ይረኽቡ ደረጃ ይሓልፉ።",
+  n5_s:"<li><b>ጸወታታት ሓበሻ › ፊደል</b> ክፈት</li><li><b>ተማሃር</b>: ሀ ለ ሐ… ን 7 ድምጽታቶምን ጠውቕ</li><li><b>ፈትን</b>: ቅኑዕ ድምጺ ምረጽ — 5 ኮኾብ = ቀጻሊ ደረጃ</li>",
+  n6_t:"🤝 ማሕበረሰብን ሓደስቲ መጻእትን",
+  n6_p:"ኣብ ጥቓኻ ዘለዋ ኣብያተ ክርስትያንን ማሕበራትን ሓበሻ፡ ስራሕ፡ ገዛን ፍጻሜታትን ኣብ ዕዳጋ፡ ከምኡ’ውን ንሓደስቲ መጻእቲ ኖርወይ ስጉምቲ ብስጉምቲ መምርሒ (ቁጽሪ መንነት፡ ባንክ፡ BankID፡ NAV፡ ቤት ትምህርቲ…) ብትግርኛን ኣምሓርኛን።",
+  n6_s:"<li>ገዛ: <b>ቤተ ክርስትያን ⛪</b> ወይ <b>ማሕበር 🤝</b> ጠውቕ እሞ እቲ ዝቐረበ ርአ</li><li>ዕዳጋ: <b>ስራሕ፡ ገዛ</b> ወይ <b>ፍጻሜታት</b> ምረጽ ወይ ናትካ ኣእቱ</li><li>ሓገዝ ሂወት › <b>ሓደሽቲ</b> ንመምርሒታት</li><li>ንግዲ ኣለካ? ኣብ ኣፕ ድለዮ እሞ <b>ናተይ እዩ</b> ጠውቕ ወይ ሓድሽ ኣመሓይሽ</li>"
  },
  am: {
   nav_features:'ባህሪያት', nav_screens:'ምስሎች', nav_world:'ሀገራት', nav_business:'ለድርጅቶች', nav_faq:'ጥያቄዎች', nav_download:'መተግበሪያውን ያውርዱ',
@@ -517,7 +583,31 @@ var T = {
   q4:'ድርጅቴ የለም ወይም የተሳሳተ ነው — ምን ላድርግ?', a4:'በመተግበሪያው ይክፈቱት እና ለመውሰድ “ይህ የእርስዎ ድርጅት ነው?”ን ይንኩ፣ ወይም “የተሳሳተ መረጃ ያሳውቁ”። ፈጽሞ የለም? በማሰሻ “ድርጅት ይጠቁሙ”ን ይጠቀሙ።',
   q5:'የትኞቹ ቋንቋዎች?', a5:'English፣ ትግርኛ እና አማርኛ። በመተግበሪያው በማንኛውም ጊዜ መቀየር ይችላሉ።',
   d_h2:'የሐበሻ ዓለምዎን ለማግኘት ዝግጁ ነዎት?', d_lead:'ሐበሻ ሃብን ዛሬ ያውርዱ — ነጻ፣ በቋንቋዎ፣ በየትም ቦታ።',
-  ft_tag:'የሐበሻ ማህበረሰብዎ በኪስዎ።', ft_privacy:'ግላዊነት', ft_contact:'ያግኙን', ft_osm:'የካርታ መረጃ © OpenStreetMap contributors'
+  ft_tag:'የሐበሻ ማህበረሰብዎ በኪስዎ።', ft_privacy:'ግላዊነት', ft_contact:'ያግኙን', ft_osm:'የካርታ መረጃ © OpenStreetMap contributors',
+  nav_new:"አዲስ",
+  new_eyebrow:"🆕 በአፑ አዲስ",
+  new_h2:"ተማሩ፣ ተጫወቱ፣ ተረጋጉ",
+  new_lead:"በትግርኛ የሚናገር አስተማሪ ያለው የመንጃ ፈተና፣ 500 የቲዎሪ ጥያቄዎች፣ የሐበሻ ጨዋታዎች፣ ፊደል ለልጆች እና ለአዲስ መጤዎች እገዛ — ሁሉም በሐበሻ ሀብ ውስጥ።",
+  vid_cap:"▶ ይመልከቱ: ጨዋታዎችንና የመንጃ ፈተናን እንዴት እንደሚጠቀሙ (1 ደቂቃ)",
+  n1_tag:"🔑 በቲዎሪ ኮድ ይከፈታል",
+  n1_t:"🚦 የመንጃ ተግባር ፈተና",
+  n1_p:"በ3D ከተማ ውስጥ በትግርኛ፣ በአማርኛ፣ በእንግሊዝኛ ወይም በኖርዌይኛ ከሚናገር አስተማሪ ጋር ይንዱ። የትራፊክ መብራት፣ STOP፣ ቅድሚያ ስጥ፣ የእግረኛ ማቋረጫ፣ የፍጥነት ገደብ፣ GPS እና ማቆሚያ። በደንብ ሲነዱ «አንበሳ!»፣ ሲፈጥኑ «አንተ፣ ቀስ በል!» ይሰማሉ።",
+  n1_s:"<li><b>ጨዋታዎችና መሳሪያዎች › የሐበሻ ጨዋታዎች › 🚦 የመንጃ ፈተና</b> ይክፈቱ</li><li>መድረሻ (ሆስፒታል፣ ትምህርት ቤት፣ ቤተ ክርስቲያን…) እና የአስተማሪ ቋንቋ ይምረጡ</li><li><b>ጀምር</b> ይንኩ። በመሪው ይንዱ፣ ነዳጅና ፍሬን በቀኝ፣ <b>D/R</b> ለኋላ</li><li>ድምፁንና GPSን ይከተሉ፣ በመጨረሻ በ<b>P</b> ቦታ ይቁሙ</li>",
+  n2_t:"📘 የመንጃ ቲዎሪ — 500 ጥያቄዎች",
+  n2_p:"የኖርዌይ ክፍል B ቲዎሪ በትግርኛ ከመንገድ ምልክቶች ጋር: የህግ ልምምድ፣ የምልክት ልምምድ እና እውነተኛ ፈተና። 20 + 20 + 20 ጥያቄዎች ነጻ ናቸው።",
+  n2_s:"<li><b>ጨዋታዎችና መሳሪያዎች › የሕይወት መሳሪያዎች › መንጃ ፈቃድ</b> ይክፈቱ</li><li>ህጎችን፣ ምልክቶችን ይለማመዱ ወይም ፈተና ይውሰዱ</li><li>ለሙሉ ኮርስና ለተግባር ፈተና: በWhatsApp <b>+47 973 74 482</b> «<b>help</b>» ይጻፉ፣ የግል ኮድዎን ያገኛሉ</li><li><b>በኮድ ክፈት</b> ይንኩና ኮዱን ያስገቡ</li>",
+  n3_t:"🏎️ የመኪና ውድድር 3D",
+  n3_p:"በአስመራ፣ በአዲስ አበባ፣ በካምፓላና በኦስሎ ከኮምፒውተር ወይም በኦንላይን ከሰዎች ጋር ይወዳደሩ። ታክሲ፣ ግጭትና በትግርኛ ቆጠራ።",
+  n3_s:"<li><b>የሐበሻ ጨዋታዎች › የመኪና ውድድር 3D</b> ይክፈቱ</li><li>ከተማ ይምረጡ፣ ከኮምፒውተር ወይም በኦንላይን ይወዳደሩ</li><li>ስልኩን በጎን ያዙሩት፣ ጨዋታውን ሲነኩ ላይኛው ክፍል ይደበቃል</li>",
+  n4_t:"🎲 የሐበሻ ጨዋታዎች",
+  n4_p:"ዳማ ከጓደኛ ወይም በኦንላይን፣ ገና (የገና ጨዋታ) እና እንቆቅልሽ በቋንቋዎ።",
+  n4_s:"<li><b>የሐበሻ ጨዋታዎች</b> ይክፈቱና ጨዋታ ይምረጡ</li><li>ዳማ: ከኮምፒውተር፣ በኮድ ከጓደኛ ወይም ከማንኛውም ሰው ጋር</li><li>ከላይ EN፣ ትግ ወይም አማ ይምረጡ: ሁሉም ጽሑፍ ይቀየራል</li>",
+  n5_t:"👶 ፊደል ለልጆች",
+  n5_p:"ልጆች ፊደል ይነካሉ፣ እያንዳንዱን ድምፅ ያያሉ ይሰማሉም፣ ከዚያ በጥያቄ ኮከብ አግኝተው ደረጃ ያልፋሉ።",
+  n5_s:"<li><b>የሐበሻ ጨዋታዎች › ፊደል</b> ይክፈቱ</li><li><b>ተማር</b>: ሀ ለ ሐ… እና 7ቱን ድምፆች ይንኩ</li><li><b>ፈትን</b>: ትክክለኛውን ድምፅ ይምረጡ — 5 ኮከብ = ቀጣይ ደረጃ</li>",
+  n6_t:"🤝 ማህበረሰብና አዲስ መጤዎች",
+  n6_p:"በአቅራቢያዎ ያሉ የሐበሻ አብያተ ክርስቲያናትና ማህበራት፣ ሥራ፣ ቤትና ዝግጅቶች በገበያ ውስጥ፣ እንዲሁም ለኖርዌይ አዲስ መጤዎች ደረጃ በደረጃ መመሪያ (መለያ ቁጥር፣ ባንክ፣ BankID፣ NAV፣ ትምህርት ቤት…) በትግርኛና በአማርኛ።",
+  n6_s:"<li>መነሻ: <b>ቤተ ክርስቲያን ⛪</b> ወይም <b>ማህበር 🤝</b> ይንኩ፣ ቅርቡን ይመልከቱ</li><li>ገበያ: <b>ሥራ፣ ቤት</b> ወይም <b>ዝግጅቶች</b> ይምረጡ ወይም የራስዎን ይለጥፉ</li><li>የሕይወት መሳሪያዎች › <b>አዲስ መጤዎች</b> ለመመሪያዎቹ</li><li>ንግድ አለዎት? በአፑ ፈልገው <b>የእኔ ነው</b> ይንኩ ወይም አዲስ ይጠቁሙ</li>"
  }
 };
 var TITLES = {
