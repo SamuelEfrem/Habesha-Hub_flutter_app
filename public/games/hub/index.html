@@ -235,7 +235,6 @@ const RACE_URL=IN_APP?`../capital-drive/?app=1`:"../capital-drive/";
 function renderHome(){
   const card=g=>`<button class="card" data-g="${g.id}"><span class="ic">${g.ic}</span><b>${esc(T(g.id))}</b>${lang==="en"?`<span class="gz">${g.gz}</span>`:""}<span class="tg">${esc(g.kind==="board"?T("tagOnline"):T("tagSolo"))}</span></button>`;
   $("homeGrid").innerHTML=`<a class="card big" id="raceCard" href="${RACE_URL}${IN_APP?"&lang="+lang:""}" ${IN_APP?"":'target="_blank" rel="noopener"'}><span class="ic">🏎️</span><span><b>${esc(T("race"))}</b><br><span class="tg">${esc(T("tagRace"))}</span></span></a>
-   <a class="card big" href="../driving/?${IN_APP?"app=1&":""}lang=${lang}" style="background:linear-gradient(120deg,#0f4a2c,#0b2a1a)"><span class="ic">🚦</span><span><b>${esc(T("drive"))}</b><br><span class="tg">${esc(T("tagDrive"))} 🔒</span></span></a>
    <a class="card big" href="../fidel/?${IN_APP?"app=1&":""}lang=${lang}" style="background:linear-gradient(120deg,#5a3d0c,#2b1d06)"><span class="ic">👶</span><span><b>${esc(T("fidel"))}</b><br><span class="tg">ሀ ሁ ሂ ሃ ሄ ህ ሆ — ${esc(T("tagFidel"))}</span></span></a>
    <div class="sect" style="grid-column:1/-1">${esc(T("boardSect"))}</div>${GAMES_META.filter(g=>g.kind==="board").map(card).join("")}
    <div class="sect" style="grid-column:1/-1">${esc(T("soloSect"))}</div>${GAMES_META.filter(g=>g.kind==="solo").map(card).join("")}`}

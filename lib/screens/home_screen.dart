@@ -434,7 +434,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(tr('Games & Tools'), style: tsTitleLg(color: Colors.white)),
                 const SizedBox(height: 2),
-                Text(tr('Dama, racing, driving test, theory & more'),
+                Text(tr('Dama, racing, driving theory & test & more'),
                     style: tsBodySm(color: Colors.white70)),
               ])),
               const Icon(Icons.chevron_right_rounded, color: kSecondary),

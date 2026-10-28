@@ -8,7 +8,7 @@ import 'purchase_service.dart';
 
 /// Games & Life Tools. The games are web pages on Firebase Hosting
 /// (public/games/…), so they can be updated without a new app release.
-///  - Habesha Games: racing 3D, driving test, Dama, Genna, riddles
+///  - Habesha Games: racing 3D, Dama, Genna, riddles
 ///  - ሓገዝ ሂወት · Life Tools: driving theory (Tigrinya), languages, Ge'ez calendar
 class GamesScreen extends StatefulWidget {
   const GamesScreen({super.key});
@@ -63,8 +63,8 @@ class _GamesScreenState extends State<GamesScreen> {
           _BigCard(
             emoji: '🎮',
             title: 'Habesha Games · ጸወታታት',
-            subtitle: tr('Racing 3D, driving test, Dama, Genna and riddles. Play the computer, a friend or anyone online.'),
-            tags: const ['🏎️ Racing 3D', '⚫ Dama', '🚦 Driving test', '🏑 Genna', '❓'],
+            subtitle: tr('Racing 3D, Dama, Genna and riddles. Play the computer, a friend or anyone online.'),
+            tags: const ['🏎️ Racing 3D', '⚫ Dama', '🏑 Genna', '❓'],
             colors: const [Color(0xFF8B0000), Color(0xFF3A0A0A)],
             onTap: () => _open('Habesha Games', 'hub'),
           ),
@@ -72,8 +72,8 @@ class _GamesScreenState extends State<GamesScreen> {
           _BigCard(
             emoji: '💡',
             title: 'ሓገዝ ሂወት · Life Tools',
-            subtitle: tr('300 driving theory questions with road signs (Tigrinya), learn languages and the Ge\'ez calendar.'),
-            tags: const ['🚗 Theory B', '🗣️ 10+', '📅 Ge\'ez'],
+            subtitle: tr("500 driving theory questions and a practical driving test with a voice instructor (Tigrinya), languages, newcomer guides and the Ge'ez calendar."),
+            tags: const ['🚗 Theory B', '🚦 Driving test 🔒', '🗣️ 10+', '📅 Ge\'ez'],
             colors: const [Color(0xFF6B5A12), Color(0xFF2A2408)],
             onTap: () => _open('Life Tools', 'life-tools'),
           ),

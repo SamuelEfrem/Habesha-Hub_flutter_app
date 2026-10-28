@@ -88,6 +88,18 @@ html,body{margin:0;overscroll-behavior:none}
   .speed{bottom:140px!important}.nav{bottom:126px!important}
   .instr{right:140px}
 }
+
+/* compact start menu: one row of destinations, small signs, Start always visible at the bottom */
+.dests{grid-template-columns:repeat(5,1fr);gap:6px}
+.dests button{padding:8px 2px;font-size:.72rem;line-height:1.25;border-radius:12px}.dests button b{font-size:1.5rem}
+.rules{flex-wrap:nowrap;overflow:hidden;gap:5px}.rules svg{width:34px;height:34px;flex:0 0 auto}
+.card .langs{flex-wrap:nowrap;overflow-x:auto}.card .langs button{flex:0 0 auto}
+.card #go,.card #again{position:sticky;bottom:-18px;box-shadow:0 -14px 18px #111a25;margin-top:12px}
+.card h2{font-size:1.15rem}
+.app .wrap{padding:44px 10px 6px!important}.app .hdr{display:none}.app .stage{height:calc(100dvh - 52px)!important}
+.focus.app .wrap{padding:0!important}.focus.app .stage{height:100dvh!important;border-radius:0}
+@media (max-width:560px) and (orientation:portrait){.stage canvas.gps{top:auto!important;bottom:calc(206px + env(safe-area-inset-bottom,0px));width:104px;height:104px}}
+@media (orientation:landscape) and (max-height:560px){.stage canvas.gps{width:92px;height:92px}.nav{bottom:auto!important;top:84px;right:110px}}
 </style>
 <div class="wrap">
   <div class="hdr" id="hdr"><div><h1 id="hTitle">🚗</h1><p class="sub" id="hSub"></p></div><span class="stars" id="hStars"></span></div>
@@ -502,7 +514,7 @@ const TXT={
   none0:"ዋላ ሓንቲ ጌጋ የለን! ✓",again:"ደጊምካ ፈትን",next:"ካልእ ዕላማ",start:"ጀምር",choose:"ናበይ ክትከይድ ኢኻ?",lang:"ቋንቋ መምህር",
   go:(m,d)=>`ቀጥ ኪድ — ድሕሪ ${m} ሜትር ${d}`,dir:{turnR:"ናብ የማን ጠውይ",turnL:"ናብ ጸጋም ጠውይ",straight:"ቀጥ ኪድ",finish:"ፓርክ ግበር"},
   praise:["ኣንበሳ!","ጽቡቕ!","ብሩኽ ኢኻ!"],slow:"ኣታ ቀስ በል!",locked:"🔒 እዚ ፈተና ምዝዋር ምስ ምሉእ ኮርስ ቲዮሪ ይኽፈት።",lockHow:"ኣብ Life Tools → መንጃ ፍቓድ → «ክፈት ብኮድ»። ኮድ ንምርካብ ብ WhatsApp «help» ጽሓፍ።",
-  stars:"ኮኾብ",tap:"ጸወታ ጠውቕ፡ ላዕለዋይ ክፋል ክሕባእ",
+  stars:"ኮኾብ",backTxt:"ናብ ቲዮሪ ተመለስ",tap:"ጸወታ ጠውቕ፡ ላዕለዋይ ክፋል ክሕባእ",
   dest:{hospital:"ሆስፒታል",school:"ቤት ትምህርቲ",church:"ቤተ ክርስትያን",market:"ዕዳጋ",home:"ገዛ"}},
  am:{title:"🚗 የመንጃ ፈተና",sub:"አስተማሪው በአማርኛ ያዝዝሃል። ሁሉም የትራፊክ ሕግ ይፈተሻል።",
   turnR:"በሚቀጥለው መገናኛ ወደ ቀኝ ታጠፍ",turnL:"በሚቀጥለው መገናኛ ወደ ግራ ታጠፍ",straight:"በሚቀጥለው መገናኛ ቀጥ ብለህ ሂድ",finish:"ወደ መኪና ማቆሚያው ግባ፣ በP ቦታ ቁም",
@@ -516,7 +528,7 @@ const TXT={
   none0:"ምንም ስህተት የለም! ✓",again:"እንደገና ሞክር",next:"ሌላ መድረሻ",start:"ጀምር",choose:"ወዴት ትሄዳለህ?",lang:"የአስተማሪ ቋንቋ",
   go:(m,d)=>`ቀጥ ሂድ — ከ${m} ሜትር በኋላ ${d}`,dir:{turnR:"ወደ ቀኝ ታጠፍ",turnL:"ወደ ግራ ታጠፍ",straight:"ቀጥ ሂድ",finish:"አቁም"},
   praise:["አንበሳ!","ጎበዝ!","በርታ!"],slow:"አንተ፣ ቀስ በል!",locked:"🔒 ይህ የመንጃ ፈተና ከሙሉ የቲዎሪ ኮርስ ጋር ይከፈታል።",lockHow:"በ Life Tools → መንጃ ፈቃድ → «በኮድ ክፈት»። ኮድ ለማግኘት በ WhatsApp «help» ይጻፉ።",
-  stars:"ኮከብ",tap:"ጨዋታውን ይንኩ፣ ላይኛው ክፍል ይደበቃል",
+  stars:"ኮከብ",backTxt:"ወደ ቲዎሪ ተመለስ",tap:"ጨዋታውን ይንኩ፣ ላይኛው ክፍል ይደበቃል",
   dest:{hospital:"ሆስፒታል",school:"ትምህርት ቤት",church:"ቤተ ክርስቲያን",market:"ገበያ",home:"ቤት"}},
  en:{title:"🚗 Driving test",sub:"Your instructor guides you. Every traffic rule is checked.",
   turnR:"Turn right at the next crossing",turnL:"Turn left at the next crossing",straight:"Go straight at the next crossing",finish:"Drive into the car park and stop in the P bay",
@@ -530,7 +542,7 @@ const TXT={
   none0:"No mistakes! ✓",again:"Try again",next:"New destination",start:"Start",choose:"Where do you want to drive?",lang:"Instructor language",
   go:(m,d)=>`Go straight — in ${m} metres ${d}`,dir:{turnR:"turn right",turnL:"turn left",straight:"go straight",finish:"park"},
   praise:["Lion! Well done!","Good!","Great driving!"],slow:"Hey, slow down!",locked:"🔒 The driving test opens with the full theory course.",lockHow:"Life Tools → Driving → «Unlock with code». Write «help» on WhatsApp to get a code.",
-  stars:"stars",tap:"Tap the game to hide the top bar",
+  stars:"stars",backTxt:"Back to theory",tap:"Tap the game to hide the top bar",
   dest:{hospital:"Hospital",school:"School",church:"Church",market:"Supermarket",home:"Home"}},
  no:{title:"🚗 Oppkjøring",sub:"Læreren gir deg beskjeder. Alle trafikkregler sjekkes.",
   turnR:"Ta til høyre i neste kryss",turnL:"Ta til venstre i neste kryss",straight:"Kjør rett fram i neste kryss",finish:"Kjør inn på parkeringen og stopp i P-plassen",
@@ -544,7 +556,7 @@ const TXT={
   none0:"Ingen feil! ✓",again:"Prøv igjen",next:"Nytt mål",start:"Start",choose:"Hvor vil du kjøre?",lang:"Lærerens språk",
   go:(m,d)=>`Kjør rett fram — om ${m} meter ${d}`,dir:{turnR:"ta til høyre",turnL:"ta til venstre",straight:"kjør rett fram",finish:"parker"},
   praise:["Løve! Bra!","Bra!","Flott kjørt!"],slow:"Hei, senk farten!",locked:"🔒 Oppkjøringen åpnes med hele teorikurset.",lockHow:"Life Tools → Førerkort → «Lås opp med kode». Skriv «help» på WhatsApp for kode.",
-  stars:"stjerner",tap:"Trykk på spillet for å skjule toppen",
+  stars:"stjerner",backTxt:"Tilbake til teori",tap:"Trykk på spillet for å skjule toppen",
   dest:{hospital:"Sykehus",school:"Skole",church:"Kirke",market:"Butikk",home:"Hjem"}}
 };
 const PED={ti:["ፍሬን","ነዳዲ"],am:["ፍሬን","ነዳጅ"],en:["Brake","Gas"],no:["Brems","Gass"]};
@@ -815,7 +827,9 @@ function newRoute(redraw){makeRoute();build("lesson");traffic.forEach(t=>t.m.vis
 function drawMenu(){TI=TXT[LANG];document.documentElement.lang=LANG;preloadVoice();$("lB").textContent=PED[LANG][0];$("lG").textContent=PED[LANG][1];$("mistL").textContent=TI.mist;
   $("hTitle").textContent=TI.title;$("hSub").textContent=TI.sub;let total=0;try{total=+localStorage.getItem("dl-stars")||0}catch(e){}$("hStars").textContent=total?"⭐ "+total:"";
   const langs=`<p class="small">${TI.lang}</p><div class="langs" id="dLangs">${[["ti","ትግርኛ"],["am","አማርኛ"],["en","English"],["no","Norsk"]].map(([k,n])=>`<button data-l="${k}" class="${k===LANG?"on":""}">${n}</button>`).join("")}</div>`;
-  if(!PRO){$("menu").innerHTML=`<h2>${TI.title}</h2><p>${TI.locked}</p><p class="small">${TI.lockHow}</p>${langs}`;$("ov").hidden=false;bindLangs();return}
+  if(!PRO&&QSD.get("app")==="1"&&performance.now()<2500){$("menu").innerHTML=`<h2>${TI.title}</h2><p>…</p>`;$("ov").hidden=false;setTimeout(()=>{if(!L||!L.on)drawMenu()},2600-performance.now());return}
+  if(!PRO){$("menu").innerHTML=`<h2>🔒 ${TI.title}</h2><p>${TI.locked}</p><p class="small">${TI.lockHow}</p><button class="btn" id="back">← ${TI.backTxt}</button>`;$("ov").hidden=false;
+    $("back").onclick=()=>{location.href="../life-tools/"+location.search};return}
   $("menu").innerHTML=`<h2>${TI.choose}</h2><div class="dests" id="dests">${DESTS.map(([k,ic],i)=>`<button data-i="${i}" class="${i===destI?"on":""}"><b>${ic}</b>${esc(TI.dest[k])}</button>`).join("")}</div>
     <div class="rules" id="rules">${["speed30","speed50","lightsAhead","stop","give","crossingHere","keepRight","parking"].map(i=>signSVG(i,48)).join("")}</div>
     <p class="small">${TI.passRule}</p>${langs}<p class="keys">${TI.tap}</p><button class="btn" id="go">${TI.start} → ${DESTS[destI][1]}</button>`;$("ov").hidden=false;

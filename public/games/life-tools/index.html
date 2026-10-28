@@ -78,6 +78,8 @@ h2{font-size:1.15rem;margin:0}
 .btn small{display:block;font-weight:700;font-size:.78rem;opacity:.8}
 .lock{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border:2px dashed var(--line);border-radius:14px;padding:12px}
 .lock b{display:block}
+.locklist{margin:6px 0 0;padding-left:18px;color:var(--muted);font-size:.9rem;line-height:1.5}
+.probox{border:2px solid #1f7a4a;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}.probox b{color:#3ccf8e}
 .row2{display:flex;gap:8px;justify-content:space-between}
 .opts button.picked{border-color:var(--accent);background:var(--accent-soft)}
 .wrongs{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px}
@@ -498,9 +500,9 @@ function drawTheoryHome(){if(run)return;const pro=isPro("theory_pro");
    <button class="btn" data-run="rule" style="text-align:left">📘 ልምምድ ሕግታት<small>${nr} ሕቶታት፡ መልሲ ብቐጥታ ትርኢ</small></button>
    <button class="btn" data-run="sign" style="text-align:left">🚸 ልምምድ ምልክታት<small>${ns} ሕቶታት ብስእሊ ምልክታት</small></button>
    <button class="btn" data-run="exam" style="text-align:left">📝 ፈተና ከም ናይ ሓቂ<small>${examN()} ሕቶታት፡ ክሳብ ${examMaxWrong()} ጌጋ ትሓልፍ፡ ውጽኢት ኣብ መወዳእታ</small></button>
-   <a class="btn" href="../driving/${location.search}" style="text-align:left;text-decoration:none;background:#1f7a4a">🚦 ፈተና ምዝዋር ብመኪና<small>${pro?"ምስ መምህር ብድምጺ፡ ሕግታት ትራፊክ፡ ፓርክ":"🔒 ምስ ምሉእ ኮርስ ይኽፈት"}</small></a>
    <button class="btn ghost" data-run="gallery">📖 ኩሎም ምልክታት ተማሃር (${SIGNS.length})</button>
-   ${pro?"":`<div class="lock"><div><b>🔒 ${PRO_TOTAL} ተወሳኺ ሕቶታት</b><p class="muted">ምልክታት፡ መብራህቲ፡ መስመራት ጽርግያ፡ ቀዳማይ ረድኤት፡ ኣውቶስትራዳ፡ ነጥብታት</p></div><button class="btn" data-buy="theory_pro">🔓 ክፈት ብኮድ</button></div><p class="muted" id="buyMsg"></p>`}`}
+   ${pro?`<div class="probox"><b>✓ ምሉእ ኮርስ ክፉት እዩ</b><a class="btn" href="../driving/${location.search}" style="text-align:left;text-decoration:none;background:#1f7a4a">🚦 ፈተና ምዝዋር ብመኪና<small>ምስ መምህር ብድምጺ፡ GPS፡ ሕግታት ትራፊክ፡ ፓርክ</small></a></div>`
+    :`<div class="lock"><div><b>🔒 ምሉእ ኮርስ</b><ul class="locklist"><li>📘 ${PRO_TOTAL} ተወሳኺ ሕቶታት: ምልክታት፡ መብራህቲ፡ መስመራት ጽርግያ፡ ቀዳማይ ረድኤት፡ ኣውቶስትራዳ</li><li>🚦 ፈተና ምዝዋር ብመኪና ምስ መምህር ብድምጺ</li></ul></div><button class="btn" data-buy="theory_pro">🔓 ክፈት ብኮድ</button></div><p class="muted" id="buyMsg"></p>`}`}
 $("qbody").addEventListener("click",e=>{
   const r=e.target.closest("[data-run]");if(r){r.dataset.run==="gallery"?gallery():startRun(r.dataset.run);return}
   const b=e.target.closest("[data-buy]");if(b){buy(b.dataset.buy,$("buyMsg"));return}});
