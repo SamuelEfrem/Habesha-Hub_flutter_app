@@ -502,7 +502,8 @@ exports.redeemCode = onCall({ maxInstances: 5 }, async (req) => {
   const uid = req.auth?.uid;
   const phone = req.auth?.token?.phone_number || null;
   if (!uid) throw new HttpsError('unauthenticated', 'login');
-  const code = String(req.data?.code || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  // Letters, digits and ! # @ $ % & ? + (no * _ ~ — WhatsApp turns them into formatting)
+  const code = String(req.data?.code || '').trim().toUpperCase().replace(/[^A-Z0-9!#@$%&?+]/g, '');
   if (code.length < 6) throw new HttpsError('invalid-argument', 'code');
 
   const db = getFirestore();
@@ -511,6 +512,13 @@ exports.redeemCode = onCall({ maxInstances: 5 }, async (req) => {
     const snap = await tx.get(codeRef);
     if (!snap.exists) throw new HttpsError('not-found', 'code');
     const c = snap.data();
+    // Master key: reusable, unlocks everything, every use is counted
+    if (c.master === true) {
+      tx.update(codeRef, { uses: UnlockFV.increment(1), lastUsedBy: uid, lastUsedPhone: phone, lastUsedAt: UnlockFV.serverTimestamp() });
+      tx.set(db.collection('users').doc(uid),
+        { unlocks: Object.fromEntries(PRODUCTS.map(p => [p, true])) }, { merge: true });
+      return { product: 'all' };
+    }
     if (!PRODUCTS.includes(c.product)) throw new HttpsError('not-found', 'code');
     // Code made for a phone number → the user must have verified that number
     if (c.phone) {

@@ -592,9 +592,17 @@ class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
   static const _products = {'theory_pro': '🚗 Driving theory (450)', 'lang_pro': '🗣️ Languages'};
   // No 0/O or 1/I so codes are easy to read out
   static const _chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  static const _special = '!#@\$%&?+';   // no * _ ~ (WhatsApp formatting)
 
   final _rnd = Random.secure();
-  String _newCode() => 'HH${List.generate(6, (_) => _chars[_rnd.nextInt(_chars.length)]).join()}';
+  // HH + 8 characters with 2 special characters at random places
+  String _newCode() {
+    final c = List.generate(6, (_) => _chars[_rnd.nextInt(_chars.length)]);
+    for (var i = 0; i < 2; i++) {
+      c.insert(_rnd.nextInt(c.length + 1), _special[_rnd.nextInt(_special.length)]);
+    }
+    return 'HH${c.join()}';
+  }
 
   String get _cleanPhone {
     var p = _phone.text.replaceAll(RegExp(r'[^\d+]'), '');
@@ -670,13 +678,18 @@ class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
           return Column(children: [
             for (final d in snap.data!.docs) Builder(builder: (_) {
               final c = d.data() as Map<String, dynamic>;
-              final used = c['used'] == true;
-              return _adminCard(edge: used ? kGreen : kSecondary, child: Row(children: [
+              final master = c['master'] == true;
+              final used = c['used'] == true && !master;
+              return _adminCard(edge: master ? kPrimaryContainer : used ? kGreen : kSecondary, child: Row(children: [
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   SelectableText(d.id, style: tsTitleLg(color: kText).copyWith(letterSpacing: 2)),
-                  Text('${_products[c['product']] ?? c['product']}  ·  ${(c['phone'] ?? '').toString().isEmpty ? 'any one user' : c['phone']}${c['usedPhone'] != null ? '  →  ${c['usedPhone']}' : ''}',
-                      style: tsBodySm(color: kTextSub)),
-                  Text(used ? '✓ Used ${_when(c['usedAt'])}' : 'Not used yet · ${_when(c['createdAt'])}',
+                  Text(master
+                          ? '👑 MASTER KEY · unlocks everything · reusable'
+                          : '${_products[c['product']] ?? c['product']}  ·  ${(c['phone'] ?? '').toString().isEmpty ? 'any one user' : c['phone']}${c['usedPhone'] != null ? '  →  ${c['usedPhone']}' : ''}',
+                      style: tsBodySm(color: master ? kSecondary : kTextSub)),
+                  Text(master
+                          ? 'Used ${c['uses'] ?? 0} times${c['lastUsedAt'] != null ? ' · last ${_when(c['lastUsedAt'])}' : ''}'
+                          : used ? '✓ Used ${_when(c['usedAt'])}' : 'Not used yet · ${_when(c['createdAt'])}',
                       style: tsBodySm(color: used ? kGreen : kSecondary)),
                 ])),
                 if (!used) ...[
