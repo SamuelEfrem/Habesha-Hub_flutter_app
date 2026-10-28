@@ -39,7 +39,7 @@ h1{margin:0;font-weight:800;font-size:1.45rem}
 .card p{margin:6px 0;line-height:1.5;font-size:.92rem}
 .card .small{color:var(--muted);font-size:.8rem}
 .rules{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
-.rules svg{width:38px;height:38px}
+.rules svg{width:48px;height:48px}
 .list{list-style:none;padding:0;margin:10px 0;display:flex;flex-direction:column;gap:8px}
 .list li{display:flex;gap:10px;align-items:center;background:#0b1118;border-radius:10px;padding:6px 8px;font-size:.88rem}
 .list svg{flex:0 0 40px}
@@ -56,7 +56,7 @@ html,body{margin:0;overscroll-behavior:none}
 .pb{width:74px!important;height:74px!important;font-size:1.5rem!important}
 .wheelpad{pointer-events:auto;width:140px;height:140px;border-radius:50%;display:grid;place-items:center;touch-action:none;background:radial-gradient(circle,rgba(0,0,0,.2),rgba(0,0,0,.45));border:2px solid rgba(255,255,255,.3)}
 .wheel{font-size:4.8rem;line-height:1;color:#fff;pointer-events:none;text-shadow:0 2px 10px rgba(0,0,0,.6)}
-.speed{bottom:calc(178px + env(safe-area-inset-bottom,0px))!important}.nav{bottom:calc(112px + env(safe-area-inset-bottom,0px))!important}
+.speed{bottom:calc(178px + env(safe-area-inset-bottom,0px))!important}.nav{bottom:calc(150px + env(safe-area-inset-bottom,0px))!important}
 .stage canvas.gps{position:absolute;right:10px;top:66px;width:118px;height:118px;border-radius:14px;background:rgba(10,16,24,.75);border:1px solid rgba(255,255,255,.15);pointer-events:none}
 .mistbox{top:10px!important}
 .hitflash{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle,transparent 40%,rgba(255,0,0,.5));opacity:0;transition:opacity .4s}.hitflash.on{opacity:1;transition:none}
@@ -67,10 +67,25 @@ html,body{margin:0;overscroll-behavior:none}
 .langs button{border:1px solid var(--line);background:#0b1118;color:var(--ink);border-radius:999px;padding:5px 11px;font:700 .85rem var(--display);cursor:pointer}
 .langs button.on{background:var(--gold);color:#2a1d00;border-color:var(--gold)}
 .big3{font-size:2.4rem;text-align:center;letter-spacing:6px;margin:4px 0}
+/* pedals: wide brake, tall gas, round gear button for reverse */
+.pedals .pdl{display:flex;align-items:flex-end;gap:12px}
+.pb{width:auto!important;height:auto!important;border:0!important;padding:0;display:flex;flex-direction:column;align-items:center;gap:5px;font:700 .72rem var(--display)!important;color:#fff;background:none!important;backdrop-filter:none}
+.pb i{display:block;border-radius:12px;background:repeating-linear-gradient(180deg,#454c55 0 6px,#262a30 6px 11px);border:2px solid rgba(255,255,255,.45);box-shadow:0 6px 16px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.3);transition:transform .06s}
+.pb.b i{width:80px;height:62px}.pb.g i{width:54px;height:92px}
+.pb.on i{transform:translateY(4px) scale(.96);border-color:#fff}.pb.b.on i{box-shadow:0 0 20px rgba(255,93,93,.85)}.pb.g.on i{box-shadow:0 0 20px rgba(60,207,142,.85)}
+.pb span{text-shadow:0 1px 3px #000}
+.gearb{pointer-events:auto;align-self:center;width:54px;height:54px;border-radius:50%;border:2px solid rgba(255,255,255,.5);background:rgba(10,16,24,.8);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;cursor:pointer;touch-action:manipulation}
+.gearb b{font:800 1.25rem "Sora"}.gearb small{font-size:.62rem;color:var(--muted)}
+.gearb.on{background:#c62828;border-color:#ff8a80}.gearb.on small{color:#fff}
+.wheelpad{background:radial-gradient(circle,rgba(0,0,0,0) 52%,rgba(0,0,0,.32))!important;border:0!important}
+.wheel{width:100%;height:100%;display:grid;place-items:center;font-size:0}
+.wheel svg{width:90%;height:90%;filter:drop-shadow(0 3px 8px rgba(0,0,0,.6))}
+.nav .arr{width:auto;min-width:26px;font-size:1.5rem}
 @media (orientation:landscape) and (max-height:560px){
+  .pb.b i{width:70px;height:54px}.pb.g i{width:48px;height:78px}
   .hdr{display:none}.wrap{padding:0!important;max-width:none}.stage{aspect-ratio:auto!important;height:calc(100dvh - 4px)!important;border-radius:0}
   .wheelpad{width:120px;height:120px}.wheel{font-size:4rem}
-  .speed{bottom:140px!important}.nav{bottom:84px!important}
+  .speed{bottom:140px!important}.nav{bottom:126px!important}
   .instr{right:140px}
 }
 </style>
@@ -83,13 +98,14 @@ html,body{margin:0;overscroll-behavior:none}
     <div class="nav"><span class="arr" id="arrow">⬆</span><span id="dist">0 m</span></div>
     <div class="toast" id="toast" hidden></div>
     <canvas class="gps" id="gps" width="236" height="236"></canvas><div class="hitflash" id="hitflash"></div>
-    <div class="pedals"><div class="wheelpad" id="wheel"><div class="wheel" id="wheelK">☸</div><button id="bL" hidden></button><button id="bR" hidden></button></div>
-      <div><button class="pb b" id="bB" aria-label="ፍሬን">■</button><button class="pb g" id="bG" aria-label="ነዳዲ">▲</button></div></div>
+    <div class="pedals"><div class="wheelpad" id="wheel"><div class="wheel" id="wheelK"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="41" fill="none" stroke="#1b1e23" stroke-width="12"/><circle cx="50" cy="50" r="41" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.5"/><path d="M50 52 L13 45 M50 52 L87 45 M50 52 L50 89" stroke="#2a2f36" stroke-width="10" stroke-linecap="round"/><circle cx="50" cy="51" r="14" fill="#2a2f36" stroke="#f7c948" stroke-width="2.5"/><rect x="45.5" y="4" width="9" height="11" rx="2.5" fill="#f7c948"/></svg></div><button id="bL" hidden></button><button id="bR" hidden></button></div>
+      <div class="pdl"><button class="gearb" id="bRv" type="button"><b id="gear">D</b><small id="gearTo">⇄ R</small></button><button class="pb b" id="bB"><i></i><span id="lB">ፍሬን</span></button><button class="pb g" id="bG"><i></i><span id="lG">ነዳዲ</span></button></div></div>
     <div class="ov" id="ov"><div class="card" id="menu"></div></div>
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Sky.js"></script>
+<script src="../shared/merge-static.js"></script>
 <script>
 const CITIES={
  kampala:{name:"Kampala",tag:"Uganda · drive left",side:-1,elev:12,az:250,turb:4,ray:2.8,exp:.55,fog:0xe6c49a,fogD:[160,650],ground:0x6f8f3f,walk:0xb5a490,
@@ -176,7 +192,7 @@ function carMesh(color,taxi){
   [[-1.0,-1.45],[1.0,-1.45],[-1.0,1.45],[1.0,1.45]].forEach(([x,z],i)=>{const w=new THREE.Group();w.position.set(x,.42,z);g.add(w);
     const t=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.3,20),tireMat);t.rotation.z=Math.PI/2;t.castShadow=true;w.add(t);
     const r=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,.32,12),rimMat);r.rotation.z=Math.PI/2;w.add(r);wheels.push(w)});
-  g.userData={body,wheels};return g}
+  mergeStatic(body);g.userData={body,wheels};return g}
 function bodaMesh(){const g=new THREE.Group();
   box(.35,.5,1.7,STD(0xb3202a,{roughness:.35,metalness:.4}),0,.75,0,g);
   [-.65,.65].forEach(z=>{const t=new THREE.Mesh(new THREE.CylinderGeometry(.33,.33,.12,16),tireMat);t.rotation.z=Math.PI/2;t.position.set(0,.33,z);g.add(t)});
@@ -282,6 +298,7 @@ function build(key){
   for(let i=0;i<34;i++){const a=i/34*Math.PI*2,r=HALF+60+Math.random()*90,h=25+Math.random()*50;
     const m=new THREE.Mesh(new THREE.IcosahedronGeometry(40+Math.random()*30,2),STD(C.snow?0xe9eef3:C.hills,{flatShading:true,roughness:1}));
     m.scale.y=h/55;m.position.set(Math.cos(a)*r,-6,Math.sin(a)*r);world.add(m)}
+  mergeStatic(world);
   // traffic
   traffic=[];
   for(let n=0;n<0;n++){
@@ -530,6 +547,7 @@ const TXT={
   stars:"stjerner",tap:"Trykk på spillet for å skjule toppen",
   dest:{hospital:"Sykehus",school:"Skole",church:"Kirke",market:"Butikk",home:"Hjem"}}
 };
+const PED={ti:["ፍሬን","ነዳዲ"],am:["ፍሬን","ነዳጅ"],en:["Brake","Gas"],no:["Brems","Gass"]};
 const QSD=new URLSearchParams(location.search);
 let LANG=QSD.get("lang")||"ti";try{LANG=localStorage.getItem("dl-lang")||LANG}catch(e){}
 if(!TXT[LANG])LANG="ti";
@@ -551,11 +569,11 @@ function makeRoute(){
   NODES=[[x,N-.3]];
   const legs=5+Math.floor(Math.random()*3);
   for(let k=0;k<legs;k++){
-    if(k>0){const turn=Math.random()<.25?0:(Math.random()<.5?1:3);d=(d+turn)%4}
-    let len=2+Math.floor(Math.random()*2),nx=x+DIRS[d][0]*len,nz=z+DIRS[d][1]*len;
-    let tries=0;while((nx<0||nx>N||nz<0||nz>N||(nx===x&&nz===z))&&tries++<8){d=(d+1)%4;len=2;nx=x+DIRS[d][0]*len;nz=z+DIRS[d][1]*len}
-    nx=Math.max(0,Math.min(N,nx));nz=Math.max(0,Math.min(N,nz));if(nx===x&&nz===z)break;
-    x=nx;z=nz;NODES.push([x,z])}
+    // straight, right or left only: never back down the same street
+    const opts=k===0?[0]:Math.random()<.25?[0,1,3]:Math.random()<.5?[1,3,0]:[3,1,0];let moved=false;
+    for(const t of opts){const nd=(d+t)%4;for(const len of [2+Math.floor(Math.random()*2),2,1]){const nx=x+DIRS[nd][0]*len,nz=z+DIRS[nd][1]*len;
+      if(nx<0||nx>N||nz<0||nz>N)continue;d=nd;x=nx;z=nz;NODES.push([x,z]);moved=true;break}if(moved)break}
+    if(!moved)break}
   const EV=["light","light","stop","give","none"],LIM=[30,50,50,60];
   SEGS=[];for(let k=0;k<NODES.length-1;k++){const last=k===NODES.length-2;
     SEGS.push({lim:last?30:LIM[Math.floor(Math.random()*LIM.length)],ev:last?"finish":EV[Math.floor(Math.random()*EV.length)],
@@ -564,13 +582,13 @@ function makeRoute(){
 let seg=[];
 
 /* ---------- sign textures from the SVG road signs ---------- */
-function signMesh(id,size){const cv=document.createElement("canvas");cv.width=cv.height=256;const g=cv.getContext("2d");
-  const tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;
-  const img=new Image();img.onload=()=>{g.drawImage(img,0,0,256,256);tex.needsUpdate=true};
-  img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(signSVG(id,256).replace("<svg ",'<svg xmlns="http://www.w3.org/2000/svg" '));
+function signMesh(id,size){const cv=document.createElement("canvas");cv.width=cv.height=512;const g=cv.getContext("2d");
+  const tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  const img=new Image();img.onload=()=>{g.drawImage(img,0,0,512,512);tex.needsUpdate=true};
+  img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(signSVG(id,512).replace("<svg ",'<svg xmlns="http://www.w3.org/2000/svg" '));
   const m=new THREE.Mesh(new THREE.PlaneGeometry(size,size),new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide}));return m}
 function pole(x,z,h,parent){const p=new THREE.Mesh(new THREE.CylinderGeometry(.07,.09,h,8),STD(0x8a9097,{metalness:.6,roughness:.4}));p.position.set(x,h/2,z);p.castShadow=true;(parent||world).add(p);return p}
-function placeSign(id,x,z,face,h){pole(x,z,h||2.6);const m=signMesh(id,1.5);m.position.set(x,(h||2.6)+.55,z);m.rotation.y=face;world.add(m);return m}
+function placeSign(id,x,z,face,h){pole(x,z,h||2.6);const m=signMesh(id,2.2);m.position.set(x,(h||2.6)+.95,z);m.rotation.y=face;world.add(m);return m}
 
 function setupRoute(){
   seg=[];
@@ -633,12 +651,15 @@ function enterSeg(k){L.k=k;L.flags={};L.overS=0;L.laneT=0;L.distT=0;const S=seg[
   if(L.lead){scene.remove(L.lead.mesh);L.lead=null}
   if(S.lead){const m=carMesh(0x9aa5ad,false);scene.add(m);L.lead={mesh:m,s:Math.min(S.L-30,32),v:0,stopT:0,braked:false}}
   const keys=[S.turn];if(S.ev!=="finish")keys.push(S.ev);if(S.zebra)keys.push("zebra");if(S.lead)keys.push("lead");
-  S.hints=keys.slice(1).map(k=>TI[k]).join(" · ");L.lastMain="";showInstr(TI[S.turn],S.hints,S.lim);say(keys)}
+  S.hints=keys.slice(1).map(k=>TI[k]).join(" · ");L.lastMain="";S.keys=keys;showInstr(TI[S.turn],S.hints,S.lim);if(L.on)say(keys)}
 
-function showInstr(main,sub,lim){if(L)L.lastMain=main;$("instr").innerHTML=`<b>${esc(main)}</b>${sub?`<span>${esc(sub)}</span>`:""}`;$("limit").innerHTML=signSVG("speed"+lim,54)}
+function showInstr(main,sub,lim){if(L)L.lastMain=main;$("instr").innerHTML=`<b>${esc(main)}</b>${sub?`<span>${esc(sub)}</span>`:""}`;$("limit").innerHTML=signSVG("speed"+lim,62)}
 function praise(k){toast(TI[k],true,k)}
 function toast(t,good,key){if(good&&key)say(["praise"+Math.floor(Math.random()*TI.praise.length),key]);const el=$("toast");el.textContent=t;el.className="toast "+(good?"good":"bad");el.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>el.hidden=true,2200);chime(good?988:220,good?.35:.5)}
-function mistake(key,serious,extra){if(L.flags["m_"+key])return;L.flags["m_"+key]=1;L.mist.push({key,serious,txt:TI[key]+(extra?` (${extra})`:""),sign:{mRed:"lightRed",mStop:"stop",mZebra:"crossingHere",mGive:"give",mSpeed:"speed"+seg[L.k].lim,mLane:"keepRight",mDist:"queue",mRight:"crossroad",mWrong:"noEntry",mCrash:"danger",mHitPed:"peds",mPark:"parking"}[key]});
+const REPEAT={mSpeed:5000,mLane:5000,mDist:5000,mCrash:1000};
+function mistake(key,serious,extra){const now=performance.now();L.rep=L.rep||{};
+  if(L.flags["m_"+key]){if(now<(L.rep[key]||0))return;L.rep[key]=now+(REPEAT[key]||2500);toast((serious?"✗ ":"! ")+TI[key],false);say(key==="mSpeed"?["slow",key]:[key]);return}
+  L.flags["m_"+key]=1;L.rep[key]=now+(REPEAT[key]||2500);L.mist.push({key,serious,txt:TI[key]+(extra?` (${extra})`:""),sign:{mRed:"lightRed",mStop:"stop",mZebra:"crossingHere",mGive:"give",mSpeed:"speed"+seg[L.k].lim,mLane:"keepRight",mDist:"queue",mRight:"crossroad",mWrong:"noEntry",mCrash:"danger",mHitPed:"peds",mPark:"parking"}[key]});
   toast((serious?"✗ ":"! ")+TI[key],false);$("mist").textContent=L.mist.length;say(key==="mSpeed"?["slow",key]:[key])}
 function lightState(S,now){const t=((now-(S.light.t0??0))/1000+14.5*9)%14.5;return t<3?"green":t<5?"yellow":t<13?"red":"redyellow"}
 
@@ -647,7 +668,7 @@ let AC=null;
 function chime(f,dur){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=f;
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.18,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+dur+.05)}catch(e){}}
 const vcache={};let lastSaid="",lastSaidT=0,tiFallback=false;
-function speakText(text){if(!text)return;const now=performance.now();if(text===lastSaid&&now-lastSaidT<4000)return;lastSaid=text;lastSaidT=now;
+function speakText(text){if(!text)return;const now=performance.now();if(text===lastSaid&&now-lastSaidT<900)return;lastSaid=text;lastSaidT=now;
   const clean=text.replace(/[✓✗!🎉🎊]/g,"").trim();
   const code=LANG==="ti"&&tiFallback?"am-ET":VOICE[LANG];
   if(window.HabeshaApp&&typeof HabeshaApp.postMessage==="function"){HabeshaApp.postMessage(JSON.stringify({type:"speak",text:clean,lang:code}));return}
@@ -663,7 +684,7 @@ function preloadVoice(){VKEYS.forEach(k=>{const src=`voice/${LANG}/${k}.mp3`;if(
 // All lines recorded → play them one after another; otherwise the phone voice reads the whole text
 let vq=null,lastKeys="",lastKeysT=0;
 function say(keys){const srcs=keys.map(k=>`voice/${LANG}/${k}.mp3`);
-  if(srcs.every(s=>vcache[s]===true)){const now=performance.now(),id=srcs.join();if(id===lastKeys&&now-lastKeysT<4000)return;lastKeys=id;lastKeysT=now;
+  if(srcs.every(s=>vcache[s]===true)){const now=performance.now(),id=srcs.join();if(id===lastKeys&&now-lastKeysT<900)return;lastKeys=id;lastKeysT=now;
     if(vq)vq.pause();let i=0;const next=()=>{if(i>=srcs.length)return;vq=new Audio(srcs[i++]);vq.onended=next;vq.play().catch(()=>{})};next();return}
   speakText(keys.map(vtext).join(". "))}
 // Recorded sounds in ../shared/sfx/ (ouch.mp3, crash.mp3) are used instead of the made-up ones when present
@@ -682,7 +703,11 @@ function ouch(){if(sfx("ouch"))return;try{AC=AC||new (window.AudioContext||windo
 
 /* ---------- input ---------- */
 const K={};addEventListener("keydown",e=>{K[e.key.toLowerCase()]=true;if(e.key.startsWith("Arrow"))e.preventDefault()});addEventListener("keyup",e=>K[e.key.toLowerCase()]=false);
-const P={};[["bL","l"],["bR","r"],["bG","g"],["bB","b"]].forEach(([id,k])=>{const el=$(id);
+const P={};let REV=false;
+function setRev(on){REV=on;player.v=0;$("bRv").classList.toggle("on",on);$("gear").textContent=on?"R":"D";$("gearTo").textContent=on?"⇄ D":"⇄ R";chime(on?520:700,.15)}
+$("bRv").addEventListener("click",e=>{e.stopPropagation();if(L&&L.on)setRev(!REV)});
+addEventListener("keydown",e=>{if(e.key.toLowerCase()==="r"&&L&&L.on)setRev(!REV)});
+[["bL","l"],["bR","r"],["bG","g"],["bB","b"]].forEach(([id,k])=>{const el=$(id);
   el.addEventListener("pointerdown",e=>{e.preventDefault();P[k]=true;el.classList.add("on");el.setPointerCapture(e.pointerId)});
   ["pointerup","pointercancel","pointerleave"].forEach(ev=>el.addEventListener(ev,()=>{P[k]=false;el.classList.remove("on")}))});
 function blocked(x,z){if(Math.abs(x)>HALF+5||Math.abs(z)>HALF+5)return true;return buildings.some(b=>Math.abs(x-b.x)<b.w/2+1.2&&Math.abs(z-b.z)<b.d/2+1.2)}
@@ -699,18 +724,19 @@ function finishLesson(hardFail){L.on=false;L.done=true;const ser=L.mist.filter(m
    <button class="btn" id="again">${TI.again}</button><button class="btn" id="nextD" style="background:#2b3d18;color:#fff">${TI.next} →</button>`;$("ov").hidden=false;
   $("hStars").textContent="⭐ "+total;
   $("again").onclick=()=>{newRoute(false);startLesson()};$("nextD").onclick=()=>{destI=(destI+1)%DESTS.length;newRoute(true);drawMenu()}}
-function startLesson(){newLesson();L.on=true;$("ov").hidden=true;$("mist").textContent="0";chime(660,.3)}
+function startLesson(){newLesson();L.on=true;setRev(false);$("ov").hidden=true;$("mist").textContent="0";chime(660,.3);setTimeout(()=>{if(L.on)say(seg[L.k].keys)},350)}
 
 /* ---------- main loop ---------- */
 let last=performance.now();
 function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   let gas=false,brk=false,steerIn=0;
   if(L&&L.on){gas=K.arrowup||K.w||P.g;brk=K.arrowdown||K.s||K[" "]||P.b;steerIn=P.steer!=null?P.steer:((K.arrowright||K.d||P.r)?1:0)-((K.arrowleft||K.a||P.l)?1:0)}
-  if(gas)player.v+=11*dt;if(brk)player.v-=(player.v>0?26:10)*dt;
-  player.v-=player.v*.55*dt;if(!gas&&Math.abs(player.v)<.25)player.v=0;player.v=Math.max(-5,Math.min(25,player.v));
+  // gear D drives forward, gear R backwards; the brake only stops the car
+  if(gas)player.v+=(REV?-7:11)*dt;if(brk)player.v-=Math.sign(player.v)*Math.min(Math.abs(player.v),26*dt);
+  player.v-=player.v*.55*dt;if(!gas&&Math.abs(player.v)<.25)player.v=0;player.v=REV?Math.max(-6,Math.min(0,player.v)):Math.max(0,Math.min(25,player.v));
   player.steer+=(steerIn-player.steer)*Math.min(1,dt*6);player.a+=player.steer*1.9*dt*Math.max(-1,Math.min(1,player.v/6));
   const nx=player.x+Math.sin(player.a)*player.v*dt,nz=player.z-Math.cos(player.a)*player.v*dt;
-  if(!blocked(nx,nz)){player.x=nx;player.z=nz}else{if(L&&L.on&&Math.abs(player.v)>3&&now>L.cool){crashFx(Math.abs(player.v));mistake("mCrash",true);L.cool=now+3000}player.v*=-.2}
+  if(!blocked(nx,nz)){player.x=nx;player.z=nz}else{if(L&&L.on&&Math.abs(player.v)>2&&now>L.cool){crashFx(Math.abs(player.v));mistake("mCrash",true);L.cool=now+1000}player.v*=-.2}
   const kmh=Math.abs(player.v)*3.6;$("kmh").textContent=Math.round(kmh);
   seg.forEach(S=>{if(!S.light)return;const st=lightState(S,now),lm=S.light;lm.red.emissiveIntensity=(st==="red"||st==="redyellow")?3:0;lm.yel.emissiveIntensity=(st==="yellow"||st==="redyellow")?3:0;lm.grn.emissiveIntensity=st==="green"?3:0});
   if(L&&L.on){const S=seg[L.k],px=player.x-S.A.x,pz=player.z-S.A.z,s=px*S.d.x+pz*S.d.z,l=px*S.r.x+pz*S.r.z;
@@ -741,7 +767,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
       if(ld.stopT>0){ld.stopT-=dt;tv=0}ld.v+=(tv-ld.v)*Math.min(1,dt*(tv<ld.v?2.5:.8));ld.s+=ld.v*dt;
       const q=S.at(ld.s,3.2);ld.mesh.position.set(q.x,0,q.z);ld.mesh.rotation.y=-Math.atan2(S.d.x,-S.d.z);
       ld.mesh.userData.wheels.forEach(w=>w.children.forEach(c=>c.rotation.x+=ld.v*dt/.42));
-      const gap=ld.s-s-4.6;if(gap<.5&&now>L.cool){mistake("mCrash",true);L.cool=now+3000;player.v=0}
+      const gap=ld.s-s-4.6;if(gap<.5&&now>L.cool){crashFx(Math.max(5,Math.abs(player.v)));mistake("mCrash",true);L.cool=now+1000;player.v=0}
       if(player.v>3&&gap/player.v<2&&gap<40){L.distT+=dt;if(L.distT>2)mistake("mDist",false)}else L.distT=0;
       if(ld.s>S.L+20){scene.remove(ld.mesh);L.lead=null}}
     // finish
@@ -762,7 +788,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   cam.position.x+=(cx-cam.position.x)*Math.min(1,dt*4);cam.position.z+=(cz-cam.position.z)*Math.min(1,dt*4);cam.position.y+=(5-cam.position.y)*Math.min(1,dt*3);
   cam.lookAt(player.x+Math.sin(player.a)*9,2,player.z-Math.cos(player.a)*9);
   // direction arrow to the next crossing
-  if(L){const S=seg[L.k];const tg=S.B;const ang=Math.atan2(tg.x-player.x,-(tg.z-player.z))-player.a;$("arrow").style.transform=`rotate(${ang}rad)`;
+  if(L){const S=seg[L.k];const tg=S.B;$("arrow").textContent={turnR:"↱",turnL:"↰",straight:"⬆",finish:"🅿️"}[S.turn];
     const dm=Math.max(0,Math.round(Math.hypot(tg.x-player.x,tg.z-player.z)-6));$("dist").textContent=dm+" m";
     if(L.on){const near=dm<=45;const main=near?TI[S.turn]:TI.go(Math.ceil(dm/10)*10,TI.dir[S.turn]);if(main!==L.lastMain){showInstr(main,S.hints,S.lim);if(near&&!L.flags.saidNear){L.flags.saidNear=1;say([S.turn])}}}}
   if(shake>0){shake=Math.max(0,shake-dt*2.2);cam.position.x+=(Math.random()-.5)*shake*.8;cam.position.y+=(Math.random()-.5)*shake*.5}
@@ -770,24 +796,28 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   adaptQuality(dt);if((gpsF=(gpsF+1)%4)===0)drawGPS();
   renderer.render(scene,cam);requestAnimationFrame(loop)}
 let gpsF=0;
-function drawGPS(){const c=$("gps"),g=c.getContext("2d"),W=c.width,sc=W/(HALF*2+20),X=v=>(v+HALF+10)*sc;
-  g.clearRect(0,0,W,W);g.strokeStyle="rgba(255,255,255,.18)";g.lineWidth=RD*sc*.6;
-  for(let i=0;i<=N;i++){g.beginPath();g.moveTo(X(roadPos(i)),0);g.lineTo(X(roadPos(i)),W);g.stroke();g.beginPath();g.moveTo(0,X(roadPos(i)));g.lineTo(W,X(roadPos(i)));g.stroke()}
-  if(seg.length){g.strokeStyle="#f7c948";g.lineWidth=5;g.lineJoin="round";g.beginPath();seg.forEach((S,k)=>{if(k===0)g.moveTo(X(S.A.x),X(S.A.z));g.lineTo(X(S.B.x),X(S.B.z))});g.stroke();
-    const F=seg[seg.length-1];g.font="34px serif";g.textAlign="center";g.textBaseline="middle";g.fillText(DESTS[destI][1],X(F.B.x),X(F.B.z))}
-  g.save();g.translate(X(player.x),X(player.z));g.rotate(player.a);g.fillStyle="#3ccf8e";g.strokeStyle="#000";g.lineWidth=2;g.beginPath();g.moveTo(0,-12);g.lineTo(8,9);g.lineTo(-8,9);g.closePath();g.fill();g.stroke();g.restore()}
+function drawGPS(){const c=$("gps"),g=c.getContext("2d"),W=c.width,sc=W/150,cy=W*.62,E=HALF+RD;
+  g.clearRect(0,0,W,W);g.save();g.translate(W/2,cy);g.rotate(-player.a);g.scale(sc,sc);g.translate(-player.x,-player.z);
+  g.strokeStyle="rgba(255,255,255,.2)";g.lineWidth=RD*.7;g.beginPath();
+  for(let i=0;i<=N;i++){const p=roadPos(i);g.moveTo(p,-E);g.lineTo(p,E);g.moveTo(-E,p);g.lineTo(E,p)}g.stroke();
+  if(seg.length&&L){g.strokeStyle="#f7c948";g.lineWidth=4.5;g.lineJoin=g.lineCap="round";g.beginPath();g.moveTo(player.x,player.z);
+    for(let k=L.k;k<seg.length;k++)g.lineTo(seg[k].B.x,seg[k].B.z);g.stroke();
+    const F=seg[seg.length-1];g.save();g.translate(F.B.x,F.B.z);g.rotate(player.a);g.font="18px serif";g.textAlign="center";g.textBaseline="middle";g.fillText(DESTS[destI][1],0,0);g.restore()}
+  g.restore();
+  // the car stays in the middle pointing up; the map turns around it
+  g.save();g.translate(W/2,cy);g.fillStyle="#3ccf8e";g.strokeStyle="#000";g.lineWidth=2;g.beginPath();g.moveTo(0,-14);g.lineTo(10,11);g.lineTo(0,6);g.lineTo(-10,11);g.closePath();g.fill();g.stroke();g.restore()}
 const FPS={t:0,n:0};
 function adaptQuality(dt){FPS.t+=dt;FPS.n++;if(FPS.t<2)return;const ms=FPS.t/FPS.n*1000;FPS.t=0;FPS.n=0;
   let np=PR;if(ms>24&&PR>.6)np=Math.max(.6,PR-.2);else if(ms<15&&PR<PR_MAX)np=Math.min(PR_MAX,PR+.1);if(np!==PR){PR=np;renderer.setPixelRatio(PR);resize()}}
 
 /* ---------- start ---------- */
 function newRoute(redraw){makeRoute();build("lesson");traffic.forEach(t=>t.m.visible=false);ring.visible=false;setupRoute();resize();newLesson();damage=0}
-function drawMenu(){TI=TXT[LANG];document.documentElement.lang=LANG;preloadVoice();$("mistL").textContent=TI.mist;
+function drawMenu(){TI=TXT[LANG];document.documentElement.lang=LANG;preloadVoice();$("lB").textContent=PED[LANG][0];$("lG").textContent=PED[LANG][1];$("mistL").textContent=TI.mist;
   $("hTitle").textContent=TI.title;$("hSub").textContent=TI.sub;let total=0;try{total=+localStorage.getItem("dl-stars")||0}catch(e){}$("hStars").textContent=total?"⭐ "+total:"";
   const langs=`<p class="small">${TI.lang}</p><div class="langs" id="dLangs">${[["ti","ትግርኛ"],["am","አማርኛ"],["en","English"],["no","Norsk"]].map(([k,n])=>`<button data-l="${k}" class="${k===LANG?"on":""}">${n}</button>`).join("")}</div>`;
   if(!PRO){$("menu").innerHTML=`<h2>${TI.title}</h2><p>${TI.locked}</p><p class="small">${TI.lockHow}</p>${langs}`;$("ov").hidden=false;bindLangs();return}
   $("menu").innerHTML=`<h2>${TI.choose}</h2><div class="dests" id="dests">${DESTS.map(([k,ic],i)=>`<button data-i="${i}" class="${i===destI?"on":""}"><b>${ic}</b>${esc(TI.dest[k])}</button>`).join("")}</div>
-    <div class="rules" id="rules">${["speed30","speed50","lightsAhead","stop","give","crossingHere","keepRight","parking"].map(i=>signSVG(i,38)).join("")}</div>
+    <div class="rules" id="rules">${["speed30","speed50","lightsAhead","stop","give","crossingHere","keepRight","parking"].map(i=>signSVG(i,48)).join("")}</div>
     <p class="small">${TI.passRule}</p>${langs}<p class="keys">${TI.tap}</p><button class="btn" id="go">${TI.start} → ${DESTS[destI][1]}</button>`;$("ov").hidden=false;
   $("dests").onclick=e=>{const b=e.target.closest("[data-i]");if(!b)return;destI=+b.dataset.i;newRoute(true);drawMenu()};
   $("go").onclick=startLesson;bindLangs()}
@@ -803,5 +833,5 @@ makeShared();newRoute(true);drawMenu();
 requestAnimationFrame(loop);
 
 </script>
-
+<script src="../shared/rotate.js"></script>
 </body></html>

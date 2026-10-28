@@ -121,6 +121,7 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Sky.js"></script>
+<script src="../shared/merge-static.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -214,7 +215,7 @@ function carMesh(color,taxi){
   [[-1.0,-1.45],[1.0,-1.45],[-1.0,1.45],[1.0,1.45]].forEach(([x,z],i)=>{const w=new THREE.Group();w.position.set(x,.42,z);g.add(w);
     const t=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.3,20),tireMat);t.rotation.z=Math.PI/2;t.castShadow=true;w.add(t);
     const r=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,.32,12),rimMat);r.rotation.z=Math.PI/2;w.add(r);wheels.push(w)});
-  g.userData={body,wheels};return g}
+  mergeStatic(body);g.userData={body,wheels};return g}
 function bodaMesh(){const g=new THREE.Group();
   box(.35,.5,1.7,STD(0xb3202a,{roughness:.35,metalness:.4}),0,.75,0,g);
   [-.65,.65].forEach(z=>{const t=new THREE.Mesh(new THREE.CylinderGeometry(.33,.33,.12,16),tireMat);t.rotation.z=Math.PI/2;t.position.set(0,.33,z);g.add(t)});
@@ -320,6 +321,7 @@ function build(key){
   for(let i=0;i<34;i++){const a=i/34*Math.PI*2,r=HALF+60+Math.random()*90,h=25+Math.random()*50;
     const m=new THREE.Mesh(new THREE.IcosahedronGeometry(40+Math.random()*30,2),STD(C.snow?0xe9eef3:C.hills,{flatShading:true,roughness:1}));
     m.scale.y=h/55;m.position.set(Math.cos(a)*r,-6,Math.sin(a)*r);world.add(m)}
+  mergeStatic(world);
   // traffic
   traffic=[];
   for(let n=0;n<(MOBILE?16:28);n++){
@@ -533,7 +535,7 @@ function personMesh(){const g=new THREE.Group();const sk=STD(SKIN[Math.floor(Mat
   g.userData={legs:[leg(-.12),leg(.12)],arms:[arm(-.32),arm(.32)]};return g}
 function addPeople(){people=[];
   for(let n=0;n<(MOBILE?60:150);n++){const bi=Math.floor(Math.random()*N),bj=Math.floor(Math.random()*N);
-    const cx=roadPos(bi)+CELL/2,cz=roadPos(bj)+CELL/2,m=personMesh();world.add(m);
+    const cx=roadPos(bi)+CELL/2,cz=roadPos(bj)+CELL/2,m=personMesh();if(MOBILE)m.traverse(o=>o.castShadow=false);world.add(m);
     people.push({m,cx,cz,r:BLK/2-1.5,t:Math.random()*4,sp:1.1+Math.random()*.7,dir:Math.random()<.5?1:-1,off:0,ph:Math.random()*6})}}
 function perim(p){const s=((p.t%4)+4)%4,side=Math.floor(s),f=s-side,r=p.r-p.off;let x,z,hx,hz;
   if(side===0){x=-r+2*r*f;z=-r;hx=1;hz=0}else if(side===1){x=r;z=-r+2*r*f;hx=0;hz=1}else if(side===2){x=r-2*r*f;z=r;hx=-1;hz=0}else{x=-r;z=r-2*r*f;hx=0;hz=-1}
@@ -797,5 +799,6 @@ const startCity=QS.get("city");
 makeShared();setCity(CITIES[startCity]?startCity:"asmara");setLang(lang);mainMenu();ring.visible=false;requestAnimationFrame(loop);
 </script>
 
+<script src="../shared/rotate.js"></script>
 </body>
 </html>

@@ -57,13 +57,16 @@ canvas{display:block;width:100%;max-width:100%;border-radius:14px;background:var
 .app .tilet{display:none}
 /* Boards and the Genna field fill the screen without scrolling, also sideways */
 .dama{width:min(100%,calc(100vh - 230px));margin:0 auto}
-#gc{width:auto;max-width:100%;height:min(calc(100vh - 230px),calc((100vw - 64px)*1.444));margin:0 auto}
+#gc{width:auto;max-width:100%;height:max(300px,min(calc(100dvh - 250px),calc((100vw - 64px)*1.444)));margin:0 auto}
+.gwrap{position:relative;display:flex;justify-content:center}
+.gstart{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;max-width:80%;box-shadow:0 8px 24px rgba(0,0,0,.55)}
 @media (orientation:landscape) and (max-height:560px){
   .wrap{max-width:none}
   #play{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"area who" "area status" "area after";align-items:start;gap:10px}
   #area{grid-area:area}#who{grid-area:who}#status{grid-area:status}#afterRow{grid-area:after}
   .dama{width:calc(100vh - 40px)}
-  #gc{height:calc(100vh - 40px)}
+  #gc{height:calc(100dvh - 70px)}
+  #genna .about{display:none}
   .bar{position:sticky;top:0}
 }
 /* Dama */
@@ -74,45 +77,6 @@ canvas{display:block;width:100%;max-width:100%;border-radius:14px;background:var
 .pc{width:76%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-size:.9rem;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3)}
 .pc.p0{background:var(--cream);color:#2a1d00}.pc.p1{background:#26201c;color:var(--gold);border:2px solid #6b5a4b}
 .pc.sel{outline:3px solid var(--gold);outline-offset:1px}
-
-/* Gebeta */
-.gb{display:grid;grid-template-columns:48px 1fr 48px;gap:8px;align-items:center;background:radial-gradient(circle at 50% 40%,#6b4a2e,#4a3220);border-radius:20px;padding:12px 8px}
-.store{height:130px;border-radius:24px;background:rgba(0,0,0,.3);display:grid;place-items:center;font:800 1.3rem var(--display);color:var(--gold)}
-.pits{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
-.pit{aspect-ratio:1;max-width:100%;border-radius:50%;border:0;background:rgba(0,0,0,.32);color:var(--ink);font:800 1.05rem var(--display);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:0}
-.pit .seeds{display:flex;flex-wrap:wrap;justify-content:center;gap:1px;max-width:70%}
-.pit .seeds i{width:5px;height:5px;border-radius:50%;background:#e9d8a6}
-.pit:disabled{cursor:default}
-.pit.can{box-shadow:inset 0 0 0 2px rgba(247,201,72,.6)}
-.pit.last{box-shadow:0 0 0 3px var(--gold)}
-
-/* Briscola */
-.felt{background:radial-gradient(circle at 50% 40%,#0f5a42,#0b3c2d);border:5px solid #4a3326;border-radius:20px;padding:12px;display:flex;flex-direction:column;gap:10px}
-.hand{display:flex;justify-content:center;gap:8px;min-height:104px}
-.crd{width:68px;height:100px;border-radius:9px;background:#fffaf0;color:#2a1d14;border:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:5px 3px;box-shadow:0 4px 10px rgba(0,0,0,.35);font-family:var(--body);cursor:pointer}
-.crd .r{font:800 1rem var(--display)}.crd .s{font-size:1.7rem;line-height:1}.crd .n{font-size:.6rem;font-weight:800;text-transform:uppercase}
-.crd.tr{box-shadow:0 0 0 3px var(--gold),0 4px 10px rgba(0,0,0,.35)}
-.crd.back{background:repeating-linear-gradient(45deg,#7a2a22 0 8px,#9a3a2e 8px 16px);cursor:default}
-.crd:disabled{cursor:default}
-.crd.small{width:52px;height:76px}.crd.small .s{font-size:1.2rem}
-.mid{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:10px}
-.deckinfo{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.78rem;color:var(--muted);text-align:center}
-.played{display:flex;justify-content:center;gap:10px;min-height:100px;align-items:center}
-.lastt{opacity:.55}
-
-/* Ludo */
-.ludo{display:grid;grid-template-columns:repeat(11,1fr);grid-template-rows:repeat(11,1fr);gap:3px;aspect-ratio:1;max-width:100%;background:#0b3c2d;border-radius:14px;padding:6px}
-.sq{background:rgba(255,255,255,.12);border-radius:4px;display:flex;align-items:center;justify-content:center;gap:1px;min-width:0}
-.sq.s0{background:color-mix(in srgb,var(--red) 55%,transparent)}.sq.s1{background:color-mix(in srgb,var(--sky) 55%,transparent)}
-.tok{width:70%;aspect-ratio:1;border-radius:50%;border:2px solid #fff;padding:0;cursor:default}
-.tok.t0{background:var(--red)}.tok.t1{background:var(--sky)}
-.tok.can{cursor:pointer;box-shadow:0 0 0 3px var(--gold);animation:pulse 1s infinite}
-@keyframes pulse{50%{transform:scale(1.15)}}
-.center{grid-row:2/11;grid-column:2/11;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:6px}
-.bases{display:flex;gap:18px;font-size:.82rem;color:var(--muted)}
-.bases div{display:flex;flex-direction:column;align-items:center;gap:4px}
-.baseTok{display:flex;gap:4px}.baseTok .tok{width:22px}
-.die{width:58px;height:58px;border-radius:14px;background:#fffaf0;color:#2a1d14;font:800 1.8rem var(--display);display:grid;place-items:center}
 
 /* Riddles */
 .riddle{font-size:1.25rem;font-weight:800;text-align:center;margin:0;line-height:1.4}
@@ -150,7 +114,7 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
 <div class="tilet"></div>
 <div class="wrap">
   <div class="top">
-    <h1 id="title">Habesha Games<small>ጸወታታት ሓበሻ</small></h1>
+    <h1 id="title" data-t="title">Habesha Games</h1>
     <div class="langs" id="langs"><button data-l="en" aria-pressed="true">EN</button><button data-l="ti" aria-pressed="false">ትግ</button><button data-l="am" aria-pressed="false">አማ</button></div>
   </div>
 
@@ -179,12 +143,11 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
   <!-- GENNA -->
   <section id="genna" hidden>
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div class="bar"><button class="back" data-back>←</button><h2>Genna<span class="ti">ገና</span></h2></div>
+      <div class="bar"><button class="back" data-back>←</button><h2 data-t="genna"></h2></div>
       <div class="game">
         <p class="about" data-t="gennaAbout"></p>
         <div class="score"><span><span data-t="you"></span> <span id="gnY">0</span></span><span><span data-t="computer"></span> <span id="gnC">0</span></span></div>
-        <canvas id="gc" width="360" height="520" aria-label="Genna field"></canvas>
-        <button class="btn ghost" id="gnStart" data-t="start"></button>
+        <div class="gwrap"><canvas id="gc" width="360" height="520" aria-label="Genna field"></canvas><button class="btn gstart" id="gnStart" data-t="start"></button></div>
       </div>
     </div>
   </section>
@@ -192,7 +155,7 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
   <!-- RIDDLES -->
   <section id="hinq" hidden>
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div class="bar"><button class="back" data-back>←</button><h2>Riddles<span class="ti">ሕንቅልሕንቅሊተይ</span></h2></div>
+      <div class="bar"><button class="back" data-back>←</button><h2 data-t="hinq"></h2></div>
       <div class="game">
         <p class="about" data-t="riddleAbout"></p>
         <p class="riddle" id="rQ"></p>
@@ -245,12 +208,11 @@ const TX={
  youWin:["You win! 🎉 Play again","ተዓዊትካ! 🎉 ደጊምካ ተጻወት","አሸነፍክ! 🎉 እንደገና ተጫወት"],cpuWin:["Computer wins. Play again","ኮምፒተር ተዓዊቱ። ደጊምካ ተጻወት","ኮምፒውተር አሸነፈ። እንደገና ተጫወት"],
  correct:["Correct! 🎉","ቅኑዕ! 🎉","ትክክል! 🎉"],gaveTown:["You gave {t}. The answer: {a}.","{t} ሂብካ። መልሱ፦ {a}።","{t} ሰጠህ። መልሱ፦ {a}።"],
  notQuite:["Not quite. The answer: {a}.","ኣይኮነን። መልሱ፦ {a}።","አይደለም። መልሱ፦ {a}።"],whichTown:["Which town will you give?","ኣየናይ ዓዲ ክትህብ ኢኻ?","የትኛውን አገር ትሰጣለህ?"],
+ title:["Habesha Games","ጸወታታት ሓበሻ","የሐበሻ ጨዋታዎች"],race:["Capital Racing 3D","ውድድር መኪና 3D","የመኪና ውድድር 3D"],drive:["Driving test","ፈተና ምዝዋር","የመንጃ ፈተና"],
+ fidel:["Fidel for kids","ፊደል ንቖልዑ","ፊደል ለልጆች"],tagFidel:["kids learn to read","ቈልዑ ንባብ ይመሃሩ","ልጆች ማንበብ ይማራሉ"],dama:["Dama","ዳማ","ዳማ"],genna:["Genna","ገና","ገና"],hinq:["Riddles","ሕንቅልሕንቅሊተይ","እንቆቅልሽ"],
  tagDrive:["Practical driving test · traffic rules · voice","ፈተና ምዝዋር · ሕግታት ትራፊክ · ድምጺ መምህር","የመንጃ ተግባር ፈተና · የትራፊክ ሕግ · የአስተማሪ ድምፅ"],
  keberoAbout:["Tap the drum when the ring closes on it, like at a wedding.","ከም ኣብ መርዓ፡ ቀለበት ምስ በጽሐ ከበሮ ውቕዕ።","እንደ ሰርግ፣ ቀለበቱ ሲደርስ ከበሮውን ምታ።"],
  ruleDama:["Simple rules: pieces move forward diagonally, jump to capture, and become king at the far side. Rules differ between villages.","ቀሊል ሕጊ፦ ጠጠራት ብሰያፍ ንቕድሚት ይኸዱ፡ ብምዝላል ይበልዑ፡ መወዳእታ ምስ በጽሑ ንጉስ ይኾኑ።","ቀላል ህግ፦ ጠጠሮች በሰያፍ ወደ ፊት ይሄዳሉ፣ በመዝለል ይበላሉ፣ መጨረሻ ሲደርሱ ንጉሥ ይሆናሉ።"],
- ruleGeb:["Pick one of your pits (bottom row). Seeds go counter-clockwise. If your last seed makes 2 or 3 on the other side, you take them.","ሓደ ካብ ጉድጓዳትካ (ታሕቲ) ምረጽ። ፍረታት ንጸጋም ይኸዱ። እታ ናይ መወዳእታ ፍረ ኣብ ናይ ተጻራሪ 2 ወይ 3 እንተገበረት ትወስዶም።","ከጉድጓዶችህ (ከታች) አንዱን ምረጥ። ፍሬዎቹ ወደ ግራ ይሄዳሉ። የመጨረሻዋ ፍሬ በተቃዋሚው በኩል 2 ወይም 3 ካደረገች ትወስዳቸዋለህ።"],
- ruleBri:["40 Italian cards. Higher card of the led suit wins, trump beats all. Over 60 points wins.","40 ካርታ። ዝለዓለ ካርታ ናይቲ ዝተጀመረ ዓይነት ይዕወት፡ ብሪስኮላ ንኹሉ ይስዕር። ልዕሊ 60 ነጥቢ ዝረኸበ ይዕወት።","40 ካርታ። የተጀመረው ዓይነት ከፍተኛ ካርታ ያሸንፋል፣ ብሪስኮላ ሁሉን ያሸንፋል። ከ60 ነጥብ በላይ ያገኘ ያሸንፋል።"],
- ruleLudo:["Roll a 6 to bring a token out. Land on the other player to send them home. Get both tokens home to win.","ጠጠር ንምውጻእ 6 የድሊ። ኣብ ልዕሊ ናይ ተጻራሪ እንተዓለብካ ናብ ገዛ ይምለስ። ክልቲኦም ጠጠራትካ ገዛ ምስ ኣእተኻ ትዕወት።","ጠጠር ለማውጣት 6 ያስፈልጋል። በተቃዋሚው ላይ ካረፍክ ወደ ቤት ይመለሳል። ሁለቱንም ጠጠሮች ቤት ስታስገባ ታሸንፋለህ።"]
 };
 const LI={en:0,ti:1,am:2};
 let lang=(QS.get("lang")||"").slice(0,2);
@@ -271,16 +233,16 @@ const IN_APP=QS.get("app")==="1"||!!window.HabeshaNet;
 if(QS.get("app")==="1")document.documentElement.classList.add("app");
 const RACE_URL=IN_APP?`../capital-drive/?app=1`:"../capital-drive/";
 function renderHome(){
-  const card=g=>`<button class="card" data-g="${g.id}"><span class="ic">${g.ic}</span><b>${esc(g.n)}</b><span class="gz">${g.gz}</span><span class="tg">${esc(g.kind==="board"?T("tagOnline"):T("tagSolo"))}</span></button>`;
-  $("homeGrid").innerHTML=`<a class="card big" id="raceCard" href="${RACE_URL}${IN_APP?"&lang="+lang:""}" ${IN_APP?"":'target="_blank" rel="noopener"'}><span class="ic">🏎️</span><span><b>Capital Racing 3D</b><br><span class="tg">${esc(T("tagRace"))}</span></span></a>
-   <a class="card big" href="../driving/?${IN_APP?"app=1&":""}lang=${lang}" style="background:linear-gradient(120deg,#0f4a2c,#0b2a1a)"><span class="ic">🚦</span><span><b>Driving test · ፈተና ምዝዋር</b><br><span class="tg">${esc(T("tagDrive"))} 🔒</span></span></a>
-   <a class="card big" href="../fidel/?${IN_APP?"app=1&":""}lang=${lang}" style="background:linear-gradient(120deg,#5a3d0c,#2b1d06)"><span class="ic">👶</span><span><b>Fidel · ፊደል</b><br><span class="tg">ሀ ሁ ሂ ሃ ሄ ህ ሆ — kids learn to read</span></span></a>
+  const card=g=>`<button class="card" data-g="${g.id}"><span class="ic">${g.ic}</span><b>${esc(T(g.id))}</b>${lang==="en"?`<span class="gz">${g.gz}</span>`:""}<span class="tg">${esc(g.kind==="board"?T("tagOnline"):T("tagSolo"))}</span></button>`;
+  $("homeGrid").innerHTML=`<a class="card big" id="raceCard" href="${RACE_URL}${IN_APP?"&lang="+lang:""}" ${IN_APP?"":'target="_blank" rel="noopener"'}><span class="ic">🏎️</span><span><b>${esc(T("race"))}</b><br><span class="tg">${esc(T("tagRace"))}</span></span></a>
+   <a class="card big" href="../driving/?${IN_APP?"app=1&":""}lang=${lang}" style="background:linear-gradient(120deg,#0f4a2c,#0b2a1a)"><span class="ic">🚦</span><span><b>${esc(T("drive"))}</b><br><span class="tg">${esc(T("tagDrive"))} 🔒</span></span></a>
+   <a class="card big" href="../fidel/?${IN_APP?"app=1&":""}lang=${lang}" style="background:linear-gradient(120deg,#5a3d0c,#2b1d06)"><span class="ic">👶</span><span><b>${esc(T("fidel"))}</b><br><span class="tg">ሀ ሁ ሂ ሃ ሄ ህ ሆ — ${esc(T("tagFidel"))}</span></span></a>
    <div class="sect" style="grid-column:1/-1">${esc(T("boardSect"))}</div>${GAMES_META.filter(g=>g.kind==="board").map(card).join("")}
    <div class="sect" style="grid-column:1/-1">${esc(T("soloSect"))}</div>${GAMES_META.filter(g=>g.kind==="solo").map(card).join("")}`}
 let cur=null;
 function show(id){["home","board","genna","hinq"].forEach(s=>$(s).hidden=s!==id);window.scrollTo(0,0)}
 $("homeGrid").onclick=e=>{const b=e.target.closest("[data-g]");if(!b)return;cur=b.dataset.g;
-  if(GAMES[cur]){show("board");const m=GAMES_META.find(x=>x.id===cur);$("bTitle").innerHTML=`${esc(m.n)}<span class="ti">${m.gz}</span>`;showModes()}else show(cur)};
+  if(GAMES[cur]){show("board");const m=GAMES_META.find(x=>x.id===cur);$("bTitle").textContent=T(m.id);showModes()}else show(cur)};
 document.querySelectorAll("[data-back]").forEach(b=>b.onclick=()=>{leaveMatch();cur=null;show("home");GN.on=false});
 
 /* ================= NETWORK (Claude room capability or the app's Firebase) ================= */
@@ -377,81 +339,6 @@ const DAMA={rule:"ruleDama",
    if(DSEL>=0&&targets.includes(i)){const from=DSEL;DSEL=-1;v.move({from,to:i})}}}
 };
 
-/* ================= GEBETA ================= */
-const GEBETA={rule:"ruleGeb",
- init(first){return{p:Array(12).fill(4),s:[0,0],turn:first||0,winner:null,last:-1,cap:0}},
- side(seat){return seat===0?[0,1,2,3,4,5]:[6,7,8,9,10,11]},
- legal(st,seat){return GEBETA.side(seat).filter(i=>st.p[i]>0)},
- apply(st,mv,seat){const i=mv.pit;if(!GEBETA.side(seat).includes(i)||!st.p[i])return st;let n=st.p[i];st.p[i]=0;let k=i;
-  while(n){k=(k+1)%12;if(k===i)continue;st.p[k]++;n--}
-  const opp=seat===0?(x=>x>=6):(x=>x<6);let cap=0;while(opp(k)&&(st.p[k]===2||st.p[k]===3)){cap+=st.p[k];st.p[k]=0;k=(k+11)%12}
-  st.s[seat]+=cap;st.last=i;st.cap=cap;st.turn=1-seat;
-  if(st.s[0]>24||st.s[1]>24||!GEBETA.legal(st,st.turn).length){for(let j=0;j<12;j++){st.s[j<6?0:1]+=st.p[j];st.p[j]=0}st.winner=st.s[0]>st.s[1]?0:st.s[1]>st.s[0]?1:-1}
-  return st},
- ai(st,seat){const ms=GEBETA.legal(st,seat);if(!ms.length)return null;let best=ms[0],bc=-1;ms.forEach(m=>{const c=GEBETA.apply(clone(st),{pit:m},seat).cap+Math.random()*.5;if(c>bc){bc=c;best=m}});return{pit:best}},
- score(st){return st.s.map(x=>x+" "+T("seeds"))},
- hint(st,seat){return st.cap&&st.turn===seat?null:null},
- render(el,st,v){const me=v.seat,top=me===0?[11,10,9,8,7,6]:[5,4,3,2,1,0],bot=me===0?[0,1,2,3,4,5]:[6,7,8,9,10,11];
-  const pit=(i,mine)=>{const n=st.p[i],can=mine&&v.mine&&n>0;return `<button class="pit ${can?"can":""} ${st.last===i?"last":""}" data-i="${i}" ${can?"":"disabled"} aria-label="${n}"><span class="seeds">${"<i></i>".repeat(Math.min(n,12))}</span>${n}</button>`};
-  el.innerHTML=`<div class="gb"><div class="store">${st.s[1-me]}</div><div style="display:flex;flex-direction:column;gap:8px"><div class="pits">${top.map(i=>pit(i,false)).join("")}</div><div class="pits" id="gbot">${bot.map(i=>pit(i,true)).join("")}</div></div><div class="store">${st.s[me]}</div></div>`;
-  $("gbot").onclick=e=>{const b=e.target.closest(".pit");if(!b||b.disabled)return;v.move({pit:+b.dataset.i})}}
-};
-
-/* ================= BRISCOLA ================= */
-const SU={C:["Coppe","🏆"],D:["Denari","🪙"],B:["Bastoni","🪵"],S:["Spade","🗡️"]};
-const RN={1:"A",8:"F",9:"C",10:"R"},BP={1:11,3:10,10:4,9:3,8:2},BS={1:10,3:9,10:8,9:7,8:6,7:5,6:4,5:3,4:2,2:1};
-const cs=c=>c[0],cr=c=>+c.slice(1),cp=c=>BP[cr(c)]||0;
-function cardHTML(c,attrs,cls,trumpSuit){return `<button class="crd ${cls||""} ${cs(c)===trumpSuit?"tr":""}" ${attrs||""}><span class="r">${RN[cr(c)]||cr(c)}</span><span class="s">${SU[cs(c)][1]}</span><span class="n">${SU[cs(c)][0]}</span></button>`}
-const BRISCOLA={rule:"ruleBri",aiDelay:800,
- init(first){const d=[];"CDBS".split("").forEach(s=>{for(let r=1;r<=10;r++)d.push(s+r)});for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}
-  const st={deck:d,trump:d[0],h:[[],[]],t:[],pts:[0,0],turn:first||0,last:null,winner:null};for(let i=0;i<3;i++){st.h[0].push(d.pop());st.h[1].push(d.pop())}return st},
- beats(a,b,T){if(cs(b)===cs(a))return BS[cr(b)]>BS[cr(a)];return cs(b)===T},
- apply(st,mv,seat){if(st.turn!==seat)return st;const c=st.h[seat][mv.i];if(!c)return st;st.h[seat].splice(mv.i,1);st.t.push([seat,c]);
-  if(st.t.length===1){st.turn=1-seat;return st}
-  const[a,b]=st.t;const w=BRISCOLA.beats(a[1],b[1],cs(st.trump))?b[0]:a[0];st.pts[w]+=cp(a[1])+cp(b[1]);st.last={t:st.t,w};st.t=[];
-  if(st.deck.length){st.h[w].push(st.deck.pop());if(st.deck.length)st.h[1-w].push(st.deck.pop())}
-  st.turn=w;if(!st.h[0].length&&!st.h[1].length)st.winner=st.pts[0]>60?0:st.pts[1]>60?1:-1;return st},
- ai(st,seat){const h=st.h[seat],T_=cs(st.trump);if(!h.length)return null;const idx=c=>({i:h.indexOf(c)});
-  const low=arr=>arr.slice().sort((x,y)=>cp(x)-cp(y)||BS[cr(x)]-BS[cr(y)])[0];
-  if(!st.t.length){const nt=h.filter(c=>cs(c)!==T_);return idx(low(nt.length?nt:h))}
-  const lead=st.t[0][1];const ws=h.filter(c=>cs(c)===cs(lead)&&BS[cr(c)]>BS[cr(lead)]);if(ws.length)return idx(ws.sort((x,y)=>BS[cr(y)]-BS[cr(x)])[0]);
-  const tr=h.filter(c=>cs(c)===T_&&cs(lead)!==T_);if(cp(lead)>=10&&tr.length)return idx(low(tr));const nt=h.filter(c=>cs(c)!==T_);return idx(low(nt.length?nt:h))},
- score(st){return st.pts.map(x=>x+" "+T("pts"))},
- render(el,st,v){const me=v.seat,op=1-me,ts=cs(st.trump);
-  const table=st.t.length?st.t.map(x=>cardHTML(x[1],"disabled","",ts)).join(""):(st.last?`<span class="lastt" style="display:flex;gap:8px">${st.last.t.map(x=>cardHTML(x[1],"disabled","small",ts)).join("")}</span>`:"");
-  el.innerHTML=`<div class="felt">
-   <div class="hand">${st.h[op].map(()=>`<div class="crd back"></div>`).join("")}</div>
-   <div class="mid"><div class="deckinfo">${st.deck.length?cardHTML(st.trump,"disabled","small",ts):""}<span>${esc(T("trump"))}: ${SU[ts][1]}<br>${esc(T("cardsLeft",{n:st.deck.length}))}</span></div><div class="played">${table}</div></div>
-   <div class="hand" id="bhand">${st.h[me].map((c,i)=>cardHTML(c,`data-i="${i}" ${v.mine?"":"disabled"}`,"",ts)).join("")}</div></div>`;
-  $("bhand").onclick=e=>{const b=e.target.closest(".crd");if(!b||b.disabled)return;v.move({i:+b.dataset.i})}}
-};
-
-/* ================= LUDO ================= */
-const LSTART=[0,20],lpos=(s,p)=>(LSTART[s]+p)%40;
-function ringRC(i){if(i<=10)return[1,i+1];if(i<=20)return[i-9,11];if(i<=30)return[11,11-(i-20)];return[11-(i-30),1]}
-const LUDO={rule:"ruleLudo",aiDelay:700,
- init(first){return{tok:[[-1,-1],[-1,-1]],turn:first||0,roll:0,rolled:false,winner:null,note:""}},
- legal(st,seat){return st.tok[seat].map((p,k)=>({p,k})).filter(x=>x.p===-1?st.roll===6:x.p<40).map(x=>x.k)},
- apply(st,mv,seat){if(st.turn!==seat||st.winner!=null)return st;
-  if(mv.a==="roll"){if(st.rolled)return st;st.roll=1+Math.floor(Math.random()*6);st.rolled=true;st.note="";st.by=seat;
-   if(!LUDO.legal(st,seat).length){st.note="nomove";st.rolled=false;if(st.roll!==6)st.turn=1-seat}return st}
-  if(mv.a==="move"){if(!st.rolled||!LUDO.legal(st,seat).includes(mv.k))return st;let p=st.tok[seat][mv.k];p=p===-1?0:Math.min(40,p+st.roll);st.tok[seat][mv.k]=p;st.note="";
-   if(p<40){const o=1-seat;st.tok[o]=st.tok[o].map(q=>(q>=0&&q<40&&lpos(o,q)===lpos(seat,p))?(st.note="cap",-1):q)}
-   if(st.tok[seat].every(q=>q>=40))st.winner=seat;st.rolled=false;if(st.roll!==6)st.turn=1-seat;return st}return st},
- ai(st,seat){if(!st.rolled)return{a:"roll"};const lg=LUDO.legal(st,seat);if(!lg.length)return null;let pick=lg[0],best=-1;
-  lg.forEach(k=>{const p=st.tok[seat][k],np=p===-1?0:Math.min(40,p+st.roll);let s=np;if(np<40&&st.tok[1-seat].some(q=>q>=0&&q<40&&lpos(1-seat,q)===lpos(seat,np)))s+=100;if(p===-1)s+=30;if(s>best){best=s;pick=k}});return{a:"move",k:pick}},
- score(st){return st.tok.map(t=>t.filter(q=>q>=40).length+"/2 "+T("home"))},
- hint(st,seat){if(st.rolled)return T("tapTok");if(st.note==="nomove"&&st.by===seat)return T("noMove",{r:st.roll});return null},
- render(el,st,v){let h="";const me=v.seat;
-  const tok=(s,k)=>{const can=s===me&&v.mine&&st.rolled&&LUDO.legal(st,me).includes(k);return `<button class="tok t${s} ${can?"can":""}" data-k="${k}" ${can?"":"tabindex='-1'"} aria-label="token"></button>`};
-  for(let i=0;i<40;i++){const[r,c]=ringRC(i);const here=[];[0,1].forEach(s=>st.tok[s].forEach((p,k)=>{if(p>=0&&p<40&&lpos(s,p)===i)here.push(tok(s,k))}));
-   h+=`<div class="sq ${i===0?"s0":""} ${i===20?"s1":""}" style="grid-row:${r};grid-column:${c}">${here.join("")}</div>`}
-  const base=s=>st.tok[s].map((p,k)=>p===-1?tok(s,k):"").join("")||"–";
-  h+=`<div class="center"><div class="bases"><div>${esc(M?M.names[0]:"")}<span class="baseTok">${base(0)}</span></div><div>${esc(M?M.names[1]:"")}<span class="baseTok">${base(1)}</span></div></div>
-   <div class="die">${st.roll||"🎲"}</div>${v.mine&&!st.rolled?`<button class="btn" id="rollBtn" style="text-align:center">${esc(T("roll"))}</button>`:""}</div>`;
-  el.innerHTML=`<div class="ludo" id="lboard">${h}</div>`;
-  $("lboard").onclick=e=>{if(e.target.id==="rollBtn"){v.move({a:"roll"});return}const t=e.target.closest(".tok.can");if(t)v.move({a:"move",k:+t.dataset.k})}}
-};
 const GAMES={dama:DAMA};
 
 /* ================= GENNA ================= */
