@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geocoding/geocoding.dart';
@@ -603,9 +604,11 @@ class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
   }
 
   Future<void> _create() async {
-    final phone = _cleanPhone;
-    if (phone.replaceAll('+', '').length < 8) {
-      _toast(context, 'Write the full phone number, e.g. +47 412 34 567', color: kRed);
+    // Empty (or only "+47") = the code belongs to the first user who uses it
+    var phone = _cleanPhone;
+    if (phone.replaceAll('+', '').length <= 3) phone = '';
+    if (phone.isNotEmpty && phone.replaceAll('+', '').length < 8) {
+      _toast(context, 'Write the full phone number, e.g. +47 412 34 567 — or leave it empty', color: kRed);
       return;
     }
     setState(() => _busy = true);
@@ -615,13 +618,19 @@ class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
       'product': _product, 'phone': phone, 'used': false, 'createdAt': FieldValue.serverTimestamp(),
     });
     setState(() => _busy = false);
-    if (mounted) _sendOnWhatsApp(code, phone, _product);
+    if (!mounted) return;
+    if (phone.isNotEmpty) {
+      _sendOnWhatsApp(code, phone, _product);
+    } else {
+      Clipboard.setData(ClipboardData(text: code));
+      _toast(context, 'Code $code copied — works for the first user who types it');
+    }
   }
 
   void _sendOnWhatsApp(String code, String phone, String product) {
     final what = product == 'theory_pro' ? '450 extra driving theory questions' : 'the extra language topics';
     final msg = 'Habesha Hub 🔓\nYour code: $code\n\nOpen Games & Tools → Life Tools → "Unlock" and type the code. '
-        'It works only with this phone number ($phone).\nThis unlocks $what.\n\n'
+        'It works for one person only.\nThis unlocks $what.\n\n'
         'ኮድካ: $code — ኣብ Games & Tools → Life Tools → "ክፈት ብኮድ" ኣእትዎ።';
     launchUrl(Uri.parse('https://wa.me/${phone.replaceAll('+', '')}?text=${Uri.encodeComponent(msg)}'),
         mode: LaunchMode.externalApplication);
@@ -633,10 +642,10 @@ class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
       _adminCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('New code', style: tsTitleLg(color: kText)),
         const SizedBox(height: 4),
-        Text('Works once, only for this phone number (the customer verifies it by SMS).',
+        Text('Works once. With a phone number: only that number (SMS check). Empty: the first user who types it.',
             style: tsBodySm(color: kTextSub)),
         const SizedBox(height: 12),
-        _field(_phone, 'Customer phone number', type: TextInputType.phone, icon: Icons.phone_rounded),
+        _field(_phone, 'Customer phone number (optional)', type: TextInputType.phone, icon: Icons.phone_rounded),
         Wrap(spacing: 8, children: [
           for (final e in _products.entries)
             ChoiceChip(
@@ -648,7 +657,7 @@ class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
             ),
         ]),
         const SizedBox(height: 12),
-        goldButton('Make code & send on WhatsApp', _busy ? null : _create, loading: _busy, icon: Icons.key_rounded),
+        goldButton('Make code', _busy ? null : _create, loading: _busy, icon: Icons.key_rounded),
       ])),
       const SizedBox(height: 8),
       Text('Codes', style: tsTitleMd(color: kTextSub)),
@@ -665,14 +674,19 @@ class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
               return _adminCard(edge: used ? kGreen : kSecondary, child: Row(children: [
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   SelectableText(d.id, style: tsTitleLg(color: kText).copyWith(letterSpacing: 2)),
-                  Text('${_products[c['product']] ?? c['product']}  ·  ${c['phone'] ?? ''}', style: tsBodySm(color: kTextSub)),
+                  Text('${_products[c['product']] ?? c['product']}  ·  ${(c['phone'] ?? '').toString().isEmpty ? 'any one user' : c['phone']}${c['usedPhone'] != null ? '  →  ${c['usedPhone']}' : ''}',
+                      style: tsBodySm(color: kTextSub)),
                   Text(used ? '✓ Used ${_when(c['usedAt'])}' : 'Not used yet · ${_when(c['createdAt'])}',
                       style: tsBodySm(color: used ? kGreen : kSecondary)),
                 ])),
                 if (!used) ...[
-                  IconButton(tooltip: 'Send on WhatsApp',
-                      onPressed: () => _sendOnWhatsApp(d.id, '${c['phone']}', '${c['product']}'),
-                      icon: const Icon(Icons.send_rounded, color: kSecondary)),
+                  IconButton(tooltip: 'Copy',
+                      onPressed: () { Clipboard.setData(ClipboardData(text: d.id)); _toast(context, '${d.id} copied'); },
+                      icon: const Icon(Icons.copy_rounded, color: kSecondary)),
+                  if ((c['phone'] ?? '').toString().isNotEmpty)
+                    IconButton(tooltip: 'Send on WhatsApp',
+                        onPressed: () => _sendOnWhatsApp(d.id, '${c['phone']}', '${c['product']}'),
+                        icon: const Icon(Icons.send_rounded, color: kSecondary)),
                   IconButton(tooltip: 'Delete',
                       onPressed: () => d.reference.delete(),
                       icon: const Icon(Icons.delete_outline_rounded, color: kRed)),

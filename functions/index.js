@@ -500,9 +500,8 @@ const samePhone = (a, b) => {
 
 exports.redeemCode = onCall({ maxInstances: 5 }, async (req) => {
   const uid = req.auth?.uid;
-  const phone = req.auth?.token?.phone_number;
+  const phone = req.auth?.token?.phone_number || null;
   if (!uid) throw new HttpsError('unauthenticated', 'login');
-  if (!phone) throw new HttpsError('failed-precondition', 'phone');      // app asks for SMS verification
   const code = String(req.data?.code || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (code.length < 6) throw new HttpsError('invalid-argument', 'code');
 
@@ -513,11 +512,16 @@ exports.redeemCode = onCall({ maxInstances: 5 }, async (req) => {
     if (!snap.exists) throw new HttpsError('not-found', 'code');
     const c = snap.data();
     if (!PRODUCTS.includes(c.product)) throw new HttpsError('not-found', 'code');
-    if (!samePhone(c.phone, phone)) throw new HttpsError('permission-denied', 'other-phone');
+    // Code made for a phone number → the user must have verified that number
+    if (c.phone) {
+      if (!phone) throw new HttpsError('failed-precondition', 'phone');
+      if (!samePhone(c.phone, phone)) throw new HttpsError('permission-denied', 'other-phone');
+    }
+    // One code = one user: the first account that uses it keeps it
     if (c.used && c.usedBy !== uid) throw new HttpsError('already-exists', 'used');
-    tx.update(codeRef, { used: true, usedBy: uid, usedAt: UnlockFV.serverTimestamp() });
+    tx.update(codeRef, { used: true, usedBy: uid, usedPhone: phone, usedAt: UnlockFV.serverTimestamp() });
     tx.set(db.collection('users').doc(uid),
-      { unlocks: { [c.product]: true }, unlockPhone: phone }, { merge: true });
+      { unlocks: { [c.product]: true }, ...(phone ? { unlockPhone: phone } : {}) }, { merge: true });
     return { product: c.product };
   });
 });

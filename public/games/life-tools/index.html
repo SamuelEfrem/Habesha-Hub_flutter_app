@@ -425,27 +425,20 @@ function buyOld(k,msgEl){
 
 /* ---------- unlock with a code (sent on WhatsApp) ---------- */
 const WA_NUMBER="4797374482", PRO_RULES=275, IN_APP_CH=()=>window.HabeshaApp&&typeof HabeshaApp.postMessage==="function";
-const WA_TEXT={theory_pro:"ሰላም! ኣብ Habesha Hub 450 ተወሳኺ ሕቶታት ቲዮሪ መንጃ ፍቓድ ክኸፍት እደሊ። Hello! I want to unlock the 450 extra driving theory questions in Habesha Hub.",
-  lang_pro:"ሰላም! ኣብ Habesha Hub ተወሳኺ ትምህርቲ ቋንቋ ክኸፍት እደሊ። Hello! I want to unlock the extra language topics in Habesha Hub."};
+const WA_TEXT={theory_pro:"help",lang_pro:"help"};
 function waUrl(k){return "https://wa.me/"+WA_NUMBER+"?text="+encodeURIComponent(WA_TEXT[k]||WA_TEXT.theory_pro)}
 function buy(k){openUnlock(k)}
 function openUnlock(k){closeUnlock();const d=document.createElement("div");d.id="unlockBox";
   d.innerHTML=`<div class="ub-in"><button class="ub-x" aria-label="close">✕</button>
-   <h3>🔓 ክፈት · Unlock</h3>
-   <div class="ub-sec"><b>🇪🇺 ኣብ ኤውሮጳ · Europe</b>
-   <p class="muted">ኣብ ኣፕ ብ Google Play / App Store ክፈል። ብቕጽበት ይኽፈት። · Pay in the app, unlocks instantly.</p>
-   <button class="btn pay" id="ubPay">💳 ክፈል · Pay ${PRICE[k]||""}</button></div>
-   <div class="ub-sec"><b>🌍 ኣብ ኣፍሪቃ · Africa</b>
-   <p class="muted">1. ብ WhatsApp (+47 973 74 482) ርኸበና፡ ኮድ ክንሰደልካ ኢና።<br>2. ኮድ ኣብዚ ኣእትዎ። ኮድ ንሓደ ቁጽሪ ተሌፎን ጥራይ ይሰርሕ።</p>
+   <h3>🔒 ኮድ የድልየካ · You need a code</h3>
+   <p class="muted">ኮድ ንምርካብ ብ WhatsApp (+47 973 74 482) "help" ጽሓፍልና።<br>To get a code, write "help" on WhatsApp (+47 973 74 482).</p>
    <a class="btn wa" id="ubWa" href="${waUrl(k)}" target="_blank" rel="noopener">💬 WhatsApp</a>
    <input id="ubCode" maxlength="14" placeholder="ኮድ · Code (e.g. HH7K3P92)" autocomplete="one-time-code" autocapitalize="characters">
    <button class="btn" id="ubGo">ክፈት · Unlock</button>
-   <p class="muted" id="ubMsg"></p></div></div>`;
+   <p class="muted" id="ubMsg"></p></div>`;
   document.body.appendChild(d);
   d.querySelector(".ub-x").onclick=closeUnlock;d.onclick=e=>{if(e.target===d)closeUnlock()};
   $("ubWa").onclick=e=>{if(IN_APP_CH()){e.preventDefault();HabeshaApp.postMessage(JSON.stringify({type:"open",url:waUrl(k)}))}};
-  $("ubPay").onclick=()=>{if(IN_APP_CH()){HabeshaApp.postMessage(JSON.stringify({type:"buy",product:k}));$("ubMsg").textContent="…"}
-    else $("ubMsg").textContent="ክፍሊት ኣብ ኣፕ Habesha Hub ጥራይ · Payment works in the Habesha Hub app"};
   $("ubGo").onclick=()=>{const code=$("ubCode").value.trim();if(code.length<6){$("ubMsg").textContent="ኮድ ኣእትው · Enter the code";return}
     if(!IN_APP_CH()){$("ubMsg").textContent="ኮድ ኣብ ኣፕ Habesha Hub ጥራይ ይሰርሕ · Codes work in the Habesha Hub app";return}
     $("ubGo").disabled=true;$("ubMsg").textContent="…";HabeshaApp.postMessage(JSON.stringify({type:"redeem",product:k,code}))}}

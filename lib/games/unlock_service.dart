@@ -44,26 +44,34 @@ class UnlockService {
       user = FirebaseAuth.instance.currentUser;
       if (user == null || user.isAnonymous) return tr('Please log in first');
     }
-    if (user.phoneNumber == null || user.phoneNumber!.isEmpty) {
+    var error = await _call(code);
+    // The code was made for a phone number → verify it by SMS and try again
+    if (error == 'phone') {
       if (!context.mounted) return null;
-      final ok = await _verifyPhone(context);
-      if (!ok) return tr('Phone number not verified');
+      if (!await _verifyPhone(context)) return tr('Phone number not verified');
+      error = await _call(code);
     }
+    switch (error) {
+      case null: return null;
+      case 'other-phone': return tr('This code belongs to another phone number');
+      case 'used': return tr('This code has already been used');
+      case 'code': return tr('Wrong code');
+      case 'phone': return tr('Phone number not verified');
+      default: return '${tr('Error')}: $error';
+    }
+  }
+
+  /// null = unlocked, otherwise the server's reason
+  Future<String?> _call(String code) async {
     try {
-      // New token so the server sees the verified phone number
+      // Fresh token so the server sees a newly verified phone number
       await FirebaseAuth.instance.currentUser!.getIdToken(true);
       await _functions.httpsCallable('redeemCode').call({'code': code});
       return null;
     } on FirebaseFunctionsException catch (e) {
-      switch (e.message) {
-        case 'other-phone': return tr('This code belongs to another phone number');
-        case 'used': return tr('This code has already been used');
-        case 'code': return tr('Wrong code');
-        case 'phone': return tr('Phone number not verified');
-        default: return '${tr('Error')}: ${e.message}';
-      }
+      return e.message ?? e.code;
     } catch (e) {
-      return '${tr('Error')}: $e';
+      return '$e';
     }
   }
 
