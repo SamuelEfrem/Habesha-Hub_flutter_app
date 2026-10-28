@@ -547,10 +547,17 @@ $("phrases").onclick=e=>{
   const bb=e.target.closest("[data-buy]");if(bb){buy(bb.dataset.buy,$("langBuyMsg"));return}
   const h=e.target.closest(".tg.hide");if(h){h.classList.remove("hide");const r=h.parentElement.querySelector(".rom");if(r)r.classList.remove("hide");return}
   const b=e.target.closest(".say");if(!b)return;const U=UI[base];const p=PTOPICS.find(t=>t.k===topic).items[+b.dataset.i];const meta=TARGETS.find(x=>x.k===L);
+  // In the app: the phone's own text-to-speech does it (WebView has no speechSynthesis)
+  if(window.HabeshaApp&&typeof HabeshaApp.postMessage==="function"){
+    sayBtn=b;b.textContent="🔊 …";HabeshaApp.postMessage(JSON.stringify({type:"speak",text:p[L],lang:meta.tts}));return}
   try{const voices=speechSynthesis.getVoices();const v=voices.find(x=>x.lang&&x.lang.toLowerCase().startsWith(meta.tts.slice(0,2)));
     if(!v&&voices.length){b.textContent=U.noVoice;setTimeout(()=>b.textContent=U.listen,1500);return}
     const u=new SpeechSynthesisUtterance(p[L]);u.lang=meta.tts;u.rate=.85;if(v)u.voice=v;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(err){b.textContent=U.noVoice}};
 try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>{}}catch(e){}
+// The app answers a "speak" with habeshaSpeakResult(true|false)
+let sayBtn=null;
+window.habeshaSpeakResult=function(ok){const b=sayBtn;if(!b)return;const U=UI[base];
+  b.textContent=ok?U.listen:U.noVoice;if(!ok)setTimeout(()=>{b.textContent=U.listen},1800)};
 drawLang();
 
 /* ---------- Ge'ez calendar ---------- */

@@ -5,6 +5,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/auth_screen.dart';
 import 'purchase_service.dart';
@@ -26,6 +27,7 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
   late final WebViewController _controller;
   int _progress = 0;
   final _purchases = PurchaseService.instance;
+  final _tts = FlutterTts();
 
   @override
   void initState() {
@@ -71,6 +73,8 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
         _buy(product);
       } else if (type == 'open' && data['url'] is String) {
         _openExternal(data['url'] as String);
+      } else if (type == 'speak' && data['text'] is String) {
+        _speak(data['text'] as String, '${data['lang'] ?? 'en-GB'}');
       } else if (type == 'redeem' && data['code'] is String) {
         _redeem(data['code'] as String);
       }
@@ -89,6 +93,30 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
       if (user == null || user.isAnonymous) return;
     }
     await _purchases.buy(product);
+  }
+
+  // Language lessons: the phone's text-to-speech (the WebView has none).
+  // Tells the page if this language has a voice on the phone.
+  Future<void> _speak(String text, String lang) async {
+    bool ok = false;
+    try {
+      // Try "nb-NO", then just "nb" (some phones only list the short code)
+      for (final l in [lang, lang.split('-').first]) {
+        if (await _tts.isLanguageAvailable(l) == true) {
+          await _tts.setLanguage(l);
+          ok = true;
+          break;
+        }
+      }
+      if (ok) {
+        await _tts.setSpeechRate(0.42);
+        await _tts.stop();
+        await _tts.speak(text);
+      }
+    } catch (_) {
+      ok = false;
+    }
+    await _controller.runJavaScript('window.habeshaSpeakResult && window.habeshaSpeakResult($ok)');
   }
 
   // Only WhatsApp links leave the app (the page asks to contact the admin)
@@ -126,6 +154,7 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> {
 
   @override
   void dispose() {
+    _tts.stop();
     _purchases.onUnlocked = null;
     _purchases.onError = null;
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
