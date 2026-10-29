@@ -471,3 +471,4 @@ body.writing .wr{outline:2px dashed rgba(14,122,72,.5);outline-offset:4px}
 @keyframes praiseIn{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}25%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%)}}
 .ltrace [data-erase].on{background:#1A1816;color:#fff}
 @media (prefers-reduced-motion:reduce){.praise{animation:none}}
+.lpic .wpic img{max-height:none;height:auto}

@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Abyssinica+SIL&family=Noto+Serif:ital,wght@0,900;1,900&family=Manrope:wght@500;600;700;800&family=Noto+Sans+Ethiopic:wght@500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="books.css?v=10">
+<link rel="stylesheet" href="books.css?v=11">
 </head>
 <body class="light learnpage">
 <header class="ltop">
@@ -168,6 +168,7 @@ function show(i, keep) {
   const tmp = document.createElement('div');
   view = renderLesson(tmp, { ...L, title: L.pages && L.pages.length ? `ገጽ ${L.pages.join(', ')}` : L.title }, ctx);
   attachWriting(tmp, L);
+  requestAnimationFrame(() => fitCells(tmp)); (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => fitCells(tmp));
   // the whole lesson on one scrolling page (like the free sample); ‹ › go to the previous / next lesson
   const groups = [[...tmp.children, finishNode()]];
   const sp = $('spread'); sp.innerHTML = ''; sheets = [];
@@ -248,6 +249,19 @@ $('undo').onclick = () => {
   if (bi == null || !c.store[bi] || !c.store[bi].length) return;
   c.store[bi].pop(); c.inks[bi].paint(); c.mark();
 };
+// long words in table cells get smaller instead of being cut off or running into the next cell
+function fitCells(root) {
+  root.querySelectorAll('.ltable .ct').forEach(ct => {
+    ct.style.fontSize = '';
+    const cell = ct.parentElement, cs = getComputedStyle(cell);
+    const w = cell.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), h = cell.clientHeight * .96;
+    if (!w || !h) return;
+    const k = Math.min(1, w / ct.scrollWidth, h / ct.scrollHeight);
+    if (k < .99) ct.style.fontSize = Math.max(35, Math.floor(k * 100)) + '%';
+  });
+}
+addEventListener('resize', () => { const sp = document.querySelector('#spread .sheet:not([hidden])'); if (sp) fitCells(sp); });
+
 // go straight to a printed page of the book
 $('pjump').addEventListener('submit', e => {
   e.preventDefault();
