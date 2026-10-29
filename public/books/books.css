@@ -451,3 +451,23 @@ body.writing .wr{outline:2px dashed rgba(14,122,72,.5);outline-offset:4px}
 .ltools .sep{width:1px;height:28px;background:rgba(255,255,255,.15)}
 .ltools .inksave{min-width:70px;font:700 13px var(--body);color:#C9C0B6}
 @media (max-width:640px){ .learnpage .spread{height:calc(100dvh - 150px)} .learnpage .sheet-in{padding:16px 12px} }
+
+/* whole pictures, never cut */
+.lword img{object-fit:contain;background:#fff}
+.lpanel img,.ltable .cell img{cursor:zoom-in}
+/* picture big on screen */
+.lbox{position:fixed;inset:0;z-index:95;background:rgba(15,12,8,.92);display:flex;align-items:center;justify-content:center;padding:3vmin;cursor:zoom-out}
+.lbox img{width:92vw;height:86vh;object-fit:contain;border-radius:12px}
+.lbox .ic{position:absolute;top:14px;right:14px;background:#fff;color:#1F1B16;width:48px;height:48px;font-size:20px}
+/* go to page */
+.pjump{display:flex;align-items:center;gap:8px;font-weight:800;color:#5B5145}
+.pjump input{width:78px;height:40px;border-radius:10px;border:2px solid #D4AF37;font:800 18px var(--body);text-align:center;background:#fff;color:#1F1B16}
+/* Tigrinya praise */
+.praise{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:96;pointer-events:none;padding:22px 40px;border-radius:28px;
+  font:900 clamp(34px,6vw,76px)/1.2 'Noto Sans Ethiopic',sans-serif;color:#fff;background:linear-gradient(135deg,#0E7A48,#16a34a);
+  box-shadow:0 20px 60px rgba(0,0,0,.25);animation:praiseIn 1.6s ease forwards;white-space:nowrap}
+.praise.great{background:linear-gradient(135deg,#B8860B,#D4AF37);color:#1A1200}
+.praise.again{background:linear-gradient(135deg,#C2410C,#EA580C)}
+@keyframes praiseIn{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}25%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%)}}
+.ltrace [data-erase].on{background:#1A1816;color:#fff}
+@media (prefers-reduced-motion:reduce){.praise{animation:none}}

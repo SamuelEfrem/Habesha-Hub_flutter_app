@@ -75,7 +75,8 @@ export function renderLesson(root, lesson, ctx) {
     if (b.type === 'trace' && b.l) {
       html += `<section class="lpanel"><div class="stripe"></div>${head(t('bTrace'))}
         <div class="ltrace" data-l="${esc(b.l)}"><canvas width="560" height="560" aria-label="${esc(t('bTrace'))} ${esc(b.l)}"></canvas>
-        <div class="btnrow"><button class="btn btn-ghost btn-small" data-clear>${esc(t('clear'))}</button>
+        <div class="btnrow"><button class="btn btn-ghost btn-small" data-erase aria-pressed="false">🧽 ${esc(t('eraser'))}</button>
+        <button class="btn btn-ghost btn-small" data-clear>${esc(t('clear'))}</button>
         <button class="btn btn-gold btn-small" data-done>✓ ${esc(t('done'))}</button></div></div></section>`;
       return;
     }
@@ -133,7 +134,7 @@ export function renderLesson(root, lesson, ctx) {
 
   // game
   root.querySelectorAll('.lgame').forEach(g => {
-    let target = null;
+    let target = null, misses = 0;
     const ask = () => {
       target = letters[Math.floor(Math.random() * letters.length)];
       const others = letters.filter(x => x.l !== target.l).sort(() => Math.random() - .5).slice(0, 3);
@@ -143,10 +144,10 @@ export function renderLesson(root, lesson, ctx) {
         .map(o => `<button class="tap opt" data-v="${esc(o.l)}">${esc(o.l)}</button>`).join('');
       box.querySelectorAll('.opt').forEach(b => b.onclick = () => {
         if (b.dataset.v === target.l) {
-          b.classList.add('right'); chime(880, .18); setTimeout(() => chime(1175, .3), 150);
+          b.classList.add('right'); praise(misses ? 'good' : 'great'); misses = 0;
           g.querySelector('.stars').textContent += '⭐'; confetti(); ctx.onStar && ctx.onStar();
-          setTimeout(ask, 900);
-        } else { b.classList.remove('wrong'); void b.offsetWidth; b.classList.add('wrong'); chime(220, .3); }
+          setTimeout(ask, 1300);
+        } else { b.classList.remove('wrong'); void b.offsetWidth; b.classList.add('wrong'); misses++; praise('again'); }
       });
     };
     g.querySelector('[data-hear]').onclick = () => target && play(target.k);
@@ -165,20 +166,76 @@ export function renderLesson(root, lesson, ctx) {
       x.textAlign = 'center'; x.textBaseline = 'alphabetic'; x.fillStyle = 'rgba(212,175,55,.28)';
       x.fillText(L, c.width / 2, c.height * .76);
     };
-    (document.fonts ? document.fonts.load(`700 100px 'Noto Sans Ethiopic'`, L) : Promise.resolve()).then(guide, guide);
-    let drawing = false;
+    // what the child wrote is kept as strokes, so the eraser removes writing but never the guide letter
+    let strokes = [], drawing = null, erasing = false;
+    const redraw = () => {
+      guide();
+      x.strokeStyle = '#0E7A48'; x.lineWidth = 26; x.lineCap = 'round'; x.lineJoin = 'round';
+      for (const st of strokes) { x.beginPath(); x.moveTo(st[0], st[1]); for (let i = 2; i < st.length; i += 2) x.lineTo(st[i], st[i + 1]); if (st.length === 2) x.lineTo(st[0] + .1, st[1]); x.stroke(); }
+    };
+    (document.fonts ? document.fonts.load(`700 100px 'Noto Sans Ethiopic'`, L) : Promise.resolve()).then(redraw, redraw);
     const pos = e => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / r.width, (e.clientY - r.top) * c.height / r.height]; };
-    c.addEventListener('pointerdown', e => { drawing = true; c.setPointerCapture(e.pointerId); const [px, py] = pos(e); x.beginPath(); x.moveTo(px, py); });
+    const rub = (px, py) => {
+      const before = strokes.length;
+      strokes = strokes.filter(st => { for (let i = 0; i < st.length; i += 2) if (Math.hypot(st[i] - px, st[i + 1] - py) < 34) return false; return true; });
+      if (strokes.length !== before) redraw();
+    };
+    c.addEventListener('pointerdown', e => {
+      c.setPointerCapture(e.pointerId); const [px, py] = pos(e);
+      if (erasing) { drawing = 'erase'; rub(px, py); return; }
+      drawing = [px, py]; strokes.push(drawing); redraw();
+    });
     c.addEventListener('pointermove', e => {
       if (!drawing) return; const [px, py] = pos(e);
-      x.lineTo(px, py); x.strokeStyle = '#0E7A48'; x.lineWidth = 26; x.lineCap = 'round'; x.lineJoin = 'round'; x.stroke();
+      if (drawing === 'erase') { rub(px, py); return; }
+      drawing.push(px, py);
+      x.strokeStyle = '#0E7A48'; x.lineWidth = 26; x.lineCap = 'round'; x.lineJoin = 'round';
+      x.beginPath(); x.moveTo(drawing[drawing.length - 4], drawing[drawing.length - 3]); x.lineTo(px, py); x.stroke();
     });
-    c.addEventListener('pointerup', () => { drawing = false; });
-    tr.querySelector('[data-clear]').onclick = guide;
-    tr.querySelector('[data-done]').onclick = () => { chime(880, .18); setTimeout(() => chime(1175, .3), 150); confetti(); ctx.onStar && ctx.onStar(); setTimeout(guide, 900); };
+    c.addEventListener('pointerup', () => { drawing = null; });
+    const eb = tr.querySelector('[data-erase]');
+    eb.onclick = () => { erasing = !erasing; eb.classList.toggle('on', erasing); eb.setAttribute('aria-pressed', erasing ? 'true' : 'false'); };
+    tr.querySelector('[data-clear]').onclick = () => { strokes = []; redraw(); };
+    tr.querySelector('[data-done]').onclick = () => {
+      if (!strokes.length) { praise('again'); return; }
+      praise(strokes.length > 1 ? 'great' : 'good'); confetti(); ctx.onStar && ctx.onStar();
+      setTimeout(() => { strokes = []; redraw(); }, 1400);
+    };
   });
 
   return { stop() { playingAll = false; if (current) current.pause(); } };
+}
+
+// Tigrinya praise for the child, with clapping. Words as written in Tigrinya.
+const PRAISE = {
+  great: ['ብጣዕሚ ጽቡቕ!', 'ኣዝዩ ጽቡቕ!', 'ጎበዝ!'],
+  good: ['ጽቡቕ!', 'ሓቂ ኢኻ!'],
+  again: ['ደጊምካ ፈትን!', 'ጌጋ እዩ – ደጊምካ ፈትን']
+};
+export function praise(kind) {
+  const list = PRAISE[kind] || PRAISE.good, word = list[Math.floor(Math.random() * list.length)];
+  document.querySelectorAll('.praise').forEach(p => p.remove());
+  const d = document.createElement('div');
+  d.className = 'praise ' + kind; d.setAttribute('role', 'status');
+  d.textContent = (kind === 'again' ? '🙂 ' : kind === 'great' ? '🌟 ' : '👏 ') + word;
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 1600);
+  if (kind === 'again') { chime(330, .22); setTimeout(() => chime(262, .3), 180); }
+  else { clap(kind === 'great' ? 8 : 4); setTimeout(() => chime(1175, .3), 60); }
+}
+/** clapping hands, made with short bursts of noise */
+export function clap(times = 5) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const len = Math.floor(actx.sampleRate * .06), buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 4);
+    for (let k = 0; k < times; k++) {
+      const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+      src.buffer = buf; f.type = 'bandpass'; f.frequency.value = 1100 + Math.random() * 900; f.Q.value = .8;
+      g.gain.value = .9; src.connect(f).connect(g).connect(actx.destination);
+      src.start(actx.currentTime + k * (.11 + Math.random() * .05));
+    }
+  } catch (e) {}
 }
 
 let actx = null;

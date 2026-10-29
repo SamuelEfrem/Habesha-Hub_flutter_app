@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Abyssinica+SIL&family=Noto+Serif:ital,wght@0,900;1,900&family=Manrope:wght@500;600;700;800&family=Noto+Sans+Ethiopic:wght@500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="books.css?v=8">
+<link rel="stylesheet" href="books.css?v=10">
 </head>
 <body class="light learnpage">
 <header class="ltop">
@@ -19,7 +19,6 @@
   <div class="lprog" aria-hidden="true"><div id="tprog"></div></div>
   <button class="btn btn-small lwrite" id="writeBtn" aria-pressed="false">✏️ <span id="writeT">Write</span></button>
   <button class="ic" id="fullBtn" aria-label="Full screen">⛶</button>
-  <div class="lang" id="lang"></div>
 </header>
 
 <aside class="drawer" id="toc" hidden>
@@ -51,10 +50,14 @@
   <span class="inksave" id="saveState" aria-live="polite"></span>
 </div>
 <footer class="lfoot" id="lfoot" hidden>
+  <form class="pjump" id="pjump"><label for="pjIn" data-t="goPage">Page</label>
+    <input id="pjIn" type="number" inputmode="numeric" min="1" max="140" placeholder="12" aria-label="Page number">
+    <button class="btn btn-gold btn-small" data-t="go">Go</button></form>
   <div class="dots" id="dots"></div>
   <span id="pgCount"></span>
 </footer>
 <div class="wm" id="wm" aria-hidden="true"></div>
+<div class="lbox" id="lbox" hidden role="dialog" aria-label="Picture"><img id="lboxImg" alt=""><button class="ic" aria-label="Close">✕</button></div>
 
 <script type="module">
 import { db, storage, onUser, isAdmin, isVerified, emailOf, makeT, applyT, langSwitch, getLang, setLang, esc, toast, ls, keyAudioPath, keyImgPath } from './common.js';
@@ -64,17 +67,17 @@ import { renderLesson, confetti } from './lesson.js';
 import { attachInk } from './wb.js';
 
 const t = makeT({
-  en: { write:'Write', wdone:'Done', saved:'Saved ✓', full:'This page is full – clear some writing.', bWrite:'Write', lessons:'Lessons', prev:'Previous', finish:'Finish lesson', finishNext:'Finish – next lesson ›', page:'Page', next:'Next lesson', playAll:'Play the whole lesson',
+  en: { eraser:'Eraser', goPage:'Page', go:'Go', noPage:'No such page', write:'Write', wdone:'Done', saved:'Saved ✓', full:'This page is full – clear some writing.', bWrite:'Write', lessons:'Lessons', prev:'Previous', finish:'Finish lesson', finishNext:'Finish – next lesson ›', page:'Page', next:'Next lesson', playAll:'Play the whole lesson',
     bLetters:'Letters', bWords:'Words', bSentence:'Read the sentence', bGame:'Game: find the letter', bTrace:'Write the letter',
     find:'Find', listen:'Listen', clear:'Clear', done:'Done', great:'Great!', allDone:'You finished all lessons! ⭐',
     login:'Please log in in the library first.', toLib:'Open the library', noAccess:'This email does not have access to this book. Enter your code in the library.',
     empty:'No lessons yet.', error:'Something went wrong. Try again.', devT:'This account is already used on 3 devices. Ask the author to reset your devices.' },
-  ti: { write:'ጽሓፍ', wdone:'ተወዲኡ', saved:'ተዓቂቡ ✓', full:'እዚ ገጽ መሊኡ – ገለ ደምስስ።', bWrite:'ጽሓፍ', lessons:'ትምህርትታት', prev:'ዝሓለፈ', finish:'ትምህርቲ ወድእ', finishNext:'ወድእ – ዝቕጽል ›', page:'ገጽ', next:'ዝቕጽል ትምህርቲ', playAll:'ምሉእ ትምህርቲ ስማዕ',
+  ti: { eraser:'መጥፍኢ', goPage:'ገጽ', go:'ኪድ', noPage:'እዚ ገጽ የለን', write:'ጽሓፍ', wdone:'ተወዲኡ', saved:'ተዓቂቡ ✓', full:'እዚ ገጽ መሊኡ – ገለ ደምስስ።', bWrite:'ጽሓፍ', lessons:'ትምህርትታት', prev:'ዝሓለፈ', finish:'ትምህርቲ ወድእ', finishNext:'ወድእ – ዝቕጽል ›', page:'ገጽ', next:'ዝቕጽል ትምህርቲ', playAll:'ምሉእ ትምህርቲ ስማዕ',
     bLetters:'ፊደላት', bWords:'ቃላት', bSentence:'ሓረግ ኣንብብ', bGame:'ጸወታ፥ ፊደል ርኸብ', bTrace:'ፊደል ጽሓፍ',
     find:'ርኸብ', listen:'ስማዕ', clear:'ደምስስ', done:'ተወዲኡ', great:'ጽቡቕ!', allDone:'ኩሉ ትምህርቲ ወዲእካ! ⭐',
     login:'በጃኹም ቅድም ኣብ ቤተ-መጻሕፍቲ እተዉ።', toLib:'ቤተ-መጻሕፍቲ ክፈት', noAccess:'እዚ ኢመይል ነዚ መጽሓፍ ፍቓድ የብሉን። ኣብ ቤተ-መጻሕፍቲ ኮድኩም ኣእትዉ።',
     empty:'ገና ትምህርቲ የለን።', error:'ጌጋ ኣጋጢሙ። ደጊምካ ፈትን።', devT:'እዚ ኣካውንት ኣብ 3 መሳርሒታት ድሮ ይጥቀመሉ ኣሎ። ንደራሲ ሕተቱ።' },
-  am: { write:'ጻፍ', wdone:'ጨርሻለሁ', saved:'ተቀምጧል ✓', full:'ይህ ገጽ ሞልቷል – ጥቂት ይሰርዙ።', bWrite:'ጻፍ', lessons:'ትምህርቶች', prev:'ያለፈው', finish:'ትምህርቱን ጨርስ', finishNext:'ጨርስ – ቀጣይ ›', page:'ገጽ', next:'ቀጣይ ትምህርት', playAll:'ሙሉውን ትምህርት ያዳምጡ',
+  am: { eraser:'ማጥፊያ', goPage:'ገጽ', go:'ሂድ', noPage:'ይህ ገጽ የለም', write:'ጻፍ', wdone:'ጨርሻለሁ', saved:'ተቀምጧል ✓', full:'ይህ ገጽ ሞልቷል – ጥቂት ይሰርዙ።', bWrite:'ጻፍ', lessons:'ትምህርቶች', prev:'ያለፈው', finish:'ትምህርቱን ጨርስ', finishNext:'ጨርስ – ቀጣይ ›', page:'ገጽ', next:'ቀጣይ ትምህርት', playAll:'ሙሉውን ትምህርት ያዳምጡ',
     bLetters:'ፊደላት', bWords:'ቃላት', bSentence:'ዓረፍተ ነገሩን ያንብቡ', bGame:'ጨዋታ፥ ፊደሉን ያግኙ', bTrace:'ፊደሉን ይጻፉ',
     find:'ያግኙ', listen:'ያዳምጡ', clear:'አጥፋ', done:'ጨርሻለሁ', great:'በጣም ጥሩ!', allDone:'ሁሉንም ትምህርቶች ጨርሰዋል! ⭐',
     login:'እባክዎ መጀመሪያ በቤተ-መጻሕፍቱ ይግቡ።', toLib:'ቤተ-መጻሕፍቱን ይክፈቱ', noAccess:'ይህ ኢሜይል ለዚህ መጽሐፍ ፈቃድ የለውም። በቤተ-መጻሕፍቱ ኮድዎን ያስገቡ።',
@@ -92,7 +95,7 @@ const ctx = {
 
 function msg(html) { $('msg').innerHTML = html; $('msg').hidden = false; $('desk').hidden = true; $('lfoot').hidden = true; }
 function renderStatic() { setLang(getLang()); applyT(t); $('writeT').textContent = t(writing ? 'wdone' : 'write'); if (lessons.length && sheets.length) show(idx, true); }
-langSwitch($('lang'), renderStatic);
+setLang('ti');                                  // the book is in Tigrinya: the lessons page is Tigrinya only
 
 function watermark(email) {
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='360' height='200'><text x='10' y='110' transform='rotate(-20 180 100)' font-family='sans-serif' font-size='16' font-weight='700' fill='%23888'>${email.replace(/[<>&'"]/g, '')} · Yosiefsbook</text></svg>`;
@@ -163,7 +166,7 @@ function show(i, keep) {
   idx = i; ls.set('hh_lesson_' + bookId, String(i));
   const L = lessons[i];
   const tmp = document.createElement('div');
-  view = renderLesson(tmp, L, ctx);
+  view = renderLesson(tmp, { ...L, title: L.pages && L.pages.length ? `ገጽ ${L.pages.join(', ')}` : L.title }, ctx);
   attachWriting(tmp, L);
   // the whole lesson on one scrolling page (like the free sample); ‹ › go to the previous / next lesson
   const groups = [[...tmp.children, finishNode()]];
@@ -245,6 +248,27 @@ $('undo').onclick = () => {
   if (bi == null || !c.store[bi] || !c.store[bi].length) return;
   c.store[bi].pop(); c.inks[bi].paint(); c.mark();
 };
+// go straight to a printed page of the book
+$('pjump').addEventListener('submit', e => {
+  e.preventDefault();
+  const n = parseInt($('pjIn').value, 10);
+  if (!n) return;
+  let i = lessons.findIndex(l => (l.pages || []).includes(n));
+  if (i < 0) i = lessons.findIndex(l => (l.pages || [])[0] > n);     // blank page: the next lesson
+  if (i < 0) { toast(t('noPage')); return; }
+  $('pjIn').value = ''; $('pjIn').blur(); show(i);
+});
+// tap a picture → big on screen
+$('spread').addEventListener('click', e => {
+  if (writing) return;
+  const im = e.target.closest('img') || (e.target.classList && e.target.classList.contains('ink') &&
+    [...e.target.parentElement.querySelectorAll('img')].find(x => { const r = x.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; }));
+  if (!im || !im.src) return;
+  $('lboxImg').src = im.src; $('lbox').hidden = false;
+});
+$('lbox').onclick = () => { $('lbox').hidden = true; };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('lbox').hidden = true; });
+
 // full screen (classroom board, PC)
 $('fullBtn').onclick = () => {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
