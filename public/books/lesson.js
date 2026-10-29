@@ -197,13 +197,47 @@ export function renderLesson(root, lesson, ctx) {
     eb.onclick = () => { erasing = !erasing; eb.classList.toggle('on', erasing); eb.setAttribute('aria-pressed', erasing ? 'true' : 'false'); };
     tr.querySelector('[data-clear]').onclick = () => { strokes = []; redraw(); };
     tr.querySelector('[data-done]').onclick = () => {
-      if (!strokes.length) { praise('again'); return; }
-      praise(strokes.length > 1 ? 'great' : 'good'); confetti(); ctx.onStar && ctx.onStar();
+      const r = checkTrace(L, strokes, c.width, c.height);
+      if (r !== 'great' && r !== 'good') { praise('again', r === 'outside' ? 'ደጊምካ ፈትን – ኣብ ልዕሊ ፊደል ጽሓፍ' : 'ደጊምካ ፈትን – ምሉእ ፊደል ጽሓፍ'); return; }
+      praise(r); confetti(); ctx.onStar && ctx.onStar();
       setTimeout(() => { strokes = []; redraw(); }, 1400);
     };
   });
 
   return { stop() { playingAll = false; if (current) current.pause(); } };
+}
+
+/**
+ * How well did the child write over the guide letter?
+ * covered: how much of the letter has writing on or next to it; inside: how much of the writing is on the letter.
+ * → 'great' | 'good' | 'short' (not the whole letter) | 'outside' (writing beside the letter)
+ */
+function checkTrace(L, strokes, W, H) {
+  const n = strokes.reduce((a, st) => a + st.length / 2, 0);
+  if (n < 4) return 'short';
+  const S = 140, k = S / W;
+  const mask = (draw) => { const c = document.createElement('canvas'); c.width = c.height = S; const x = c.getContext('2d'); draw(x); return x.getImageData(0, 0, S, S).data; };
+  const letter = (x, grow) => {
+    x.font = `700 ${Math.round(H * .68 * k)}px 'Noto Sans Ethiopic', sans-serif`;
+    x.textAlign = 'center'; x.textBaseline = 'alphabetic'; x.fillStyle = x.strokeStyle = '#000';
+    x.fillText(L, S / 2, H * .76 * k);
+    if (grow) { x.lineWidth = grow * k; x.lineJoin = 'round'; x.strokeText(L, S / 2, H * .76 * k); }
+  };
+  const lines = (x, w) => {
+    x.strokeStyle = '#000'; x.lineWidth = w * k; x.lineCap = 'round'; x.lineJoin = 'round';
+    for (const st of strokes) { x.beginPath(); x.moveTo(st[0] * k, st[1] * k); for (let i = 2; i < st.length; i += 2) x.lineTo(st[i] * k, st[i + 1] * k); if (st.length === 2) x.lineTo(st[0] * k + .1, st[1] * k); x.stroke(); }
+  };
+  const Lm = mask(x => letter(x, 0)), Lw = mask(x => letter(x, 44)), Sm = mask(x => lines(x, 26)), Sw = mask(x => lines(x, 70));
+  let lp = 0, lc = 0, sp = 0, si = 0;
+  for (let i = 3; i < Lm.length; i += 4) {
+    if (Lm[i] > 100) { lp++; if (Sw[i] > 100) lc++; }
+    if (Sm[i] > 100) { sp++; if (Lw[i] > 100) si++; }
+  }
+  if (!lp || !sp) return 'short';
+  const covered = lc / lp, inside = si / sp;
+  if (inside < .72) return 'outside';
+  if (covered < .7) return 'short';
+  return covered >= .86 && inside >= .86 ? 'great' : 'good';
 }
 
 // Tigrinya praise for the child, with clapping. Words as written in Tigrinya.
@@ -212,8 +246,8 @@ const PRAISE = {
   good: ['ጽቡቕ!', 'ሓቂ ኢኻ!'],
   again: ['ደጊምካ ፈትን!', 'ጌጋ እዩ – ደጊምካ ፈትን']
 };
-export function praise(kind) {
-  const list = PRAISE[kind] || PRAISE.good, word = list[Math.floor(Math.random() * list.length)];
+export function praise(kind, text) {
+  const list = PRAISE[kind] || PRAISE.good, word = text || list[Math.floor(Math.random() * list.length)];
   document.querySelectorAll('.praise').forEach(p => p.remove());
   const d = document.createElement('div');
   d.className = 'praise ' + kind; d.setAttribute('role', 'status');
