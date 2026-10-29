@@ -34,8 +34,18 @@ workflows:
           LATEST=$(app-store-connect get-latest-build-number "$APP_STORE_APPLE_ID" || echo 0)
           flutter build ipa --release --build-number=$((LATEST + 1)) \
             --export-options-plist=/Users/builder/export_options.plist
+      - name: Upload dSYMs to Crashlytics (readable crash reports)
+        script: |
+          DSYMS=build/ios/archive/Runner.xcarchive/dSYMs
+          if [ -d "$DSYMS" ]; then
+            ios/Pods/FirebaseCrashlytics/upload-symbols -gsp ios/Runner/GoogleService-Info.plist -p ios "$DSYMS" || echo "dSYM upload failed"
+            (cd build/ios/archive/Runner.xcarchive && zip -qr "$CM_BUILD_DIR/dSYMs.zip" dSYMs)
+          else
+            echo "No dSYMs found"
+          fi
     artifacts:
       - build/ios/ipa/*.ipa
+      - dSYMs.zip
     publishing:
       app_store_connect:
         auth: integration

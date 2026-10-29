@@ -803,6 +803,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                   child: Row(children: [const Icon(Icons.email_outlined, color: kSecondary, size: 15), const SizedBox(width: 8), Text('support@habesha-hub.no', style: tsBodySm(color: kSecondary))]),
                 ),
+                _social(Icons.chat_rounded, 'WhatsApp +47 973 74 482', 'https://wa.me/4797374482'),
+                _social(Icons.music_note_rounded, 'TikTok @habeshahub1', 'https://www.tiktok.com/@habeshahub1'),
+                _social(Icons.camera_alt_outlined, 'Instagram @habeshahubb', 'https://www.instagram.com/habeshahubb/'),
               ]),
             ),
             const SizedBox(height: 16),
@@ -813,6 +816,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+
+  // WhatsApp / TikTok / Instagram open in their own app (or the browser)
+  Widget _social(IconData icon, String label, String link) => GestureDetector(
+    onTap: () => launchUrl(Uri.parse(link), mode: LaunchMode.externalApplication),
+    child: Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Row(children: [Icon(icon, color: kSecondary, size: 15), const SizedBox(width: 8), Text(label, style: tsBodySm(color: kSecondary))]),
+    ),
+  );
 
   Widget _faq(String q, String a) => Theme(
     data: ThemeData(dividerColor: Colors.transparent),
