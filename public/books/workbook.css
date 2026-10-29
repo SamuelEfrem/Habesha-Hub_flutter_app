@@ -1,0 +1,94 @@
+/* Yosiefsbook workbook: the book rebuilt as web pages you can write on (iPad, PC, classroom board) */
+.wbbody{background:#EDE7DA;color:#1F1B16;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;overflow:hidden;height:100dvh}
+.wbtop{display:flex;align-items:center;gap:8px;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));background:#1A1816;color:#F0ECE8;flex-wrap:wrap}
+.wbtop .ic{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:#F0ECE8;border-color:rgba(255,255,255,.18);width:44px;height:44px}
+.wbtop .ic.on{background:var(--gold);color:#1A1200;border-color:var(--gold)}
+.wbtitle{flex:1;min-width:120px;display:flex;flex-direction:column;line-height:1.25;overflow:hidden}
+.wbtitle strong{font:800 15px 'Noto Sans Ethiopic',var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wbtitle span{font:600 12px 'Noto Sans Ethiopic',var(--body);color:var(--gold2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wbwrite{background:var(--gold);color:#1A1200;min-height:44px;font-size:15px;padding:0 16px}
+.wbwrite[aria-pressed=true]{background:#16a34a;color:#fff}
+.wbprog{height:4px;background:rgba(0,0,0,.12)}
+.wbprog div{height:100%;width:0;background:linear-gradient(90deg,#16a34a,var(--gold));transition:width .4s}
+
+.wbstage{flex:1;min-height:0;overflow:auto;position:relative;display:flex;justify-content:center;align-items:flex-start;padding:16px 0 24px;-webkit-overflow-scrolling:touch}
+.wbsheet{position:relative;margin:0 auto}
+.wbsheet.turn-next{animation:wbIn .32s ease}
+.wbsheet.turn-prev{animation:wbInP .32s ease}
+@keyframes wbIn{from{opacity:.2;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes wbInP{from{opacity:.2;transform:translateX(-40px)}to{opacity:1;transform:none}}
+.wbside{position:sticky;top:45%;z-index:5;width:52px;height:72px;margin:0 8px;border:0;border-radius:14px;background:rgba(26,24,22,.75);color:#fff;font:700 34px var(--body);cursor:pointer;flex:0 0 auto}
+.wbside:disabled{opacity:.2;cursor:default}
+@media (max-width:700px){.wbside{display:none}.wbstage{padding:6px 4px 16px}}
+
+/* the lesson: one book page rebuilt as web content */
+.lesson{background:#fffdf8;border-radius:22px;box-shadow:0 14px 40px rgba(60,40,10,.14);padding:clamp(18px,4vw,44px) clamp(14px,4vw,48px) 36px;
+  font-family:'Abyssinica SIL','Noto Sans Ethiopic',serif;color:#1F1B16;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.lesson .lh{font:900 clamp(26px,4.4vw,44px)/1.25 'Noto Sans Ethiopic',sans-serif;text-align:center;margin:6px 0 22px;color:#3B2A06}
+.lesson .lh::after{content:'';display:block;width:72px;height:5px;border-radius:5px;background:linear-gradient(90deg,#16a34a,var(--gold));margin:14px auto 0}
+.lesson .ex{display:flex;align-items:center;gap:12px;font:700 clamp(18px,2.6vw,24px)/1.35 'Noto Sans Ethiopic',sans-serif;margin:30px 0 14px;color:#2A2016}
+.lesson .ex:first-child{margin-top:4px}
+.lesson .exn{flex:0 0 auto;width:36px;height:36px;border-radius:50%;background:var(--gold);color:#1A1200;display:inline-flex;align-items:center;justify-content:center;font:800 17px var(--body)}
+.lesson .lp{font-size:clamp(17px,2.3vw,21px);line-height:1.85;margin:0 0 14px;max-width:68ch}
+.lesson .wr{position:relative;margin:0 auto 10px}
+.lesson .wr .ink{position:absolute;inset:0;width:100%;height:100%;touch-action:pan-y pinch-zoom;border-radius:inherit}
+body.writing .lesson .wr .ink{touch-action:none;cursor:crosshair}
+body.writing .lesson .wr{outline:2px dashed rgba(22,163,74,.45);outline-offset:4px}
+
+/* a line to write on (name, school) */
+.lline{display:flex;align-items:flex-end;gap:14px;width:min(560px,100%);height:64px;font:700 22px 'Noto Sans Ethiopic',sans-serif;padding:0 8px 8px}
+.lline i{flex:1;border-bottom:2px solid #6b5f52;height:1px}
+
+/* tables: same rows and columns as the book, sized to the screen */
+.ltable{position:relative;width:var(--w);container-type:inline-size;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 0 0 1.5px #2A2016}
+.ltable.thick{box-shadow:0 0 0 3px #2A2016}
+.ltable .grid{position:absolute;inset:0}
+.ltable .cell{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4%;box-shadow:inset -1px -1px 0 #4a4038;min-width:0;min-height:0;overflow:hidden;
+  line-height:1.15;text-align:center;padding:1% 1.5%}
+.ltable .cell.al{align-items:flex-start;text-align:left;padding-left:3%}
+.ltable .cell.blank{background-image:linear-gradient(transparent calc(100% - 1px),rgba(42,32,22,.06) 0)}
+.ltable .cell img{max-width:100%;max-height:92%;object-fit:contain;border-radius:6px;min-height:0}
+.ltable .cell.trace .ct{color:#c8c2ba!important;-webkit-text-stroke:.012em #a39b91}
+.ltable .cell.outline .ct span,.ltable .cell.outline .ct{color:#fff!important;-webkit-text-stroke:.025em #6b5f52;paint-order:stroke fill}
+.ltable .ct{white-space:nowrap}
+.ltable .cell.al .ct{white-space:normal}
+@media (max-width:640px){.ltable{width:100%}}
+
+.lfig{width:var(--w);border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.08)}
+.lfig img{width:100%;height:auto;display:block}
+@media (max-width:640px){.lfig{width:100%}}
+
+/* tools */
+.wbtools{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:8px 12px;background:#1A1816;border-top:1px solid rgba(255,255,255,.08)}
+.wbtools .sw{width:40px;height:40px;border-radius:50%;border:3px solid transparent;background:var(--c);cursor:pointer;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
+.wbtools .sw.on{border-color:var(--gold);transform:scale(1.1)}
+.wbtools .ic{width:44px;height:44px;color:#F0ECE8;border-color:rgba(255,255,255,.18)}
+.wbtools .ic.on{border-color:var(--gold);color:var(--gold);background:rgba(212,175,55,.14)}
+.wbtools .sep{width:1px;height:28px;background:rgba(255,255,255,.15)}
+.wbtools .inksave{min-width:70px;font:700 13px var(--body);color:#C9C0B6}
+
+.wbfoot{display:flex;align-items:center;gap:12px;padding:8px 14px;padding-bottom:max(8px,env(safe-area-inset-bottom));background:#F7F3EA;border-top:1px solid rgba(0,0,0,.08)}
+.wbfoot input[type=range]{flex:1;accent-color:var(--gold3);min-width:60px;height:32px}
+.wbfoot .count{font-weight:800;color:#5B5145;white-space:nowrap}
+.wbfoot .btn-ghost{color:#5B5145;border-color:rgba(0,0,0,.18)}
+#doneBtn.on{background:#16a34a;color:#fff;border-color:transparent}
+
+/* tap a letter → big on screen */
+.bigl{position:fixed;inset:0;z-index:70;background:rgba(255,253,247,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;cursor:pointer;animation:bigIn .2s ease}
+.bigl div{font:400 min(42vw,46vh) 'Abyssinica SIL','Noto Sans Ethiopic',serif;color:#0E5A2E;line-height:1.1;text-align:center;max-width:94vw;overflow-wrap:anywhere}
+.bigl small{font:700 15px var(--body);color:#8E867D}
+@keyframes bigIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+
+.stars{position:fixed;inset:0;pointer-events:none;z-index:80;overflow:hidden}
+.stars i{position:absolute;left:var(--x);top:-40px;font-size:30px;font-style:normal;animation:fall 1.6s ease-in var(--d) forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(260deg)}}
+
+/* classroom board: the whole page fits the screen, bigger controls */
+body.board .wbtop .lang,body.board #tocBtn{display:none}
+body.board .wbstage{padding:8px 0}
+body.board .lesson{font-size:1.15em}
+body.board .wbtools .sw{width:52px;height:52px}
+body.board .wbtools .ic{width:56px;height:56px;font-size:22px}
+body.board .wbside{width:70px;height:100px;font-size:44px}
+.wbbody .drawer .tlist button.sub{padding-left:28px;font-size:14px}
+@media (prefers-reduced-motion:reduce){.wbsheet.turn-next,.wbsheet.turn-prev,.stars i,.bigl{animation:none}}

@@ -50,6 +50,11 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
       setState(() => _error = 'Legg til en beskrivelse');
       return;
     }
+    // No pin = the business would sit at 0,0 on the map
+    if (_lat == 0 && _lng == 0) {
+      setState(() => _error = 'Bedriften mangler kartposisjon – velg den fra søket');
+      return;
+    }
     setState(() {
       _isLoading = true;
       _error = '';

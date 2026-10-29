@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Yosiefsbook – workbook</title>
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" href="img/yosief-avatar.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Abyssinica+SIL&family=Noto+Serif:ital,wght@0,900;1,900&family=Manrope:wght@500;600;700;800&family=Noto+Sans+Ethiopic:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="books.css?v=7">
+<link rel="stylesheet" href="workbook.css?v=4">
+</head>
+<body class="wbbody">
+<header class="wbtop">
+  <a class="ic" href="./" aria-label="Library">←</a>
+  <button class="btn btn-ghost btn-small" id="tocBtn">☰ <span data-t="contents">Contents</span></button>
+  <div class="wbtitle"><strong id="bookName"></strong><span id="secName"></span></div>
+  <button class="btn btn-small wbwrite" id="writeBtn" aria-pressed="false">✏️ <span id="writeT">Write</span></button>
+  <button class="ic" id="boardBtn" aria-label="Classroom board">🖥</button>
+  <div class="lang" id="lang"></div>
+</header>
+<div class="wbprog" aria-hidden="true"><div id="prog"></div></div>
+
+<aside class="drawer" id="toc" hidden>
+  <div class="dhead"><strong data-t="contents">Contents</strong><button class="ic" id="tocClose" aria-label="Close">✕</button></div>
+  <div class="tlist" id="tlist"></div>
+</aside>
+
+<div class="card" id="msg" style="margin:24px auto;max-width:640px" hidden></div>
+
+<main class="wbstage" id="stage" hidden>
+  <button class="wbside prev" id="prev" aria-label="Previous page">‹</button>
+  <div class="wbsheet" id="sheet" aria-live="polite"></div>
+  <button class="wbside next" id="next" aria-label="Next page">›</button>
+</main>
+
+<!-- writing tools -->
+<div class="wbtools" id="tools" hidden role="toolbar" aria-label="Writing tools">
+  <button class="sw on" data-c="#1a1a1a" style="--c:#1a1a1a" aria-label="Black"></button>
+  <button class="sw" data-c="#1d4ed8" style="--c:#1d4ed8" aria-label="Blue"></button>
+  <button class="sw" data-c="#dc2626" style="--c:#dc2626" aria-label="Red"></button>
+  <button class="sw" data-c="#16a34a" style="--c:#16a34a" aria-label="Green"></button>
+  <button class="sw" data-c="#f59e0b" style="--c:#f59e0b" aria-label="Orange"></button>
+  <span class="sep"></span>
+  <button class="ic on" data-w="4" aria-label="Thin pen">•</button>
+  <button class="ic" data-w="9" aria-label="Thick pen">●</button>
+  <button class="ic" data-w="30" data-hl="1" aria-label="Colour in (wide)">🖍</button>
+  <button class="ic" id="erase" aria-label="Eraser" aria-pressed="false">⌫</button>
+  <span class="sep"></span>
+  <button class="ic" id="undo" aria-label="Undo">↶</button>
+  <button class="ic" id="clear" aria-label="Clear page">🗑</button>
+  <span class="inksave" id="saveState" aria-live="polite"></span>
+</div>
+
+<footer class="wbfoot" id="foot" hidden>
+  <button class="btn btn-ghost btn-small" id="doneBtn">☆ <span data-t="markDone">Finished</span></button>
+  <input type="range" id="slider" min="1" max="1" value="1" aria-label="Go to page">
+  <span class="count" id="count"></span>
+</footer>
+
+<!-- tap a letter: it opens big (for the class) -->
+<div class="bigl" id="big" hidden role="dialog" aria-label="Letter"><div id="bigT"></div><small data-t="tapClose">Tap to close</small></div>
+<div class="wm" id="wm" aria-hidden="true"></div>
+
+<script type="module">
+import { db, storage, onUser, isAdmin, isVerified, emailOf, makeT, applyT, langSwitch, getLang, setLang, esc, toast, ls, keyImgPath } from './common.js';
+import { getDoc, getDocs, collection, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { ref, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
+import { buildPage, attachInk } from './wb.js';
+
+const t = makeT({
+  en: { contents:'Contents', write:'Write', done:'Done', page:'Page', markDone:'Finished', isDone:'Finished ✓', tapClose:'Tap to close',
+    clearQ:'Clear everything you wrote on this page?', saved:'Saved ✓', full:'This page is full – clear some writing.', board:'Classroom board',
+    login:'Please log in in the library first.', toLib:'Open the library', noAccess:'This email does not have access to this book. Enter your code in the library.',
+    empty:'This book has no pages yet.', error:'Something went wrong. Try again.', devT:'This account is already used on 3 devices. Ask the author to reset your devices.',
+    penHint:'Apple Pencil writes at once. Tap ✏️ Write to write with your finger.', welcome:'Welcome back –' },
+  ti: { contents:'ትሕዝቶ', write:'ጽሓፍ', done:'ተወዲኡ', page:'ገጽ', markDone:'ወዲአዮ', isDone:'ተወዲኡ ✓', tapClose:'ንምዕጻው ጠውቕ',
+    clearQ:'ኣብዚ ገጽ ዝጸሓፍካዮ ኩሉ ይደምሰስ?', saved:'ተዓቂቡ ✓', full:'እዚ ገጽ መሊኡ – ገለ ደምስስ።', board:'ሰሌዳ ክፍሊ',
+    login:'በጃኹም ቅድም ኣብ ቤተ-መጻሕፍቲ እተዉ።', toLib:'ቤተ-መጻሕፍቲ ክፈት', noAccess:'እዚ ኢመይል ነዚ መጽሓፍ ፍቓድ የብሉን። ኣብ ቤተ-መጻሕፍቲ ኮድኩም ኣእትዉ።',
+    empty:'ገና ገጻት የለዉን።', error:'ጌጋ ኣጋጢሙ። ደጊምካ ፈትን።', devT:'እዚ ኣካውንት ኣብ 3 መሳርሒታት ድሮ ይጥቀመሉ ኣሎ። ንደራሲ ሕተቱ።',
+    penHint:'Apple Pencil ብቐጥታ ይጽሕፍ። ብኣጻብዕ ንምጽሓፍ ✏️ ጽሓፍ ጠውቕ።', welcome:'እንቋዕ ተመለስካ –' },
+  am: { contents:'ማውጫ', write:'ጻፍ', done:'ጨርሻለሁ', page:'ገጽ', markDone:'ጨርሻለሁ', isDone:'ተጠናቋል ✓', tapClose:'ለመዝጋት ይንኩ',
+    clearQ:'በዚህ ገጽ የጻፉትን ሁሉ ይሰረዝ?', saved:'ተቀምጧል ✓', full:'ይህ ገጽ ሞልቷል – ጥቂት ይሰርዙ።', board:'የክፍል ሰሌዳ',
+    login:'እባክዎ መጀመሪያ በቤተ-መጻሕፍቱ ይግቡ።', toLib:'ቤተ-መጻሕፍቱን ይክፈቱ', noAccess:'ይህ ኢሜይል ለዚህ መጽሐፍ ፈቃድ የለውም። በቤተ-መጻሕፍቱ ኮድዎን ያስገቡ።',
+    empty:'እስካሁን ገጽ የለም።', error:'ስህተት ተፈጥሯል።', devT:'ይህ መለያ በ3 መሣሪያዎች ላይ አስቀድሞ ጥቅም ላይ ውሏል። ደራሲውን ይጠይቁ።',
+    penHint:'Apple Pencil ወዲያው ይጽፋል። በጣት ለመጻፍ ✏️ ጻፍ ይንኩ።', welcome:'እንኳን ደህና መጡ –' }
+});
+const $ = id => document.getElementById(id);
+const bookId = new URLSearchParams(location.search).get('book');
+let user = null, book = null, total = 0, pageNo = 1, writing = false, board = false;
+let order = [];                              // printed page numbers that have content (blank pages are skipped)
+let cur = null;                              // { n, el, fit, ink }
+const pageCache = {}, urlCache = {};
+let done = new Set();
+const pen = { c: '#1a1a1a', w: 4, erase: false };
+
+const imgUrl = k => urlCache[k] || (urlCache[k] = getDownloadURL(ref(storage, keyImgPath(bookId, k))).catch(e => { delete urlCache[k]; throw e; }));
+const real = i => order[i - 1];               // screen page i → printed page number
+const pageRef = i => doc(db, 'books', bookId, 'wpages', String(real(i)).padStart(3, '0'));
+const inkRef = i => doc(db, 'books', bookId, 'ink', emailOf(user), 'pages', String(real(i)));
+const inkKey = i => `hh_wbink_${bookId}_${real(i)}`;
+
+function msg(html) { $('msg').innerHTML = html; $('msg').hidden = false; $('stage').hidden = true; $('foot').hidden = true; }
+function renderStatic() {
+  setLang(getLang()); applyT(t);
+  $('writeT').textContent = t(writing ? 'done' : 'write');
+  $('boardBtn').setAttribute('aria-label', t('board'));
+  if (book) { drawFoot(); renderToc(); }
+}
+langSwitch($('lang'), renderStatic);
+
+// ── access (same rules as the other readers) ──
+async function deviceOk() {
+  if (isAdmin(user)) return true;
+  const email = emailOf(user);
+  try { if ((await getDoc(doc(db, 'authors', email))).exists()) return true; } catch (e) {}
+  let id = ls.get('hh_dev');
+  if (!id) { id = crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now(); ls.set('hh_dev', id); if (ls.get('hh_dev') !== id) return true; }
+  try {
+    const r = doc(db, 'books_devices', email), s = await getDoc(r);
+    const devs = s.exists() ? (s.data().devices || {}) : {};
+    if (devs[id]) return true;
+    if (Object.keys(devs).length >= 3) return false;
+    await setDoc(r, { email, devices: { ...devs, [id]: { addedAt: Date.now(), ua: navigator.userAgent.slice(0, 120) } } });
+  } catch (e) { console.error(e); }
+  return true;
+}
+async function hasAccess() {
+  if (isAdmin(user) || book.authorId === user.uid) return true;
+  const email = emailOf(user);
+  try {
+    if ((await getDoc(doc(db, 'books', bookId, 'access', email))).exists()) return true;
+    return (await getDoc(doc(db, 'books', bookId, 'domains', email.split('@')[1]))).exists();
+  } catch (e) { return false; }
+}
+function watermark(email) {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='360' height='200'><text x='10' y='110' transform='rotate(-20 180 100)' font-family='sans-serif' font-size='16' font-weight='700' fill='%23888'>${email.replace(/[<>&'"]/g, '')} · Yosiefsbook</text></svg>`;
+  $('wm').style.backgroundImage = `url("data:image/svg+xml;utf8,${svg}")`;
+}
+
+async function start() {
+  if (!bookId) { location.href = './'; return; }
+  const libLink = `<p style="margin-top:12px"><a class="btn btn-gold" href="./#library">${esc(t('toLib'))}</a></p>`;
+  if (!isVerified(user)) { msg(`<p>${esc(t('login'))}</p>${libLink}`); return; }
+  try {
+    const b = await getDoc(doc(db, 'books', bookId));
+    if (!b.exists()) { msg(esc(t('noAccess'))); return; }
+    book = { id: b.id, ...b.data() };
+    order = book.wpages || Array.from({ length: book.pageCount || 0 }, (_, i) => i + 1);
+    total = order.length;
+    $('bookName').textContent = book.titleTi || book.title || '';
+    document.title = 'Yosiefsbook – ' + (book.title || '');
+    if (!(await deviceOk())) { msg(esc(t('devT'))); return; }
+    if (!(await hasAccess())) { msg(`<p>${esc(t('noAccess'))}</p>${libLink}`); return; }
+    if (!total) { msg(esc(t('empty'))); return; }
+    try { done = new Set(JSON.parse(ls.get('hh_wbdone_' + bookId) || '[]')); } catch (e) {}
+    watermark(emailOf(user));
+    $('slider').max = total;
+    $('msg').hidden = true; $('stage').hidden = false; $('foot').hidden = false;
+    const want = parseInt(new URLSearchParams(location.search).get('page') || '', 10);
+    const saved = parseInt(ls.get('hh_wbpg_' + bookId) || '1', 10) || 1;
+    renderToc();
+    await show(want || saved);
+    if (!want && saved > 1) toast(`${t('welcome')} ${t('page')} ${saved}`, 2200);
+    if (matchMedia('(pointer:coarse)').matches && !ls.get('hh_penhint')) { ls.set('hh_penhint', '1'); toast(t('penHint'), 5000); }
+  } catch (e) { console.error(e); msg(esc(t('error'))); }
+}
+
+// ── contents: the book's own chapter titles ──
+function renderToc() {
+  const toc = book.toc || [];
+  const here = real(pageNo), idx = x => Math.max(1, order.findIndex(p => p >= x.n) + 1);
+  $('tlist').innerHTML = toc.map(x => `<button class="${x.n <= here && !(toc.find(y => y.n > x.n && y.n <= here)) ? 'on' : ''} ${x.lvl ? 'sub' : ''}" data-p="${idx(x)}">
+    <span class="num">${idx(x)}</span><span>${esc(x.t)}</span></button>`).join('') || `<p class="note" style="padding:16px">${total} ${esc(t('page'))}</p>`;
+  $('tlist').querySelectorAll('button').forEach(b => b.onclick = () => { closeToc(); show(+b.dataset.p); });
+}
+function openToc() { $('toc').hidden = false; requestAnimationFrame(() => $('toc').classList.add('open')); }
+function closeToc() { $('toc').classList.remove('open'); setTimeout(() => $('toc').hidden = true, 250); }
+$('tocBtn').onclick = openToc; $('tocClose').onclick = closeToc;
+function sectionOf(i) { let s = ''; for (const x of (book.toc || [])) if (x.n <= real(i)) s = x.t; return s; }
+
+// ── pages ──
+function loadPage(n) {
+  return pageCache[n] || (pageCache[n] = getDoc(pageRef(n)).then(d => { if (!d.exists()) throw new Error('missing page ' + n); const x = d.data(); return x.j ? JSON.parse(x.j) : x; })
+    .catch(e => { delete pageCache[n]; throw e; }));
+}
+let showing = 0;
+async function show(n) {
+  n = Math.min(Math.max(1, n), total);
+  const my = ++showing;
+  await flushInk();
+  let data;
+  try { data = await loadPage(n); } catch (e) { console.error(e); toast(t('error')); return; }
+  if (my !== showing) return;
+  const dir = n > pageNo ? 'turn-next' : n < pageNo ? 'turn-prev' : '';
+  pageNo = n;
+  const { el, blocks } = buildPage(data, imgUrl);
+  // writing: each table and picture has its own layer, so it stays in place when the lesson reflows
+  const store = readLocalInk(n), history = [];
+  const inks = blocks.map(bEl => {
+    const bi = bEl.dataset.b;
+    return attachInk(bEl, {
+      strokes: store[bi] || (store[bi] = []), pen: () => pen,
+      canWrite: type => type === 'pen' || writing,
+      onStroke: () => { history.push(bi); markInk(n, store); }
+    });
+  });
+  const ink = {
+    store, history,
+    size() { inks.forEach(i => i.size()); },
+    undo() { const bi = history.pop() ?? Object.keys(store).reverse().find(k => store[k].length); if (bi == null || !store[bi].length) return false;
+      store[bi].pop(); inks[blocks.findIndex(b => b.dataset.b === String(bi))].paint(); return true; },
+    clear() { Object.keys(store).forEach(k => { store[k].length = 0; }); inks.forEach(i => i.paint()); history.length = 0; },
+    any() { return Object.values(store).some(a => a.length); },
+    load(obj) { Object.keys(store).forEach(k => { store[k].length = 0; }); Object.entries(obj || {}).forEach(([k, a]) => { (store[k] = store[k] || []).push(...a); }); inks.forEach(i => i.paint()); }
+  };
+  el.addEventListener('click', e => {           // tap a cell or heading with letters → show it big
+    if (writing || e.pointerType === 'pen') return;
+    const s = [...el.querySelectorAll('.cell.has, .lh, .ex')].find(x => {
+      const r = x.getBoundingClientRect();
+      return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    });
+    const txt = s && (s.querySelector('.ct') || s).textContent.trim();
+    if (!txt) return;
+    $('bigT').textContent = txt.replace(/^\d+(?=\D)/, s.classList.contains('ex') ? '' : '$&'); $('big').hidden = false;
+  });
+  $('sheet').replaceChildren(el);
+  if (dir) { $('sheet').classList.remove('turn-next', 'turn-prev'); void $('sheet').offsetWidth; $('sheet').classList.add(dir); }
+  cur = { n, el, ink };
+  layout();
+  loadRemoteInk(n);
+  ls.set('hh_wbpg_' + bookId, String(n));
+  drawFoot(); renderToc();
+  $('stage').scrollTop = 0;
+  [n + 1, n + 2].forEach(p => { if (p <= total) loadPage(p).catch(() => {}); });
+  saveProgress(n);
+}
+// page size: fill the width on iPad/phone; in board mode fit the whole page on screen
+function layout() {
+  if (!cur) return;
+  const W = $('stage').clientWidth - (innerWidth < 700 ? 8 : 120);
+  $('sheet').style.width = Math.max(240, Math.min(W, board ? 1500 : 940)) + 'px';
+  requestAnimationFrame(() => { if (cur) cur.ink.size(); });
+}
+new ResizeObserver(() => layout()).observe($('stage'));
+
+function drawFoot() {
+  $('count').textContent = `${t('page')} ${pageNo} / ${total}`;
+  $('slider').value = pageNo;
+  $('prev').disabled = pageNo <= 1; $('next').disabled = pageNo >= total;
+  $('prog').style.width = (done.size / total * 100) + '%';
+  const d = done.has(real(pageNo));
+  $('doneBtn').classList.toggle('on', d);
+  $('doneBtn').innerHTML = d ? `★ <span>${esc(t('isDone'))}</span>` : `☆ <span>${esc(t('markDone'))}</span>`;
+  $('secName').textContent = sectionOf(pageNo);
+}
+$('prev').onclick = () => show(pageNo - 1);
+$('next').onclick = () => show(pageNo + 1);
+$('slider').onchange = e => show(+e.target.value);
+$('doneBtn').onclick = () => {
+  const rp = real(pageNo);
+  if (done.has(rp)) done.delete(rp); else { done.add(rp); stars(); }
+  ls.set('hh_wbdone_' + bookId, JSON.stringify([...done])); drawFoot();
+};
+$('big').onclick = () => { $('big').hidden = true; };
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || !book) return;
+  if (!$('big').hidden && (e.key === 'Escape' || e.key === ' ')) { e.preventDefault(); $('big').hidden = true; return; }
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); show(pageNo + 1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(pageNo - 1); }
+  else if ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); undo(); }
+  else if (e.key === 'b') $('boardBtn').click();
+});
+// swipe to turn the page (only while not writing)
+let sx = null, sy = null;
+$('stage').addEventListener('pointerdown', e => { if (e.pointerType === 'touch' && !writing) { sx = e.clientX; sy = e.clientY; } });
+$('stage').addEventListener('pointerup', e => {
+  if (sx == null) return;
+  const dx = e.clientX - sx, dy = e.clientY - sy; sx = null;
+  if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5) show(pageNo + (dx < 0 ? 1 : -1));
+});
+
+// ── writing ──
+function setWriting(on) {
+  writing = on;
+  document.body.classList.toggle('writing', on);
+  $('tools').hidden = !on && !board;
+  $('writeBtn').setAttribute('aria-pressed', on ? 'true' : 'false');
+  $('writeT').textContent = t(on ? 'done' : 'write');
+  if (!on) flushInk();
+}
+$('writeBtn').onclick = () => setWriting(!writing);
+// Apple Pencil writes without pressing Write: show the tools when it touches the page
+document.addEventListener('pointerdown', e => { if (e.pointerType === 'pen' && e.target.classList.contains('ink')) $('tools').hidden = false; }, true);
+function penMode(erase) { pen.erase = erase; $('erase').classList.toggle('on', erase); $('erase').setAttribute('aria-pressed', erase ? 'true' : 'false'); }
+document.querySelectorAll('#tools .sw').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#tools .sw').forEach(x => x.classList.toggle('on', x === b)); pen.c = b.dataset.c; penMode(false);
+});
+document.querySelectorAll('#tools [data-w]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#tools [data-w]').forEach(x => x.classList.toggle('on', x === b)); pen.w = +b.dataset.w; penMode(false);
+});
+$('erase').onclick = () => penMode(!pen.erase);
+function undo() { if (cur && cur.ink.undo()) markInk(cur.n, cur.ink.store); }
+$('undo').onclick = undo;
+$('clear').onclick = () => {
+  if (!cur || !cur.ink.any() || !confirm(t('clearQ'))) return;
+  cur.ink.clear(); markInk(cur.n, cur.ink.store);
+};
+
+// saved at once on this device, and to the reader's account (follows to other devices)
+let dirty = new Map(), inkTimer = null;
+// ink of one page = { blockIndex: [strokes] }
+function readLocalInk(n) {
+  try { const s = (JSON.parse(ls.get(inkKey(n)) || 'null') || {}).s; return s && !Array.isArray(s) ? s : {}; } catch (e) { return {}; }
+}
+function markInk(n, s) {
+  ls.set(inkKey(n), JSON.stringify({ t: Date.now(), s }));
+  dirty.set(n, s); $('saveState').textContent = '…';
+  clearTimeout(inkTimer); inkTimer = setTimeout(flushInk, 2500);
+}
+async function flushInk() {
+  clearTimeout(inkTimer);
+  if (!dirty.size || !isVerified(user)) return;
+  const items = [...dirty]; dirty.clear();
+  let failed = false;
+  for (const [n, s] of items) {
+    const str = JSON.stringify(s);
+    if (str.length > 900000) { toast(t('full')); continue; }
+    try { await setDoc(inkRef(n), { s: str, t: Date.now(), updatedAt: serverTimestamp() }); }
+    catch (e) { console.error(e); failed = true; if (!dirty.has(n)) dirty.set(n, s); }
+  }
+  $('saveState').textContent = failed ? '' : t('saved');
+}
+async function loadRemoteInk(n) {
+  try {
+    const r = await getDoc(inkRef(n));
+    if (!r.exists() || dirty.has(n)) return;
+    let local = null; try { local = JSON.parse(ls.get(inkKey(n)) || 'null'); } catch (e) {}
+    if (local && (local.t || 0) >= (r.data().t || 0)) return;
+    const s = JSON.parse(r.data().s || '{}');
+    if (Array.isArray(s)) return;
+    ls.set(inkKey(n), JSON.stringify({ t: r.data().t || Date.now(), s }));
+    if (cur && cur.n === n) cur.ink.load(s);
+  } catch (e) { /* offline: keep this device's copy */ }
+}
+addEventListener('pagehide', () => flushInk());
+document.addEventListener('visibilitychange', () => { if (document.hidden) flushInk(); });
+
+async function saveProgress(n) {
+  try { await setDoc(doc(db, 'books', bookId, 'reads', emailOf(user)), { email: emailOf(user), lastPage: n, updatedAt: serverTimestamp() }); } catch (e) {}
+}
+
+// ── classroom board: whole page on screen, big pen, tools always open ──
+$('boardBtn').onclick = () => {
+  board = !board;
+  document.body.classList.toggle('board', board);
+  $('boardBtn').classList.toggle('on', board);
+  if (board) {
+    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+    if (pen.w < 9) document.querySelector('#tools [data-w="9"]').click();
+  } else if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  $('tools').hidden = !board && !writing;
+  layout();
+};
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && board) { board = false; document.body.classList.remove('board'); $('boardBtn').classList.remove('on'); $('tools').hidden = !writing; layout(); }
+});
+
+function stars() {
+  const box = document.createElement('div'); box.className = 'stars'; box.setAttribute('aria-hidden', 'true');
+  box.innerHTML = Array.from({ length: 14 }, (_, i) => `<i style="--x:${Math.random() * 100}vw;--d:${(Math.random() * .5).toFixed(2)}s">${i % 3 ? '⭐' : '✨'}</i>`).join('');
+  document.body.appendChild(box); setTimeout(() => box.remove(), 1800);
+}
+
+renderStatic();
+onUser(u => { user = u; start(); });
+</script>
+</body>
+</html>

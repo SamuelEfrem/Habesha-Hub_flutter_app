@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yosiefsbook – author page</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,900;1,900&family=Manrope:wght@500;600;700;800&family=Noto+Sans+Ethiopic:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="books.css?v=6">
+</head>
+<body class="light">
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="./"><img src="img/yosief-avatar.svg" alt=""><span>Yosiefsbook</span> <small data-t="authorPage">Author page</small></a>
+    <div class="spacer"></div>
+    <span class="who" id="who"></span>
+    <button class="btn btn-ghost btn-small" id="logoutBtn" hidden data-t="logout">Log out</button>
+    <div class="lang" id="lang"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1><span data-t="h1a">My books</span> <em>Yosiefsbook</em></h1>
+    <p data-t="lead">Upload your books, choose who can read them, and see who has opened them.</p>
+  </section>
+
+  <form class="card login" id="loginForm" hidden>
+    <strong id="loginTitle" data-t="loginTitle">Log in with your email</strong>
+    <div class="row">
+      <input type="email" id="loginEmail" required autocomplete="email" placeholder="your@email.com" aria-label="Email">
+      <button class="btn btn-gold" id="loginBtn" type="submit" data-t="sendLink">Send login link</button>
+    </div>
+    <p class="note" id="loginMsg" data-t="loginNote">We send you a link. No password needed.</p>
+  </form>
+
+  <div class="card" id="notAuthor" hidden>
+    <strong data-t="notAuthorT">You are not an author yet</strong>
+    <p class="note" data-t="notAuthorP">Ask Habesha Hub to make you an author: support@habesha-hub.no</p>
+  </div>
+
+  <!-- admin: manage authors -->
+  <section class="section" id="adminBox" hidden>
+    <h2 data-t="authorsT">Authors (admin)</h2>
+    <form class="card stack" id="authorForm">
+      <div class="two">
+        <label class="f"><span data-t="email">Email</span><input type="email" id="aEmail" required></label>
+        <label class="f"><span data-t="name">Name</span><input type="text" id="aName" required></label>
+      </div>
+      <div><button class="btn btn-gold" type="submit" data-t="makeAuthor">Make author</button></div>
+      <div class="list" id="authorList"></div>
+    </form>
+  </section>
+
+  <!-- author -->
+  <div id="authorBox" hidden>
+    <section class="section">
+      <h2 data-t="newBook">Add a new book</h2>
+      <form class="card stack" id="newForm">
+        <div class="two">
+          <label class="f"><span data-t="title">Title</span><input type="text" id="nTitle" required maxlength="120"></label>
+          <label class="f"><span data-t="titleTi">Title in Tigrinya</span><input type="text" id="nTitleTi" maxlength="120"></label>
+          <label class="f"><span data-t="authorName">Author name shown to readers</span><input type="text" id="nAuthor" required maxlength="80"></label>
+          <label class="f"><span data-t="age">Age group</span><input type="text" id="nAge" placeholder="4–7" maxlength="20"></label>
+        </div>
+        <label class="f"><span data-t="desc">Short description</span><textarea id="nDesc" maxlength="1000"></textarea></label>
+        <fieldset class="booktype">
+          <legend>Book type</legend>
+          <label><input type="radio" name="ntype" value="lessons" checked> <b>✨ Interactive lessons</b> <small>– a web book: tap to hear, games, tracing. You build lessons in the editor.</small></label>
+          <label><input type="radio" name="ntype" value="pdf"> <b>📄 PDF</b> <small>– upload the book file; pages are shown as a flip book.</small></label>
+        </fieldset>
+        <div class="two">
+          <label class="f" id="nFileWrap"><span data-t="fileT">Book file: one PDF, or page pictures (JPG/PNG, in page order)</span>
+            <input type="file" id="nFile" accept="application/pdf,image/jpeg,image/png,image/webp" multiple></label>
+          <label class="f"><span data-t="coverT">Cover picture (optional – otherwise page 1)</span>
+            <input type="file" id="nCover" accept="image/jpeg,image/png,image/webp"></label>
+        </div>
+        <progress id="nProg" value="0" max="1" hidden></progress>
+        <p class="note" id="nMsg"></p>
+        <div><button class="btn btn-gold" id="nBtn" type="submit" data-t="upload">Upload book</button></div>
+      </form>
+    </section>
+
+    <section class="section">
+      <h2 data-t="devSecT">Reader devices</h2>
+      <form class="card stack" id="devForm">
+        <p class="note" data-t="devSecP">Each reader can use max 3 devices. If someone gets a new phone, reset their devices here.</p>
+        <div class="login" style="margin:0;max-width:none"><div class="row">
+          <input type="email" id="devEmail" required placeholder="reader@email.com" aria-label="Reader email">
+          <button class="btn btn-ghost" type="submit" data-t="devShow">Show devices</button>
+        </div></div>
+        <div class="list" id="devList"></div>
+      </form>
+    </section>
+
+    <section class="section">
+      <h2 id="booksT" data-t="myBooks">My books</h2>
+      <div class="stack" id="bookList"></div>
+    </section>
+  </div>
+</main>
+
+<script type="module">
+import { auth, db, storage, onUser, logout, sendLoginLink, finishLoginFromLink, isAdmin, isVerified, emailOf,
+  makeT, applyT, langSwitch, getLang, setLang, esc, pagePath, toast, EMAIL_RE } from './common.js';
+import { collection, query, where, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
+import { audioPath } from './common.js';
+import { arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+const t = makeT({
+  en: { authorPage:'Author page', logout:'Log out', h1a:'My books', h1b:'Habesha Books',
+    lead:'Upload your books, choose who can read them, and see who has opened them.',
+    loginTitle:'Log in with your email', confirmTitle:'Confirm your email to finish logging in', sendLink:'Send login link', cont:'Continue',
+    loginNote:'We send you a link. No password needed.', sent:'Check your email and click the link. Look in spam too.', badEmail:'Write a valid email address.',
+    notAuthorT:'You are not an author yet', notAuthorP:'Ask Habesha Hub to make you an author: support@habesha-hub.no',
+    authorsT:'Authors (admin)', email:'Email', name:'Name', makeAuthor:'Make author', remove:'Remove',
+    newBook:'Add a new book', title:'Title', titleTi:'Title in Tigrinya', authorName:'Author name shown to readers', age:'Age group',
+    desc:'Short description', fileT:'Book file: one PDF, or page pictures (JPG/PNG, in page order)', coverT:'Cover picture (optional – otherwise page 1)',
+    upload:'Upload book', myBooks:'My books', allBooks:'All books (admin)', none:'No books yet. Add your first book above.',
+    draft:'Hidden', live:'Visible', publish:'Make visible', unpublish:'Hide', preview:'Open reader', del:'Delete book',
+    pages:'pages', readersT:'Who can read', addEmails:'Paste emails (one per line, or separated by comma)', add:'Add',
+    domainT:'Whole school (email domain, e.g. school.se)', addDomain:'Add domain', publicDomain:'Use a school domain, not gmail/hotmail etc.',
+    opened:'Who has opened it', never:'Nobody yet', page:'page', replace:'Replace pages', editInfo:'Edit info', save:'Save',
+    working:'Working… keep this page open.', done:'Done!', error:'Something went wrong. Try again.', confirmDel:'Delete this book and all its pages? This cannot be undone.',
+    added:'added', tooMany:'Max 300 pages.', readers:'readers', domains:'domains',
+    soundT:'🔊 Sound per page', pageNo:'Page number', afile:'Or choose a sound file (mp3, m4a, wav)', rec:'🎙 Record', recStop:'⏹ Stop and save',
+    aup:'Upload sound', recording:'Recording… speak now', noMic:'Microphone not allowed. Allow it in the browser and try again.', play:'▶ Play', noSound:'No sounds yet.',
+    badPage:'Choose a page between 1 and the last page.',
+    codesT:'🎟 Unlock codes for printed books', codesP:'Make one code per printed book. Print them, cut them out and put one inside each book. Each code works once.',
+    howMany:'How many codes?', makeCodes:'Create codes', printCodes:'🖨 Print unused codes', unused:'unused', usedBy:'used by',
+    codesMade:'codes created', noCodes:'No codes yet.', devSecT:'Reader devices', devSecP:'Each reader can use max 3 devices. If someone gets a new phone, reset their devices here.',
+    devShow:'Show devices', devNone:'No devices registered for this email.', devReset:'Reset all devices', devDone:'Devices reset.' },
+  ti: { authorPage:'ገጽ ደራሲ', logout:'ውጻእ', h1a:'መጻሕፍተይ', h1b:'ሓበሻ መጻሕፍቲ',
+    lead:'መጻሕፍትኻ ጽዓን፡ መን ከንብቦም ከም ዝኽእል ምረጽ፡ መን ከም ዝኸፈቶም ርአ።',
+    loginTitle:'ብኢመይልካ እቶ', confirmTitle:'ምእታው ንምውዳእ ኢመይልካ ኣረጋግጽ', sendLink:'መእተዊ ሊንክ ስደድ', cont:'ቀጽል',
+    loginNote:'ሊንክ ንሰደልካ። ፓስዎርድ ኣየድልን።', sent:'ኢመይልካ ርአ እሞ ነቲ ሊንክ ጠውቕ። ኣብ spam’ውን ርአ።', badEmail:'ቅኑዕ ኢመይል ጸሓፍ።',
+    notAuthorT:'ገና ደራሲ ኣይኮንካን', notAuthorP:'ደራሲ ክትከውን ንሓበሻ ሃብ ሕተት፥ support@habesha-hub.no',
+    newBook:'ሓድሽ መጽሓፍ ወስኽ', title:'ኣርእስቲ', titleTi:'ኣርእስቲ ብትግርኛ', authorName:'ሽም ደራሲ', age:'ዕድመ',
+    desc:'ሓጺር መግለጺ', upload:'መጽሓፍ ጽዓን', myBooks:'መጻሕፍተይ', none:'ገና መጽሓፍ የለን።',
+    draft:'ሕቡእ', live:'ዝረአ', publish:'ኣርእይ', unpublish:'ሕባእ', preview:'ኣንብብ', del:'መጽሓፍ ደምስስ', pages:'ገጻት',
+    readersT:'መን ከንብብ ይኽእል', add:'ወስኽ', opened:'መን ከፊትዎ', never:'ገና ሰብ የለን', page:'ገጽ', save:'ዓቅብ',
+    working:'ይሰርሕ ኣሎ… ነዚ ገጽ ኣይትዕጸዎ።', done:'ተወዲኡ!', error:'ጌጋ ኣጋጢሙ። ደጊምካ ፈትን።', remove:'ኣወግድ',
+    soundT:'🔊 ድምጺ ንነፍሲ ወከፍ ገጽ', pageNo:'ቁጽሪ ገጽ', rec:'🎙 ቅዳሕ', recStop:'⏹ ደው ኣብልን ዓቅብን', recording:'ይቕዳሕ ኣሎ… ሕጂ ተዛረብ', play:'▶ ስማዕ', noSound:'ገና ድምጺ የለን።' }
+});
+
+const $ = id => document.getElementById(id);
+const PUBLIC_DOMAINS = ['gmail.com','googlemail.com','hotmail.com','hotmail.se','hotmail.no','outlook.com','outlook.se','live.com','live.se',
+  'yahoo.com','yahoo.se','icloud.com','me.com','msn.com','aol.com','proton.me','protonmail.com','gmx.com','gmx.de','mail.com','yandex.com','telia.com','online.no'];
+let user = null, authorName = '', confirmResolve = null, books = [];
+
+function renderStatic() {
+  setLang(getLang()); applyT(t);
+  $('loginTitle').textContent = t(confirmResolve ? 'confirmTitle' : 'loginTitle');
+  $('loginBtn').textContent = t(confirmResolve ? 'cont' : 'sendLink');
+  if (isAdmin(user)) $('booksT').textContent = t('allBooks');
+  renderBooks();
+}
+langSwitch($('lang'), renderStatic);
+
+// ── login ──
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('loginEmail').value.trim();
+  if (!EMAIL_RE.test(email)) { msg($('loginMsg'), t('badEmail'), 'err'); return; }
+  if (confirmResolve) { const r = confirmResolve; confirmResolve = null; r(email); return; }
+  $('loginBtn').disabled = true;
+  try { await sendLoginLink(email); msg($('loginMsg'), t('sent'), 'ok'); }
+  catch (err) { console.error(err); msg($('loginMsg'), t('error') + ' (' + (err.code || err.message) + ')', 'err'); }
+  finally { $('loginBtn').disabled = false; }
+});
+function askEmail() { return new Promise(res => { confirmResolve = res; $('loginForm').hidden = false; renderStatic(); }); }
+$('logoutBtn').onclick = () => logout();
+function msg(el, text, cls = '') { el.textContent = text; el.className = 'note ' + cls; }
+
+// ── admin: authors ──
+async function loadAuthors() {
+  const snap = await getDocs(collection(db, 'authors'));
+  $('authorList').innerHTML = snap.docs.map(d => `<div class="it"><span>${esc(d.data().name || '')} <small>${esc(d.id)}</small></span>
+    <button type="button" class="btn btn-danger btn-small" data-rm-author="${esc(d.id)}">${esc(t('remove'))}</button></div>`).join('');
+  $('authorList').querySelectorAll('[data-rm-author]').forEach(b => b.onclick = async () => {
+    await deleteDoc(doc(db, 'authors', b.dataset.rmAuthor)); loadAuthors();
+  });
+}
+$('authorForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('aEmail').value.trim().toLowerCase(), name = $('aName').value.trim();
+  if (!EMAIL_RE.test(email)) { toast(t('badEmail')); return; }
+  try {
+    await setDoc(doc(db, 'authors', email), { email, name, addedAt: serverTimestamp() });
+    $('aEmail').value = ''; $('aName').value = ''; toast(name + ' ✓'); loadAuthors();
+  } catch (err) { console.error(err); toast(t('error')); }
+});
+
+// ── images: PDF / pictures → JPEG pages ──
+let pdfjsReady = null;
+function loadPdfJs() {
+  if (!pdfjsReady) pdfjsReady = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; res(window.pdfjsLib); };
+    s.onerror = rej; document.head.appendChild(s);
+  });
+  return pdfjsReady;
+}
+const toBlob = (c, q = 0.85) => new Promise(r => c.toBlob(r, 'image/jpeg', q));
+function scaledCanvas(src, w, h, maxW) {
+  const s = Math.min(1, maxW / w), c = document.createElement('canvas');
+  c.width = Math.round(w * s); c.height = Math.round(h * s);
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+  x.drawImage(src, 0, 0, c.width, c.height); return c;
+}
+/** Yields one canvas per page */
+async function* pageCanvases(files) {
+  const pdf = files.find(f => f.type === 'application/pdf');
+  if (pdf) {
+    const lib = await loadPdfJs();
+    const d = await lib.getDocument({ data: await pdf.arrayBuffer() }).promise;
+    if (d.numPages > 300) throw new Error(t('tooMany'));
+    for (let i = 1; i <= d.numPages; i++) {
+      const p = await d.getPage(i), v0 = p.getViewport({ scale: 1 });
+      const v = p.getViewport({ scale: Math.min(3, 1600 / v0.width) });
+      const c = document.createElement('canvas'); c.width = Math.round(v.width); c.height = Math.round(v.height);
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+      await p.render({ canvasContext: x, viewport: v }).promise;
+      yield { c, n: i, total: d.numPages };
+    }
+  } else {
+    const imgs = files.filter(f => f.type.startsWith('image/')).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    if (imgs.length > 300) throw new Error(t('tooMany'));
+    for (let i = 0; i < imgs.length; i++) {
+      const bm = await createImageBitmap(imgs[i]);
+      yield { c: scaledCanvas(bm, bm.width, bm.height, 1600), n: i + 1, total: imgs.length };
+    }
+  }
+}
+async function uploadCover(bookId, canvasOrFile) {
+  let c = canvasOrFile;
+  if (canvasOrFile instanceof File) { const bm = await createImageBitmap(canvasOrFile); c = scaledCanvas(bm, bm.width, bm.height, 700); }
+  else c = scaledCanvas(c, c.width, c.height, 700);
+  const r = ref(storage, `book_covers/${bookId}/cover.jpg`);
+  await uploadBytes(r, await toBlob(c, 0.82), { contentType: 'image/jpeg' });
+  return await getDownloadURL(r);
+}
+/** Upload all pages, returns { count, cover } */
+async function uploadPages(bookId, files, coverFile, oldCount, prog, note) {
+  prog.hidden = false; prog.value = 0; msg(note, t('working'));
+  let count = 0, cover = null;
+  for await (const { c, n, total } of pageCanvases(files)) {
+    await uploadBytes(ref(storage, pagePath(bookId, n)), await toBlob(c), { contentType: 'image/jpeg' });
+    if (n === 1) cover = await uploadCover(bookId, coverFile || c);
+    count = n; prog.max = total; prog.value = n;
+    note.textContent = `${t('working')} ${n} / ${total}`;
+  }
+  for (let n = count + 1; n <= (oldCount || 0); n++) { try { await deleteObject(ref(storage, pagePath(bookId, n))); } catch (e) {} }
+  return { count, cover };
+}
+
+// ── new book ──
+document.querySelectorAll('[name=ntype]').forEach(r => r.onchange = () => {
+  $('nFileWrap').hidden = document.querySelector('[name=ntype]:checked').value === 'lessons';
+  $('nBtn').textContent = $('nFileWrap').hidden ? '✨ Create book and open editor' : t('upload');
+});
+$('nFileWrap').hidden = true;
+$('newForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const files = [...$('nFile').files];
+  const lessonsType = document.querySelector('[name=ntype]:checked').value === 'lessons';
+  if (!lessonsType && !files.length) { msg($('nMsg'), 'Choose the PDF file.', 'err'); return; }
+  $('nBtn').disabled = true;
+  try {
+    const bRef = doc(collection(db, 'books'));
+    const email = emailOf(user);
+    await setDoc(bRef, {
+      title: $('nTitle').value.trim(), titleTi: $('nTitleTi').value.trim(), authorName: $('nAuthor').value.trim(),
+      age: $('nAge').value.trim(), description: $('nDesc').value.trim(), language: 'ti',
+      authorId: user.uid, authorEmail: email, published: false, pageCount: 0, cover: '',
+      format: lessonsType ? 'lessons' : 'pdf', lessonCount: 0,
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    });
+    // the author can always read their own book
+    await setDoc(doc(db, 'books', bRef.id, 'access', email), { email, note: 'author', addedAt: serverTimestamp() });
+    if (lessonsType) {
+      const cf = $('nCover').files[0];
+      if (cf) await updateDoc(bRef, { cover: await uploadCover(bRef.id, cf) });
+      location.href = 'editor.html?book=' + encodeURIComponent(bRef.id);
+      return;
+    }
+    const { count, cover } = await uploadPages(bRef.id, files, $('nCover').files[0], 0, $('nProg'), $('nMsg'));
+    await updateDoc(bRef, { pageCount: count, cover, updatedAt: serverTimestamp() });
+    msg($('nMsg'), t('done') + ` ${count} ${t('pages')}.`, 'ok');
+    $('newForm').reset(); $('nAuthor').value = authorName; $('nProg').hidden = true;
+    loadBooks();
+  } catch (err) { console.error(err); msg($('nMsg'), (err && err.message === t('tooMany')) ? t('tooMany') : t('error'), 'err'); }
+  finally { $('nBtn').disabled = false; }
+});
+
+// ── my books ──
+async function loadBooks() {
+  const q = isAdmin(user) ? collection(db, 'books') : query(collection(db, 'books'), where('authorId', '==', user.uid));
+  const snap = await getDocs(q);
+  books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  books.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+  renderBooks();
+}
+function renderBooks() {
+  const el = $('bookList');
+  if (!user || $('authorBox').hidden) return;
+  if (!books.length) { el.innerHTML = `<p class="empty">${esc(t('none'))}</p>`; return; }
+  el.innerHTML = books.map(b => `<article class="card mybook" data-id="${esc(b.id)}">
+    <div class="thumb">${b.cover ? `<img src="${esc(b.cover)}" alt="">` : ''}</div>
+    <div class="stack">
+      <div><strong style="font-size:18px">${esc(b.title)}</strong> ${b.titleTi ? `<span class="ti" style="color:var(--gold)">· ${esc(b.titleTi)}</span>` : ''}
+        <div class="note">${b.format === 'lessons' ? `✨ ${b.lessonCount || 0} lessons` : `${b.pageCount || 0} ${esc(t('pages'))}`} · <span class="pill ${b.published ? 'live' : ''}">${esc(t(b.published ? 'live' : 'draft'))}</span>
+        ${isAdmin(user) ? ` · <small>${esc(b.authorEmail || '')}</small>` : ''}</div></div>
+      <div class="btnrow">
+        <button class="btn btn-gold btn-small" data-act="pub">${esc(t(b.published ? 'unpublish' : 'publish'))}</button>
+        ${b.format === 'lessons'
+          ? `<a class="btn btn-gold btn-small" href="editor.html?book=${encodeURIComponent(b.id)}">✏️ Edit lessons</a>
+             <a class="btn btn-ghost btn-small" href="learn.html?book=${encodeURIComponent(b.id)}">${esc(t('preview'))}</a>`
+          : b.format === 'workbook'
+          ? `<a class="btn btn-gold btn-small" href="workbook.html?book=${encodeURIComponent(b.id)}">✏️ ${esc(t('preview'))}</a>`
+          : `<a class="btn btn-ghost btn-small" href="./?book=${encodeURIComponent(b.id)}">${esc(t('preview'))}</a>`}
+      </div>
+      <details class="box" data-sec="access"><summary>${esc(t('readersT'))}</summary>
+        <div class="stack" style="margin-top:10px">
+          <label class="f"><span>${esc(t('addEmails'))}</span><textarea data-f="emails" placeholder="anna@school.se&#10;family@gmail.com"></textarea></label>
+          <div><button class="btn btn-gold btn-small" data-act="addEmails">${esc(t('add'))}</button></div>
+          <label class="f"><span>${esc(t('domainT'))}</span><input type="text" data-f="domain" placeholder="school.se"></label>
+          <div><button class="btn btn-ghost btn-small" data-act="addDomain">${esc(t('addDomain'))}</button></div>
+          <div class="list" data-list="access"></div>
+        </div>
+      </details>
+      <details class="box" data-sec="audio" ${b.format === 'lessons' ? 'hidden' : ''}><summary>${esc(t('soundT'))}</summary>
+        <div class="stack" style="margin-top:10px">
+          <div class="two">
+            <label class="f"><span>${esc(t('pageNo'))}</span><input type="number" min="1" max="${b.pageCount || 1}" value="1" data-f="apage"></label>
+            <label class="f"><span>${esc(t('afile'))}</span><input type="file" accept="audio/*" data-f="afile"></label>
+          </div>
+          <div class="btnrow"><button class="btn btn-gold btn-small" data-act="rec">${esc(t('rec'))}</button>
+            <button class="btn btn-ghost btn-small" data-act="aup">${esc(t('aup'))}</button></div>
+          <p class="note" data-f="anote"></p>
+          <div class="list" data-list="audio"></div>
+        </div>
+      </details>
+      <details class="box" data-sec="codes"><summary>${esc(t('codesT'))}</summary>
+        <div class="stack" style="margin-top:10px">
+          <p class="note">${esc(t('codesP'))}</p>
+          <div class="btnrow" style="align-items:flex-end">
+            <label class="f" style="width:130px"><span>${esc(t('howMany'))}</span><input type="number" min="1" max="500" value="20" data-f="ncodes"></label>
+            <button class="btn btn-gold btn-small" data-act="mkcodes">${esc(t('makeCodes'))}</button>
+            <button class="btn btn-ghost btn-small" data-act="prcodes">${esc(t('printCodes'))}</button>
+          </div>
+          <div class="list" data-list="codes"></div>
+        </div>
+      </details>
+      <details class="box" data-sec="reads"><summary>${esc(t('opened'))}</summary><div class="list" data-list="reads"></div></details>
+      <details class="box"><summary>${esc(t('editInfo'))} / ${esc(t('replace'))}</summary>
+        <div class="stack" style="margin-top:10px">
+          <div class="two">
+            <label class="f"><span>${esc(t('title'))}</span><input type="text" data-f="title" value="${esc(b.title)}" maxlength="120"></label>
+            <label class="f"><span>${esc(t('titleTi'))}</span><input type="text" data-f="titleTi" value="${esc(b.titleTi || '')}" maxlength="120"></label>
+            <label class="f"><span>${esc(t('authorName'))}</span><input type="text" data-f="authorName" value="${esc(b.authorName || '')}" maxlength="80"></label>
+            <label class="f"><span>${esc(t('age'))}</span><input type="text" data-f="age" value="${esc(b.age || '')}" maxlength="20"></label>
+          </div>
+          <label class="f"><span>${esc(t('desc'))}</span><textarea data-f="description" maxlength="1000">${esc(b.description || '')}</textarea></label>
+          <div><button class="btn btn-gold btn-small" data-act="save">${esc(t('save'))}</button></div>
+          <label class="f"><span>${esc(t('fileT'))}</span><input type="file" data-f="file" accept="application/pdf,image/jpeg,image/png,image/webp" multiple></label>
+          <label class="f"><span>${esc(t('coverT'))}</span><input type="file" data-f="cover" accept="image/jpeg,image/png,image/webp"></label>
+          <progress hidden value="0" max="1" data-f="prog"></progress><p class="note" data-f="note"></p>
+          <div class="btnrow"><button class="btn btn-ghost btn-small" data-act="replace">${esc(t('replace'))}</button>
+            <button class="btn btn-danger btn-small" data-act="del">${esc(t('del'))}</button></div>
+        </div>
+      </details>
+    </div></article>`).join('');
+  el.querySelectorAll('.mybook').forEach(card => wireBook(card, books.find(b => b.id === card.dataset.id)));
+}
+
+function wireBook(card, b) {
+  const f = k => card.querySelector(`[data-f="${k}"]`);
+  const on = (act, fn) => card.querySelector(`[data-act="${act}"]`).onclick = async e => {
+    e.target.disabled = true;
+    try { await fn(); } catch (err) { console.error(err); toast(t('error')); } finally { e.target.disabled = false; }
+  };
+  card.querySelector('[data-sec="access"]').addEventListener('toggle', e => { if (e.target.open) loadAccess(card, b); });
+  card.querySelector('[data-sec="audio"]').addEventListener('toggle', e => { if (e.target.open) renderAudio(card, b); });
+  const pageNum = () => { const n = parseInt(f('apage').value, 10); if (!(n >= 1 && n <= (b.pageCount || 0))) { toast(t('badPage')); return null; } return n; };
+  async function saveSound(n, blob) {
+    msg(f('anote'), t('working'));
+    await uploadBytes(ref(storage, audioPath(b.id, n)), blob, { contentType: (blob.type || 'audio/mpeg').split(';')[0] });
+    await updateDoc(doc(db, 'books', b.id), { audioPages: arrayUnion(n), updatedAt: serverTimestamp() });
+    b.audioPages = [...new Set([...(b.audioPages || []), n])];
+    msg(f('anote'), t('done'), 'ok'); renderAudio(card, b);
+    f('apage').value = Math.min(n + 1, b.pageCount || 1);
+  }
+  let rec = null;
+  card.querySelector('[data-act="rec"]').onclick = async e => {
+    const btn = e.target;
+    if (rec) { rec.stop(); return; }
+    const n = pageNum(); if (!n) return;
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
+    catch (err) { msg(f('anote'), t('noMic'), 'err'); return; }
+    const chunks = [];
+    rec = new MediaRecorder(stream);
+    rec.ondataavailable = ev => { if (ev.data.size) chunks.push(ev.data); };
+    rec.onstop = async () => {
+      stream.getTracks().forEach(tr => tr.stop());
+      rec = null; btn.textContent = t('rec');
+      try { await saveSound(n, new Blob(chunks, { type: chunks[0] ? chunks[0].type : 'audio/webm' })); }
+      catch (err) { console.error(err); msg(f('anote'), t('error'), 'err'); }
+    };
+    rec.start();
+    btn.textContent = t('recStop'); msg(f('anote'), `${t('recording')} (${t('page')} ${n})`);
+  };
+  on('aup', async () => {
+    const n = pageNum(), file = f('afile').files[0];
+    if (!n || !file) return;
+    if (file.size > 20 * 1024 * 1024) { toast('Max 20 MB'); return; }
+    await saveSound(n, file); f('afile').value = '';
+  });
+  card.querySelector('[data-sec="reads"]').addEventListener('toggle', e => { if (e.target.open) loadReads(card, b); });
+  card.querySelector('[data-sec="codes"]').addEventListener('toggle', e => { if (e.target.open) loadCodes(card, b); });
+  on('mkcodes', async () => {
+    const n = Math.min(500, Math.max(1, parseInt(f('ncodes').value, 10) || 0));
+    const codes = Array.from({ length: n }, newCode);
+    for (let i = 0; i < codes.length; i += 400) {
+      const batch = writeBatch(db);
+      codes.slice(i, i + 400).forEach(c => batch.set(doc(db, 'book_codes', c),
+        { bookId: b.id, bookTitle: b.title, authorId: b.authorId, usedBy: null, usedAt: null, createdAt: serverTimestamp() }));
+      await batch.commit();
+    }
+    toast(`${n} ${t('codesMade')}`); loadCodes(card, b);
+  });
+  on('prcodes', async () => {
+    const list = (await fetchCodes(b)).filter(c => !c.usedBy).map(c => c.id);
+    if (!list.length) { toast(t('noCodes')); return; }
+    printCodes(b, list);
+  });
+
+  on('pub', async () => { await updateDoc(doc(db, 'books', b.id), { published: !b.published, updatedAt: serverTimestamp() }); await loadBooks(); });
+  on('save', async () => {
+    const data = {}; ['title', 'titleTi', 'authorName', 'age', 'description'].forEach(k => data[k] = f(k).value.trim());
+    await updateDoc(doc(db, 'books', b.id), { ...data, updatedAt: serverTimestamp() }); toast(t('done')); await loadBooks();
+  });
+  on('addEmails', async () => {
+    const list = [...new Set((f('emails').value.match(/[^\s,;<>"']+@[^\s,;<>"']+\.[a-z]{2,}/gi) || []).map(x => x.toLowerCase()))];
+    if (!list.length) { toast(t('badEmail')); return; }
+    for (let i = 0; i < list.length; i += 400) {
+      const batch = writeBatch(db);
+      list.slice(i, i + 400).forEach(email => batch.set(doc(db, 'books', b.id, 'access', email), { email, addedAt: serverTimestamp() }));
+      await batch.commit();
+    }
+    f('emails').value = ''; toast(`${list.length} ${t('added')}`); loadAccess(card, b);
+  });
+  on('addDomain', async () => {
+    const d = f('domain').value.trim().toLowerCase().replace(/^@/, '');
+    if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(d)) { toast(t('badEmail')); return; }
+    if (PUBLIC_DOMAINS.includes(d)) { toast(t('publicDomain')); return; }
+    await setDoc(doc(db, 'books', b.id, 'domains', d), { domain: d, addedAt: serverTimestamp() });
+    f('domain').value = ''; loadAccess(card, b);
+  });
+  on('replace', async () => {
+    const files = [...f('file').files], cover = f('cover').files[0];
+    if (!files.length && cover) {
+      const url = await uploadCover(b.id, cover);
+      await updateDoc(doc(db, 'books', b.id), { cover: url, updatedAt: serverTimestamp() }); toast(t('done')); await loadBooks(); return;
+    }
+    if (!files.length) return;
+    const { count, cover: url } = await uploadPages(b.id, files, cover, b.pageCount, f('prog'), f('note'));
+    await updateDoc(doc(db, 'books', b.id), { pageCount: count, cover: url, updatedAt: serverTimestamp() });
+    toast(t('done')); await loadBooks();
+  });
+  on('del', async () => {
+    if (!confirm(t('confirmDel'))) return;
+    for (let n = 1; n <= (b.pageCount || 0); n++) { try { await deleteObject(ref(storage, pagePath(b.id, n))); } catch (e) {} }
+    try { await deleteObject(ref(storage, `book_covers/${b.id}/cover.jpg`)); } catch (e) {}
+    for (const n of (b.audioPages || [])) { try { await deleteObject(ref(storage, audioPath(b.id, n))); } catch (e) {} }
+    for (const c of await fetchCodes(b)) { try { await deleteDoc(doc(db, 'book_codes', c.id)); } catch (e) {} }
+    for (const sub of ['access', 'domains', 'reads']) {
+      const s = await getDocs(collection(db, 'books', b.id, sub));
+      for (let i = 0; i < s.docs.length; i += 400) {
+        const batch = writeBatch(db); s.docs.slice(i, i + 400).forEach(d => batch.delete(d.ref)); await batch.commit();
+      }
+    }
+    await deleteDoc(doc(db, 'books', b.id)); toast(t('done')); await loadBooks();
+  });
+}
+async function loadAccess(card, b) {
+  const box = card.querySelector('[data-list="access"]');
+  const [a, d] = await Promise.all([getDocs(collection(db, 'books', b.id, 'access')), getDocs(collection(db, 'books', b.id, 'domains'))]);
+  const rows = [
+    ...d.docs.map(x => ({ path: 'domains', id: x.id, label: '@' + x.id + ' (school)' })),
+    ...a.docs.map(x => ({ path: 'access', id: x.id, label: x.id + (x.data().note === 'author' ? ' (you)' : '') }))
+  ];
+  box.innerHTML = `<small class="note">${a.size} ${esc(t('readers'))} · ${d.size} ${esc(t('domains'))}</small>` + rows.map(r =>
+    `<div class="it"><span>${esc(r.label)}</span><button type="button" class="btn btn-danger btn-small" data-rm="${esc(r.path)}|${esc(r.id)}">${esc(t('remove'))}</button></div>`).join('');
+  box.querySelectorAll('[data-rm]').forEach(btn => btn.onclick = async () => {
+    const [p, id] = btn.dataset.rm.split('|');
+    btn.disabled = true;
+    try { await deleteDoc(doc(db, 'books', b.id, p, id)); loadAccess(card, b); } catch (e) { console.error(e); toast(t('error')); btn.disabled = false; }
+  });
+}
+// ── unlock codes ──
+const CODE_ABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function newCode() {
+  const r = crypto.getRandomValues(new Uint8Array(8));
+  const x = [...r].map(v => CODE_ABC[v % 32]).join('');
+  return `YB-${x.slice(0, 4)}-${x.slice(4)}`;
+}
+async function fetchCodes(b) {
+  const q = isAdmin(user) ? query(collection(db, 'book_codes'), where('bookId', '==', b.id))
+    : query(collection(db, 'book_codes'), where('bookId', '==', b.id), where('authorId', '==', user.uid));
+  const s = await getDocs(q);
+  return s.docs.map(d => ({ id: d.id, ...d.data() })).sort((x, y) => (x.createdAt?.seconds || 0) - (y.createdAt?.seconds || 0));
+}
+async function loadCodes(card, b) {
+  const box = card.querySelector('[data-list="codes"]');
+  const list = await fetchCodes(b);
+  const used = list.filter(c => c.usedBy).length;
+  box.innerHTML = list.length ? `<small class="note">${list.length} · ${used} ${esc(t('usedBy'))} · ${list.length - used} ${esc(t('unused'))}</small>` +
+    list.map(c => `<div class="it"><span style="font-family:monospace;font-weight:800">${esc(c.id)}</span>
+      <small>${c.usedBy ? esc(t('usedBy')) + ' ' + esc(c.usedBy) : esc(t('unused'))}</small>
+      ${c.usedBy ? '' : `<button type="button" class="btn btn-danger btn-small" data-rmc="${esc(c.id)}">${esc(t('remove'))}</button>`}</div>`).join('')
+    : `<p class="note">${esc(t('noCodes'))}</p>`;
+  box.querySelectorAll('[data-rmc]').forEach(x => x.onclick = async () => {
+    x.disabled = true;
+    try { await deleteDoc(doc(db, 'book_codes', x.dataset.rmc)); loadCodes(card, b); } catch (e) { console.error(e); toast(t('error')); x.disabled = false; }
+  });
+}
+function printCodes(b, codes) {
+  const w = window.open('', '_blank');
+  if (!w) { toast('Allow pop-ups to print'); return; }
+  const cards = codes.map(c => `<div class="c">
+    <div class="h"><b>Yosiefsbook</b><span>${esc(b.title)}</span></div>
+    <p class="ti">ዲጂታል መጽሓፍ ምስ ድምጺ ደራሲ</p>
+    <p>Digital book with the author's voice</p>
+    <ol><li>habesha-hub.no/yosiefsbook</li><li>Log in with your email · ብኢመይልኩም እተዉ</li><li>Enter the code · ኮድ ኣእትዉ</li></ol>
+    <div class="code">${esc(c)}</div><small>One code = one family · ሓደ ኮድ ንሓንቲ ስድራ</small></div>`).join('');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Unlock codes – ${esc(b.title)}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;800&family=Noto+Sans+Ethiopic:wght@600;800&display=swap" rel="stylesheet">
+  <style>@page{size:A4;margin:8mm}body{margin:0;font-family:Manrope,'Noto Sans Ethiopic',sans-serif;color:#111}
+  .g{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+  .c{border:1px dashed #999;padding:4mm 4mm 3mm;height:62mm;box-sizing:border-box;break-inside:avoid;display:flex;flex-direction:column;gap:1mm;font-size:8.5pt}
+  .h{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #0E7A48;padding-bottom:1mm}
+  .h b{font-style:italic;font-size:12pt;color:#8a6d00}.h span{font-size:7pt;color:#555;max-width:50%;text-align:right}
+  p{margin:0}.ti{font-weight:800}ol{margin:1mm 0 0 4mm;padding:0}
+  .code{margin-top:auto;font:800 15pt monospace;letter-spacing:1px;text-align:center;border:2px solid #111;border-radius:3mm;padding:1.5mm}
+  small{font-size:6.5pt;color:#555;text-align:center}</style></head>
+  <body><div class="g">${cards}</div><script>document.fonts.ready.then(()=>setTimeout(()=>print(),300))<\/script></body></html>`);
+  w.document.close();
+}
+
+// ── reader devices ──
+$('devForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('devEmail').value.trim().toLowerCase();
+  if (!EMAIL_RE.test(email)) { toast(t('badEmail')); return; }
+  const box = $('devList');
+  try {
+    const s = await getDoc(doc(db, 'books_devices', email));
+    const devs = s.exists() ? Object.values(s.data().devices || {}) : [];
+    if (!devs.length) { box.innerHTML = `<p class="note">${esc(t('devNone'))}</p>`; return; }
+    box.innerHTML = devs.map(d => `<div class="it"><span>${esc(d.ua || '?')}</span><small>${d.addedAt ? new Date(d.addedAt).toLocaleDateString() : ''}</small></div>`).join('') +
+      `<div><button type="button" class="btn btn-danger btn-small" id="devReset">${esc(t('devReset'))} (${devs.length})</button></div>`;
+    $('devReset').onclick = async () => {
+      try { await deleteDoc(doc(db, 'books_devices', email)); box.innerHTML = `<p class="note ok">${esc(t('devDone'))}</p>`; }
+      catch (err) { console.error(err); toast(t('error')); }
+    };
+  } catch (err) { console.error(err); toast(t('error')); }
+});
+
+function renderAudio(card, b) {
+  const box = card.querySelector('[data-list="audio"]');
+  const list = [...(b.audioPages || [])].sort((x, y) => x - y);
+  box.innerHTML = list.length ? list.map(n => `<div class="it"><span>${esc(t('page'))} ${n}</span>
+    <button type="button" class="btn btn-ghost btn-small" data-play="${n}">${esc(t('play'))}</button>
+    <button type="button" class="btn btn-danger btn-small" data-rma="${n}">${esc(t('remove'))}</button></div>`).join('')
+    : `<p class="note">${esc(t('noSound'))}</p>`;
+  box.querySelectorAll('[data-play]').forEach(x => x.onclick = async () => {
+    try { new Audio(await getDownloadURL(ref(storage, audioPath(b.id, +x.dataset.play)))).play(); } catch (e) { console.error(e); toast(t('error')); }
+  });
+  box.querySelectorAll('[data-rma]').forEach(x => x.onclick = async () => {
+    const n = +x.dataset.rma; x.disabled = true;
+    try {
+      try { await deleteObject(ref(storage, audioPath(b.id, n))); } catch (e) {}
+      await updateDoc(doc(db, 'books', b.id), { audioPages: arrayRemove(n), updatedAt: serverTimestamp() });
+      b.audioPages = (b.audioPages || []).filter(p => p !== n); renderAudio(card, b);
+    } catch (e) { console.error(e); toast(t('error')); x.disabled = false; }
+  });
+}
+async function loadReads(card, b) {
+  const box = card.querySelector('[data-list="reads"]');
+  const s = await getDocs(collection(db, 'books', b.id, 'reads'));
+  const rows = s.docs.map(x => x.data()).sort((p, q) => (q.updatedAt?.seconds || 0) - (p.updatedAt?.seconds || 0));
+  box.innerHTML = rows.length ? rows.map(r => `<div class="it"><span>${esc(r.email)}</span>
+    <small>${esc(t('page'))} ${r.lastPage || 1} · ${r.updatedAt ? new Date(r.updatedAt.seconds * 1000).toLocaleDateString() : ''}</small></div>`).join('')
+    : `<p class="note">${esc(t('never'))}</p>`;
+}
+
+// ── start ──
+renderStatic();
+finishLoginFromLink(askEmail).catch(e => { console.error(e); toast(t('error')); });
+onUser(async u => {
+  user = u;
+  $('who').textContent = u && u.email ? u.email : '';
+  $('logoutBtn').hidden = !u;
+  const ok = isVerified(u);
+  $('loginForm').hidden = ok && !confirmResolve;
+  if (ok) confirmResolve = null;
+  $('adminBox').hidden = !isAdmin(u);
+  let author = false;
+  if (ok) {
+    if (isAdmin(u)) { author = true; authorName = 'Habesha Hub'; loadAuthors().catch(console.error); }
+    try { const a = await getDoc(doc(db, 'authors', emailOf(u))); if (a.exists()) { author = true; authorName = a.data().name || authorName; } } catch (e) {}
+  }
+  $('notAuthor').hidden = !ok || author;
+  $('authorBox').hidden = !author;
+  $('nAuthor').value = authorName;
+  if (author) { renderStatic(); loadBooks().catch(e => { console.error(e); toast(t('error')); }); }
+});
+</script>
+</body>
+</html>

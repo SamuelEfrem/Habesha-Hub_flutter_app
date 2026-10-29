@@ -1,85 +1,200 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Privacy Policy – Habesha Hub</title>
+<meta name="description" content="How Habesha Hub collects, uses and protects your personal data.">
+<meta name="theme-color" content="#111110">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,700;0,900;1,900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; color: #333; line-height: 1.7; }
-  h1 { color: #D4AF37; }
-  h2 { color: #333; margin-top: 32px; }
-  a { color: #D4AF37; }
-  .date { color: #888; font-size: 14px; }
-  table { border-collapse: collapse; width: 100%; font-size: 15px; }
-  td, th { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: top; }
-  th { background: #faf6e8; }
+:root{
+  --bg:#111110; --card:#1A1918; --card2:#232221; --line:rgba(212,175,55,.18);
+  --gold:#D4AF37; --gold2:#F2D06B; --text:#F0ECE8; --sub:#C9C0B6; --mute:#8E867D;
+  --serif:'Noto Serif',Georgia,serif; --body:'Manrope',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--body);line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-2;
+  background:
+    radial-gradient(900px 600px at 85% -10%,rgba(139,0,0,.35),transparent 70%),
+    radial-gradient(700px 500px at -10% 110%,rgba(212,175,55,.12),transparent 70%)}
+body::after{content:"";position:fixed;inset:0;z-index:-1;opacity:.6;
+  background-image:linear-gradient(45deg,rgba(212,175,55,.035) 25%,transparent 25%,transparent 75%,rgba(212,175,55,.035) 75%),
+                   linear-gradient(45deg,rgba(212,175,55,.035) 25%,transparent 25%,transparent 75%,rgba(212,175,55,.035) 75%);
+  background-size:56px 56px;background-position:0 0,28px 28px}
+a{color:var(--gold);text-decoration:none}
+a:hover{color:var(--gold2);text-decoration:underline}
+
+nav{position:sticky;top:0;z-index:10;background:rgba(17,17,16,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.nav{max-width:920px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:900;font-style:italic;font-size:21px;color:var(--gold)}
+.logo img{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--gold)}
+.logo:hover{text-decoration:none}
+.back{font-weight:700;font-size:14px;color:var(--sub);border:1px solid var(--line);padding:8px 14px;border-radius:100px}
+.back:hover{color:var(--gold);text-decoration:none;border-color:var(--gold)}
+
+.wrap{max-width:920px;margin:0 auto;padding:0 20px 80px}
+header.hero{padding:56px 0 28px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--gold);background:rgba(212,175,55,.1);border:1px solid var(--line);padding:6px 14px;border-radius:100px}
+h1{font-family:var(--serif);font-weight:900;font-size:clamp(34px,6vw,54px);line-height:1.08;margin:18px 0 12px;
+  background:linear-gradient(90deg,var(--gold2),var(--gold) 55%,#B8960C);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{color:var(--sub);font-size:17px;max-width:720px}
+.date{margin-top:14px;color:var(--mute);font-size:14px}
+
+.highlights{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:28px 0 8px}
+.hl{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:16px;padding:16px}
+.hl b{display:block;color:var(--gold);font-size:15px;margin-bottom:4px}
+.hl span{color:var(--sub);font-size:14px;line-height:1.5;display:block}
+
+.toc{margin:24px 0 8px;display:flex;flex-wrap:wrap;gap:8px}
+.toc a{font-size:13px;font-weight:700;color:var(--sub);background:var(--card);border:1px solid var(--line);padding:7px 12px;border-radius:100px}
+.toc a:hover{color:#1A1200;background:var(--gold);text-decoration:none}
+
+section{background:linear-gradient(160deg,rgba(35,34,33,.92),rgba(26,25,24,.92));border:1px solid var(--line);border-radius:20px;padding:26px 24px;margin-top:16px;scroll-margin-top:84px}
+h2{display:flex;align-items:center;gap:12px;font-family:var(--serif);font-weight:900;font-size:22px;line-height:1.25;margin-bottom:12px}
+.num{flex:0 0 auto;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-family:var(--body);font-size:15px;font-weight:800;color:#1A1200;background:linear-gradient(135deg,var(--gold2),var(--gold))}
+section p,section li{color:var(--sub);font-size:15.5px}
+section p+p{margin-top:10px}
+section strong{color:var(--text)}
+ul{list-style:none;display:grid;gap:9px}
+ul li{position:relative;padding-left:22px}
+ul li::before{content:"";position:absolute;left:4px;top:.72em;width:7px;height:7px;border-radius:2px;transform:rotate(45deg);background:var(--gold)}
+.providers{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:6px 0 14px}
+.pv{background:rgba(17,17,16,.6);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.pv b{display:block;color:var(--text);font-size:15px;margin-bottom:4px}
+.pv span{color:var(--sub);font-size:14px;line-height:1.55;display:block}
+.tag{display:inline-block;margin-top:8px;font-size:12px;font-weight:700;color:var(--gold);background:rgba(212,175,55,.1);border:1px solid var(--line);border-radius:100px;padding:3px 10px}
+.note{margin-top:12px;padding:12px 14px;border-left:3px solid var(--gold);background:rgba(212,175,55,.06);border-radius:0 10px 10px 0}
+
+footer{max-width:920px;margin:0 auto;padding:30px 20px 50px;color:var(--mute);font-size:14px;display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between;border-top:1px solid var(--line)}
+@media (max-width:560px){section{padding:22px 18px}.nav{padding:12px 16px}.wrap{padding:0 16px 60px}}
 </style>
 </head>
 <body>
 
-<h1>Privacy Policy – Habesha Hub</h1>
-<p class="date">Last updated: October 25, 2026</p>
+<nav><div class="nav">
+  <a class="logo" href="/"><img src="/favicon.png" alt="">Habesha Hub</a>
+  <a class="back" href="/">← Back to Habesha Hub</a>
+</div></nav>
 
-<p>Habesha Hub ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains what information we collect, how we use it and your rights when you use the Habesha Hub mobile app and website.</p>
+<div class="wrap">
+<header class="hero">
+  <span class="eyebrow">🔒 Privacy</span>
+  <h1>Privacy Policy</h1>
+  <p class="lead">Habesha Hub ("we", "our", "us") is committed to protecting your privacy. This policy explains what information we collect, how we use it and your rights when you use the Habesha Hub app and website.</p>
+  <p class="date">Last updated: October 29, 2026</p>
 
-<h2>1. Information We Collect</h2>
-<ul>
-  <li><strong>Account information:</strong> email address, display name and nickname when you register or sign in with Google or Apple. If you use the app without an account, we create an anonymous ID so features like chat and favorites work.</li>
-  <li><strong>Business information:</strong> name, address, phone number, photos, videos, menu and opening hours if you register a business. This is shown publicly in the app.</li>
-  <li><strong>Marketplace listings:</strong> title, description, price, city, photos and the phone number you choose to show. Listings are public.</li>
-  <li><strong>Bookings and receipts:</strong> the service you book, date, notes, the country you pay from, the agreed amount, payment method and whether the booking is paid.</li>
-  <li><strong>Messages:</strong> chat messages sent to businesses in the app, reviews you post, and messages sent through the contact form.</li>
-  <li><strong>AI assistant:</strong> the questions you type in the AI chat.</li>
-  <li><strong>Notification token:</strong> a device token so we can send you push notifications (for example when a booking is confirmed).</li>
-  <li><strong>Location:</strong> your GPS position, only at the moment you search for nearby businesses. It is not stored.</li>
-  <li><strong>On your device only:</strong> favorite businesses, language and theme settings.</li>
-</ul>
+  <div class="highlights">
+    <div class="hl"><b>No selling of data</b><span>We never sell, trade or rent your personal information.</span></div>
+    <div class="hl"><b>No card payments</b><span>We never store card or bank account numbers.</span></div>
+    <div class="hl"><b>Stored in the EU</b><span>App data is stored in the European Union.</span></div>
+    <div class="hl"><b>You are in control</b><span>Delete your account any time under Profile.</span></div>
+  </div>
 
-<h2>2. How We Use Your Information</h2>
-<ul>
-  <li>To run Habesha Hub: show businesses, services, marketplace listings and videos.</li>
-  <li>To handle bookings: confirm your booking, show your receipt and tell you how to pay.</li>
-  <li>To send push notifications about your bookings and payments.</li>
-  <li>To answer your questions in the AI assistant.</li>
-  <li>To answer messages you send us, and to prevent misuse.</li>
-</ul>
+  <div class="toc">
+    <a href="#collect">Information we collect</a><a href="#use">How we use it</a><a href="#payments">Payments</a>
+    <a href="#providers">Service providers</a><a href="#partners">Partner links</a><a href="#location">Location</a>
+    <a href="#children">Children</a><a href="#rights">Your rights</a><a href="#retention">Retention</a>
+    <a href="#security">Security</a><a href="#changes">Changes</a><a href="#contact">Contact</a>
+  </div>
+</header>
 
-<h2>3. Payments</h2>
-<p>Habesha Hub does <strong>not</strong> process card payments and never stores card or bank account numbers. After a booking is confirmed, you pay directly with a payment app or service you choose (for example Vipps, Swish, MobilePay, PayPal, telebirr, M-Pesa or Mobile Money). Those services have their own privacy policies. We only store the amount, method, reference and whether the payment was received.</p>
+<section id="collect">
+  <h2><span class="num">1</span>Information We Collect</h2>
+  <ul>
+    <li><strong>Account information:</strong> email address, display name and nickname when you register or sign in with Google or Apple. If you use the app without an account, we create an anonymous ID so features like favorites work.</li>
+    <li><strong>Business information:</strong> name, address, phone number, photos, videos, menu and opening hours if you register a business. This is shown publicly in the app.</li>
+    <li><strong>Marketplace listings:</strong> title, description, price, city, photos and the phone number you choose to show. Approved listings are public.</li>
+    <li><strong>Bookings and receipts:</strong> the service you book, date, notes, your WhatsApp number, the country you pay from, the agreed amount, payment method and whether the booking is paid.</li>
+    <li><strong>Messages and reviews:</strong> reviews you post, likes on photos and videos, and messages sent through the contact form.</li>
+    <li><strong>AI assistant:</strong> the questions you type in the AI chat.</li>
+    <li><strong>Notification token:</strong> a device token so we can send push notifications (for example when a booking is confirmed).</li>
+    <li><strong>Location:</strong> your GPS position, only at the moment you search for nearby businesses. It is not stored.</li>
+    <li><strong>On your device only:</strong> favorites, language and theme settings.</li>
+  </ul>
+</section>
 
-<h2>4. Service Providers We Use</h2>
-<table>
-  <tr><th>Provider</th><th>What for</th></tr>
-  <tr><td>Google Firebase (Firestore, Authentication, Storage, Cloud Functions, Cloud Messaging)</td><td>Database, login, file storage, server functions and push notifications. Data is stored in the European Union (europe-west1).</td></tr>
-  <tr><td>Google Gemini API</td><td>Generates answers in the AI assistant. Your question and the public list of businesses are sent to Google to create the answer.</td></tr>
-  <tr><td>Bunny.net</td><td>Hosting and streaming of service provider photos and videos.</td></tr>
-  <tr><td>WhatsApp</td><td>Only if you choose to contact us through WhatsApp.</td></tr>
-</table>
-<p>We do <strong>not</strong> sell, trade or rent your personal information.</p>
+<section id="use">
+  <h2><span class="num">2</span>How We Use Your Information</h2>
+  <ul>
+    <li>To run Habesha Hub: show businesses, services, marketplace listings and videos.</li>
+    <li>To handle bookings: contact you on WhatsApp to confirm, show your receipt and tell you how to pay.</li>
+    <li>To send push notifications about your bookings, payments and listings.</li>
+    <li>To answer your questions in the AI assistant.</li>
+    <li>To review marketplace listings, answer messages you send us and prevent misuse.</li>
+  </ul>
+</section>
 
-<h2>5. Location Data</h2>
-<p>We access your location only when you tap the search button to find nearby businesses. We do not track or store your location.</p>
+<section id="payments">
+  <h2><span class="num">3</span>Payments</h2>
+  <p>Habesha Hub does <strong>not</strong> process card payments and never stores card or bank account numbers. After a booking is confirmed, you pay directly with a payment app or service you choose (for example Vipps, Swish, MobilePay, PayPal, telebirr, M-Pesa or Mobile Money). Those services have their own privacy policies. We only store the amount, method, reference and whether the payment was received.</p>
+</section>
 
-<h2>6. Children's Privacy</h2>
-<p>Habesha Hub is not directed at children under 13. We do not knowingly collect personal information from children under 13.</p>
+<section id="providers">
+  <h2><span class="num">4</span>Service Providers We Use</h2>
+  <p>We use trusted service providers ("data processors") to run the app. They may only use your data to provide their service to us, under a data processing agreement.</p>
+  <div class="providers">
+    <div class="pv"><b>☁️ Cloud hosting provider</b><span>Database, login, file storage, server functions and push notifications.</span><span class="tag">Stored in the EU</span></div>
+    <div class="pv"><b>🤖 AI service provider</b><span>Creates answers in the AI assistant. Your question and the public list of businesses are sent to create the answer.</span><span class="tag">May be processed outside the EU/EEA*</span></div>
+    <div class="pv"><b>🎬 Media hosting &amp; streaming</b><span>Stores and streams photos and videos from service providers.</span></div>
+    <div class="pv"><b>💬 Messaging service</b><span>Only if you choose to contact us on WhatsApp.</span></div>
+  </div>
+  <p>* When data is transferred outside the EU/EEA, it is protected by the EU Standard Contractual Clauses or an equivalent legal safeguard.</p>
+  <p class="note">A list of the specific providers is available on request: <a href="mailto:support@habesha-hub.no">support@habesha-hub.no</a>. We do <strong>not</strong> sell, trade or rent your personal information.</p>
+</section>
 
-<h2>7. Your Rights (GDPR)</h2>
-<p>You have the right to access, correct, delete, restrict or export your personal data, and to object to processing. You can delete your account in the app under <em>Profile</em>, or contact us and we will delete your data.</p>
+<section id="partners">
+  <h2><span class="num">5</span>Partner Links</h2>
+  <p>Some parts of Habesha Hub (for example "Send money home") link to services from other companies, such as money transfer services. Some of these links are affiliate links, which means Habesha Hub may receive a commission – they are always marked as ads. When you open a partner's app or website, their own privacy policy applies. We never send your personal data to these partners.</p>
+</section>
 
-<h2>8. Data Retention</h2>
-<p>We keep your data while your account is active. Booking records and receipts may be kept for up to 5 years when required for accounting. Contact messages are deleted when they are no longer needed.</p>
+<section id="location">
+  <h2><span class="num">6</span>Location Data</h2>
+  <p>We access your location only when you tap the search button to find nearby businesses. We do not track or store your location.</p>
+</section>
 
-<h2>9. Security</h2>
-<p>All connections are encrypted (HTTPS). Access to data is limited by Firebase security rules, and API keys are kept on our servers, not in the app.</p>
+<section id="children">
+  <h2><span class="num">7</span>Children's Privacy</h2>
+  <p>Habesha Hub is not directed at children under 13. We do not knowingly collect personal information from children under 13.</p>
+</section>
 
-<h2>10. Changes to This Policy</h2>
-<p>We may update this Privacy Policy. Significant changes will be announced in the app.</p>
+<section id="rights">
+  <h2><span class="num">8</span>Your Rights (GDPR)</h2>
+  <p>You have the right to access, correct, delete, restrict or export your personal data, and to object to processing. You can delete your account in the app under <strong>Profile → Delete account</strong>, or contact us and we will delete your data. You can also complain to the Norwegian Data Protection Authority (Datatilsynet).</p>
+</section>
 
-<h2>11. Contact Us</h2>
-<ul>
-  <li>Email: <a href="mailto:support@habesha-hub.no">support@habesha-hub.no</a></li>
-  <li>Website: <a href="https://habesha-hub.no">habesha-hub.no</a></li>
-</ul>
+<section id="retention">
+  <h2><span class="num">9</span>Data Retention</h2>
+  <p>We keep your data while your account is active. Booking records and receipts may be kept for up to 5 years when required for accounting. Contact messages are deleted when they are no longer needed.</p>
+</section>
 
+<section id="security">
+  <h2><span class="num">10</span>Security</h2>
+  <p>All connections are encrypted (HTTPS). Access to data is limited by strict security rules, and secret API keys are kept on our servers, not in the app.</p>
+</section>
+
+<section id="changes">
+  <h2><span class="num">11</span>Changes to This Policy</h2>
+  <p>We may update this Privacy Policy. Significant changes will be announced in the app.</p>
+</section>
+
+<section id="contact">
+  <h2><span class="num">12</span>Contact Us</h2>
+  <ul>
+    <li>Email: <a href="mailto:support@habesha-hub.no">support@habesha-hub.no</a></li>
+    <li>Website: <a href="https://habesha-hub.no">habesha-hub.no</a></li>
+  </ul>
+</section>
+</div>
+
+<footer>
+  <span>© 2026 Habesha Hub</span>
+  <span><a href="/">Home</a> · <a href="/privacy.html">Privacy Policy</a></span>
+</footer>
 </body>
 </html>

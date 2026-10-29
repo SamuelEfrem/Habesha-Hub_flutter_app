@@ -342,6 +342,14 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         key: ValueKey(keys[i]),
                         listings: list,
                         t: t,
+                        onOpenListing: (docId) => Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => _ListingDetailScreen(
+                            docId: docId,
+                            t: t,
+                            onEdit: (docId, data) => _showAddListing(context, user!, t,
+                                existing: data, docId: docId),
+                            onDelete: (ctx, docId) => _confirmDelete(ctx, docId, t),
+                          ))),
                         onOpen: () => Navigator.push(context, MaterialPageRoute(
                           builder: (_) => SellerProfileScreen(
                             sellerKey: keys[i],
@@ -973,7 +981,9 @@ class _SellerCard extends StatelessWidget {
   final List<QueryDocumentSnapshot> listings;
   final String Function(String) t;
   final VoidCallback onOpen;
-  const _SellerCard({super.key, required this.listings, required this.t, required this.onOpen});
+  final void Function(String docId) onOpenListing;
+  const _SellerCard({super.key, required this.listings, required this.t, required this.onOpen,
+      required this.onOpenListing});
 
   @override
   Widget build(BuildContext context) {
@@ -1021,8 +1031,12 @@ class _SellerCard extends StatelessWidget {
               itemCount: listings.length,
               separatorBuilder: (_, __) => const SizedBox(width: 10),
               itemBuilder: (_, i) {
-                final d = listings[i].data() as Map<String, dynamic>;
-                return SizedBox(width: 120, child: _ListingThumb(data: d));
+                final doc = listings[i];
+                return GestureDetector(
+                  onTap: () => onOpenListing(doc.id),
+                  child: SizedBox(width: 120,
+                      child: _ListingThumb(data: doc.data() as Map<String, dynamic>, docId: doc.id)),
+                );
               },
             ),
           ),
@@ -1035,7 +1049,8 @@ class _SellerCard extends StatelessWidget {
 /// Small square tile: image + title + price
 class _ListingThumb extends StatelessWidget {
   final Map<String, dynamic> data;
-  const _ListingThumb({required this.data});
+  final String? docId;   // set → admin gets a quick approve button on pending items
+  const _ListingThumb({required this.data, this.docId});
 
   @override
   Widget build(BuildContext context) {
@@ -1061,6 +1076,22 @@ class _ListingThumb extends StatelessWidget {
                 )),
             if (_isPending(data))
               Positioned(left: 6, top: 6, child: _pendingBadge(fontSize: 9)),
+            if (_isPending(data) && docId != null && _isAdminUser)
+              Positioned(right: 6, bottom: 6,
+                child: GestureDetector(
+                  onTap: () => FirebaseFirestore.instance.collection('marketplace').doc(docId)
+                      .update({'approved': true, 'approvedAt': FieldValue.serverTimestamp()}),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(color: kGreen, borderRadius: BorderRadius.circular(100)),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.check_rounded, color: Colors.white, size: 13),
+                      const SizedBox(width: 3),
+                      Text(_mt('Approve', 'ኣጽድቕ', 'አጽድቅ'), style: const TextStyle(
+                          color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                    ]),
+                  ),
+                )),
             if (imgs.length > 1)
               Positioned(right: 6, top: 6,
                 child: Container(
@@ -1145,7 +1176,7 @@ class SellerProfileScreen extends StatelessWidget {
                       onEdit: onEdit,
                       onDelete: onDelete,
                     ))),
-                  child: _ListingThumb(data: d),
+                  child: _ListingThumb(data: d, docId: doc.id),
                 );
               },
               childCount: docs.length,

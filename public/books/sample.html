@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yosiefsbook – free sample lesson ፊደል በ</title>
+<meta name="description" content="Free interactive Tigrinya lesson from Yosiefsbook: learn the letter family በ, words and a sentence. Tap to hear.">
+<link rel="icon" href="img/yosief-avatar.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,900;1,900&family=Manrope:wght@500;600;700;800&family=Noto+Sans+Ethiopic:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="books.css?v=6">
+<style>
+.lesson{padding:26px 0 70px;display:flex;flex-direction:column;gap:26px}
+.lhead{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.lhead h1{font-family:var(--serif);font-weight:900;font-size:clamp(28px,5vw,44px);line-height:1.1}
+.lhead h1 em{color:var(--gold)}
+.badge{display:inline-block;font:800 12px var(--body);letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:100px;background:#0E7A48;color:#fff}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;position:relative;overflow:hidden}
+.panel h2{font-size:19px;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.panel h2 .n{width:30px;height:30px;border-radius:50%;background:var(--gold);color:#1A1200;display:inline-flex;align-items:center;justify-content:center;font-size:15px}
+.stripe{position:absolute;left:0;right:0;top:0;height:6px;background:repeating-linear-gradient(90deg,#0E7A48 0 16px,#D4A017 16px 32px,#C8102E 32px 48px,#D4A017 48px 64px)}
+.tap{cursor:pointer;border:0;font-family:'Noto Sans Ethiopic',var(--body);color:var(--text);transition:transform .15s}
+.tap:active{transform:scale(.94)}
+.tap.playing{animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+.tap.has::after{content:'🔊';position:absolute;right:8px;top:6px;font-size:13px;opacity:.75}
+.tap.rec{outline:3px solid var(--red);animation:pulse 1s infinite}
+@keyframes pulse{50%{outline-color:transparent}}
+.big{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center}
+.mother{position:relative;width:150px;height:150px;border-radius:26px;background:linear-gradient(150deg,#F2D06B,#D4AF37 50%,#B8960C);color:#1A1200;font-size:100px;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 34px rgba(212,175,55,.3)}
+.forms{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.form{position:relative;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:12px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.form b{font-size:clamp(30px,5vw,46px);line-height:1.1}
+.form small{font:700 13px var(--body);color:var(--sub)}
+.form:nth-child(odd){background:linear-gradient(180deg,rgba(14,122,72,.22),var(--bg2))}
+.words{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.word{position:relative;background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.word svg{width:86px;height:86px}
+.word b{font-size:30px;line-height:1.1}
+.word b i{font-style:normal;color:var(--gold)}
+.word small{font:600 13px var(--body);color:var(--sub)}
+.sentence{position:relative;width:100%;background:linear-gradient(135deg,rgba(14,122,72,.25),rgba(212,175,55,.12));border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center}
+.sentence b{display:block;font-size:clamp(30px,6vw,48px)}
+.sentence b i{font-style:normal;color:var(--gold)}
+.sentence small{font:600 15px var(--body);color:var(--sub)}
+.quiz{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.quiz .q{font-size:18px;font-weight:800}
+.quiz .q b{font-size:34px;color:var(--gold);font-family:'Noto Sans Ethiopic'}
+.opts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;width:100%;max-width:520px}
+.opt{min-height:76px;border-radius:16px;background:var(--bg2);border:2px solid var(--line);font-size:38px;font-weight:800}
+.opt.right{border-color:var(--green);background:rgba(74,222,128,.15)}
+.opt.wrong{border-color:var(--red);animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.stars{font-size:22px;letter-spacing:4px;min-height:30px}
+.cta{text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
+.cta p{color:var(--sub);max-width:560px}
+.recbar{position:sticky;bottom:12px;z-index:30;background:#2a1212;border:1px solid var(--red);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.recbar p{flex:1;font-size:14px;min-width:200px}
+.confetti{position:fixed;top:-20px;width:10px;height:14px;z-index:99;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (max-width:640px){
+  .big{grid-template-columns:1fr;justify-items:center}
+  .mother{width:120px;height:120px;font-size:80px}
+  .forms{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .opts{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body class="light">
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="./"><img src="img/yosief-avatar.svg" alt=""><span>Yosiefsbook</span> <small>on Habesha Hub</small></a>
+    <div class="spacer"></div>
+    <button class="btn btn-ghost btn-small" id="recToggle" hidden>🎙 Record voices</button>
+    <div class="lang" id="lang"></div>
+  </div>
+</header>
+
+<main class="wrap lesson">
+  <div class="lhead">
+    <span class="badge" data-t="free">Free sample</span>
+    <h1><span data-t="title">Learn the letter family</span> <em>በ</em></h1>
+  </div>
+  <p class="note" data-t="intro" style="font-size:16px;margin-top:-14px">Tap any letter, word or sentence to hear it. Then try the little game!</p>
+  <div><button class="btn btn-gold" id="playAll" data-t="playAll">▶ Play the whole lesson</button></div>
+
+  <section class="panel">
+    <div class="stripe"></div>
+    <h2><span class="n">1</span><span data-t="s1">Seven sounds of በ</span></h2>
+    <div class="big">
+      <button class="tap mother" data-k="l_be" aria-label="በ">በ</button>
+      <div class="forms" id="forms"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="stripe"></div>
+    <h2><span class="n">2</span><span data-t="s2">Words with በ</span></h2>
+    <div class="words" id="words"></div>
+  </section>
+
+  <section class="panel">
+    <div class="stripe"></div>
+    <h2><span class="n">3</span><span data-t="s3">Read a sentence</span></h2>
+    <button class="tap sentence" data-k="s_1"><b>ኣብ <i>ቤ</i>ት <i>ባ</i>ኒ ኣሎ።</b><small data-t="sent">There is bread in the house.</small></button>
+  </section>
+
+  <section class="panel">
+    <div class="stripe"></div>
+    <h2><span class="n">4</span><span data-t="s4">Game: find the letter</span></h2>
+    <div class="quiz">
+      <p class="q"><span data-t="find">Find</span> <b id="qLetter">ባ</b></p>
+      <div class="opts" id="opts"></div>
+      <div class="stars" id="stars" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="panel cta">
+    <div class="stripe"></div>
+    <img src="img/yosief.jpg" onerror="this.onerror=null;this.src='img/yosief-avatar.svg'" alt="Yossief Werke Asrat" width="96" height="96" style="width:96px;height:96px;border-radius:50%;border:3px solid var(--gold);object-fit:cover">
+    <h2 style="justify-content:center" data-t="more">Want the whole book?</h2>
+    <p data-t="moreP">This lesson follows the method of teacher Yossief Werke Asrat: letters grouped by shape, then words, then sentences. Schools and families get the full digital book with his voice on every page.</p>
+    <div class="btnrow" style="justify-content:center">
+      <a class="btn btn-gold" href="./#library" data-t="toLib">Open the library</a>
+      <a class="btn btn-ghost" href="mailto:support@habesha-hub.no?subject=Yosiefsbook" data-t="contact">Ask for the book</a>
+    </div>
+  </section>
+
+  <div class="recbar" id="recBar" hidden>
+    <p id="recMsg">Record mode: tap an item to start recording, tap again to save.</p>
+    <button class="btn btn-ghost btn-small" id="recDone">Done</button>
+  </div>
+</main>
+
+<script type="module">
+import { db, storage, onUser, isAdmin, isVerified, emailOf, makeT, applyT, langSwitch, getLang, setLang, toast } from './common.js';
+import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
+
+const t = makeT({
+  en: { free:'Free sample', title:'Learn the letter family', intro:'Tap any letter, word or sentence to hear it. Then try the little game!',
+    playAll:'▶ Play the whole lesson', s1:'Seven sounds of በ', s2:'Words with በ', s3:'Read a sentence', s4:'Game: find the letter',
+    sent:'There is bread in the house.', find:'Find', more:'Want the whole book?',
+    moreP:'This lesson follows the method of teacher Yossief Werke Asrat: letters grouped by shape, then words, then sentences. Schools and families get the full digital book with his voice on every page.',
+    toLib:'Open the library', contact:'Ask for the book', house:'house', sheep:'sheep', bread:'bread', bag:'bag', pen:'pen',
+    great:'Great!', again:'Try again', noVoice:'Voice coming soon' },
+  ti: { free:'ናጻ ፈተነ', title:'ስድራ ፊደል ተማሃር', intro:'ንዝኾነ ፊደል፡ ቃል ወይ ሓረግ ጠውቑ እሞ ስምዑ። ድሕሪኡ ነቲ ጸወታ ፈትኑ!',
+    playAll:'▶ ምሉእ ትምህርቲ ስማዕ', s1:'ሾብዓተ ድምጽታት በ', s2:'ብ በ ዝጅምሩ ቃላት', s3:'ሓረግ ኣንብብ', s4:'ጸወታ፥ ነቲ ፊደል ርኸብ',
+    sent:'ኣብ ቤት ባኒ ኣሎ።', find:'ርኸብ', more:'ምሉእ መጽሓፍ ትደልዩ?',
+    moreP:'እዚ ትምህርቲ ብሜላ መምህር Yossief Werke Asrat እዩ፥ ፊደላት ብቕርጾም፡ ድሕሪኡ ቃላት፡ ድሕሪኡ ሓረጋት። ኣብያተ ትምህርቲን ስድራቤታትን ምሉእ ዲጂታል መጽሓፍ ምስ ድምጹ ይረኽቡ።',
+    toLib:'ቤተ-መጻሕፍቲ ክፈት', contact:'መጽሓፍ ሕተቱ', house:'ገዛ', sheep:'በጊዕ', bread:'ባኒ', bag:'ቦርሳ', pen:'ብርዒ',
+    great:'ጽቡቕ!', again:'ደጊምካ ፈትን', noVoice:'ድምጺ ቀልጢፉ ክመጽእ እዩ' },
+  am: { free:'ነፃ ናሙና', title:'የፊደል ቤተሰብ ይማሩ', intro:'ማንኛውንም ፊደል፣ ቃል ወይም ዓረፍተ ነገር ይጫኑና ያዳምጡ። ከዚያ ጨዋታውን ይሞክሩ!',
+    playAll:'▶ ሙሉውን ትምህርት ያዳምጡ', s1:'ሰባቱ የበ ድምፆች', s2:'በ ያላቸው ቃላት', s3:'ዓረፍተ ነገር ያንብቡ', s4:'ጨዋታ፥ ፊደሉን ያግኙ',
+    sent:'በቤት ውስጥ ዳቦ አለ።', find:'ያግኙ', more:'ሙሉውን መጽሐፍ ይፈልጋሉ?',
+    moreP:'ይህ ትምህርት የመምህር Yossief Werke Asrat ዘዴን ይከተላል፥ ፊደላት በቅርጽ፣ ከዚያ ቃላት፣ ከዚያ ዓረፍተ ነገሮች። ትምህርት ቤቶችና ቤተሰቦች ሙሉውን ዲጂታል መጽሐፍ ከድምፃቸው ጋር ያገኛሉ።',
+    toLib:'ቤተ-መጻሕፍቱን ይክፈቱ', contact:'መጽሐፉን ይጠይቁ', house:'ቤት', sheep:'በግ', bread:'ዳቦ', bag:'ቦርሳ', pen:'እስክሪብቶ',
+    great:'በጣም ጥሩ!', again:'እንደገና ይሞክሩ', noVoice:'ድምፅ በቅርቡ ይመጣል' }
+});
+const $ = id => document.getElementById(id);
+
+// ── content ──
+const FORMS = [['l_be','በ','bä'],['l_bu','ቡ','bu'],['l_bi','ቢ','bi'],['l_ba','ባ','ba'],['l_bie','ቤ','be'],['l_bI','ብ','bə'],['l_bo','ቦ','bo']];
+const ART = {
+  house: '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M14 48 50 18l36 30" fill="none" stroke="#D4AF37" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><rect x="24" y="46" width="52" height="40" rx="4" fill="#C8102E"/><rect x="43" y="60" width="14" height="26" rx="2" fill="#F2D06B"/><rect x="30" y="54" width="10" height="10" fill="#F2D06B"/><rect x="60" y="54" width="10" height="10" fill="#F2D06B"/></svg>',
+  sheep: '<svg viewBox="0 0 100 100" aria-hidden="true"><g fill="#F0ECE8"><circle cx="40" cy="48" r="14"/><circle cx="56" cy="44" r="15"/><circle cx="66" cy="56" r="13"/><circle cx="46" cy="60" r="14"/><circle cx="32" cy="58" r="11"/></g><ellipse cx="24" cy="46" rx="10" ry="12" fill="#3B2F25"/><circle cx="21" cy="44" r="2" fill="#fff"/><g stroke="#3B2F25" stroke-width="5" stroke-linecap="round"><path d="M38 70v14M50 72v14M62 68v14"/></g></svg>',
+  bread: '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M14 58c0-18 16-28 36-28s36 10 36 28v14a6 6 0 0 1-6 6H20a6 6 0 0 1-6-6z" fill="#D9934A"/><path d="M30 44l8 10M46 40l8 10M62 44l8 10" stroke="#F6D7A7" stroke-width="5" stroke-linecap="round"/></svg>',
+  bag: '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M36 34v-6a14 14 0 0 1 28 0v6" fill="none" stroke="#D4AF37" stroke-width="6"/><rect x="20" y="34" width="60" height="50" rx="10" fill="#0E7A48"/><rect x="34" y="50" width="32" height="18" rx="5" fill="#F2D06B"/></svg>',
+  pen: '<svg viewBox="0 0 100 100" aria-hidden="true"><g transform="rotate(-40 50 50)"><rect x="42" y="12" width="16" height="60" rx="4" fill="#2563EB"/><rect x="42" y="12" width="16" height="12" rx="4" fill="#1E3A8A"/><path d="M42 72h16l-8 16z" fill="#F2D06B"/><path d="M48 84h4l-2 4z" fill="#1A1200"/></g></svg>'
+};
+const WORDS = [['w_bet','<i>ቤ</i>ት','house'],['w_begie','<i>በ</i>ጊዕ','sheep'],['w_bani','<i>ባ</i>ኒ','bread'],['w_borsa','<i>ቦ</i>ርሳ','bag'],['w_birI','<i>ብ</i>ርዒ','pen']];
+const ORDER = [...FORMS.map(f => f[0]), ...WORDS.map(w => w[0]), 's_1'];
+
+function build() {
+  $('forms').innerHTML = FORMS.map(([k, l, r]) => `<button class="tap form" data-k="${k}" aria-label="${l}"><b>${l}</b><small>${r}</small></button>`).join('');
+  $('words').innerHTML = WORDS.map(([k, w, m]) => `<button class="tap word" data-k="${k}">${ART[m]}<b>${w}</b><small>${t(m)}</small></button>`).join('');
+  document.querySelectorAll('.tap').forEach(el => { el.onclick = () => tapItem(el); if (voices[el.dataset.k]) el.classList.add('has'); });
+  newQuestion();
+}
+
+// ── sound: the author's recorded voice (from Firestore), else a soft chime ──
+let voices = {};
+let actx = null;
+function chime(freq = 660, dur = .25) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(.0001, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.25, actx.currentTime + .02);
+    g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + dur);
+    o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + dur);
+  } catch (e) {}
+}
+let current = null;
+function play(k) {
+  return new Promise(res => {
+    if (current) { current.pause(); current = null; }
+    if (voices[k]) {
+      const a = new Audio(voices[k]); current = a;
+      a.onended = a.onerror = () => res();
+      a.play().catch(() => res());
+    } else { chime(); setTimeout(res, 450); }
+  });
+}
+function bounce(el) { el.classList.remove('playing'); void el.offsetWidth; el.classList.add('playing'); }
+async function tapItem(el) {
+  if (recMode) return recordItem(el);
+  bounce(el);
+  if (!voices[el.dataset.k]) toast(t('noVoice'), 1400);
+  await play(el.dataset.k);
+}
+let playingAll = false;
+$('playAll').onclick = async () => {
+  if (playingAll) { playingAll = false; return; }
+  playingAll = true;
+  for (const k of ORDER) {
+    if (!playingAll) break;
+    const el = document.querySelector(`[data-k="${k}"]`);
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' }); bounce(el);
+    await play(k); await new Promise(r => setTimeout(r, 350));
+  }
+  playingAll = false;
+};
+
+// ── game ──
+let target = null;
+function newQuestion() {
+  const pool = FORMS.map(f => f);
+  target = pool[Math.floor(Math.random() * pool.length)];
+  const others = pool.filter(f => f !== target).sort(() => Math.random() - .5).slice(0, 3);
+  const opts = [target, ...others].sort(() => Math.random() - .5);
+  $('qLetter').textContent = target[1];
+  $('opts').innerHTML = opts.map(o => `<button class="tap opt" data-v="${o[0]}" aria-label="${o[1]}">${o[1]}</button>`).join('');
+  $('opts').querySelectorAll('.opt').forEach(b => b.onclick = async () => {
+    if (b.dataset.v === target[0]) {
+      b.classList.add('right'); chime(880, .18); setTimeout(() => chime(1175, .3), 150);
+      $('stars').textContent += '⭐'; confetti(); toast(t('great'), 1200);
+      if (voices[target[0]]) await play(target[0]);
+      setTimeout(newQuestion, 900);
+    } else { b.classList.remove('wrong'); void b.offsetWidth; b.classList.add('wrong'); chime(220, .3); }
+  });
+}
+function confetti() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const colors = ['#0E7A48', '#D4A017', '#C8102E', '#F2D06B'];
+  for (let i = 0; i < 40; i++) {
+    const c = document.createElement('div'); c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw'; c.style.background = colors[i % 4];
+    c.style.animationDuration = 1.2 + Math.random() * 1.4 + 's';
+    document.body.appendChild(c); setTimeout(() => c.remove(), 3000);
+  }
+}
+
+// ── record mode (author or admin only) ──
+let recMode = false, rec = null, recEl = null;
+const voiceDoc = doc(db, 'books_sample', 'main');
+async function loadVoices() {
+  try { const d = await getDoc(voiceDoc); voices = d.exists() ? (d.data().voices || {}) : {}; } catch (e) { voices = {}; }
+  document.querySelectorAll('.tap[data-k]').forEach(el => el.classList.toggle('has', !!voices[el.dataset.k]));
+}
+$('recToggle').onclick = () => { recMode = !recMode; $('recBar').hidden = !recMode; };
+$('recDone').onclick = () => { recMode = false; $('recBar').hidden = true; if (rec) rec.stop(); };
+async function recordItem(el) {
+  if (rec) { if (recEl === el) rec.stop(); return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
+  catch (e) { toast('Microphone not allowed'); return; }
+  const chunks = [], k = el.dataset.k;
+  rec = new MediaRecorder(stream); recEl = el; el.classList.add('rec');
+  $('recMsg').textContent = '🔴 Recording… tap the same item again to save.';
+  rec.ondataavailable = ev => { if (ev.data.size) chunks.push(ev.data); };
+  rec.onstop = async () => {
+    stream.getTracks().forEach(tr => tr.stop()); el.classList.remove('rec'); rec = null; recEl = null;
+    try {
+      const blob = new Blob(chunks, { type: chunks[0] ? chunks[0].type : 'audio/webm' });
+      const r = ref(storage, `books_sample/${k}`);
+      await uploadBytes(r, blob, { contentType: (blob.type || 'audio/webm').split(';')[0] });
+      voices[k] = await getDownloadURL(r);
+      await setDoc(voiceDoc, { voices }, { merge: true });
+      el.classList.add('has'); $('recMsg').textContent = '✓ Saved. Tap the next item.';
+    } catch (e) { console.error(e); $('recMsg').textContent = 'Could not save. Try again.'; }
+  };
+  rec.start();
+}
+
+function renderStatic() { setLang(getLang()); applyT(t); build(); }
+langSwitch($('lang'), renderStatic);
+renderStatic();
+loadVoices().then(build);
+onUser(async u => {
+  let can = isAdmin(u);
+  if (!can && isVerified(u)) { try { can = (await getDoc(doc(db, 'authors', emailOf(u)))).exists(); } catch (e) {} }
+  $('recToggle').hidden = !can;
+});
+</script>
+</body>
+</html>

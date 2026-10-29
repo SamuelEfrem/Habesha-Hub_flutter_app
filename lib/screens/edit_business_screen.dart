@@ -154,6 +154,13 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
       if (_lat == null && _addrCtrl.text.isNotEmpty) {
         await _geocodeAddress();
       }
+      // Keep the old pin rather than moving the business to a made-up place
+      if (_lat == null || _lng == null) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr('⚠ Address not found. Check and try again.'))));
+        return;
+      }
       await _db.collection('businesses').doc(widget.docId).update({
         'name': _nameCtrl.text.trim(),
         'category': _category,
@@ -161,8 +168,8 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
         'address': _addrCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
         'imageUrl': _imgCtrl.text.trim(),
-        'lat': _lat ?? 59.9139,
-        'lng': _lng ?? 10.7522,
+        'lat': _lat,
+        'lng': _lng,
         'openingHours': _buildOpeningHours(),
         'website': _websiteCtrl.text.trim(),
         'updatedAt': FieldValue.serverTimestamp(),

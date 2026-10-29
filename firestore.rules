@@ -220,6 +220,111 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // ── Habesha Books (digital books, read with a verified email) ──
+    // authors/{email}: who may upload books — only admin decides
+    function verifiedEmail() { return signedIn() && request.auth.token.email_verified == true && request.auth.token.email != null; }
+    function myEmail() { return request.auth.token.email.lower(); }
+    function isAuthor() { return verifiedEmail() && exists(/databases/$(database)/documents/authors/$(myEmail())); }
+    function bookAuthor(bookId) {
+      return signedIn() && get(/databases/$(database)/documents/books/$(bookId)).data.authorId == uid();
+    }
+    function hasBookAccess(bookId) {
+      return verifiedEmail() && (
+        exists(/databases/$(database)/documents/books/$(bookId)/access/$(myEmail()))
+        || exists(/databases/$(database)/documents/books/$(bookId)/domains/$(myEmail().split('@')[1])));
+    }
+    match /authors/{email} {
+      allow read: if isAdmin() || (verifiedEmail() && myEmail() == email);
+      allow write: if isAdmin();
+    }
+    match /books/{bookId} {
+      allow read: if resource.data.published == true || isAdmin()
+        || (signedIn() && resource.data.authorId == uid());
+      allow create: if isAdmin() || (isAuthor()
+        && request.resource.data.authorId == uid()
+        && request.resource.data.published == false);
+      allow update: if isAdmin() || (isAuthor()
+        && resource.data.authorId == uid() && request.resource.data.authorId == uid());
+      allow delete: if isAdmin() || (isAuthor() && resource.data.authorId == uid());
+
+      // emails that may read this book (doc id = lower-case email)
+      match /access/{email} {
+        allow read: if isAdmin() || bookAuthor(bookId) || (verifiedEmail() && myEmail() == email);
+        allow write: if isAdmin() || (isAuthor() && bookAuthor(bookId));
+        // a reader unlocks the book with an unused code from the printed book
+        // (same batch marks the code as used by this email)
+        allow create: if verifiedEmail() && myEmail() == email
+          && request.resource.data.keys().hasOnly(['email', 'code', 'addedAt'])
+          && request.resource.data.code is string
+          && get(/databases/$(database)/documents/book_codes/$(request.resource.data.code)).data.usedBy == null
+          && getAfter(/databases/$(database)/documents/book_codes/$(request.resource.data.code)).data.usedBy == email
+          && getAfter(/databases/$(database)/documents/book_codes/$(request.resource.data.code)).data.bookId == bookId;
+      }
+      // whole school: every verified email @domain may read
+      match /domains/{domain} {
+        allow read: if isAdmin() || bookAuthor(bookId) || (verifiedEmail() && myEmail().split('@')[1] == domain);
+        allow write: if isAdmin() || (isAuthor() && bookAuthor(bookId));
+      }
+      // interactive lessons (HTML book): readers with access read, the author writes
+      match /lessons/{lessonId} {
+        allow read: if isAdmin() || bookAuthor(bookId) || hasBookAccess(bookId);
+        allow write: if isAdmin() || (isAuthor() && bookAuthor(bookId));
+      }
+      // reading progress, written by the reader, seen by the author
+      match /reads/{email} {
+        allow read, delete: if isAdmin() || bookAuthor(bookId);
+        allow create, update: if verifiedEmail() && myEmail() == email && hasBookAccess(bookId)
+          && request.resource.data.keys().hasOnly(['email', 'lastPage', 'updatedAt'])
+          && request.resource.data.email == email && request.resource.data.lastPage is int;
+      }
+      // workbook pages rebuilt as web content (text, lines, photo keys) — same access as the book
+      match /wpages/{pageId} {
+        allow read: if isAdmin() || bookAuthor(bookId) || hasBookAccess(bookId);
+        allow write: if isAdmin() || (isAuthor() && bookAuthor(bookId));
+      }
+      // exercise book: what a reader wrote on a page, only they read and write it
+      match /ink/{email}/pages/{page} {
+        allow read, write: if verifiedEmail() && myEmail() == email
+          && (hasBookAccess(bookId) || bookAuthor(bookId) || isAdmin())
+          && (request.resource == null || (request.resource.data.keys().hasOnly(['s', 't', 'updatedAt'])
+            && request.resource.data.s is string && request.resource.data.s.size() < 900000));
+      }
+    }
+
+    // one-time unlock codes printed inside the paper book (doc id = code)
+    match /book_codes/{code} {
+      allow get: if verifiedEmail();
+      allow list: if isAdmin() || (signedIn() && resource.data.authorId == uid());
+      allow create: if request.resource.data.usedBy == null
+        && (isAdmin() || (isAuthor() && request.resource.data.authorId == uid()
+                          && bookAuthor(request.resource.data.bookId)));
+      allow update: if isAdmin() || (isAuthor() && resource.data.authorId == uid())
+        || (verifiedEmail() && resource.data.usedBy == null
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usedBy', 'usedAt'])
+            && request.resource.data.usedBy == myEmail()
+            && request.resource.data.usedAt == request.time
+            && existsAfter(/databases/$(database)/documents/books/$(resource.data.bookId)/access/$(myEmail())));
+      allow delete: if isAdmin() || (isAuthor() && resource.data.authorId == uid());
+    }
+    // devices per reader email: max 3, a reader can add but never remove; authors reset
+    match /books_devices/{email} {
+      allow read: if isAdmin() || isAuthor() || (verifiedEmail() && myEmail() == email);
+      allow create: if verifiedEmail() && myEmail() == email
+        && request.resource.data.keys().hasOnly(['email', 'devices'])
+        && request.resource.data.devices.size() <= 3;
+      allow update: if verifiedEmail() && myEmail() == email
+        && request.resource.data.keys().hasOnly(['email', 'devices'])
+        && request.resource.data.devices.size() <= 3
+        && request.resource.data.devices.keys().hasAll(resource.data.devices.keys());
+      allow delete: if isAdmin() || isAuthor();
+    }
+
+    // free sample lesson: recorded voices (public), only authors/admin change them
+    match /books_sample/{id} {
+      allow read: if true;
+      allow write: if isAdmin() || isAuthor();
+    }
+
     // ── Everything else (old Connect / Forum / Events) ─────
     match /{document=**} {
       allow read, write: if isAdmin();

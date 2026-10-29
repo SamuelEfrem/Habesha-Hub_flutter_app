@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yosiefsbook – lesson editor</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="img/yosief-avatar.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,900;1,900&family=Manrope:wght@500;600;700;800&family=Noto+Sans+Ethiopic:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="books.css?v=6">
+</head>
+<body class="light">
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="author.html"><img src="img/yosief-avatar.svg" alt=""><span>Yosiefsbook</span> <small>Lesson editor</small></a>
+    <div class="spacer"></div>
+    <span class="who" id="who"></span>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="card" id="msg" style="margin-top:24px" hidden></div>
+  <div class="ed" id="ed" hidden>
+    <aside class="toc">
+      <h2 id="bookTitle"></h2>
+      <div class="tlist" id="tlist"></div>
+      <button class="btn btn-gold btn-small" id="addLesson" style="margin-top:10px;width:100%">+ New lesson</button>
+      <label class="btn btn-ghost btn-small" style="margin-top:8px;width:100%;cursor:pointer">⬆ Import lessons (.json)
+        <input type="file" id="importF" accept=".json,application/json" hidden></label>
+      <p class="note" style="margin:12px 6px 0;font-size:13px">Tip: one lesson = one letter family. Add letters, words, a sentence, a game and tracing.</p>
+    </aside>
+    <section class="stack" id="editor"></section>
+  </div>
+</main>
+
+<script type="module">
+import { db, storage, onUser, isAdmin, isVerified, emailOf, esc, toast, keyAudioPath, keyImgPath, newKey } from './common.js';
+import { collection, getDocs, getDoc, doc, setDoc, deleteDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
+
+const $ = id => document.getElementById(id);
+const bookId = new URLSearchParams(location.search).get('book');
+let user = null, book = null, lessons = [], cur = null, dirty = false;
+const LABEL = { letters: '🔤 Letter family', words: '🖼 Words', sentence: '💬 Sentence', text: '📝 Text', game: '🎮 Game (find the letter)', trace: '✍️ Write the letter (tracing)', picture: '🖼 Picture' };
+
+function msg(t) { $('msg').textContent = t; $('msg').hidden = false; $('ed').hidden = true; }
+
+async function start() {
+  if (!bookId) { location.href = 'author.html'; return; }
+  if (!isVerified(user)) { msg('Please log in on the author page first.'); return; }
+  const b = await getDoc(doc(db, 'books', bookId));
+  if (!b.exists()) { msg('Book not found.'); return; }
+  book = { id: b.id, ...b.data() };
+  if (!isAdmin(user) && book.authorId !== user.uid) { msg('Only the author of this book can edit it.'); return; }
+  $('bookTitle').textContent = book.title;
+  const s = await getDocs(collection(db, 'books', bookId, 'lessons'));
+  lessons = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.order || 0) - (b.order || 0));
+  $('msg').hidden = true; $('ed').hidden = false;
+  renderList();
+  if (lessons.length) open(lessons[0].id); else $('editor').innerHTML = '<div class="card"><p>No lessons yet. Press <b>+ New lesson</b>.</p></div>';
+}
+
+function renderList() {
+  $('tlist').innerHTML = lessons.map((l, i) => `<button class="${cur && cur.id === l.id ? 'on' : ''}" data-id="${esc(l.id)}">
+    <span class="num">${i + 1}</span><span>${esc(l.titleTi || l.title || 'Untitled')}</span></button>`).join('');
+  $('tlist').querySelectorAll('button').forEach(b => b.onclick = async () => { if (await saveIfDirty()) open(b.dataset.id); });
+}
+$('addLesson').onclick = async () => {
+  if (!(await saveIfDirty())) return;
+  const id = newKey(), order = (lessons.length ? Math.max(...lessons.map(l => l.order || 0)) : 0) + 1;
+  const l = { id, order, title: `Lesson ${lessons.length + 1}`, titleTi: '', blocks: [
+    { type: 'letters', items: [] }, { type: 'words', items: [] }, { type: 'sentence', k: newKey(), ti: '', en: '' }, { type: 'game' }, { type: 'trace', l: '' }] };
+  lessons.push(l); cur = l; dirty = true; await save(); renderList(); renderEditor();
+};
+// ── import lessons made from a PDF/Word book (file: { format: 'yosiefsbook-lessons-v1', lessons: [...] }) ──
+const TYPES = ['text', 'letters', 'words', 'sentence', 'game', 'trace', 'picture'];
+const str = (v, n) => typeof v === 'string' ? v.slice(0, n) : '';
+function cleanBlock(b) {
+  if (!b || !TYPES.includes(b.type)) return null;
+  const o = { type: b.type };
+  if (b.type === 'text') { o.ti = str(b.ti, 4000); o.en = str(b.en, 4000); }
+  if (b.type === 'letters') o.items = (b.items || []).slice(0, 40).map(x => ({ k: newKey(), l: str(x.l, 8), r: str(x.r, 12) })).filter(x => x.l);
+  if (b.type === 'words') o.items = (b.items || []).slice(0, 40).map(x => ({ k: newKey(), w: str(x.w, 40), hl: str(x.hl, 8), m: str(x.m, 60), e: str(x.e, 8) })).filter(x => x.w);
+  if (b.type === 'sentence') { o.k = newKey(); o.ti = str(b.ti, 300); o.en = str(b.en, 300); }
+  if (b.type === 'trace') o.l = str(b.l, 8);
+  if (b.type === 'picture') return null; // pictures are uploaded in the editor
+  return o;
+}
+$('importF').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (data.format !== 'yosiefsbook-lessons-v1' || !Array.isArray(data.lessons)) throw new Error('Not a Yosiefsbook lessons file.');
+    if (!(await saveIfDirty())) return;
+    let order = lessons.length ? Math.max(...lessons.map(l => l.order || 0)) : 0, first = null;
+    for (const raw of data.lessons.slice(0, 200)) {
+      const l = { id: newKey(), order: ++order, title: str(raw.title, 80) || `Lesson ${order}`, titleTi: str(raw.titleTi, 80),
+        blocks: (raw.blocks || []).slice(0, 30).map(cleanBlock).filter(Boolean) };
+      const { id, ...d } = l;
+      await setDoc(doc(db, 'books', bookId, 'lessons', id), { ...d, updatedAt: serverTimestamp() });
+      lessons.push(l); first = first || l;
+    }
+    await updateDoc(doc(db, 'books', bookId), { lessonCount: lessons.length, updatedAt: serverTimestamp() }).catch(() => {});
+    toast(`${data.lessons.length} lesson(s) imported ✓`);
+    if (first) open(first.id); else renderList();
+  } catch (err) { console.error(err); toast('Import failed: ' + (err.message || err)); }
+};
+function open(id) { cur = lessons.find(l => l.id === id); dirty = false; renderList(); renderEditor(); }
+
+async function save() {
+  if (!cur) return true;
+  const { id, ...data } = cur;
+  await setDoc(doc(db, 'books', bookId, 'lessons', id), { ...data, updatedAt: serverTimestamp() });
+  await updateDoc(doc(db, 'books', bookId), { lessonCount: lessons.length, updatedAt: serverTimestamp() }).catch(() => {});
+  dirty = false; markSaved(); return true;
+}
+async function saveIfDirty() {
+  if (!dirty) return true;
+  try { await save(); return true; } catch (e) { console.error(e); toast('Could not save. Try again.'); return false; }
+}
+function markSaved() { const s = $('saveState'); if (s) { s.textContent = dirty ? '● Not saved' : '✓ Saved'; s.style.color = dirty ? 'var(--gold)' : 'var(--green)'; } }
+function touch() { dirty = true; markSaved(); clearTimeout(touch.t); touch.t = setTimeout(() => saveIfDirty().then(renderList), 1500); }
+addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+// ── recording / uploads ──
+let rec = null;
+async function record(btn, k, onSaved) {
+  if (rec) { rec.stop(); return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
+  catch (e) { toast('Microphone not allowed. Allow it in the browser.'); return; }
+  const chunks = [];
+  rec = new MediaRecorder(stream);
+  rec.ondataavailable = ev => { if (ev.data.size) chunks.push(ev.data); };
+  rec.onstop = async () => {
+    stream.getTracks().forEach(tr => tr.stop()); rec = null; btn.classList.remove('rec'); btn.textContent = '…';
+    try {
+      const blob = new Blob(chunks, { type: chunks[0] ? chunks[0].type : 'audio/webm' });
+      await uploadBytes(ref(storage, keyAudioPath(bookId, k)), blob, { contentType: (blob.type || 'audio/webm').split(';')[0] });
+      onSaved(); toast('Voice saved ✓', 1200);
+    } catch (e) { console.error(e); toast('Could not save the sound.'); }
+    renderEditor();
+  };
+  rec.start(); btn.classList.add('rec'); btn.textContent = '⏹ Stop';
+}
+async function playKey(k) { try { new Audio(await getDownloadURL(ref(storage, keyAudioPath(bookId, k)))).play(); } catch (e) { toast('No sound yet.'); } }
+async function uploadImg(file, k) {
+  const bm = await createImageBitmap(file), s = Math.min(1, 1200 / bm.width), c = document.createElement('canvas');
+  c.width = Math.round(bm.width * s); c.height = Math.round(bm.height * s);
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(bm, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', .85));
+  await uploadBytes(ref(storage, keyImgPath(bookId, k)), blob, { contentType: 'image/jpeg' });
+}
+const recBtns = (item) => `<button type="button" class="btn btn-ghost btn-small recb ${item.a ? 'ok' : ''}" data-rec="${esc(item.k)}">🎙 ${item.a ? 'Re-record' : 'Record'}</button>
+  ${item.a ? `<button type="button" class="btn btn-ghost btn-small" data-play="${esc(item.k)}" aria-label="Play">▶</button>` : ''}`;
+
+// ── editor ──
+function renderEditor() {
+  const l = cur; if (!l) return;
+  const blocks = l.blocks || (l.blocks = []);
+  $('editor').innerHTML = `
+    <div class="card stack">
+      <div class="two">
+        <label class="f"><span>Lesson title (English)</span><input type="text" data-l="title" value="${esc(l.title || '')}" maxlength="80"></label>
+        <label class="f"><span>Lesson title (Tigrinya)</span><input type="text" data-l="titleTi" value="${esc(l.titleTi || '')}" maxlength="80"></label>
+      </div>
+      <div class="btnrow" style="align-items:center">
+        <button class="btn btn-gold btn-small" id="saveBtn">💾 Save</button>
+        <a class="btn btn-ghost btn-small" href="learn.html?book=${encodeURIComponent(bookId)}&lesson=${encodeURIComponent(l.id)}" target="_blank" rel="noopener">👁 Preview</a>
+        <button class="btn btn-ghost btn-small" id="upL">↑</button><button class="btn btn-ghost btn-small" id="downL">↓</button>
+        <button class="btn btn-danger btn-small" id="delL">Delete lesson</button>
+        <span id="saveState" class="note"></span>
+      </div>
+    </div>
+    ${blocks.map((b, i) => blockHtml(b, i)).join('')}
+    <div class="card stack"><strong>+ Add a block</strong>
+      <div class="addbar">${Object.entries(LABEL).map(([k, v]) => `<button class="btn btn-ghost btn-small" data-add="${k}">${v}</button>`).join('')}</div></div>`;
+  markSaved();
+  wire();
+}
+function blockHtml(b, i) {
+  let body = '';
+  if (b.type === 'letters') body = `
+    <label class="f"><span>Quick fill: type the letters with spaces, e.g. በ ቡ ቢ ባ ቤ ብ ቦ</span>
+      <div class="login" style="margin:0;max-width:none"><div class="row"><input type="text" data-quick="${i}" placeholder="በ ቡ ቢ ባ ቤ ብ ቦ"><button type="button" class="btn btn-ghost btn-small" data-fill="${i}">Fill</button></div></div></label>
+    ${(b.items || []).map((x, j) => `<div class="erow">
+      <label class="f"><span>Letter</span><input type="text" data-b="${i}" data-j="${j}" data-f="l" value="${esc(x.l || '')}"></label>
+      <label class="f"><span>Sound (latin)</span><input type="text" data-b="${i}" data-j="${j}" data-f="r" value="${esc(x.r || '')}" placeholder="bä"></label>
+      <div class="btnrow">${recBtns(x)}<button type="button" class="btn btn-danger btn-small" data-rmi="${i}:${j}">✕</button></div></div>`).join('')}
+    <div><button type="button" class="btn btn-ghost btn-small" data-addi="${i}">+ Letter</button></div>`;
+  if (b.type === 'words') body = `${(b.items || []).map((x, j) => `<div class="erow">
+      <label class="f"><span>Word</span><input type="text" data-b="${i}" data-j="${j}" data-f="w" value="${esc(x.w || '')}" placeholder="ቤት"></label>
+      <label class="f"><span>Highlight</span><input type="text" data-b="${i}" data-j="${j}" data-f="hl" value="${esc(x.hl || '')}" placeholder="ቤ"></label>
+      <label class="f"><span>Meaning</span><input type="text" data-b="${i}" data-j="${j}" data-f="m" value="${esc(x.m || '')}" placeholder="house"></label>
+      <label class="f"><span>Emoji</span><input type="text" data-b="${i}" data-j="${j}" data-f="e" value="${esc(x.e || '')}" placeholder="🏠"></label>
+      <div class="btnrow">${recBtns(x)}
+        <label class="btn btn-ghost btn-small" style="cursor:pointer">🖼${x.img ? ' ✓' : ''}<input type="file" accept="image/*" hidden data-wimg="${i}:${j}"></label>
+        <button type="button" class="btn btn-danger btn-small" data-rmi="${i}:${j}">✕</button></div></div>`).join('')}
+    <div><button type="button" class="btn btn-ghost btn-small" data-addi="${i}">+ Word</button></div>`;
+  if (b.type === 'sentence') body = `<div class="two">
+      <label class="f"><span>Sentence (Tigrinya)</span><input type="text" data-b="${i}" data-f="ti" value="${esc(b.ti || '')}" placeholder="ኣብ ቤት ባኒ ኣሎ።"></label>
+      <label class="f"><span>Translation</span><input type="text" data-b="${i}" data-f="en" value="${esc(b.en || '')}" placeholder="There is bread in the house."></label></div>
+    <div class="btnrow">${recBtns(b)}</div>`;
+  if (b.type === 'text') body = `
+    <label class="f"><span>Text (Tigrinya)</span><textarea data-b="${i}" data-f="ti">${esc(b.ti || '')}</textarea></label>
+    <label class="f"><span>Text (English, optional)</span><textarea data-b="${i}" data-f="en">${esc(b.en || '')}</textarea></label>`;
+  if (b.type === 'game') body = `<p class="note">The game uses the letters of this lesson automatically (at least 2 letters). Children hear the letter and find it.</p>`;
+  if (b.type === 'trace') body = `<label class="f" style="max-width:220px"><span>Letter to write</span><input type="text" data-b="${i}" data-f="l" value="${esc(b.l || '')}" placeholder="በ"></label>`;
+  if (b.type === 'picture') body = `<div class="btnrow" style="align-items:flex-end">
+      <label class="btn btn-ghost btn-small" style="cursor:pointer">🖼 ${b.k ? 'Change picture ✓' : 'Upload picture'}<input type="file" accept="image/*" hidden data-pimg="${i}"></label>
+      <label class="f" style="flex:1"><span>Caption (optional)</span><input type="text" data-b="${i}" data-f="cap" value="${esc(b.cap || '')}"></label></div>`;
+  return `<div class="eblock"><div class="bh"><strong>${LABEL[b.type] || b.type}</strong>
+    <button class="ic" data-mv="${i}:-1" aria-label="Move up">↑</button><button class="ic" data-mv="${i}:1" aria-label="Move down">↓</button>
+    <button class="ic" data-rmb="${i}" aria-label="Delete block" style="color:var(--red)">✕</button></div>${body}</div>`;
+}
+function wire() {
+  const l = cur, E = $('editor');
+  E.querySelectorAll('[data-l]').forEach(inp => inp.oninput = () => { l[inp.dataset.l] = inp.value; touch(); });
+  E.querySelectorAll('[data-b][data-f]').forEach(inp => inp.oninput = () => {
+    const b = l.blocks[+inp.dataset.b];
+    const target = inp.dataset.j != null ? b.items[+inp.dataset.j] : b;
+    target[inp.dataset.f] = inp.value; touch();
+  });
+  $('saveBtn').onclick = async () => { try { await save(); renderList(); toast('Saved ✓', 1200); } catch (e) { console.error(e); toast('Could not save.'); } };
+  $('delL').onclick = async () => {
+    if (!confirm('Delete this lesson?')) return;
+    await deleteDoc(doc(db, 'books', bookId, 'lessons', l.id));
+    lessons = lessons.filter(x => x.id !== l.id); cur = null; dirty = false;
+    await updateDoc(doc(db, 'books', bookId), { lessonCount: lessons.length }).catch(() => {});
+    renderList(); if (lessons.length) open(lessons[0].id); else $('editor').innerHTML = '';
+  };
+  const moveLesson = async d => {
+    const i = lessons.indexOf(l), j = i + d; if (j < 0 || j >= lessons.length) return;
+    [lessons[i], lessons[j]] = [lessons[j], lessons[i]];
+    lessons.forEach((x, n) => x.order = n + 1);
+    for (const x of lessons) { const { id, ...data } = x; await setDoc(doc(db, 'books', bookId, 'lessons', id), data); }
+    dirty = false; renderList(); markSaved();
+  };
+  $('upL').onclick = () => moveLesson(-1); $('downL').onclick = () => moveLesson(1);
+  E.querySelectorAll('[data-add]').forEach(btn => btn.onclick = () => {
+    const ty = btn.dataset.add;
+    const b = { type: ty };
+    if (ty === 'letters' || ty === 'words') b.items = [];
+    if (ty === 'sentence') { b.k = newKey(); b.ti = ''; b.en = ''; }
+    if (ty === 'trace') b.l = '';
+    l.blocks.push(b); touch(); renderEditor();
+  });
+  E.querySelectorAll('[data-rmb]').forEach(btn => btn.onclick = () => { if (confirm('Delete this block?')) { l.blocks.splice(+btn.dataset.rmb, 1); touch(); renderEditor(); } });
+  E.querySelectorAll('[data-mv]').forEach(btn => btn.onclick = () => {
+    const [i, d] = btn.dataset.mv.split(':').map(Number), j = i + d;
+    if (j < 0 || j >= l.blocks.length) return;
+    [l.blocks[i], l.blocks[j]] = [l.blocks[j], l.blocks[i]]; touch(); renderEditor();
+  });
+  E.querySelectorAll('[data-addi]').forEach(btn => btn.onclick = () => { l.blocks[+btn.dataset.addi].items.push({ k: newKey() }); touch(); renderEditor(); });
+  E.querySelectorAll('[data-rmi]').forEach(btn => btn.onclick = () => { const [i, j] = btn.dataset.rmi.split(':').map(Number); l.blocks[i].items.splice(j, 1); touch(); renderEditor(); });
+  E.querySelectorAll('[data-fill]').forEach(btn => btn.onclick = () => {
+    const i = +btn.dataset.fill, v = E.querySelector(`[data-quick="${i}"]`).value.trim();
+    if (!v) return;
+    const b = l.blocks[i], old = b.items || [];
+    b.items = v.split(/\s+/).map((ch, j) => old[j] && old[j].l === ch ? old[j] : { k: newKey(), l: ch });
+    if (!l.blocks.some(x => x.type === 'trace' && x.l)) { const tr = l.blocks.find(x => x.type === 'trace'); if (tr) tr.l = b.items[0].l; }
+    touch(); renderEditor();
+  });
+  E.querySelectorAll('[data-rec]').forEach(btn => btn.onclick = () => {
+    const k = btn.dataset.rec;
+    record(btn, k, () => {
+      for (const b of l.blocks) { if (b.k === k) b.a = true; (b.items || []).forEach(x => { if (x.k === k) x.a = true; }); }
+      dirty = true; save().catch(console.error);
+    });
+  });
+  E.querySelectorAll('[data-play]').forEach(btn => btn.onclick = () => playKey(btn.dataset.play));
+  E.querySelectorAll('[data-wimg]').forEach(inp => inp.onchange = async () => {
+    const [i, j] = inp.dataset.wimg.split(':').map(Number), x = l.blocks[i].items[j], f = inp.files[0]; if (!f) return;
+    try { const k = x.img || newKey(); await uploadImg(f, k); x.img = k; await save(); renderEditor(); toast('Picture saved ✓', 1200); } catch (e) { console.error(e); toast('Could not upload.'); }
+  });
+  E.querySelectorAll('[data-pimg]').forEach(inp => inp.onchange = async () => {
+    const b = l.blocks[+inp.dataset.pimg], f = inp.files[0]; if (!f) return;
+    try { const k = b.k || newKey(); await uploadImg(f, k); b.k = k; await save(); renderEditor(); toast('Picture saved ✓', 1200); } catch (e) { console.error(e); toast('Could not upload.'); }
+  });
+}
+
+onUser(u => { user = u; $('who').textContent = u && u.email ? u.email : ''; start().catch(e => { console.error(e); msg('Something went wrong: ' + (e.code || e.message)); }); });
+</script>
+</body>
+</html>

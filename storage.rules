@@ -27,9 +27,53 @@ service firebase.storage {
         firestore.get(/databases/(default)/documents/businesses/$(bizId)).data.ownerId == request.auth.uid;
     }
 
-    // Everyone can view uploaded pictures and videos
-    match /{allPaths=**} {
-      allow read: if true;
+    // Everyone can view uploaded pictures and videos — except book pages
+    match /{folder}/{allPaths=**} {
+      allow read: if folder != 'books';
+    }
+
+    // ── Habesha Books ──
+    function bookAuthor(bookId) {
+      return signedIn() &&
+        firestore.get(/databases/(default)/documents/books/$(bookId)).data.authorId == request.auth.uid;
+    }
+    // reader's verified email (or school domain) is on the book's access list.
+    // The author's own email is added to the list when the book is created.
+    function bookAccess(bookId) {
+      return signedIn() && request.auth.token.email_verified == true && (
+        firestore.exists(/databases/(default)/documents/books/$(bookId)/access/$(request.auth.token.email.lower()))
+        || firestore.exists(/databases/(default)/documents/books/$(bookId)/domains/$(request.auth.token.email.lower().split('@')[1])));
+    }
+    match /books/{bookId}/pages/{file} {
+      allow read: if isAdmin() || bookAccess(bookId);
+      allow write: if (isAdmin() || bookAuthor(bookId))
+        && (request.resource == null
+            || (request.resource.size < 8 * 1024 * 1024 && request.resource.contentType == 'image/jpeg'));
+    }
+    // the author's voice for each page — same access as the pages
+    match /books/{bookId}/audio/{file} {
+      allow read: if isAdmin() || bookAccess(bookId);
+      allow write: if (isAdmin() || bookAuthor(bookId))
+        && (request.resource == null
+            || (request.resource.size < 20 * 1024 * 1024 && request.resource.contentType.matches('audio/.*')));
+    }
+    // voices for the free sample lesson (public read via the rule above)
+    match /books_sample/{file} {
+      allow write: if (isAdmin() || (signedIn() && request.auth.token.email_verified == true
+          && firestore.exists(/databases/(default)/documents/authors/$(request.auth.token.email.lower()))))
+        && (request.resource == null
+            || (request.resource.size < 10 * 1024 * 1024 && request.resource.contentType.matches('audio/.*')));
+    }
+    // pictures inside interactive lessons — same access as the pages
+    match /books/{bookId}/img/{file} {
+      allow read: if isAdmin() || bookAccess(bookId);
+      allow write: if (isAdmin() || bookAuthor(bookId))
+        && (request.resource == null
+            || (request.resource.size < 5 * 1024 * 1024 && request.resource.contentType.matches('image/.*')));
+    }
+    // covers are public (shown in the catalog)
+    match /book_covers/{bookId}/{file} {
+      allow write: if (isAdmin() || bookAuthor(bookId)) && (request.resource == null || isImage(5));
     }
 
     // Image chosen while registering a new business (business id not created yet)

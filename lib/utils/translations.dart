@@ -415,6 +415,8 @@ class AppTranslations {
     '⚠ Address not found': {'Tigrinya': '⚠ ኣድራሻ ኣይተረኽበን', 'Amharic': '⚠ አድራሻ አልተገኘም'},
     '⚠ Address not found. Check and try again.': {'Tigrinya': '⚠ ኣድራሻ ኣይተረኽበን። ኣረጋጊጽኩም ደጊምኩም ፈትኑ።', 'Amharic': '⚠ አድራሻ አልተገኘም። ያረጋግጡና እንደገና ይሞክሩ።'},
     '⚠ Could not find location': {'Tigrinya': '⚠ ቦታ ክርከብ ኣይከኣለን', 'Amharic': '⚠ ቦታ ማግኘት አልተቻለም'},
+    'Use my current location': {'Tigrinya': 'ሕጂ ዘለኹዎ ቦታ ተጠቐም', 'Amharic': 'አሁን ያለሁበትን ቦታ ተጠቀም'},
+    'Address not found on the map. Write street, number and city, or tap "Use my current location".': {'Tigrinya': 'ኣድራሻ ኣብ ካርታ ኣይተረኽበን። ጎደና፡ ቁጽሪን ከተማን ጽሓፉ፡ ወይ «ሕጂ ዘለኹዎ ቦታ ተጠቐም» ጠውቑ።', 'Amharic': 'አድራሻው በካርታ ላይ አልተገኘም። መንገድ፣ ቁጥርና ከተማ ይጻፉ ወይም «አሁን ያለሁበትን ቦታ ተጠቀም» ይንኩ።'},
     '⚠ Could not find location. Check the address.': {'Tigrinya': '⚠ ቦታ ክርከብ ኣይከኣለን። ኣድራሻ ኣረጋግጹ።', 'Amharic': '⚠ ቦታ ማግኘት አልተቻለም። አድራሻውን ያረጋግጡ።'},
     '✓ Business updated!': {'Tigrinya': '✓ ትካል ተሓዲሱ!', 'Amharic': '✓ ድርጅቱ ተዘምኗል!'},
   };
@@ -1088,6 +1090,24 @@ class AppTranslations {
       'Tigrinya': 'መጻሕፍቲ',
       'English': 'Books',
       'Amharic': 'መጻሕፍት'
+    },
+    'market_jobs': {
+      'Norsk': 'Jobber',
+      'Tigrinya': 'ስራሕ',
+      'English': 'Jobs',
+      'Amharic': 'ሥራ'
+    },
+    'market_housing': {
+      'Norsk': 'Bolig',
+      'Tigrinya': 'ገዛ',
+      'English': 'Housing',
+      'Amharic': 'ቤት'
+    },
+    'market_events': {
+      'Norsk': 'Arrangementer',
+      'Tigrinya': 'ፍሉያት ኣጋጣሚታት',
+      'English': 'Events',
+      'Amharic': 'ዝግጅቶች'
     },
     'marketplace_city': {
       'Norsk': 'BY / STED',

@@ -47,7 +47,7 @@
     ],
     "headers": [
       {
-        "source": "**/*.@(html|js|json)",
+        "source": "**/*.@(html|js|json|css)",
         "headers": [
           {
             "key": "Cache-Control",
@@ -72,6 +72,18 @@
             "value": "public, max-age=604800"
           }
         ]
+      }
+    ],
+    "redirects": [
+      {
+        "source": "/yosiefsbook",
+        "destination": "/books/",
+        "type": 301
+      },
+      {
+        "source": "/yosiefsbook/**",
+        "destination": "/books/",
+        "type": 301
       }
     ]
   },

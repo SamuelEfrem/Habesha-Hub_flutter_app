@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yosiefsbook – lessons</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="img/yosief-avatar.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Abyssinica+SIL&family=Noto+Serif:ital,wght@0,900;1,900&family=Manrope:wght@500;600;700;800&family=Noto+Sans+Ethiopic:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="books.css?v=8">
+</head>
+<body class="light learnpage">
+<header class="ltop">
+  <a class="logo" href="./"><img src="img/yosief-avatar.svg" alt=""><span>Yosiefsbook</span></a>
+  <button class="btn btn-ghost btn-small" id="tocBtn">☰ <span data-t="lessons">Lessons</span></button>
+  <div class="ltitle"><strong id="bookName"></strong><span id="lessonName"></span></div>
+  <div class="lprog" aria-hidden="true"><div id="tprog"></div></div>
+  <button class="btn btn-small lwrite" id="writeBtn" aria-pressed="false">✏️ <span id="writeT">Write</span></button>
+  <button class="ic" id="fullBtn" aria-label="Full screen">⛶</button>
+  <div class="lang" id="lang"></div>
+</header>
+
+<aside class="drawer" id="toc" hidden>
+  <div class="dhead"><strong data-t="lessons">Lessons</strong><button class="ic" id="tocClose" aria-label="Close">✕</button></div>
+  <div class="tlist" id="tlist"></div>
+</aside>
+
+<div class="card" id="msg" style="margin:24px auto;max-width:640px" hidden></div>
+
+<main class="desk" id="desk" hidden>
+  <button class="pg prev" id="pgPrev" aria-label="Previous page">‹</button>
+  <div class="spread" id="spread" aria-live="polite"></div>
+  <button class="pg next" id="pgNext" aria-label="Next page">›</button>
+</main>
+<!-- pen tools: Apple Pencil writes at once, a finger after tapping ✏️ Write -->
+<div class="ltools" id="tools" hidden role="toolbar" aria-label="Writing tools">
+  <button class="sw on" data-c="#1a1a1a" style="--c:#1a1a1a" aria-label="Black"></button>
+  <button class="sw" data-c="#1d4ed8" style="--c:#1d4ed8" aria-label="Blue"></button>
+  <button class="sw" data-c="#dc2626" style="--c:#dc2626" aria-label="Red"></button>
+  <button class="sw" data-c="#16a34a" style="--c:#16a34a" aria-label="Green"></button>
+  <button class="sw" data-c="#f59e0b" style="--c:#f59e0b" aria-label="Orange"></button>
+  <span class="sep"></span>
+  <button class="ic on" data-w="4" aria-label="Thin pen">•</button>
+  <button class="ic" data-w="9" aria-label="Thick pen">●</button>
+  <button class="ic" data-w="30" aria-label="Colour in (wide)">🖍</button>
+  <button class="ic" id="erase" aria-label="Eraser" aria-pressed="false">⌫</button>
+  <span class="sep"></span>
+  <button class="ic" id="undo" aria-label="Undo">↶</button>
+  <span class="inksave" id="saveState" aria-live="polite"></span>
+</div>
+<footer class="lfoot" id="lfoot" hidden>
+  <div class="dots" id="dots"></div>
+  <span id="pgCount"></span>
+</footer>
+<div class="wm" id="wm" aria-hidden="true"></div>
+
+<script type="module">
+import { db, storage, onUser, isAdmin, isVerified, emailOf, makeT, applyT, langSwitch, getLang, setLang, esc, toast, ls, keyAudioPath, keyImgPath } from './common.js';
+import { collection, getDocs, getDoc, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { ref, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
+import { renderLesson, confetti } from './lesson.js';
+import { attachInk } from './wb.js';
+
+const t = makeT({
+  en: { write:'Write', wdone:'Done', saved:'Saved ✓', full:'This page is full – clear some writing.', bWrite:'Write', lessons:'Lessons', prev:'Previous', finish:'Finish lesson', finishNext:'Finish – next lesson ›', page:'Page', next:'Next lesson', playAll:'Play the whole lesson',
+    bLetters:'Letters', bWords:'Words', bSentence:'Read the sentence', bGame:'Game: find the letter', bTrace:'Write the letter',
+    find:'Find', listen:'Listen', clear:'Clear', done:'Done', great:'Great!', allDone:'You finished all lessons! ⭐',
+    login:'Please log in in the library first.', toLib:'Open the library', noAccess:'This email does not have access to this book. Enter your code in the library.',
+    empty:'No lessons yet.', error:'Something went wrong. Try again.', devT:'This account is already used on 3 devices. Ask the author to reset your devices.' },
+  ti: { write:'ጽሓፍ', wdone:'ተወዲኡ', saved:'ተዓቂቡ ✓', full:'እዚ ገጽ መሊኡ – ገለ ደምስስ።', bWrite:'ጽሓፍ', lessons:'ትምህርትታት', prev:'ዝሓለፈ', finish:'ትምህርቲ ወድእ', finishNext:'ወድእ – ዝቕጽል ›', page:'ገጽ', next:'ዝቕጽል ትምህርቲ', playAll:'ምሉእ ትምህርቲ ስማዕ',
+    bLetters:'ፊደላት', bWords:'ቃላት', bSentence:'ሓረግ ኣንብብ', bGame:'ጸወታ፥ ፊደል ርኸብ', bTrace:'ፊደል ጽሓፍ',
+    find:'ርኸብ', listen:'ስማዕ', clear:'ደምስስ', done:'ተወዲኡ', great:'ጽቡቕ!', allDone:'ኩሉ ትምህርቲ ወዲእካ! ⭐',
+    login:'በጃኹም ቅድም ኣብ ቤተ-መጻሕፍቲ እተዉ።', toLib:'ቤተ-መጻሕፍቲ ክፈት', noAccess:'እዚ ኢመይል ነዚ መጽሓፍ ፍቓድ የብሉን። ኣብ ቤተ-መጻሕፍቲ ኮድኩም ኣእትዉ።',
+    empty:'ገና ትምህርቲ የለን።', error:'ጌጋ ኣጋጢሙ። ደጊምካ ፈትን።', devT:'እዚ ኣካውንት ኣብ 3 መሳርሒታት ድሮ ይጥቀመሉ ኣሎ። ንደራሲ ሕተቱ።' },
+  am: { write:'ጻፍ', wdone:'ጨርሻለሁ', saved:'ተቀምጧል ✓', full:'ይህ ገጽ ሞልቷል – ጥቂት ይሰርዙ።', bWrite:'ጻፍ', lessons:'ትምህርቶች', prev:'ያለፈው', finish:'ትምህርቱን ጨርስ', finishNext:'ጨርስ – ቀጣይ ›', page:'ገጽ', next:'ቀጣይ ትምህርት', playAll:'ሙሉውን ትምህርት ያዳምጡ',
+    bLetters:'ፊደላት', bWords:'ቃላት', bSentence:'ዓረፍተ ነገሩን ያንብቡ', bGame:'ጨዋታ፥ ፊደሉን ያግኙ', bTrace:'ፊደሉን ይጻፉ',
+    find:'ያግኙ', listen:'ያዳምጡ', clear:'አጥፋ', done:'ጨርሻለሁ', great:'በጣም ጥሩ!', allDone:'ሁሉንም ትምህርቶች ጨርሰዋል! ⭐',
+    login:'እባክዎ መጀመሪያ በቤተ-መጻሕፍቱ ይግቡ።', toLib:'ቤተ-መጻሕፍቱን ይክፈቱ', noAccess:'ይህ ኢሜይል ለዚህ መጽሐፍ ፈቃድ የለውም። በቤተ-መጻሕፍቱ ኮድዎን ያስገቡ።',
+    empty:'እስካሁን ትምህርት የለም።', error:'ስህተት ተፈጥሯል።', devT:'ይህ መለያ በ3 መሣሪያዎች ላይ አስቀድሞ ጥቅም ላይ ውሏል። ደራሲውን ይጠይቁ።' }
+});
+const $ = id => document.getElementById(id);
+const bookId = new URLSearchParams(location.search).get('book');
+let user = null, book = null, lessons = [], idx = 0, done = new Set(), view = null;
+const urlCache = {};
+const cached = (path) => urlCache[path] || (urlCache[path] = getDownloadURL(ref(storage, path)).catch(e => { delete urlCache[path]; throw e; }));
+const ctx = {
+  t, audioUrl: k => cached(keyAudioPath(bookId, k)), imgUrl: k => cached(keyImgPath(bookId, k)),
+  onStar: () => {}
+};
+
+function msg(html) { $('msg').innerHTML = html; $('msg').hidden = false; $('desk').hidden = true; $('lfoot').hidden = true; }
+function renderStatic() { setLang(getLang()); applyT(t); $('writeT').textContent = t(writing ? 'wdone' : 'write'); if (lessons.length && sheets.length) show(idx, true); }
+langSwitch($('lang'), renderStatic);
+
+function watermark(email) {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='360' height='200'><text x='10' y='110' transform='rotate(-20 180 100)' font-family='sans-serif' font-size='16' font-weight='700' fill='%23888'>${email.replace(/[<>&'"]/g, '')} · Yosiefsbook</text></svg>`;
+  $('wm').style.backgroundImage = `url("data:image/svg+xml;utf8,${svg}")`;
+}
+
+async function deviceOk() {
+  if (isAdmin(user)) return true;
+  const email = emailOf(user);
+  try { if ((await getDoc(doc(db, 'authors', email))).exists()) return true; } catch (e) {}
+  let id = ls.get('hh_dev');
+  if (!id) { id = crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now(); ls.set('hh_dev', id); if (ls.get('hh_dev') !== id) return true; }
+  try {
+    const r = doc(db, 'books_devices', email), s = await getDoc(r);
+    const devs = s.exists() ? (s.data().devices || {}) : {};
+    if (devs[id]) return true;
+    if (Object.keys(devs).length >= 3) return false;
+    await setDoc(r, { email, devices: { ...devs, [id]: { addedAt: Date.now(), ua: navigator.userAgent.slice(0, 120) } } });
+  } catch (e) { console.error(e); }
+  return true;
+}
+async function hasAccess() {
+  if (isAdmin(user) || book.authorId === user.uid) return true;
+  const email = emailOf(user);
+  try {
+    if ((await getDoc(doc(db, 'books', bookId, 'access', email))).exists()) return true;
+    return (await getDoc(doc(db, 'books', bookId, 'domains', email.split('@')[1]))).exists();
+  } catch (e) { return false; }
+}
+
+async function start() {
+  if (!bookId) { location.href = './'; return; }
+  if (!isVerified(user)) { msg(`<p>${esc(t('login'))}</p><p style="margin-top:12px"><a class="btn btn-gold" href="./#library">${esc(t('toLib'))}</a></p>`); return; }
+  try {
+    const b = await getDoc(doc(db, 'books', bookId));
+    if (!b.exists()) { msg(esc(t('noAccess'))); return; }
+    book = { id: b.id, ...b.data() };
+    $('bookName').textContent = book.title || '';
+    document.title = 'Yosiefsbook – ' + (book.title || '');
+    if (!(await deviceOk())) { msg(esc(t('devT'))); return; }
+    if (!(await hasAccess())) { msg(`<p>${esc(t('noAccess'))}</p><p style="margin-top:12px"><a class="btn btn-gold" href="./#library">${esc(t('toLib'))}</a></p>`); return; }
+    const s = await getDocs(collection(db, 'books', bookId, 'lessons'));
+    lessons = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.order || 0) - (b.order || 0));
+    if (!lessons.length) { msg(esc(t('empty'))); return; }
+    try { done = new Set(JSON.parse(ls.get('hh_done_' + bookId) || '[]')); } catch (e) {}
+    const want = new URLSearchParams(location.search).get('lesson');
+    idx = Math.max(0, want ? lessons.findIndex(l => l.id === want) : Math.min(parseInt(ls.get('hh_lesson_' + bookId) || '0', 10) || 0, lessons.length - 1));
+    watermark(emailOf(user));
+    $('msg').hidden = true; $('desk').hidden = false; $('lfoot').hidden = false;
+    renderToc(); show(idx);
+  } catch (e) { console.error(e); msg(esc(t('error'))); }
+}
+function renderToc() {
+  $('tlist').innerHTML = lessons.map((l, i) => `<button class="${i === idx ? 'on' : ''} ${done.has(l.id) ? 'done' : ''}" data-i="${i}">
+    <span class="num">${done.has(l.id) ? '✓' : i + 1}</span><span>${esc(l.titleTi || l.title || '')}</span></button>`).join('');
+  $('tlist').querySelectorAll('button').forEach(b => b.onclick = () => { closeToc(); show(+b.dataset.i); });
+  $('tprog').style.width = (done.size / lessons.length * 100) + '%';
+}
+function openToc() { $('toc').hidden = false; requestAnimationFrame(() => $('toc').classList.add('open')); }
+function closeToc() { $('toc').classList.remove('open'); setTimeout(() => $('toc').hidden = true, 250); }
+$('tocBtn').onclick = openToc; $('tocClose').onclick = closeToc;
+
+// ── pages: each part of the lesson is a white page; 2 pages side by side on wide screens ──
+let sheets = [], pi = 0;
+const per = () => (innerWidth >= 1000 && innerWidth > innerHeight * 1.1) ? 2 : 1;
+function show(i, keep) {
+  if (view) view.stop();
+  idx = i; ls.set('hh_lesson_' + bookId, String(i));
+  const L = lessons[i];
+  const tmp = document.createElement('div');
+  view = renderLesson(tmp, L, ctx);
+  attachWriting(tmp, L);
+  // the whole lesson on one scrolling page (like the free sample); ‹ › go to the previous / next lesson
+  const groups = [[...tmp.children, finishNode()]];
+  const sp = $('spread'); sp.innerHTML = ''; sheets = [];
+  groups.forEach((nodes, n) => {
+    const sh = document.createElement('section'); sh.className = 'sheet';
+    const stripe = document.createElement('div'); stripe.className = 'sstripe';
+    const inn = document.createElement('div'); inn.className = 'sheet-in';
+    nodes.forEach(x => inn.appendChild(x));
+    const pno = document.createElement('div'); pno.className = 'pno'; pno.textContent = n + 1;
+    sh.append(stripe, inn, pno); sp.appendChild(sh); sheets.push(sh);
+  });
+  $('lessonName').textContent = ' · ' + (L.titleTi || L.title || '');
+  renderToc();
+  goPage(0, keep ? 0 : (i > (show.last ?? i) ? 1 : i < (show.last ?? i) ? -1 : 0)); show.last = i;
+  const inn = sp.querySelector('.sheet-in'); if (inn && !keep) inn.scrollTop = 0;
+  setDoc(doc(db, 'books', bookId, 'reads', emailOf(user)), { email: emailOf(user), lastPage: i + 1, updatedAt: serverTimestamp() }).catch(() => {});
+}
+// ── writing in the exercise boxes, on pictures and lines ──
+let writing = false, inkTimer = null, curInk = null;
+const pen = { c: '#1a1a1a', w: 4, erase: false };
+const inkKey = id => `hh_lsink_${bookId}_${id}`;
+const inkRef = id => doc(db, 'books', bookId, 'ink', emailOf(user), 'pages', 'L_' + id);
+function attachWriting(root, L) {
+  flushInk();
+  let store = {};
+  try { const x = JSON.parse(ls.get(inkKey(L.id)) || 'null'); if (x && x.s) store = x.s; } catch (e) {}
+  const history = [], inks = {};
+  root.querySelectorAll('.wr').forEach(el => {
+    const bi = el.dataset.b;
+    inks[bi] = attachInk(el, { strokes: store[bi] || (store[bi] = []), pen: () => pen,
+      canWrite: type => type === 'pen' || writing, onStroke: () => { history.push(bi); mark(); } });
+  });
+  const mark = () => { ls.set(inkKey(L.id), JSON.stringify({ t: Date.now(), s: store })); curInk.dirty = true; $('saveState').textContent = '…';
+    clearTimeout(inkTimer); inkTimer = setTimeout(flushInk, 2500); };
+  curInk = { id: L.id, store, history, inks, mark, dirty: false };
+  const sizeAll = () => Object.values(inks).forEach(i => i.size());
+  requestAnimationFrame(sizeAll); setTimeout(sizeAll, 400);
+  root.querySelectorAll('img').forEach(im => im.addEventListener('load', sizeAll));
+  if (Object.keys(inks).length && isVerified(user)) {
+    getDoc(inkRef(L.id)).then(r => {
+      if (!r.exists() || !curInk || curInk.id !== L.id || curInk.dirty) return;
+      let local = null; try { local = JSON.parse(ls.get(inkKey(L.id)) || 'null'); } catch (e) {}
+      if (local && (local.t || 0) >= (r.data().t || 0)) return;
+      const s = JSON.parse(r.data().s || '{}');
+      Object.entries(s).forEach(([k, a]) => { if (store[k]) { store[k].length = 0; store[k].push(...a); inks[k] && inks[k].paint(); } });
+      ls.set(inkKey(L.id), JSON.stringify({ t: r.data().t || Date.now(), s: store }));
+    }).catch(() => {});
+  }
+}
+new ResizeObserver(() => { if (curInk) Object.values(curInk.inks).forEach(i => i.size()); }).observe(document.getElementById('spread'));
+async function flushInk() {
+  clearTimeout(inkTimer);
+  const c = curInk; if (!c || !c.dirty || !isVerified(user)) return;
+  c.dirty = false;
+  const str = JSON.stringify(c.store);
+  if (str.length > 900000) { toast(t('full')); return; }
+  try { await setDoc(inkRef(c.id), { s: str, t: Date.now(), updatedAt: serverTimestamp() }); if (c === curInk) $('saveState').textContent = t('saved'); }
+  catch (e) { console.error(e); c.dirty = true; }
+}
+addEventListener('pagehide', () => flushInk());
+document.addEventListener('visibilitychange', () => { if (document.hidden) flushInk(); });
+function setWriting(on) {
+  writing = on; document.body.classList.toggle('writing', on);
+  $('tools').hidden = !on;
+  $('writeBtn').setAttribute('aria-pressed', on ? 'true' : 'false');
+  $('writeT').textContent = t(on ? 'wdone' : 'write');
+  if (!on) flushInk();
+}
+$('writeBtn').onclick = () => setWriting(!writing);
+document.addEventListener('pointerdown', e => { if (e.pointerType === 'pen' && e.target.classList.contains('ink')) $('tools').hidden = false; }, true);
+const penMode = er => { pen.erase = er; $('erase').classList.toggle('on', er); $('erase').setAttribute('aria-pressed', er ? 'true' : 'false'); };
+document.querySelectorAll('#tools .sw').forEach(b => b.onclick = () => { document.querySelectorAll('#tools .sw').forEach(x => x.classList.toggle('on', x === b)); pen.c = b.dataset.c; penMode(false); });
+document.querySelectorAll('#tools [data-w]').forEach(b => b.onclick = () => { document.querySelectorAll('#tools [data-w]').forEach(x => x.classList.toggle('on', x === b)); pen.w = +b.dataset.w; penMode(false); });
+$('erase').onclick = () => penMode(!pen.erase);
+$('undo').onclick = () => {
+  const c = curInk; if (!c) return;
+  const bi = c.history.pop() ?? Object.keys(c.store).reverse().find(k => c.store[k].length);
+  if (bi == null || !c.store[bi] || !c.store[bi].length) return;
+  c.store[bi].pop(); c.inks[bi].paint(); c.mark();
+};
+// full screen (classroom board, PC)
+$('fullBtn').onclick = () => {
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+};
+
+function finishNode() {
+  const d = document.createElement('div'); d.className = 'finish';
+  const last = idx >= lessons.length - 1;
+  d.innerHTML = `<div class="bigstar">⭐</div><h2>${esc(t('great'))}</h2><p>${esc(lessons[idx].titleTi || lessons[idx].title || '')}</p>
+    <button class="btn btn-gold" data-fin>${esc(t(last ? 'finish' : 'finishNext'))}</button>
+    ${idx > 0 ? `<button class="btn btn-ghost" data-prevl>‹ ${esc(t('prev'))}</button>` : ''}`;
+  d.querySelector('[data-fin]').onclick = () => {
+    done.add(lessons[idx].id); ls.set('hh_done_' + bookId, JSON.stringify([...done]));
+    confetti();
+    if (!last) setTimeout(() => show(idx + 1), 600); else { renderToc(); toast(t('allDone'), 3000); }
+  };
+  const pv = d.querySelector('[data-prevl]'); if (pv) pv.onclick = () => show(idx - 1);
+  return d;
+}
+function goPage(p, dir) {
+  const k = per();
+  p = Math.max(0, Math.min(p - (p % k), sheets.length - 1));
+  pi = p;
+  sheets.forEach((s, n) => { s.hidden = n !== p; });
+  const sp = $('spread');
+  sp.classList.remove('two');
+  if (dir) { sp.classList.remove('flipN', 'flipP'); void sp.offsetWidth; sp.classList.add(dir > 0 ? 'flipN' : 'flipP'); }
+  $('pgPrev').disabled = idx === 0;
+  $('pgNext').disabled = idx >= lessons.length - 1;
+  $('dots').innerHTML = '';
+  $('pgCount').textContent = `${idx + 1} / ${lessons.length}`;
+}
+const step = d => { const n = idx + d; if (n >= 0 && n < lessons.length) show(n); };
+$('pgPrev').onclick = () => step(-1); $('pgNext').onclick = () => step(1);
+ctx.reveal = el => el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+addEventListener('resize', () => { if (sheets.length) goPage(pi, 0); });
+document.addEventListener('keydown', e => {
+  if (!sheets.length || e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight') step(1); else if (e.key === 'ArrowLeft') step(-1); else if (e.key === 'Escape') closeToc();
+});
+let sx = null;
+$('spread').addEventListener('pointerdown', e => { sx = e.target.tagName === 'CANVAS' ? null : e.clientX; });
+$('spread').addEventListener('pointerup', e => { if (sx == null) return; const dx = e.clientX - sx; sx = null; if (Math.abs(dx) > 120) step(dx < 0 ? 1 : -1); });
+
+renderStatic();
+onUser(u => { user = u; start(); });
+</script>
+</body>
+</html>

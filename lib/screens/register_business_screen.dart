@@ -6,6 +6,7 @@ import '../utils/language_notifier.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import '../theme/app_theme.dart';
 import 'auth_screen.dart';
 import '../utils/translations.dart';
@@ -126,6 +127,8 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
   }
 
   Future<void> _next() async {
+    // Only the fields of the visible step exist, so check them before moving on
+    if (!_formKey.currentState!.validate()) return;
     if (_step == 1 && _addrCtrl.text.trim().isNotEmpty && _lat == null) {
       // Auto-geocode before proceeding
       await _geocodeAddress();
@@ -143,8 +146,12 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
 
   /// Convert address string → lat/lng using geocoding package
   Future<void> _geocodeAddress() async {
-    final address = _addrCtrl.text.trim();
+    var address = _addrCtrl.text.trim();
     if (address.isEmpty) return;
+    // "Tank Hill Rd, Kampala" alone can match a street in another country
+    if (_country.isNotEmpty && !address.toLowerCase().contains(_country.toLowerCase())) {
+      address = '$address, $_country';
+    }
     setState(() {
       _geocoding = true;
       _geoStatus = tr('Finding coordinates...');
@@ -163,6 +170,31 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
     } catch (e) {
       setState(
           () => _geoStatus = tr('⚠ Could not find location. Check the address.'));
+    } finally {
+      setState(() => _geocoding = false);
+    }
+  }
+
+  /// For owners standing in their business (or when the address can't be found, e.g. plus codes)
+  Future<void> _useMyLocation() async {
+    setState(() {
+      _geocoding = true;
+      _geoStatus = tr('Finding coordinates...');
+    });
+    try {
+      var perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) perm = await Geolocator.requestPermission();
+      if (perm == LocationPermission.denied || perm == LocationPermission.deniedForever) {
+        setState(() => _geoStatus = tr('⚠ Could not find location. Check the address.'));
+        return;
+      }
+      final p = await Geolocator.getCurrentPosition();
+      _lat = p.latitude;
+      _lng = p.longitude;
+      setState(() => _geoStatus =
+          '✓ ${tr('Location found')}: ${_lat!.toStringAsFixed(5)}, ${_lng!.toStringAsFixed(5)}');
+    } catch (_) {
+      setState(() => _geoStatus = tr('⚠ Could not find location. Check the address.'));
     } finally {
       setState(() => _geocoding = false);
     }
@@ -197,6 +229,16 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    // Name and address sit on earlier steps; send the user back if one is empty
+    final missingStep = _nameCtrl.text.trim().isEmpty ? 0
+        : (_addrCtrl.text.trim().isEmpty || _country.isEmpty) ? 1 : -1;
+    if (missingStep >= 0) {
+      await _stepCtrl.reverse();
+      setState(() => _step = missingStep);
+      await _stepCtrl.forward();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _formKey.currentState?.validate());
+      return;
+    }
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -209,6 +251,13 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       if (_lat == null || _lng == null) {
         await _geocodeAddress();
       }
+      // Never save a made-up pin: without a real location the business would show in the wrong city
+      if (_lat == null || _lng == null) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr('Address not found on the map. Write street, number and city, or tap "Use my current location".'))));
+        return;
+      }
 
       await _db.collection('businesses').add({
         'name': _nameCtrl.text.trim(),
@@ -217,8 +266,8 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         'address': _addrCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
         'imageUrl': _uploadedImageUrl,
-        'lat': _lat ?? 59.9139, // fallback: Oslo center
-        'lng': _lng ?? 10.7522,
+        'lat': _lat,
+        'lng': _lng,
         'rating': 0.0,
         'isOpen': false,
         'isPremium': false,
@@ -513,6 +562,12 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                 controller: _addrCtrl,
                 style: tsBodyLg(color: kText),
                 validator: (v) => v!.isEmpty ? tr('Required') : null,
+                // A changed address needs a new pin
+                onChanged: (_) {
+                  if (_lat != null || _geoStatus.isNotEmpty) {
+                    setState(() { _lat = null; _lng = null; _geoStatus = ''; });
+                  }
+                },
                 decoration: InputDecoration(
                   hintText: tr('Street 15, 0190 Oslo'),
                   prefixIcon:
@@ -548,7 +603,12 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                   color:
                       _geoStatus.startsWith('✓') ? kGreen : kTextSub)),
         ],
-        const SizedBox(height: 16),
+        TextButton.icon(
+          onPressed: _geocoding ? null : _useMyLocation,
+          icon: const Icon(Icons.gps_fixed_rounded, size: 16, color: kSecondary),
+          label: Text(tr('Use my current location'), style: tsBodySm(color: kSecondary)),
+        ),
+        const SizedBox(height: 8),
 
         Text(tr('PHONE'), style: tsLabel()),
         const SizedBox(height: 8),
