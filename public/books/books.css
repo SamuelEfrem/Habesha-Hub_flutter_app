@@ -472,3 +472,4 @@ body.writing .wr{outline:2px dashed rgba(14,122,72,.5);outline-offset:4px}
 .ltrace [data-erase].on{background:#1A1816;color:#fff}
 @media (prefers-reduced-motion:reduce){.praise{animation:none}}
 .lpic .wpic img{max-height:none;height:auto}
+.fcover.fphoto{width:100%;height:auto;object-fit:cover;padding:0;display:block;background:#1a5ba8}
