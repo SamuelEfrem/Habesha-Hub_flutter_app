@@ -248,6 +248,14 @@ class ServicesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: languageNotifier,
+      builder: (context, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
+    final canPop = Navigator.of(context).canPop();
     return Scaffold(
       backgroundColor: kBg,
       body: SafeArea(
@@ -255,8 +263,20 @@ class ServicesScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
             child: Row(children: [
+              if (canPop) ...[
+                Material(
+                  color: kCard,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () => Navigator.pop(context),
+                    child: SizedBox(width: 44, height: 44, child: Icon(Icons.arrow_back_rounded, color: kText)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(tr('Services'), style: tsHeadlineMd(color: kSecondary)),
+                Text(tr('Services'), style: tsHeadlineMd(color: kText)),
                 Text(tr('Select a country to find services'), style: tsBodySm()),
               ])),
               IconButton(

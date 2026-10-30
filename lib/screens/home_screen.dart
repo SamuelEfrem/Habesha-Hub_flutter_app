@@ -19,7 +19,6 @@ import 'community_screens.dart';
 import 'map_screen.dart';
 import '../games/games_screen.dart';
 import 'send_money_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -240,9 +239,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
             children: [
               _buildHomeTab(t),
               const ExploreScreen(),
-              const ServicesScreen(),
               // visible=false pauses the video when the user leaves the Hab Tok tab
-              HabeshaTokScreen(visible: _currentTab == 3),
+              HabeshaTokScreen(visible: _currentTab == 2),
               const ProfileScreen(),
             ],
           ),
@@ -263,7 +261,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(child: _buildTopBar()),
-            SliverToBoxAdapter(child: _buildGreeting()),
             SliverToBoxAdapter(child: _buildSearchRow(t)),
             SliverToBoxAdapter(child: _buildShortcuts(t)),
             if (_hasSearched) ...[
@@ -359,23 +356,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     return tooltip == null ? btn : Tooltip(message: tooltip, child: btn);
   }
 
-  // ── ሰላም, name ──
-  Widget _buildGreeting() {
-    final name = (FirebaseAuth.instance.currentUser?.displayName ?? '').trim().split(' ').first;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: Text(name.isEmpty ? 'ሰላም!' : 'ሰላም, $name',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontFamily: kFontHeadline, fontSize: 30, fontWeight: FontWeight.w800,
-              letterSpacing: -0.5, height: 1.2, color: kText)),
-    );
-  }
-
   // ── Search field + "Near me" button ──
   Widget _buildSearchRow(String Function(String) t) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
       child: Row(children: [
         Expanded(
           child: Container(
@@ -432,18 +416,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   Widget _buildShortcuts(String Function(String) t) {
     void push(Widget w) => Navigator.push(context, MaterialPageRoute(builder: (_) => w));
     final items = <(IconData, String, Color, Color, VoidCallback)>[
-      (Icons.explore_outlined, tr('Explore'), kTintGreen, kInkGreen, () => setState(() => _currentTab = 1)),
-      (Icons.work_outline_rounded, tr('Services'), kTintYellow, kInkYellow, () => setState(() => _currentTab = 2)),
-      (Icons.smart_display_outlined, tr('Hab Tok'), kTintRed, kInkRed, () => setState(() => _currentTab = 3)),
+      (Icons.work_outline_rounded, tr('Services'), kTintYellow, kInkYellow, () => push(const ServicesScreen())),
       (Icons.shopping_bag_outlined, tr('Market'), kTintBlue, kInkBlue, () => push(const MarketplaceScreen())),
-      (Icons.chat_bubble_outline_rounded, tr('Habesha AI'), kTintBlue, kInkBlue, () => push(const AiChatScreen())),
-      (Icons.directions_car_outlined, tr('Driving'), kTintRed, kInkRed,
-          () => GamesScreen.openPage(context, 'Life Tools', 'life-tools')),
-      (Icons.send_outlined, tr('Send money'), kTintYellow, kInkYellow, () => push(const SendMoneyScreen())),
+      (Icons.send_outlined, tr('Send money'), kTintRed, kInkRed, () => push(const SendMoneyScreen())),
       (Icons.sports_esports_outlined, tr('Games'), kTintGreen, kInkGreen, () => push(const GamesScreen())),
     ];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 26),
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 18),
       child: GridView.count(
         crossAxisCount: 4,
         shrinkWrap: true,
@@ -645,7 +624,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     final items = [
       {'icon': Icons.home_outlined, 'on': Icons.home_rounded, 'key': 'home', 'label': 'Home'},
       {'icon': Icons.explore_outlined, 'on': Icons.explore_rounded, 'key': 'explore', 'label': 'Explore'},
-      {'icon': Icons.work_outline_rounded, 'on': Icons.work_rounded, 'key': 'services', 'label': 'Services'},
+      {'icon': Icons.chat_bubble_outline_rounded, 'on': Icons.chat_bubble_rounded, 'key': 'Habesha AI', 'label': 'Habesha AI'},
       {'icon': Icons.smart_display_outlined, 'on': Icons.smart_display_rounded, 'key': 'tok', 'label': 'Hab Tok'},
       {'icon': Icons.person_outline_rounded, 'on': Icons.person_rounded, 'key': 'profile', 'label': 'Profile'},
     ];
@@ -663,13 +642,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
           height: 66,
           child: Row(
             children: List.generate(items.length, (i) {
-              final selected = _currentTab == i;
+              // 2 = Habesha AI: opens the chat; the others are tabs (Hab Tok = 2, Profile = 3)
+              final tab = i < 2 ? i : i - 1;
+              final selected = i != 2 && _currentTab == tab;
               final color = selected ? kSecondary : kTextSub;
-              final raw = t(items[i]['key'] as String);
+              final raw = i == 2 ? tr('Habesha AI') : t(items[i]['key'] as String);
               final label = (raw == items[i]['key']) ? (items[i]['label'] as String) : raw;
               return Expanded(
                 child: InkWell(
-                  onTap: () => setState(() => _currentTab = i),
+                  onTap: () => i == 2
+                      ? Navigator.push(context, MaterialPageRoute(builder: (_) => const AiChatScreen()))
+                      : setState(() => _currentTab = tab),
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Icon((selected ? items[i]['on'] : items[i]['icon']) as IconData, color: color, size: 25),
                     const SizedBox(height: 4),
