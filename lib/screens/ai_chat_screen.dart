@@ -287,7 +287,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              // stays above the phone's navigation buttons (Android 15 draws edge to edge)
+              padding: EdgeInsets.fromLTRB(12, 10, 12, 10 + MediaQuery.paddingOf(context).bottom),
               decoration: BoxDecoration(
                 color: kCard,
                 ),
