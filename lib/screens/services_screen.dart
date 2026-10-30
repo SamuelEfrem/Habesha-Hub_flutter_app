@@ -1,3 +1,6 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -192,8 +195,21 @@ List<String> videoSources(String url) {
   final m = RegExp(r'^(https://[^/]+/[^/]+)/playlist\.m3u8$').firstMatch(url);
   if (m == null) return [url];
   final base = m.group(1)!;
-  return [url, '$base/play_720p.mp4', '$base/play_480p.mp4', '$base/play_360p.mp4'];
+  return [url, '$base/play_720p.mp4', '$base/play_480p.mp4', '$base/play_360p.mp4', '$base/play_240p.mp4'];
 }
+
+/// Huawei / Honor phones (e.g. P30) often "open" the HLS stream but then show
+/// a black screen or hang, so they never fall back. They get the MP4 files first.
+final Future<bool> _mp4First = () async {
+  if (kIsWeb || !Platform.isAndroid) return false;
+  try {
+    final a = await DeviceInfoPlugin().androidInfo;
+    final who = '${a.manufacturer} ${a.brand}'.toLowerCase();
+    return who.contains('huawei') || who.contains('honor');
+  } catch (_) {
+    return false;
+  }
+}();
 
 /// Small preview image Bunny Stream makes for every video (shown while loading).
 String? videoThumb(String url) => url.endsWith('/playlist.m3u8')
@@ -202,7 +218,9 @@ String? videoThumb(String url) => url.endsWith('/playlist.m3u8')
 /// Opens the first source that this phone can actually play.
 Future<VideoPlayerController> openVideo(String url) async {
   Object? last;
-  for (final src in videoSources(url)) {
+  var sources = videoSources(url);
+  if (sources.length > 1 && await _mp4First) sources = [...sources.skip(1), sources.first];
+  for (final src in sources) {
     final c = VideoPlayerController.networkUrl(
       Uri.parse(src),
       formatHint: src.endsWith('.m3u8') ? VideoFormat.hls : VideoFormat.other,
