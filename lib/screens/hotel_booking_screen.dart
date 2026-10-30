@@ -84,7 +84,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(t('hotel_booking'), style: tsTitleMd(color: kSecondary)),
           Text(widget.business.name, style: tsBodySm(color: kTextSub)),
@@ -106,12 +106,12 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                 // Business info
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(14), border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
+                  decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(14), ),
                   child: Row(children: [
                     Container(width: 48, height: 48, decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(10)),
                       child: widget.business.imageUrl.isNotEmpty
                           ? ClipRRect(borderRadius: BorderRadius.circular(10), child: CachedNetworkImage(imageUrl: widget.business.imageUrl, fit: BoxFit.cover, memCacheWidth: 200))
-                          : const Icon(Icons.hotel, color: kSecondary, size: 28)),
+                          : Icon(Icons.hotel, color: kSecondary, size: 28)),
                     const SizedBox(width: 12),
                     Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(widget.business.name, style: tsTitleMd()),
@@ -131,9 +131,9 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.3))),
+                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), ),
                     child: Row(children: [
-                      const Icon(Icons.calendar_today_rounded, color: kSecondary, size: 18),
+                      Icon(Icons.calendar_today_rounded, color: kSecondary, size: 18),
                       const SizedBox(width: 10),
                       Text(DateFormat('dd. MMMM yyyy').format(_checkIn), style: tsBodyLg(color: kText)),
                     ]),
@@ -151,9 +151,9 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.3))),
+                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), ),
                     child: Row(children: [
-                      const Icon(Icons.calendar_today_rounded, color: kSecondary, size: 18),
+                      Icon(Icons.calendar_today_rounded, color: kSecondary, size: 18),
                       const SizedBox(width: 10),
                       Text(DateFormat('dd. MMMM yyyy').format(_checkOut), style: tsBodyLg(color: kText)),
                     ]),
@@ -166,7 +166,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(color: kSecondary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
                   child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    const Icon(Icons.nights_stay_rounded, color: kSecondary, size: 20),
+                    Icon(Icons.nights_stay_rounded, color: kSecondary, size: 20),
                     const SizedBox(width: 8),
                     Text('$_nights ' + (_nights != 1 ? t('nights') : t('night')), style: tsTitleMd(color: kSecondary)),
                   ]),
@@ -178,15 +178,15 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.3))),
+                  decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), ),
                   child: Row(children: [
-                    const Icon(Icons.people_rounded, color: kSecondary, size: 18),
+                    Icon(Icons.people_rounded, color: kSecondary, size: 18),
                     const SizedBox(width: 10),
                     Text('$_guests ${_guests != 1 ? tr('guests') : tr('guest')}', style: tsBodyLg(color: kText)),
                     const Spacer(),
-                    GestureDetector(onTap: () { if (_guests > 1) setState(() => _guests--); }, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: kCardHigh, shape: BoxShape.circle), child: const Icon(Icons.remove_rounded, color: kSecondary, size: 18))),
+                    GestureDetector(onTap: () { if (_guests > 1) setState(() => _guests--); }, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: kCardHigh, shape: BoxShape.circle), child: Icon(Icons.remove_rounded, color: kSecondary, size: 18))),
                     const SizedBox(width: 12),
-                    GestureDetector(onTap: () { if (_guests < 10) setState(() => _guests++); }, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: kCardHigh, shape: BoxShape.circle), child: const Icon(Icons.add_rounded, color: kSecondary, size: 18))),
+                    GestureDetector(onTap: () { if (_guests < 10) setState(() => _guests++); }, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: kCardHigh, shape: BoxShape.circle), child: Icon(Icons.add_rounded, color: kSecondary, size: 18))),
                   ]),
                 ),
                 const SizedBox(height: 16),
@@ -209,8 +209,8 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                     onPressed: _sending ? null : _submit,
                     style: ElevatedButton.styleFrom(backgroundColor: kSecondary, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     child: _sending
-                        ? const CircularProgressIndicator(color: Color(0xFF1A1200), strokeWidth: 2)
-                        : Text(t('send_booking'), style: tsTitleMd(color: const Color(0xFF1A1200))),
+                        ? CircularProgressIndicator(color: kOnAccent, strokeWidth: 2)
+                        : Text(t('send_booking'), style: tsTitleMd(color: kOnAccent)),
                   ),
                 ),
               ]),

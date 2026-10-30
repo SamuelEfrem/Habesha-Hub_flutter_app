@@ -175,8 +175,7 @@ class ProviderAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: kSecondary.withOpacity(0.12),
-        border: Border.all(color: kSecondary.withOpacity(0.7), width: 1.5),
-      ),
+        ),
       child: ClipOval(child: url.isEmpty ? emoji
           : CachedNetworkImage(imageUrl: url, fit: BoxFit.cover, width: size, height: size,
               memCacheWidth: (size * 3).round(),         // decode small = fast, even for big photos
@@ -285,8 +284,7 @@ class ServicesScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: kCard,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: kSecondary.withOpacity(0.15), width: 0.5),
-                    ),
+                      ),
                     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                       Text(c.flag, style: const TextStyle(fontSize: 40)),
                       const SizedBox(height: 8),
@@ -317,7 +315,7 @@ class ServiceCategoryScreen extends StatelessWidget {
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
         title: Row(children: [
           Text(country.flag, style: const TextStyle(fontSize: 24)),
           const SizedBox(width: 8),
@@ -340,8 +338,7 @@ class ServiceCategoryScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: kCard,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: kSecondary.withOpacity(0.1), width: 0.5),
-              ),
+                ),
               child: Row(children: [
                 Text(cat.emoji, style: const TextStyle(fontSize: 32)),
                 const SizedBox(width: 16),
@@ -349,7 +346,7 @@ class ServiceCategoryScreen extends StatelessWidget {
                   Text(tr(cat.label), style: tsTitleMd()),
                   Text(tr('Tap to view providers'), style: tsBodySm(color: kTextSub)),
                 ])),
-                const Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 16),
+                Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 16),
               ]),
             ),
           );
@@ -373,7 +370,7 @@ class ServiceListScreen extends StatelessWidget {
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
         title: Text('${country.flag} ${tr(category.label)}', style: tsTitleMd(color: kSecondary)),
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -382,7 +379,7 @@ class ServiceListScreen extends StatelessWidget {
             .where('category', isEqualTo: category.key)
             .where('available', isEqualTo: true).snapshots(),
         builder: (_, snap) {
-          if (!snap.hasData) return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+          if (!snap.hasData) return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
           final docs = snap.data!.docs;
           if (docs.isEmpty) {
             return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -407,8 +404,7 @@ class ServiceListScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: kCard,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: kSecondary.withOpacity(0.1)),
-                  ),
+                    ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     if (imgs.isNotEmpty)
                       ClipRRect(
@@ -459,7 +455,7 @@ class ServiceListScreen extends StatelessWidget {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(10)),
-                                child: Center(child: Text(tr('Book Now'), style: tsTitleMd(color: const Color(0xFF1A1200)).copyWith(fontSize: 12))),
+                                child: Center(child: Text(tr('Book Now'), style: tsTitleMd(color: kOnAccent).copyWith(fontSize: 12))),
                               ),
                             ),
                           ),
@@ -494,13 +490,13 @@ class ServiceProviderScreen extends StatelessWidget {
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
         title: Text(serviceText(data, 'publicName'), style: tsTitleMd(color: kSecondary)),
         actions: [
           FavoriteServiceButton(data: data),
           IconButton(
             tooltip: tr('Share'),
-            icon: const Icon(Icons.share_rounded, color: kSecondary),
+            icon: Icon(Icons.share_rounded, color: kSecondary),
             onPressed: () => shareProvider(data),
           ),
         ],
@@ -519,7 +515,7 @@ class ServiceProviderScreen extends StatelessWidget {
               if (serviceStr(data['city']).isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Row(children: [
-                  const Icon(Icons.location_on_rounded, color: kSecondary, size: 16),
+                  Icon(Icons.location_on_rounded, color: kSecondary, size: 16),
                   const SizedBox(width: 4),
                   Text(serviceStr(data['city']), style: tsBodySm()),
                 ]),
@@ -626,7 +622,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
     return Center(child: Padding(
       padding: const EdgeInsets.all(32),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Icon(Icons.lock_person_rounded, color: kSecondary, size: 56),
+        Icon(Icons.lock_person_rounded, color: kSecondary, size: 56),
         const SizedBox(height: 16),
         Text(title[lang] ?? title['English']!, style: tsHeadlineSm(), textAlign: TextAlign.center),
         const SizedBox(height: 10),
@@ -647,7 +643,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
         title: Text(tr('Book Service'), style: tsTitleMd(color: kSecondary)),
       ),
       body: _done ? _success() : _form(),
@@ -732,7 +728,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
           SizedBox(width: double.infinity, child: OutlinedButton.icon(
             onPressed: () => Navigator.push(context, MaterialPageRoute(
                 builder: (_) => ReceiptScreen(bookingId: _bookingId!))),
-            icon: const Icon(Icons.receipt_long_rounded, color: kSecondary),
+            icon: Icon(Icons.receipt_long_rounded, color: kSecondary),
             label: Text(tr('See my booking'), style: tsTitleMd(color: kSecondary)),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: kSecondary.withOpacity(0.5)),
@@ -766,7 +762,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: kSecondary.withOpacity(0.2))),
+            ),
           child: Row(children: [
             const Text('\u{1F4CB}', style: TextStyle(fontSize: 28)),
             const SizedBox(width: 12),
@@ -793,9 +789,9 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: kSecondary.withOpacity(0.3))),
+              ),
             child: Row(children: [
-              const Icon(Icons.calendar_today_rounded, color: kSecondary, size: 20),
+              Icon(Icons.calendar_today_rounded, color: kSecondary, size: 20),
               const SizedBox(width: 12),
               Text('${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}', style: tsTitleMd()),
             ]),
@@ -824,7 +820,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
           final m = _methods?[_payFrom];
           final method = m?.method ?? payCountry(_payFrom).method;
           return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Icon(Icons.payments_outlined, color: kSecondary, size: 18),
+            Icon(Icons.payments_outlined, color: kSecondary, size: 18),
             const SizedBox(width: 8),
             Expanded(child: Text(
               '${tr('After confirmation you pay with')} $method'
@@ -933,7 +929,7 @@ class _ImageCarouselState extends State<_ImageCarousel> {
               width: double.infinity,
               memCacheWidth: 1080,
               placeholder: (_, __) => Container(color: kCardHigh,
-                  child: const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))),
+                  child: Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))),
               errorWidget: (_, __, ___) => Container(color: kCardHigh,
                 child: Center(child: Icon(Icons.image_not_supported_rounded, color: kTextSub, size: 40))),
             ),
@@ -1069,7 +1065,7 @@ class _MediaViewerScreenState extends State<_MediaViewerScreen> {
           }
           return InteractiveViewer(
             child: Center(child: CachedNetworkImage(imageUrl: it.url, fit: BoxFit.contain,
-              placeholder: (_, __) => const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5)),
+              placeholder: (_, __) => Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5)),
               errorWidget: (_, __, ___) => const Icon(Icons.broken_image_rounded,
                   color: Colors.white38, size: 60))),
           );
@@ -1197,7 +1193,7 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> with WidgetsBind
         height: h,
         decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(12)),
         child: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Icon(Icons.videocam_off_rounded, color: kSecondary, size: 40),
+          Icon(Icons.videocam_off_rounded, color: kSecondary, size: 40),
           const SizedBox(height: 8),
           Text(tr('Video not available'), style: tsBodySm()),
         ])),
@@ -1207,7 +1203,7 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> with WidgetsBind
       return Container(
         height: h,
         decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(12)),
-        child: const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5)),
+        child: Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5)),
       );
     }
     final playing = _vpc!.value.isPlaying;

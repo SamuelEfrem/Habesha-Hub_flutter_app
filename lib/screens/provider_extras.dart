@@ -67,8 +67,8 @@ class FavoriteServices {
 
 class FavoriteServiceButton extends StatefulWidget {
   final Map<String, dynamic> data;
-  final Color color;
-  const FavoriteServiceButton({super.key, required this.data, this.color = kSecondary});
+  final Color? color;
+  const FavoriteServiceButton({super.key, required this.data, this.color});
   @override
   State<FavoriteServiceButton> createState() => _FavoriteServiceButtonState();
 }
@@ -89,7 +89,7 @@ class _FavoriteServiceButtonState extends State<FavoriteServiceButton> {
       return IconButton(
         tooltip: tr('My favorites'),
         icon: Icon(on ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-            color: on ? kRed : widget.color),
+            color: on ? kRed : (widget.color ?? kSecondary)),
         onPressed: () {
           FavoriteServices.toggle(slug);
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -112,7 +112,7 @@ class FavoriteServicesScreen extends StatelessWidget {
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
         title: Text(tr('Favorite services'), style: tsTitleMd(color: kSecondary)),
       ),
       body: ValueListenableBuilder<Set<String>>(
@@ -122,7 +122,7 @@ class FavoriteServicesScreen extends StatelessWidget {
               .where('available', isEqualTo: true).snapshots(),
           builder: (ctx, snap) {
             if (!snap.hasData) {
-              return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+              return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
             }
             final docs = snap.data!.docs.where((d) =>
                 favs.contains(providerSlug(d.data() as Map<String, dynamic>))).toList();
@@ -332,7 +332,7 @@ class _WriteReviewCardState extends State<WriteReviewCard> {
         return Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: kSecondary.withOpacity(0.3))),
+              ),
           child: existing != null
             ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(tr('Thank you for your review!'), style: tsTitleMd(color: kSecondary)),
@@ -382,14 +382,14 @@ class AdminStatsScreen extends StatelessWidget {
     backgroundColor: kBg,
     appBar: AppBar(
       backgroundColor: kCard,
-      iconTheme: const IconThemeData(color: kSecondary),
+      iconTheme: IconThemeData(color: kSecondary),
       title: Text('Statistics', style: tsTitleMd(color: kSecondary)),
     ),
     body: StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('service_bookings').snapshots(),
       builder: (_, snap) {
         if (snap.hasError) return Center(child: Text('Error: ${snap.error}', style: tsBodySm(color: kRed)));
-        if (!snap.hasData) return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+        if (!snap.hasData) return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
         final all = snap.data!.docs.map((d) => d.data() as Map<String, dynamic>).toList();
 
         final byStatus = <String, int>{};

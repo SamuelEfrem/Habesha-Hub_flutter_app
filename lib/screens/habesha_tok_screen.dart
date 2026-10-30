@@ -79,7 +79,7 @@ class _HabeshaTokScreenState extends State<HabeshaTokScreen> with WidgetsBinding
               .snapshots(),
           builder: (_, snap) {
             if (!snap.hasData) {
-              return const Center(
+              return Center(
                   child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
             }
 
@@ -419,7 +419,7 @@ class _TokCardState extends State<_TokCard> {
         const ColoredBox(color: Colors.black),
         CachedNetworkImage(imageUrl: thumb, fit: BoxFit.contain,
             errorWidget: (_, __, ___) => _fallbackBg()),
-        const Center(child: SizedBox(width: 36, height: 36,
+        Center(child: SizedBox(width: 36, height: 36,
             child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2))),
       ]);
     }
@@ -647,7 +647,7 @@ class _ProgressBarState extends State<_ProgressBar> {
         value: progress,
         minHeight: 2,
         backgroundColor: Colors.white24,
-        valueColor: const AlwaysStoppedAnimation<Color>(kSecondary),
+        valueColor: AlwaysStoppedAnimation<Color>(kSecondary),
       ),
     );
   }

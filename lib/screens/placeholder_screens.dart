@@ -168,7 +168,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   tooltip: tr('Suggest a business'),
                   onPressed: () => Navigator.push(context, MaterialPageRoute(
                       builder: (_) => SuggestBusinessScreen(country: _country))),
-                  icon: const Icon(Icons.add_business_rounded, color: kSecondary),
+                  icon: Icon(Icons.add_business_rounded, color: kSecondary),
                 ),
               ]),
             ),
@@ -184,7 +184,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   decoration: InputDecoration(
                     hintText: t('search_hint'),
                     hintStyle: tsBodyLg(color: kTextSub.withOpacity(0.7)),
-                    prefixIcon: const Icon(Icons.search_rounded, color: kSecondary, size: 22),
+                    prefixIcon: Icon(Icons.search_rounded, color: kSecondary, size: 22),
                     suffixIcon: _query.isEmpty ? null : IconButton(
                       icon: Icon(Icons.close_rounded, color: kTextSub, size: 20),
                       onPressed: () => setState(() { _searchCtrl.clear(); _query = ''; }),
@@ -242,7 +242,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: tsTitleMd(color: kText))),
             const SizedBox(width: 6),
-            const Icon(Icons.keyboard_arrow_down_rounded, color: kSecondary, size: 20),
+            Icon(Icons.keyboard_arrow_down_rounded, color: kSecondary, size: 20),
           ]),
         ),
       ),
@@ -283,7 +283,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             child: Text(label, style: TextStyle(fontFamily: kFontBody, fontSize: 13,
                 fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
-                color: sel ? const Color(0xFF1A1200) : kText)),
+                color: sel ? kOnAccent : kText)),
           ),
         ),
       ),
@@ -292,7 +292,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   Widget _buildBody(String Function(String) t) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2));
+      return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2));
     }
     // No country yet and not typing: let the user choose one
     if (_country.isEmpty && _query.isEmpty) return _countryList();
@@ -401,14 +401,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
             children: [
               ListTile(
                 title: Text(t('all_cities'), style: tsTitleLg(color: kText)),
-                trailing: _city.isEmpty ? const Icon(Icons.check_rounded, color: kSecondary) : null,
+                trailing: _city.isEmpty ? Icon(Icons.check_rounded, color: kSecondary) : null,
                 onTap: () { setState(() => _city = ''); Navigator.pop(ctx); },
               ),
               for (final c in cities)
                 ListTile(
                   title: Text(c.key, style: tsTitleLg(color: kText)),
                   subtitle: Text('${c.value}', style: tsBodySm(color: kTextSub)),
-                  trailing: _city == c.key ? const Icon(Icons.check_rounded, color: kSecondary) : null,
+                  trailing: _city == c.key ? Icon(Icons.check_rounded, color: kSecondary) : null,
                   onTap: () { setState(() { _city = c.key; _category = ''; }); Navigator.pop(ctx); },
                 ),
             ],
@@ -551,22 +551,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           body: SafeArea(child: SingleChildScrollView(child: Column(children: [
             Container(
               width: double.infinity,
-              color: kCardLow,
+              color: kBg,
               child: Column(children: [
                 const SizedBox(height: 20),
                 Container(
                   width: 96, height: 96,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: const LinearGradient(colors: [kPrimaryContainer, Color(0xFF5A0000)],
-                        begin: Alignment.topLeft, end: Alignment.bottomRight),
-                    border: Border.all(color: kSecondary, width: 2),
+                    color: kTintGreen,
                   ),
                   alignment: Alignment.center,
                   child: isLoggedIn
-                      ? Text(_initial, style: const TextStyle(fontFamily: kFontHeadline,
+                      ? Text(_initial, style: TextStyle(fontFamily: kFontHeadline,
                           fontSize: 40, fontWeight: FontWeight.w700, color: kSecondary))
-                      : const Icon(Icons.person_rounded, size: 48, color: kSecondary),
+                      : Icon(Icons.person_rounded, size: 48, color: kSecondary),
                 ),
                 const SizedBox(height: 12),
                 Text(_nicknameCtrl.text.isEmpty ? (isLoggedIn ? tr('User') : tr('Guest')) : _nicknameCtrl.text, style: tsHeadlineMd()),
@@ -589,7 +587,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onSubmitted: (_) => _saveNickname(),
                   decoration: InputDecoration(
                     hintText: t('nickname_hint'),
-                    prefixIcon: const Icon(Icons.person_outline_rounded, color: kSecondary),
+                    prefixIcon: Icon(Icons.person_outline_rounded, color: kSecondary),
                     suffixIcon: TextButton(
                       onPressed: _saveNickname,
                       child: Text(_saved ? tr('Saved') : tr('Save'),
@@ -603,13 +601,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBookingsScreen())),
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
+                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), ),
                     child: Row(children: [
-                      const Icon(Icons.receipt_long_rounded, color: kSecondary, size: 20),
+                      Icon(Icons.receipt_long_rounded, color: kSecondary, size: 20),
                       const SizedBox(width: 12),
                       Text(tr('My bookings'), style: tsTitleMd()),
                       const Spacer(),
-                      const Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 14),
+                      Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 14),
                     ]),
                   ),
                 ),
@@ -619,71 +617,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritesScreen())),
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
+                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), ),
                     child: Row(children: [
                       const Icon(Icons.favorite_rounded, color: kRed, size: 20),
                       const SizedBox(width: 12),
                       Text(tr('My favorites'), style: tsTitleMd()),
                       const Spacer(),
-                      const Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 14),
+                      Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 14),
                     ]),
                   ),
                 ),
-                const SizedBox(height: 24),
-                Row(children: [const Icon(Icons.translate_rounded, color: kSecondary, size: 18), const SizedBox(width: 8), Text(tr('Language'), style: tsHeadlineSm(color: kText))]),
-                const SizedBox(height: 12),
-                Row(children: [
-                  for (final lang in const [
-                    {'code': 'English', 'label': 'English', 'flag': '🇬🇧'},
-                    {'code': 'Tigrinya', 'label': 'ትግርኛ', 'flag': '🇪🇷'},
-                    {'code': 'Amharic', 'label': 'አማርኛ', 'flag': '🇪🇹'},
-                  ]) ...[
-                    if (lang['code'] != 'English') const SizedBox(width: 8),
-                    Expanded(child: Material(
-                      color: _selectedLang == lang['code'] ? kSecondary : kCard,
-                      borderRadius: BorderRadius.circular(14),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(14),
-                        onTap: () { setState(() => _selectedLang = lang['code']!); languageNotifier.setLanguage(lang['code']!); },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Column(children: [
-                            Text(lang['flag']!, style: const TextStyle(fontSize: 22)),
-                            const SizedBox(height: 4),
-                            Text(lang['label']!, style: tsTitleMd(
-                                color: _selectedLang == lang['code'] ? const Color(0xFF1A1200) : kText)),
-                          ]),
-                        ),
-                      ),
-                    )),
-                  ],
-                ]),
-                const SizedBox(height: 24),
-                // ── Theme toggle ───────────────────────────────────
-                AnimatedBuilder(
-                  animation: themeNotifier,
-                  builder: (_, __) => GestureDetector(
-                    onTap: () => themeNotifier.toggle(),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(10)),
-                      child: Row(children: [
-                        Icon(themeNotifier.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: kSecondary, size: 20),
-                        const SizedBox(width: 14),
-                        Expanded(child: Text(themeNotifier.isDark ? t('switch_to_light') : t('switch_to_dark'), style: tsBodyLg())),
-                        Switch(
-                          value: !themeNotifier.isDark,
-                          onChanged: (_) => themeNotifier.toggle(),
-                          activeColor: kSecondary,
-                        ),
-                      ]),
-                    ),
-                  ),
-                ),
+                // Language and light/dark are at the top right of the home screen
                 const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [kPrimaryContainer, kPrimaryContainer.withOpacity(0.6)]), borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(color: kTintGreen, borderRadius: BorderRadius.circular(20)),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(t('bring_vision'), style: tsHeadlineSm()),
                     const SizedBox(height: 6),
@@ -695,9 +643,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(100)),
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Text(t('register_business'), style: tsTitleMd(color: const Color(0xFF1A1200))),
+                          Text(t('register_business'), style: tsTitleMd(color: kOnAccent)),
                           const SizedBox(width: 8),
-                          const Icon(Icons.arrow_forward_rounded, color: Color(0xFF1A1200), size: 18),
+                          Icon(Icons.arrow_forward_rounded, color: kOnAccent, size: 18),
                         ]),
                       ),
                     ),
@@ -706,12 +654,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 24),
                 if (isLoggedIn) ...[
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    Row(children: [const Icon(Icons.storefront_rounded, color: kSecondary, size: 18), const SizedBox(width: 8), Text(t('my_businesses'), style: tsHeadlineSm())]),
-                    GestureDetector(onTap: _loadMyBusinesses, child: const Icon(Icons.refresh_rounded, color: kSecondary, size: 18)),
+                    Row(children: [Icon(Icons.storefront_rounded, color: kSecondary, size: 18), const SizedBox(width: 8), Text(t('my_businesses'), style: tsHeadlineSm())]),
+                    GestureDetector(onTap: _loadMyBusinesses, child: Icon(Icons.refresh_rounded, color: kSecondary, size: 18)),
                   ]),
                   const SizedBox(height: 12),
                   if (_loadingBiz)
-                    const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))
+                    Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))
                   else if (_myBusinesses.isEmpty)
                     Container(padding: EdgeInsets.all(16), decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12)), child: Text(t('no_businesses_yet'), style: tsBodySm(), textAlign: TextAlign.center))
                   else
@@ -722,13 +670,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: () => Share.share(tr('Check out Habesha Hub!\n\nFind Ethiopian & Eritrean businesses near you.\n\nDownload now: https://habesha-hub.no/download.html')),
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.2), width: 0.5)),
+                    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), ),
                     child: Row(children: [
-                      const Icon(Icons.share_rounded, color: kSecondary, size: 20),
+                      Icon(Icons.share_rounded, color: kSecondary, size: 20),
                       const SizedBox(width: 12),
                       Text(tr('Share Habesha Hub'), style: tsTitleMd()),
                       const Spacer(),
-                      const Icon(Icons.chevron_right_rounded, color: kSecondary, size: 20),
+                      Icon(Icons.chevron_right_rounded, color: kSecondary, size: 20),
                     ]),
                   ),
                 ),
@@ -761,11 +709,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         leading: Container(
           width: 48, height: 48,
           decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(10)),
-          child: b.imageUrl.isNotEmpty ? ClipRRect(borderRadius: BorderRadius.circular(10), child: CachedNetworkImage(imageUrl: b.imageUrl, fit: BoxFit.cover, memCacheWidth: 200)) : const Icon(Icons.storefront_rounded, color: kSecondary, size: 24),
+          child: b.imageUrl.isNotEmpty ? ClipRRect(borderRadius: BorderRadius.circular(10), child: CachedNetworkImage(imageUrl: b.imageUrl, fit: BoxFit.cover, memCacheWidth: 200)) : Icon(Icons.storefront_rounded, color: kSecondary, size: 24),
         ),
         title: Text(b.name, style: tsTitleMd()),
         subtitle: Text(tr(b.category), style: tsBodySm()),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 13),
+        trailing: Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 13),
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BusinessDetailScreen(business: b, userLat: 0, userLng: 0))),
       ),
     );
@@ -784,7 +732,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: kOutlineVariant, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 20),
-            Row(children: [const Icon(Icons.help_rounded, color: kSecondary, size: 24), const SizedBox(width: 10), Text(languageNotifier.t('help_support'), style: tsHeadlineMd(color: kSecondary))]),
+            Row(children: [Icon(Icons.help_rounded, color: kSecondary, size: 24), const SizedBox(width: 10), Text(languageNotifier.t('help_support'), style: tsHeadlineMd(color: kSecondary))]),
             const SizedBox(height: 20),
             _faq(languageNotifier.t('faq_what_q'), languageNotifier.t('faq_what_a')),
             _faq(languageNotifier.t('faq_account_q'), languageNotifier.t('faq_account_a')),
@@ -801,7 +749,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final url = Uri.parse('mailto:support@habesha-hub.no');
                     if (await canLaunchUrl(url)) await launchUrl(url);
                   },
-                  child: Row(children: [const Icon(Icons.email_outlined, color: kSecondary, size: 15), const SizedBox(width: 8), Text('support@habesha-hub.no', style: tsBodySm(color: kSecondary))]),
+                  child: Row(children: [Icon(Icons.email_outlined, color: kSecondary, size: 15), const SizedBox(width: 8), Text('support@habesha-hub.no', style: tsBodySm(color: kSecondary))]),
                 ),
                 _social(Icons.chat_rounded, 'WhatsApp +47 973 74 482', 'https://wa.me/4797374482'),
                 _social(Icons.music_note_rounded, 'TikTok @habeshahub1', 'https://www.tiktok.com/@habeshahub1'),

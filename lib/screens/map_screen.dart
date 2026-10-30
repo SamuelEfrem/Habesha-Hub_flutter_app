@@ -50,7 +50,7 @@ class _BusinessesMapScreenState extends State<BusinessesMapScreen> {
       appBar: AppBar(
         backgroundColor: kBg,
         surfaceTintColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
         title: Text(widget.title.isEmpty ? tr('Map') : widget.title, style: tsHeadlineSm(color: kText)),
       ),
       body: Stack(children: [
@@ -94,7 +94,7 @@ class _BusinessesMapScreenState extends State<BusinessesMapScreen> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
                       decoration: BoxDecoration(
-                        color: _selected?.id == b.id ? kSecondary : kPrimaryContainer,
+                        color: _selected?.id == b.id ? kSecondary : kBg,
                         shape: BoxShape.circle,
                         border: Border.all(color: kSecondary, width: 2),
                         boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 6, offset: Offset(0, 2))],
@@ -156,7 +156,7 @@ class _BusinessesMapScreenState extends State<BusinessesMapScreen> {
               if (b.address.isNotEmpty)
                 Text(b.address, maxLines: 1, overflow: TextOverflow.ellipsis, style: tsBodySm(color: kTextSub)),
             ])),
-            const Icon(Icons.chevron_right_rounded, color: kSecondary),
+            Icon(Icons.chevron_right_rounded, color: kSecondary),
           ]),
         ),
       ),
@@ -174,7 +174,7 @@ Widget mapButton(VoidCallback onTap) => Material(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.map_rounded, color: kSecondary, size: 16),
+            Icon(Icons.map_rounded, color: kSecondary, size: 16),
             const SizedBox(width: 6),
             Text(tr('Map'), style: tsTitleMd(color: kSecondary)),
           ]),

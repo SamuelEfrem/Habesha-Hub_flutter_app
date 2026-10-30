@@ -90,7 +90,7 @@ class SendMoneyScreen extends StatelessWidget {
           backgroundColor: kBg,
           appBar: AppBar(
             backgroundColor: kCard,
-            iconTheme: const IconThemeData(color: kSecondary),
+            iconTheme: IconThemeData(color: kSecondary),
             title: Text(_l('Send money home', 'ገንዘብ ናብ ዓዲ ስደዱ', 'ገንዘብ ወደ አገር ቤት ይላኩ'),
                 style: tsTitleMd(color: kSecondary)),
             bottom: TabBar(
@@ -131,7 +131,7 @@ class _CountryTab extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(color: kSecondary.withOpacity(0.12), borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: kSecondary.withOpacity(0.5))),
+            ),
         child: Text(
           _l('AD – Habesha Hub may be paid when you use these links.',
              'ማስታወቒያ – Habesha Hub ነዞም መላግቦታት ክትጥቀሙ ከለኹም ክኽፈል ይኽእል።',
@@ -174,8 +174,7 @@ class _ProviderCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: kCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: kSecondary.withOpacity(0.2)),
-      ),
+        ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         if (p.key == 'remitly') ...[
           Text(_l('#Ad - paid #RemitlyAmbassador', '#ማስታወቒያ - ክፍሊት ዘለዎ #RemitlyAmbassador', '#ማስታወቂያ - የተከፈለ #RemitlyAmbassador'),
@@ -220,9 +219,9 @@ class _ProviderCard extends StatelessWidget {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
-            icon: const Icon(Icons.send_rounded, color: Color(0xFF1A1200), size: 18),
+            icon: Icon(Icons.send_rounded, color: kOnAccent, size: 18),
             label: Text(_l('Send with ${p.name}', 'ብ ${p.name} ስደዱ', 'በ ${p.name} ይላኩ'),
-                style: tsTitleMd(color: const Color(0xFF1A1200))),
+                style: tsTitleMd(color: kOnAccent)),
             style: ElevatedButton.styleFrom(
               backgroundColor: kSecondary,
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -274,8 +273,8 @@ class _RemitlyHelp extends StatelessWidget {
     padding: const EdgeInsets.only(bottom: 10),
     child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Container(width: 26, height: 26, alignment: Alignment.center,
-        decoration: const BoxDecoration(color: kSecondary, shape: BoxShape.circle),
-        child: Text(n, style: const TextStyle(color: Color(0xFF1A1200), fontWeight: FontWeight.w800))),
+        decoration: BoxDecoration(color: kSecondary, shape: BoxShape.circle),
+        child: Text(n, style: TextStyle(color: kOnAccent, fontWeight: FontWeight.w800))),
       const SizedBox(width: 10),
       Expanded(child: Text(text, style: tsBodySm(color: kText))),
     ]),
@@ -293,7 +292,7 @@ class _RemitlyHelp extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: kSecondary.withOpacity(0.2))),
+          ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(_l('How to send with Remitly', 'ከመይ ብ Remitly ትልእኹ', 'በ Remitly እንዴት እንደሚላክ'),
             style: tsTitleMd(color: kSecondary)),
@@ -321,7 +320,7 @@ class _RemitlyHelp extends StatelessWidget {
                   border: Border.all(color: kSecondary)),
               child: Row(children: [
                 Expanded(child: Text(code, style: tsHeadlineSm(color: kSecondary).copyWith(letterSpacing: 3))),
-                const Icon(Icons.copy_rounded, color: kSecondary, size: 20),
+                Icon(Icons.copy_rounded, color: kSecondary, size: 20),
                 const SizedBox(width: 6),
                 Text(_l('Copy', 'ቕዳሕ', 'ቅዳ'), style: tsBodySm(color: kSecondary)),
               ]),
@@ -355,8 +354,8 @@ class _RemitlyHelp extends StatelessWidget {
         // ── Buttons ──
         SizedBox(width: double.infinity, child: ElevatedButton.icon(
           onPressed: _openRemitly,
-          icon: const Icon(Icons.open_in_new_rounded, color: Color(0xFF1A1200), size: 18),
-          label: Text(_l('Open Remitly', 'Remitly ክፈት', 'Remitly ክፈት'), style: tsTitleMd(color: const Color(0xFF1A1200))),
+          icon: Icon(Icons.open_in_new_rounded, color: kOnAccent, size: 18),
+          label: Text(_l('Open Remitly', 'Remitly ክፈት', 'Remitly ክፈት'), style: tsTitleMd(color: kOnAccent)),
           style: ElevatedButton.styleFrom(backgroundColor: kSecondary,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
@@ -365,7 +364,7 @@ class _RemitlyHelp extends StatelessWidget {
           const SizedBox(height: 10),
           SizedBox(width: double.infinity, child: OutlinedButton.icon(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => _HelpVideoScreen(url: video))),
-            icon: const Icon(Icons.play_circle_rounded, color: kSecondary),
+            icon: Icon(Icons.play_circle_rounded, color: kSecondary),
             label: Text(_l('Watch how it works', 'ከመይ ከም ዝሰርሕ ርኣዩ', 'እንዴት እንደሚሰራ ይመልከቱ'), style: tsTitleMd(color: kSecondary)),
             style: OutlinedButton.styleFrom(side: BorderSide(color: kSecondary.withOpacity(0.6)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -428,7 +427,7 @@ class _HelpVideoScreenState extends State<_HelpVideoScreen> {
     body: Center(child: _error
         ? Text(_l('Could not load the video', 'ቪድዮ ክጽዓን ኣይከኣለን', 'ቪዲዮውን መጫን አልተቻለም'), style: const TextStyle(color: Colors.white))
         : _chc == null
-            ? const CircularProgressIndicator(color: kSecondary)
+            ? CircularProgressIndicator(color: kSecondary)
             : Chewie(controller: _chc!)),
   );
 }

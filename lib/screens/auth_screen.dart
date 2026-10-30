@@ -72,7 +72,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             backgroundColor: kCardHigh,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: Row(children: [
-              const Icon(Icons.mark_email_unread_rounded, color: kSecondary),
+              Icon(Icons.mark_email_unread_rounded, color: kSecondary),
               const SizedBox(width: 10),
               Text(tr('Confirm your email'), style: tsHeadlineSm(color: kSecondary)),
             ]),
@@ -156,7 +156,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         backgroundColor: kCardHigh,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(children: [
-          const Icon(Icons.lock_reset_rounded, color: kSecondary),
+          Icon(Icons.lock_reset_rounded, color: kSecondary),
           const SizedBox(width: 10),
           Text(tr('Reset password'), style: tsHeadlineSm(color: kSecondary)),
         ]),
@@ -205,8 +205,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       appBar: AppBar(
         backgroundColor: kBg,
         elevation: 0,
-        iconTheme: const IconThemeData(color: kSecondary),
-        title: const Text('Habesha Hub', style: TextStyle(fontFamily: kFontHeadline, color: kSecondary, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic)),
+        iconTheme: IconThemeData(color: kSecondary),
+        title: Text('Habesha Hub', style: TextStyle(fontFamily: kFontHeadline, color: kSecondary, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic)),
         bottom: TabBar(
           controller: _tab,
           indicatorColor: kSecondary,
@@ -242,7 +242,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           style: tsBodyLg(color: kText),
           decoration: InputDecoration(
             hintText: tr('password'),
-            prefixIcon: const Icon(Icons.lock_outline_rounded, color: kSecondary),
+            prefixIcon: Icon(Icons.lock_outline_rounded, color: kSecondary),
             suffixIcon: GestureDetector(onTap: () => setState(() => _obscure = !_obscure), child: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: kTextSub)),
           ),
           onSubmitted: (_) => _login(),
@@ -281,7 +281,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             padding: const EdgeInsets.symmetric(vertical: 14),
             decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(12), border: Border.all(color: kOutlineVariant.withOpacity(0.3), width: 0.5)),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Image.network('https://www.google.com/favicon.ico', width: 20, height: 20, errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata_rounded, color: kSecondary, size: 24)),
+              Image.network('https://www.google.com/favicon.ico', width: 20, height: 20, errorBuilder: (_, __, ___) => Icon(Icons.g_mobiledata_rounded, color: kSecondary, size: 24)),
               const SizedBox(width: 10),
               Text(tr('Continue with Google'), style: tsTitleMd()),
             ]),
@@ -334,7 +334,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           style: tsBodyLg(color: kText),
           decoration: InputDecoration(
             hintText: tr('At least 6 characters'),
-            prefixIcon: const Icon(Icons.lock_outline_rounded, color: kSecondary),
+            prefixIcon: Icon(Icons.lock_outline_rounded, color: kSecondary),
             suffixIcon: GestureDetector(onTap: () => setState(() => _obscure = !_obscure), child: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: kTextSub)),
           ),
         ),
@@ -353,9 +353,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         const SizedBox(height: 24),
         Container(
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kSecondary.withOpacity(0.15), width: 0.5)),
+          decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), ),
           child: Row(children: [
-            const Icon(Icons.info_outline_rounded, color: kSecondary, size: 16),
+            Icon(Icons.info_outline_rounded, color: kSecondary, size: 16),
             const SizedBox(width: 10),
             Expanded(child: Text(tr('The app is free to use. Login is only required to register a business.'), style: tsBodySm())),
           ]),

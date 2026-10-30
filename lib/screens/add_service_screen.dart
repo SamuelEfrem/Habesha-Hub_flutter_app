@@ -281,7 +281,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
         ),
         child: Text(
           widget.docId != null ? 'Back' : 'Add Another',
-          style: tsTitleMd(color: const Color(0xFF1A1200)),
+          style: tsTitleMd(color: kOnAccent),
         ),
       ),
     ]),
@@ -422,8 +422,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
         decoration: BoxDecoration(
           color: kCard,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: kSecondary.withOpacity(0.15)),
-        ),
+          ),
         child: Row(children: [
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Available for booking', style: tsTitleMd(color: kText)),
@@ -443,11 +442,11 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
         child: ElevatedButton.icon(
           onPressed: _saving ? null : _save,
           icon: _saving
-              ? const SizedBox(width: 18, height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1A1200)))
-              : const Icon(Icons.save_rounded, color: Color(0xFF1A1200)),
+              ? SizedBox(width: 18, height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: kOnAccent))
+              : Icon(Icons.save_rounded, color: kOnAccent),
           label: Text(_saving ? 'Saving…' : 'Save Provider',
-              style: tsTitleMd(color: const Color(0xFF1A1200))),
+              style: tsTitleMd(color: kOnAccent)),
           style: ElevatedButton.styleFrom(
             backgroundColor: kSecondary,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -495,8 +494,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
     decoration: BoxDecoration(
       color: kCard,
       borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: kSecondary.withOpacity(0.15)),
-    ),
+      ),
     child: DropdownButton<T>(
       value: value,
       items: items,
@@ -681,7 +679,7 @@ class _ManageServicesTabState extends State<ManageServicesTab> {
                       GestureDetector(
                         onTap: () => Navigator.push(context, MaterialPageRoute(
                             builder: (_) => AddServiceScreen(docId: doc.id, existing: data))),
-                        child: const Icon(Icons.edit_rounded, color: kSecondary, size: 20),
+                        child: Icon(Icons.edit_rounded, color: kSecondary, size: 20),
                       ),
                       const SizedBox(width: 10),
                       GestureDetector(
@@ -705,8 +703,7 @@ class _ManageServicesTabState extends State<ManageServicesTab> {
       decoration: BoxDecoration(
         color: kBg,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: kSecondary.withOpacity(0.15)),
-      ),
+        ),
       child: DropdownButton<T>(
         value: value, items: items, onChanged: onChanged,
         isExpanded: true, underline: const SizedBox(),
@@ -884,7 +881,7 @@ class _ManageBookingsTabState extends State<ManageBookingsTab> {
                                   'updatedAt': FieldValue.serverTimestamp()}))),
                       if (data['paid'] != true && status == 'confirmed') const SizedBox(width: 10),
                       if (status == 'confirmed')
-                        Expanded(child: _actionBtn('✓ Completed', kSecondary, const Color(0xFF1A1200),
+                        Expanded(child: _actionBtn('✓ Completed', kSecondary, kOnAccent,
                             () => _setStatus(doc.id, 'completed'))),
                     ]),
                   ],

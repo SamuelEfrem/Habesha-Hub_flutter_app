@@ -298,7 +298,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
         title: Text(tr('Register business'), style: tsTitleLg(color: kSecondary)),
         elevation: 0,
         bottom: PreferredSize(
@@ -306,7 +306,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
           child: LinearProgressIndicator(
             value: (_step + 1) / 3,
             backgroundColor: kCardHigh,
-            valueColor: const AlwaysStoppedAnimation<Color>(kSecondary),
+            valueColor: AlwaysStoppedAnimation<Color>(kSecondary),
             minHeight: 2,
           ),
         ),
@@ -332,7 +332,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                     Border.all(color: kSecondary.withOpacity(0.4), width: 1.5),
               ),
               child:
-                  const Icon(Icons.check_rounded, size: 48, color: kSecondary),
+                  Icon(Icons.check_rounded, size: 48, color: kSecondary),
             ),
             const SizedBox(height: 24),
             Text(tr('Business sent for approval!'),
@@ -347,7 +347,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                     Border.all(color: kSecondary.withOpacity(0.2), width: 0.5),
               ),
               child: Column(children: [
-                const Icon(Icons.pending_outlined, color: kSecondary, size: 28),
+                Icon(Icons.pending_outlined, color: kSecondary, size: 28),
                 const SizedBox(height: 8),
                 Text(
                   tr('Your business is being reviewed by Habesha Hub. We will email you when it is approved and published. Usually 1–2 business days.'),
@@ -586,12 +586,12 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: _geocoding
-                    ? const Padding(
+                    ? Padding(
                         padding: EdgeInsets.all(14),
                         child: CircularProgressIndicator(
-                            color: kSurface, strokeWidth: 2))
-                    : const Icon(Icons.my_location_rounded,
-                        color: kSurface, size: 22),
+                            color: kOnAccent, strokeWidth: 2))
+                    : Icon(Icons.my_location_rounded,
+                        color: kOnAccent, size: 22),
               ),
             ),
           ],
@@ -605,7 +605,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         ],
         TextButton.icon(
           onPressed: _geocoding ? null : _useMyLocation,
-          icon: const Icon(Icons.gps_fixed_rounded, size: 16, color: kSecondary),
+          icon: Icon(Icons.gps_fixed_rounded, size: 16, color: kSecondary),
           label: Text(tr('Use my current location'), style: tsBodySm(color: kSecondary)),
         ),
         const SizedBox(height: 8),
@@ -616,7 +616,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
           controller: _phoneCtrl,
           keyboardType: TextInputType.phone,
           style: tsBodyLg(color: kText),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: '+47 00 00 00 00',
             prefixIcon: Icon(Icons.phone_rounded, color: kSecondary),
           ),
@@ -750,7 +750,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
               style: tsLabel(color: kTextSub).copyWith(fontSize: 9)),
           const SizedBox(height: 2),
           Row(children: [
-            const Icon(Icons.access_time_rounded, color: kSecondary, size: 14),
+            Icon(Icons.access_time_rounded, color: kSecondary, size: 14),
             const SizedBox(width: 5),
             Text(value, style: tsTitleMd()),
           ]),
@@ -779,14 +779,13 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
             decoration: BoxDecoration(
               color: kCard,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: kSecondary.withOpacity(0.3)),
-            ),
+              ),
             child: _uploadingImage
-                ? const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2))
+                ? Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2))
                 : _selectedImage != null
                     ? ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.file(_selectedImage!, height: 180, width: double.infinity, fit: BoxFit.cover))
                     : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        const Icon(Icons.add_photo_alternate_rounded, color: kSecondary, size: 40),
+                        Icon(Icons.add_photo_alternate_rounded, color: kSecondary, size: 40),
                         const SizedBox(height: 8),
                         Text(tr('Tap to upload an image'), style: tsBodySm(color: kSecondary)),
                       ]),
@@ -818,12 +817,11 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
           decoration: BoxDecoration(
             color: kCard,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: kSecondary.withOpacity(0.15), width: 0.5),
-          ),
+            ),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              const Icon(Icons.pending_outlined, color: kSecondary, size: 16),
+              Icon(Icons.pending_outlined, color: kSecondary, size: 16),
               const SizedBox(width: 8),
               Text(tr('Approval process'), style: tsTitleMd(color: kSecondary)),
             ]),

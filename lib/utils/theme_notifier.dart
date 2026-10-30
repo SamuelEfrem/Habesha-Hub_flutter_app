@@ -5,14 +5,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Bruk: themeNotifier.toggle() eller themeNotifier.isDark
 class ThemeNotifier extends ChangeNotifier {
   static const _key = 'theme_dark';
-  bool _isDark = true;
+  bool _isDark = false;
 
   bool get isDark => _isDark;
   ThemeMode get mode => _isDark ? ThemeMode.dark : ThemeMode.light;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
-    _isDark = prefs.getBool(_key) ?? true; // standard: dark
+    _isDark = prefs.getBool(_key) ?? false; // standard: light (the Myk look)
     notifyListeners();
   }
 

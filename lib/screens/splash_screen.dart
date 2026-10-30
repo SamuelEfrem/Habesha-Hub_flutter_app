@@ -72,24 +72,8 @@ class _SplashScreenState extends State<SplashScreen>
                 : tr('Join Now');
 
         return Scaffold(
-          backgroundColor: kSurface,
+          backgroundColor: kBg,
           body: Stack(children: [
-            Positioned.fill(child: CustomPaint(painter: TibebPainter())),
-            Positioned(
-              top: -60,
-              left: 0,
-              right: 0,
-              child: Container(
-                  height: 280,
-                  decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                          center: Alignment.topCenter,
-                          radius: 0.9,
-                          colors: [
-                        kPrimaryContainer.withOpacity(0.4),
-                        Colors.transparent
-                      ]))),
-            ),
             SafeArea(
               child: FadeTransition(
                 opacity: _fade,
@@ -98,62 +82,20 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Column(children: [
                     const Spacer(flex: 2),
 
-                    // Logo — full circle filled with icon
-                    Container(
-                      width: 110,
-                      height: 110,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                            color: kSecondary.withOpacity(0.7), width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                              color: kSecondary.withOpacity(0.2),
-                              blurRadius: 24,
-                              spreadRadius: 4)
-                        ],
-                      ),
-                      child: ClipOval(
-                        child: Image.asset('assets/images/icon.png',
-                            width: 110,
-                            height: 110,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
-                                Icons.local_cafe_rounded,
-                                size: 50,
-                                color: kSecondary)),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Gold divider
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Container(
-                          width: 36,
-                          height: 0.5,
-                          color: kSecondary.withOpacity(0.4)),
-                      Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 8),
-                          width: 4,
-                          height: 4,
-                          decoration: const BoxDecoration(
-                              color: kSecondary, shape: BoxShape.circle)),
-                      Container(
-                          width: 36,
-                          height: 0.5,
-                          color: kSecondary.withOpacity(0.4)),
-                    ]),
-                    const SizedBox(height: 24),
+                    // Logo
+                    habeshaLogo(size: 104),
+                    const SizedBox(height: 22),
+                    SizedBox(width: 96, child: ClipRRect(borderRadius: BorderRadius.circular(3), child: habeshaStripe(height: 5))),
+                    const SizedBox(height: 22),
 
                     // App name
-                    const Text('Habesha\nHub',
+                    Text('Habesha\nHub',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontFamily: kFontHeadline,
-                            fontSize: 52,
-                            fontWeight: FontWeight.w900,
-                            fontStyle: FontStyle.italic,
-                            color: kSecondary,
+                            fontSize: 48,
+                            fontWeight: FontWeight.w800,
+                            color: kText,
                             height: 1.05,
                             letterSpacing: -1)),
                     const SizedBox(height: 16),
@@ -161,7 +103,7 @@ class _SplashScreenState extends State<SplashScreen>
                     // Tagline — changes with language
                     Text(tagline,
                         textAlign: TextAlign.center,
-                        style: tsBodyLg(color: kOnSurfaceVariant)),
+                        style: tsBodyLg(color: kTextSub).copyWith(fontSize: 15)),
 
                     const Spacer(flex: 3),
 
@@ -179,19 +121,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                     const SizedBox(height: 24),
 
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 40),
-                      height: 1,
-                      decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: [
-                        Colors.transparent,
-                        kPrimaryContainer.withOpacity(0.6),
-                        kSecondary.withOpacity(0.5),
-                        Colors.transparent,
-                      ])),
-                    ),
-                    const SizedBox(height: 24),
-
                     // CTA button — language-aware
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -201,35 +130,22 @@ class _SplashScreenState extends State<SplashScreen>
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           decoration: BoxDecoration(
-                              color: kPrimaryContainer,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: kSecondary.withOpacity(0.5),
-                                  width: 0.5)),
+                              color: kSecondary,
+                              borderRadius: BorderRadius.circular(100)),
                           child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(joinBtn,
-                                    style: tsTitleLg(color: kOnSurface)),
+                                    style: tsTitleLg(color: kOnAccent)),
                                 const SizedBox(width: 8),
-                                const Icon(Icons.arrow_forward_rounded,
-                                    color: kOnSurface, size: 18),
+                                Icon(Icons.arrow_forward_rounded,
+                                    color: kOnAccent, size: 18),
                               ]),
                         ),
                       ),
                     ),
                     const SizedBox(height: 28),
 
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Icon(Icons.star_outline_rounded,
-                          color: kSecondary.withOpacity(0.3), size: 14),
-                      const SizedBox(width: 12),
-                      Icon(Icons.star_outline_rounded,
-                          color: kSecondary.withOpacity(0.5), size: 18),
-                      const SizedBox(width: 12),
-                      Icon(Icons.star_outline_rounded,
-                          color: kSecondary.withOpacity(0.3), size: 14),
-                    ]),
                     const SizedBox(height: 24),
                   ]),
                 ),
@@ -247,21 +163,14 @@ class _SplashScreenState extends State<SplashScreen>
       onTap: () => languageNotifier.setLanguage(code),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        constraints: const BoxConstraints(minHeight: 44),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
         decoration: BoxDecoration(
-          color: active ? kSecondary : kSurfaceContainer,
+          color: active ? kSecondary : kCard,
           borderRadius: BorderRadius.circular(100),
-          border: Border.all(
-              color: active ? kSecondary : kOutlineVariant.withOpacity(0.3),
-              width: 0.5),
         ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Text(flag, style: const TextStyle(fontSize: 14)),
-          const SizedBox(width: 5),
-          Text(label,
-              style: tsLabel(
-                  color: active ? const Color(0xFF1A1200) : kOnSurfaceVariant)),
-        ]),
+        child: Text(label,
+            style: tsTitleMd(color: active ? kOnAccent : kText)),
       ),
     );
   }

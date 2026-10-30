@@ -40,7 +40,7 @@ Widget _pendingBadge({double fontSize = 11}) => Container(
   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
   decoration: BoxDecoration(color: const Color(0xFFF59E0B), borderRadius: BorderRadius.circular(100)),
   child: Text(_mt('⏳ Waiting for approval', '⏳ ፍቓድ ይጽበ', '⏳ ማረጋገጫ በመጠባበቅ ላይ'),
-      style: TextStyle(color: const Color(0xFF1A1200), fontSize: fontSize, fontWeight: FontWeight.w700)),
+      style: TextStyle(color: kOnAccent, fontSize: fontSize, fontWeight: FontWeight.w700)),
 );
 
 /// Reads any Firestore value as a trimmed String (handles int, double, null).
@@ -120,7 +120,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           backgroundColor: kBg,
           appBar: AppBar(
             backgroundColor: kCard,
-            iconTheme: const IconThemeData(color: kSecondary),
+            iconTheme: IconThemeData(color: kSecondary),
             title: Text(t('marketplace_title'), style: tsTitleMd(color: kSecondary)),
             actions: [
               GestureDetector(
@@ -130,9 +130,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                     decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(100)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      const Icon(Icons.add_rounded, color: Color(0xFF1A1200), size: 16),
+                      Icon(Icons.add_rounded, color: kOnAccent, size: 16),
                       const SizedBox(width: 4),
-                      Text(t('marketplace_sell'), style: tsTitleMd(color: const Color(0xFF1A1200)).copyWith(fontSize: 12)),
+                      Text(t('marketplace_sell'), style: tsTitleMd(color: kOnAccent).copyWith(fontSize: 12)),
                     ]),
                   ),
                 ),
@@ -147,8 +147,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 decoration: BoxDecoration(
                   color: kCard,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: kSecondary.withOpacity(0.2)),
-                ),
+                  ),
                 child: TextField(
                   controller: _nameCtrl,
                   style: tsBodyLg(color: kText),
@@ -177,8 +176,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     decoration: BoxDecoration(
                       color: kCard,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: kSecondary.withOpacity(0.2)),
-                    ),
+                      ),
                     child: TextField(
                       controller: _cityCtrl,
                       style: tsBodyLg(color: kText),
@@ -222,10 +220,10 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     width: 42, height: 42,
                     decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(12)),
                     child: _locating
-                        ? const Padding(
+                        ? Padding(
                             padding: EdgeInsets.all(10),
-                            child: CircularProgressIndicator(color: Color(0xFF1A1200), strokeWidth: 2))
-                        : const Icon(Icons.my_location_rounded, color: Color(0xFF1A1200), size: 20),
+                            child: CircularProgressIndicator(color: kOnAccent, strokeWidth: 2))
+                        : Icon(Icons.my_location_rounded, color: kOnAccent, size: 20),
                   ),
                 ),
               ]),
@@ -256,7 +254,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         const SizedBox(width: 5),
                         Text(
                           t('market_${cat['key']!.toLowerCase()}'),
-                          style: tsLabel(color: sel ? Color(0xFF342800) : kTextSub)
+                          style: tsLabel(color: sel ? kOnAccent : kTextSub)
                               .copyWith(fontSize: 11),
                         ),
                       ]),
@@ -273,7 +271,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     .orderBy('createdAt', descending: true)
                     .snapshots(),
                 builder: (_, snap) {
-                  if (!snap.hasData) return const Center(
+                  if (!snap.hasData) return Center(
                     child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
                   final me = user?.uid;
                   final admin = _isAdminUser;
@@ -464,7 +462,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 child: ListView(scrollDirection: Axis.horizontal, children: [
                   for (var i = 0; i < keptPhotos.length; i++)
                     _photoTile(Image.network(keptPhotos[i], fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_rounded, color: kSecondary)),
+                        errorBuilder: (_, __, ___) => Icon(Icons.broken_image_rounded, color: kSecondary)),
                       cover: i == 0,
                       onRemove: uploading ? null : () => setModal(() => keptPhotos.removeAt(i))),
                   for (var i = 0; i < newPhotos.length; i++)
@@ -483,9 +481,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         decoration: BoxDecoration(
                           color: kCardHigh,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: kSecondary.withOpacity(0.3))),
+                          ),
                         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          const Icon(Icons.add_photo_alternate_rounded, color: kSecondary, size: 30),
+                          Icon(Icons.add_photo_alternate_rounded, color: kSecondary, size: 30),
                           const SizedBox(height: 6),
                           Text('${keptPhotos.length + newPhotos.length}/$_maxPhotos',
                               style: tsBodySm(color: kSecondary)),
@@ -513,7 +511,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         color: sel ? kSecondary : kCardHigh,
                         borderRadius: BorderRadius.circular(100)),
                       child: Text('${cat['emoji']} ${cat['key']}',
-                        style: tsLabel(color: sel ? Color(0xFF342800) : kTextSub)),
+                        style: tsLabel(color: sel ? kOnAccent : kTextSub)),
                     ),
                   );
                 }).toList(),
@@ -628,7 +626,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(100)),
             child: Text(_mt('Cover', 'ቅድሚት', 'ፊት'),
-                style: const TextStyle(color: Color(0xFF1A1200), fontSize: 10, fontWeight: FontWeight.w700)))),
+                style: TextStyle(color: kOnAccent, fontSize: 10, fontWeight: FontWeight.w700)))),
         if (onRemove != null)
           Positioned(right: 4, top: 4, child: GestureDetector(
             onTap: onRemove,
@@ -651,7 +649,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       decoration: BoxDecoration(
         color: kCardHigh,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: kSecondary.withOpacity(0.15))),
+        ),
       child: TextField(
         controller: ctrl, maxLines: maxLines, keyboardType: keyboardType,
         style: tsBodyLg(color: kText),
@@ -710,8 +708,7 @@ class _ListingCardState extends State<_ListingCard> {
       decoration: BoxDecoration(
         color: kCard,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: kSecondary.withOpacity(0.1), width: 0.5),
-      ),
+        ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         // ── Image ──────────────────────────────────────
         if (images.isNotEmpty)
@@ -724,7 +721,7 @@ class _ListingCardState extends State<_ListingCard> {
                   imageUrl: images[0],
                   height: 220, width: double.infinity, fit: BoxFit.cover, memCacheWidth: 1080,
                   placeholder: (_, __) => Container(height: 220, color: kCardHigh,
-                      child: const Center(child: CircularProgressIndicator(
+                      child: Center(child: CircularProgressIndicator(
                         color: kSecondary, strokeWidth: 1.5))),
                   errorWidget: (_, __, ___) => Container(height: 140,
                       color: kCardHigh,
@@ -777,7 +774,7 @@ class _ListingCardState extends State<_ListingCard> {
               if (widget.isMe || widget.onDelete != null) Row(mainAxisSize: MainAxisSize.min, children: [
                 if (widget.onEdit != null) ...[
                   GestureDetector(onTap: widget.onEdit,
-                    child: const Icon(Icons.edit_rounded, color: kSecondary, size: 18)),
+                    child: Icon(Icons.edit_rounded, color: kSecondary, size: 18)),
                   const SizedBox(width: 12),
                 ],
                 if (widget.onDelete != null)
@@ -794,7 +791,7 @@ class _ListingCardState extends State<_ListingCard> {
                   decoration: BoxDecoration(
                     color: kSecondary, borderRadius: BorderRadius.circular(100)),
                   child: Text(_s(d['price']),
-                    style: tsTitleMd(color: const Color(0xFF1A1200)).copyWith(fontSize: 13)),
+                    style: tsTitleMd(color: kOnAccent).copyWith(fontSize: 13)),
                 ),
                 const SizedBox(width: 10),
               ],
@@ -839,7 +836,7 @@ class _ListingCardState extends State<_ListingCard> {
                   margin: const EdgeInsets.only(right: 8),
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(color: kCardHigh, shape: BoxShape.circle),
-                  child: const Icon(Icons.share_rounded, color: kSecondary, size: 16)),
+                  child: Icon(Icons.share_rounded, color: kSecondary, size: 16)),
               ),
               if (_s(d['sellerPhone']).isNotEmpty)
                 GestureDetector(
@@ -849,10 +846,10 @@ class _ListingCardState extends State<_ListingCard> {
                     decoration: BoxDecoration(
                       color: kSecondary, borderRadius: BorderRadius.circular(100)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      const Icon(Icons.phone_rounded, color: Color(0xFF1A1200), size: 14),
+                      Icon(Icons.phone_rounded, color: kOnAccent, size: 14),
                       const SizedBox(width: 6),
                       Text(widget.t('contact_seller'),
-                        style: tsTitleMd(color: const Color(0xFF1A1200)).copyWith(fontSize: 12)),
+                        style: tsTitleMd(color: kOnAccent).copyWith(fontSize: 12)),
                     ]),
                   ),
                 ),
@@ -898,7 +895,7 @@ class _ListingCardState extends State<_ListingCard> {
           Container(
             width: 64, height: 64,
             decoration: BoxDecoration(color: kCardHigh, shape: BoxShape.circle),
-            child: const Icon(Icons.person_rounded, color: kSecondary, size: 32),
+            child: Icon(Icons.person_rounded, color: kSecondary, size: 32),
           ),
           const SizedBox(height: 12),
           Text(_s(d['sellerName']), style: tsHeadlineSm()),
@@ -910,7 +907,7 @@ class _ListingCardState extends State<_ListingCard> {
             decoration: BoxDecoration(
               color: kCardHigh, borderRadius: BorderRadius.circular(14)),
             child: Row(children: [
-              const Icon(Icons.phone_rounded, color: kSecondary, size: 20),
+              Icon(Icons.phone_rounded, color: kSecondary, size: 20),
               const SizedBox(width: 12),
               Text(_s(d['sellerPhone']), style: tsTitleMd()),
             ]),
@@ -1000,8 +997,7 @@ class _SellerCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: kCard,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: kSecondary.withOpacity(0.1), width: 0.5),
-        ),
+          ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           // ── seller header ────────────────────────────
           Row(children: [
@@ -1019,7 +1015,7 @@ class _SellerCard extends StatelessWidget {
             ])),
             Row(mainAxisSize: MainAxisSize.min, children: [
               Text(t('market_see_all'), style: tsBodySm(color: kSecondary)),
-              const Icon(Icons.chevron_right_rounded, color: kSecondary, size: 20),
+              Icon(Icons.chevron_right_rounded, color: kSecondary, size: 20),
             ]),
           ]),
           const SizedBox(height: 12),
@@ -1072,7 +1068,7 @@ class _ListingThumb extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(100)),
-                  child: Text(price, style: tsLabel(color: const Color(0xFF1A1200)).copyWith(fontSize: 10)),
+                  child: Text(price, style: tsLabel(color: kOnAccent).copyWith(fontSize: 10)),
                 )),
             if (_isPending(data))
               Positioned(left: 6, top: 6, child: _pendingBadge(fontSize: 9)),
@@ -1190,7 +1186,7 @@ class SellerProfileScreen extends StatelessWidget {
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
         title: Text(name, style: tsTitleMd(color: kSecondary)),
       ),
       body: !byUser
@@ -1237,13 +1233,13 @@ class _ListingDetailScreen extends StatelessWidget {
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
       ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance.collection('marketplace').doc(docId).snapshots(),
         builder: (ctx, snap) {
           if (!snap.hasData) {
-            return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+            return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
           }
           if (!snap.data!.exists) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1309,7 +1305,7 @@ class MarketInboxScreen extends StatelessWidget {
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
         title: Text('Inbox', style: tsTitleMd(color: kSecondary)),
       ),
       body: Center(child: Text('Inbox coming soon', style: tsBodyLg())),

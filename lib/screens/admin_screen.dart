@@ -48,7 +48,7 @@ class AdminButton extends StatelessWidget {
                   Border.all(color: kSecondary.withOpacity(0.3), width: 0.5),
             ),
             child: Row(children: [
-              const Icon(Icons.admin_panel_settings_rounded,
+              Icon(Icons.admin_panel_settings_rounded,
                   color: kSecondary, size: 20),
               const SizedBox(width: 14),
               Text('Admin Panel', style: tsTitleMd(color: kSecondary)),
@@ -77,7 +77,7 @@ class AdminButton extends StatelessWidget {
                 },
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward_ios_rounded,
+              Icon(Icons.arrow_forward_ios_rounded,
                   color: kSecondary, size: 13),
             ]),
           ),
@@ -146,9 +146,9 @@ class _AdminScreenState extends State<AdminScreen>
             pinned: true,
             backgroundColor: kBg,
             surfaceTintColor: Colors.transparent,
-            iconTheme: const IconThemeData(color: kSecondary),
+            iconTheme: IconThemeData(color: kSecondary),
             title: Row(children: [
-              const Icon(Icons.admin_panel_settings_rounded, color: kSecondary, size: 22),
+              Icon(Icons.admin_panel_settings_rounded, color: kSecondary, size: 22),
               const SizedBox(width: 8),
               Text('Admin', style: tsHeadlineMd(color: kText)),
             ]),
@@ -158,7 +158,7 @@ class _AdminScreenState extends State<AdminScreen>
                 child: FilledButton.icon(
                   style: FilledButton.styleFrom(
                     backgroundColor: kSecondary,
-                    foregroundColor: const Color(0xFF1A1200),
+                    foregroundColor: kOnAccent,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () => Navigator.push(context,
@@ -182,7 +182,7 @@ class _AdminScreenState extends State<AdminScreen>
                 color: kSecondary,
                 borderRadius: BorderRadius.circular(100),
               ),
-              labelColor: const Color(0xFF1A1200),
+              labelColor: kOnAccent,
               unselectedLabelColor: kTextSub,
               labelPadding: const EdgeInsets.symmetric(horizontal: 14),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -216,7 +216,7 @@ class _AdminScreenState extends State<AdminScreen>
               backgroundColor: Colors.transparent,
               floatingActionButton: FloatingActionButton(
                 backgroundColor: kSecondary,
-                foregroundColor: const Color(0xFF1A1200),
+                foregroundColor: kOnAccent,
                 onPressed: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const AddServiceScreen())),
                 child: const Icon(Icons.add_rounded),
@@ -336,7 +336,7 @@ class _BusinessListState extends State<_BusinessList> with AutomaticKeepAliveCli
           style: tsBodyLg(color: kText),
           decoration: InputDecoration(
             hintText: 'Search name, city or country…',
-            prefixIcon: const Icon(Icons.search_rounded, color: kSecondary),
+            prefixIcon: Icon(Icons.search_rounded, color: kSecondary),
             filled: true,
             fillColor: kCard,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -361,7 +361,7 @@ class _BusinessListState extends State<_BusinessList> with AutomaticKeepAliveCli
           stream: db.collection('businesses').snapshots(),
           builder: (context, snap) {
             if (!snap.hasData) {
-              return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+              return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
             }
             final docs = snap.data!.docs.where((doc) {
               final data = doc.data() as Map<String, dynamic>;
@@ -567,7 +567,7 @@ class _AdminCardState extends State<_AdminCard> {
                       style: tsTitleLg(color: kText))),
                   if (business.isPremium) ...[
                     const SizedBox(width: 4),
-                    const Icon(Icons.star_rounded, color: kSecondary, size: 16),
+                    Icon(Icons.star_rounded, color: kSecondary, size: 16),
                   ],
                 ]),
                 const SizedBox(height: 2),
@@ -681,7 +681,7 @@ class _ContactMessagesList extends StatelessWidget {
           .snapshots(),
       builder: (context, snap) {
         if (!snap.hasData) {
-          return const Center(
+          return Center(
               child: CircularProgressIndicator(
                   color: kSecondary, strokeWidth: 1.5));
         }
@@ -745,7 +745,7 @@ class _ContactMessagesList extends StatelessWidget {
                     ]),
                     const SizedBox(height: 10),
                     Row(children: [
-                      const Icon(Icons.person_rounded,
+                      Icon(Icons.person_rounded,
                           color: kSecondary, size: 14),
                       const SizedBox(width: 6),
                       Text(data['name'] ?? 'Unknown', style: tsTitleMd()),
@@ -753,7 +753,7 @@ class _ContactMessagesList extends StatelessWidget {
                     if (serviceStr(data['email']).isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Row(children: [
-                        const Icon(Icons.email_outlined,
+                        Icon(Icons.email_outlined,
                             color: kSecondary, size: 14),
                         const SizedBox(width: 6),
                         Text(serviceStr(data['email']), style: tsBodySm()),
@@ -803,14 +803,11 @@ class _ContactMessagesList extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: kSecondary.withOpacity(0.12),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                  color: kSecondary.withOpacity(0.3),
-                                  width: 0.5),
-                            ),
+                              ),
                             child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(Icons.reply_rounded,
+                                  Icon(Icons.reply_rounded,
                                       color: kSecondary, size: 16),
                                   const SizedBox(width: 6),
                                   Text('Reply in Gmail',
@@ -855,7 +852,7 @@ class _TravelRequestsList extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: db.collection('travel_requests').snapshots(),
       builder: (_, snap) {
-        if (!snap.hasData) return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+        if (!snap.hasData) return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
         final docs = snap.data!.docs;
         if (docs.isEmpty) return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.flight_rounded, size: 56, color: kTextSub), const SizedBox(height: 16), const Text('No travel requests yet')]));
         return ListView.builder(

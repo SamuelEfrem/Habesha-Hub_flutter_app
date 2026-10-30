@@ -122,7 +122,7 @@ class _BookingScreenState extends State<BookingScreen> {
           backgroundColor: kBg,
           appBar: AppBar(
             backgroundColor: kCard,
-            iconTheme: const IconThemeData(color: kSecondary),
+            iconTheme: IconThemeData(color: kSecondary),
             title:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(t('book_time'), style: tsTitleMd(color: kSecondary)),
@@ -140,9 +140,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 decoration: BoxDecoration(
                   color: kCard,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                      color: kSecondary.withOpacity(0.2), width: 0.5),
-                ),
+                  ),
                 child: Row(children: [
                   Container(
                     width: 48,
@@ -155,7 +153,7 @@ class _BookingScreenState extends State<BookingScreen> {
                             borderRadius: BorderRadius.circular(10),
                             child: CachedNetworkImage(imageUrl: widget.business.imageUrl,
                                 fit: BoxFit.cover, memCacheWidth: 200))
-                        : const Icon(Icons.storefront_rounded,
+                        : Icon(Icons.storefront_rounded,
                             color: kSecondary),
                   ),
                   const SizedBox(width: 14),
@@ -182,7 +180,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     builder: (ctx, child) => Theme(
                       data: ThemeData.dark().copyWith(
                           colorScheme:
-                              const ColorScheme.dark(primary: kSecondary)),
+                              ColorScheme.dark(primary: kSecondary)),
                       child: child!,
                     ),
                   );
@@ -194,7 +192,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       color: kCard,
                       borderRadius: BorderRadius.circular(12)),
                   child: Row(children: [
-                    const Icon(Icons.calendar_today_rounded,
+                    Icon(Icons.calendar_today_rounded,
                         color: kSecondary, size: 20),
                     const SizedBox(width: 12),
                     Text(
@@ -233,7 +231,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         child: Text(_times[i],
                             style: tsLabel(
                                 color: sel
-                                    ? const Color(0xFF342800)
+                                    ? kOnAccent
                                     : kTextSub)),
                       ),
                     );
@@ -260,7 +258,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     color: kCard,
                     borderRadius: BorderRadius.circular(10)),
                 child: Row(children: [
-                  const Icon(Icons.person_outline_rounded,
+                  Icon(Icons.person_outline_rounded,
                       color: kSecondary, size: 16),
                   const SizedBox(width: 8),
                   Text('${t("booking_as")}: $_nickname', style: tsBodySm()),
@@ -280,10 +278,10 @@ class _BookingScreenState extends State<BookingScreen> {
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   child: _sending
-                      ? const CircularProgressIndicator(
-                          color: Color(0xFF1A1200), strokeWidth: 2)
+                      ? CircularProgressIndicator(
+                          color: kOnAccent, strokeWidth: 2)
                       : Text(t('send_booking'),
-                          style: tsTitleMd(color: const Color(0xFF1A1200))),
+                          style: tsTitleMd(color: kOnAccent)),
                 ),
               ),
               const SizedBox(height: 40),
@@ -321,7 +319,7 @@ class BookingListScreen extends StatelessWidget {
           backgroundColor: kBg,
           appBar: AppBar(
             backgroundColor: kCard,
-            iconTheme: const IconThemeData(color: kSecondary),
+            iconTheme: IconThemeData(color: kSecondary),
             title: Text(tr('Bookings'), style: tsTitleMd(color: kSecondary)),
           ),
           body: StreamBuilder<QuerySnapshot>(
@@ -340,7 +338,7 @@ class BookingListScreen extends StatelessWidget {
                   child: Text('${tr('Error')}: ${snap.error}', style: tsBodySm(color: kRed), textAlign: TextAlign.center)));
               }
               if (!snap.hasData) {
-                return const Center(
+                return Center(
                     child: CircularProgressIndicator(
                         color: kSecondary, strokeWidth: 1.5));
               }
@@ -423,22 +421,22 @@ class _BookingCard extends StatelessWidget {
         ]),
         const SizedBox(height: 8),
         Row(children: [
-          const Icon(Icons.person_outline_rounded, color: kSecondary, size: 14),
+          Icon(Icons.person_outline_rounded, color: kSecondary, size: 14),
           const SizedBox(width: 6),
           Text(data['nickname'] ?? 'Guest', style: tsBodySm()),
           const SizedBox(width: 16),
           if (data['type'] == 'hotel') ...[
-            const Icon(Icons.nights_stay_rounded, color: kSecondary, size: 14),
+            Icon(Icons.nights_stay_rounded, color: kSecondary, size: 14),
             const SizedBox(width: 6),
             Text('${data['nights'] ?? 1} nights, ${data['guests'] ?? 1} guests', style: tsBodySm()),
           ] else if (date != null) ...[
-            const Icon(Icons.calendar_today_rounded, color: kSecondary, size: 14),
+            Icon(Icons.calendar_today_rounded, color: kSecondary, size: 14),
             const SizedBox(width: 6),
             Text(DateFormat('dd. MMM').format(date) + ' kl. ' + (data['time'] ?? ''), style: tsBodySm()),
           ],
           if (data['type'] == 'hotel' && data['checkIn'] != null) ...[
             const SizedBox(width: 10),
-            const Icon(Icons.calendar_today_rounded, color: kSecondary, size: 14),
+            Icon(Icons.calendar_today_rounded, color: kSecondary, size: 14),
             const SizedBox(width: 4),
             Text(DateFormat('dd.MM').format((data['checkIn'] as Timestamp).toDate()) + ' → ' + DateFormat('dd.MM').format((data['checkOut'] as Timestamp).toDate()), style: tsBodySm()),
           ],

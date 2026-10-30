@@ -98,7 +98,7 @@ class PayFromPicker extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 14),
     decoration: BoxDecoration(
       color: kCard, borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: kSecondary.withOpacity(0.3))),
+      ),
     child: DropdownButton<String>(
       value: value,
       isExpanded: true,
@@ -130,7 +130,7 @@ class MyBookingsScreen extends StatelessWidget {
         backgroundColor: kBg,
         appBar: AppBar(
           backgroundColor: kCard,
-          iconTheme: const IconThemeData(color: kSecondary),
+          iconTheme: IconThemeData(color: kSecondary),
           title: Text(tr('My bookings'), style: tsTitleMd(color: kSecondary)),
         ),
         body: user == null
@@ -143,7 +143,7 @@ class MyBookingsScreen extends StatelessWidget {
                     return Center(child: Text('${tr('Error')}: ${snap.error}', style: tsBodySm(color: kRed)));
                   }
                   if (!snap.hasData) {
-                    return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+                    return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
                   }
                   final docs = snap.data!.docs.toList()
                     ..sort((a, b) {
@@ -245,14 +245,14 @@ class ReceiptScreen extends StatelessWidget {
         backgroundColor: kBg,
         appBar: AppBar(
           backgroundColor: kCard,
-          iconTheme: const IconThemeData(color: kSecondary),
+          iconTheme: IconThemeData(color: kSecondary),
           title: Text(tr('Receipt'), style: tsTitleMd(color: kSecondary)),
         ),
         body: StreamBuilder<DocumentSnapshot>(
           stream: FirebaseFirestore.instance.collection('service_bookings').doc(bookingId).snapshots(),
           builder: (ctx, snap) {
             if (!snap.hasData) {
-              return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+              return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
             }
             final d = (snap.data!.data() as Map<String, dynamic>?) ?? {};
             final status  = serviceStr(d['status']).isEmpty ? 'created' : serviceStr(d['status']);
@@ -284,7 +284,7 @@ class ReceiptScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: kCard, borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: kSecondary.withOpacity(0.3))),
+                    ),
                   child: Column(children: [
                     Icon(paid ? Icons.verified_rounded
                         : confirmed ? Icons.check_circle_rounded : Icons.schedule_rounded,
@@ -324,10 +324,10 @@ class ReceiptScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
                       color: kSecondary.withOpacity(0.08), borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: kSecondary.withOpacity(0.4))),
+                      ),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
-                        const Icon(Icons.payments_rounded, color: kSecondary),
+                        Icon(Icons.payments_rounded, color: kSecondary),
                         const SizedBox(width: 8),
                         Text(tr('How to pay'), style: tsTitleMd(color: kSecondary)),
                       ]),
@@ -358,7 +358,7 @@ class ReceiptScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 OutlinedButton.icon(
                   onPressed: () => Share.share(receiptText),
-                  icon: const Icon(Icons.share_rounded, color: kSecondary),
+                  icon: Icon(Icons.share_rounded, color: kSecondary),
                   label: Text(tr('Share receipt'), style: tsTitleMd(color: kSecondary)),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: kSecondary.withOpacity(0.5)),
@@ -392,7 +392,7 @@ class ReceiptScreen extends StatelessWidget {
       decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(10)),
       child: Row(children: [
         Expanded(child: Text(value, style: tsTitleMd())),
-        const Icon(Icons.copy_rounded, color: kSecondary, size: 18),
+        Icon(Icons.copy_rounded, color: kSecondary, size: 18),
       ]),
     ),
   );
@@ -454,7 +454,7 @@ class _PaymentSettingsScreenState extends State<PaymentSettingsScreen> {
     backgroundColor: kBg,
     appBar: AppBar(
       backgroundColor: kCard,
-      iconTheme: const IconThemeData(color: kSecondary),
+      iconTheme: IconThemeData(color: kSecondary),
       title: Text('Payment methods', style: tsTitleMd(color: kSecondary)),
       actions: [
         TextButton(onPressed: _saving || _loading ? null : _save,
@@ -462,7 +462,7 @@ class _PaymentSettingsScreenState extends State<PaymentSettingsScreen> {
       ],
     ),
     body: _loading
-        ? const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))
+        ? Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))
         : ListView(
             padding: const EdgeInsets.all(16),
             children: [

@@ -18,6 +18,8 @@ import '../utils/translations.dart';
 import 'community_screens.dart';
 import 'map_screen.dart';
 import '../games/games_screen.dart';
+import 'send_money_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -146,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
             icon: Container(
               width: 64, height: 64,
               decoration: BoxDecoration(shape: BoxShape.circle, color: kPrimaryContainer.withOpacity(0.35)),
-              child: const Icon(Icons.location_on_rounded, color: kSecondary, size: 34),
+              child: Icon(Icons.location_on_rounded, color: kSecondary, size: 34),
             ),
             title: Text(title, textAlign: TextAlign.center, style: tsHeadlineSm(color: kText)),
             content: Text(text, textAlign: TextAlign.center, style: tsBodyLg(color: kTextSub)),
@@ -155,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
               TextButton(onPressed: () => Navigator.pop(ctx, false),
                   child: Text(tr('Not now'), style: tsTitleMd(color: kTextSub))),
               FilledButton(
-                style: FilledButton.styleFrom(backgroundColor: kSecondary, foregroundColor: const Color(0xFF1A1200)),
+                style: FilledButton.styleFrom(backgroundColor: kSecondary, foregroundColor: kOnAccent),
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(tr('Turn on'), style: const TextStyle(fontWeight: FontWeight.w800)),
               ),
@@ -251,152 +253,174 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   }
 
   Widget _buildHomeTab(String Function(String) t) {
-    return Stack(children: [
-      Positioned.fill(child: CustomPaint(painter: TibebPainter())),
-      SafeArea(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // ── Top bar: logo, theme, AI (language lives in Profile) ──
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 16, 6),
-            child: Row(children: [
-              const Expanded(
-                child: Text('Habesha Hub',
-                    maxLines: 1,
-                    style: TextStyle(
-                        fontFamily: kFontHeadline,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        fontStyle: FontStyle.italic,
-                        color: kSecondary)),
-              ),
-              _roundBtn(
-                themeNotifier.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                () => themeNotifier.toggle(),
-              ),
-              const SizedBox(width: 10),
-              _aiButton(),
-            ]),
-          ),
-
-          Expanded(
-            child: RefreshIndicator(
-              color: kSecondary,
-              backgroundColor: kCard,
-              onRefresh: _searchNearby,
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverToBoxAdapter(child: _buildSearchRow(t)),
-                  SliverToBoxAdapter(child: _buildMarketplaceBanner(t)),
-                  SliverToBoxAdapter(child: _buildGamesBanner()),
-                  if (_hasSearched) ...[
-                    SliverToBoxAdapter(child: _buildCategoryChips()),
-                    const SliverToBoxAdapter(child: SizedBox(height: 14)),
-                    SliverToBoxAdapter(child: _buildResultsHeader(t)),
-                    const SliverToBoxAdapter(child: SizedBox(height: 10)),
-                    _buildResultsSliver(t),
-                  ] else if (_isSearching)
-                    _buildSkeletons()
-                  else
-                    SliverToBoxAdapter(child: _buildLocationPrompt()),
-                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                ],
-              ),
-            ),
-          ),
-        ]),
-      ),
-    ]);
-  }
-
-  // "AI" in a glowing gold circle, so people notice the assistant
-  Widget _aiButton() {
-    return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiChatScreen())),
-      child: AnimatedBuilder(
-        animation: _pulseAnim,
-        builder: (_, child) => Container(
-          width: 44, height: 44,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              colors: [Color(0xFFF2D06B), kSecondary, Color(0xFFB8960C)],
-              begin: Alignment.topLeft, end: Alignment.bottomRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: kSecondary.withOpacity(0.25 + _pulseAnim.value * 0.35),
-                blurRadius: 8 + _pulseAnim.value * 10,
-                spreadRadius: _pulseAnim.value * 2,
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: child,
+    return SafeArea(
+      bottom: false,
+      child: RefreshIndicator(
+        color: kSecondary,
+        backgroundColor: kBg,
+        onRefresh: _searchNearby,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(child: _buildTopBar()),
+            SliverToBoxAdapter(child: _buildGreeting()),
+            SliverToBoxAdapter(child: _buildSearchRow(t)),
+            SliverToBoxAdapter(child: _buildShortcuts(t)),
+            if (_hasSearched) ...[
+              SliverToBoxAdapter(child: _buildResultsHeader(t)),
+              const SliverToBoxAdapter(child: SizedBox(height: 12)),
+              SliverToBoxAdapter(child: _buildCategoryChips()),
+              const SliverToBoxAdapter(child: SizedBox(height: 14)),
+              _buildResultsSliver(t),
+            ] else if (_isSearching)
+              _buildSkeletons()
+            else
+              SliverToBoxAdapter(child: _buildLocationPrompt()),
+            const SliverToBoxAdapter(child: SizedBox(height: 40)),
+          ],
         ),
-        child: const Text('AI',
-            style: TextStyle(fontFamily: kFontBody, fontSize: 16,
-                fontWeight: FontWeight.w900, letterSpacing: 0.5, color: Color(0xFF1A1200))),
       ),
     );
   }
 
-  Widget _roundBtn(IconData icon, VoidCallback onTap, {bool filled = false}) {
-    return Material(
-      color: filled ? kSecondary : kCardHigh,
+  // ── Logo + name, then language and light/dark on the right ──
+  Widget _buildTopBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: Row(children: [
+        habeshaLogo(size: 38),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text('Habesha Hub',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontFamily: kFontHeadline, fontSize: 18, fontWeight: FontWeight.w800, color: kText)),
+        ),
+        _languageButton(),
+        const SizedBox(width: 8),
+        _roundBtn(
+          themeNotifier.isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+          () => themeNotifier.toggle(),
+          tooltip: themeNotifier.isDark ? tr('Light mode') : tr('Dark mode'),
+        ),
+      ]),
+    );
+  }
+
+  static const _langs = [
+    {'code': 'English', 'short': 'EN', 'label': 'English'},
+    {'code': 'Tigrinya', 'short': 'ትግ', 'label': 'ትግርኛ'},
+    {'code': 'Amharic', 'short': 'አማ', 'label': 'አማርኛ'},
+  ];
+
+  Widget _languageButton() {
+    final current = _langs.firstWhere((l) => l['code'] == languageNotifier.language, orElse: () => _langs.first);
+    return PopupMenuButton<String>(
+      tooltip: tr('Choose language'),
+      position: PopupMenuPosition.under,
+      color: kBg,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      onSelected: (code) => languageNotifier.setLanguage(code),
+      itemBuilder: (_) => [
+        for (final l in _langs)
+          PopupMenuItem<String>(
+            value: l['code'],
+            height: 48,
+            child: Row(children: [
+              Expanded(child: Text(l['label']!, style: tsTitleMd(color: kText).copyWith(fontSize: 15))),
+              if (l['code'] == current['code']) Icon(Icons.check_rounded, color: kSecondary, size: 20),
+            ]),
+          ),
+      ],
+      child: Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(22)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.translate_rounded, size: 18, color: kText),
+          const SizedBox(width: 6),
+          Text(current['short']!, style: tsTitleMd(color: kText)),
+        ]),
+      ),
+    );
+  }
+
+  Widget _roundBtn(IconData icon, VoidCallback onTap, {String? tooltip}) {
+    final btn = Material(
+      color: kCard,
       shape: const CircleBorder(),
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onTap,
-        child: SizedBox(
-          width: 40, height: 40,
-          child: Icon(icon, size: 20, color: filled ? const Color(0xFF1A1200) : kSecondary),
-        ),
+        child: SizedBox(width: 44, height: 44, child: Icon(icon, size: 22, color: kText)),
       ),
+    );
+    return tooltip == null ? btn : Tooltip(message: tooltip, child: btn);
+  }
+
+  // ── ሰላም, name ──
+  Widget _buildGreeting() {
+    final name = (FirebaseAuth.instance.currentUser?.displayName ?? '').trim().split(' ').first;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: Text(name.isEmpty ? 'ሰላም!' : 'ሰላም, $name',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontFamily: kFontHeadline, fontSize: 30, fontWeight: FontWeight.w800,
+              letterSpacing: -0.5, height: 1.2, color: kText)),
     );
   }
 
   // ── Search field + "Near me" button ──
   Widget _buildSearchRow(String Function(String) t) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
       child: Row(children: [
         Expanded(
           child: Container(
-            height: 52,
-            decoration: BoxDecoration(color: kCardHighest, borderRadius: BorderRadius.circular(16)),
+            height: 54,
+            decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(27)),
             child: TextField(
               controller: _searchController,
-              style: tsBodyLg(color: kText),
+              style: tsBodyLg(color: kText).copyWith(fontSize: 15),
               onChanged: (v) => setState(() => _searchQuery = v),
               decoration: InputDecoration(
                 hintText: t('search_hint'),
-                hintStyle: tsBodyLg(color: kTextSub.withOpacity(0.7)),
-                prefixIcon: const Icon(Icons.search_rounded, color: kSecondary, size: 22),
+                hintStyle: tsBodyLg(color: kTextSub).copyWith(fontSize: 15),
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Icon(Icons.search_rounded, color: kTextSub, size: 22),
+                ),
                 suffixIcon: _searchQuery.isEmpty ? null : IconButton(
                   icon: Icon(Icons.close_rounded, color: kTextSub, size: 20),
                   onPressed: () => setState(() { _searchController.clear(); _searchQuery = ''; }),
                 ),
                 filled: false,
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 16),
               ),
             ),
           ),
         ),
         const SizedBox(width: 10),
-        Material(
-          color: kPrimaryContainer,
-          borderRadius: BorderRadius.circular(16),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: _searchNearby,
-            child: SizedBox(
-              width: 52, height: 52,
-              child: _isSearching
-                  ? const Padding(padding: EdgeInsets.all(15),
-                      child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2.2))
-                  : const Icon(Icons.my_location_rounded, color: kSecondary, size: 24),
+        Tooltip(
+          message: tr('Nearby'),
+          child: Material(
+            color: kSecondary,
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: _searchNearby,
+              child: SizedBox(
+                width: 54, height: 54,
+                child: _isSearching
+                    ? Padding(padding: const EdgeInsets.all(16),
+                        child: CircularProgressIndicator(color: kOnAccent, strokeWidth: 2.2))
+                    : Icon(Icons.my_location_rounded, color: kOnAccent, size: 24),
+              ),
             ),
           ),
         ),
@@ -404,79 +428,49 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     );
   }
 
-  // Games & Life Tools (web pages opened inside the app)
-  Widget _buildGamesBanner() {
+  // ── Round shortcuts to every part of the app ──
+  Widget _buildShortcuts(String Function(String) t) {
+    void push(Widget w) => Navigator.push(context, MaterialPageRoute(builder: (_) => w));
+    final items = <(IconData, String, Color, Color, VoidCallback)>[
+      (Icons.explore_outlined, tr('Explore'), kTintGreen, kInkGreen, () => setState(() => _currentTab = 1)),
+      (Icons.work_outline_rounded, tr('Services'), kTintYellow, kInkYellow, () => setState(() => _currentTab = 2)),
+      (Icons.smart_display_outlined, tr('Hab Tok'), kTintRed, kInkRed, () => setState(() => _currentTab = 3)),
+      (Icons.shopping_bag_outlined, tr('Market'), kTintBlue, kInkBlue, () => push(const MarketplaceScreen())),
+      (Icons.chat_bubble_outline_rounded, tr('Habesha AI'), kTintBlue, kInkBlue, () => push(const AiChatScreen())),
+      (Icons.directions_car_outlined, tr('Driving'), kTintRed, kInkRed,
+          () => GamesScreen.openPage(context, 'Life Tools', 'life-tools')),
+      (Icons.send_outlined, tr('Send money'), kTintYellow, kInkYellow, () => push(const SendMoneyScreen())),
+      (Icons.sports_esports_outlined, tr('Games'), kTintGreen, kInkGreen, () => push(const GamesScreen())),
+    ];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
-      child: Material(
-        borderRadius: BorderRadius.circular(18),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GamesScreen())),
-          child: Ink(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF8B0000), Color(0xFF3A0A0A)],
-                begin: Alignment.topLeft, end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: kSecondary.withOpacity(0.4)),
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 26),
+      child: GridView.count(
+        crossAxisCount: 4,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 4,
+        childAspectRatio: 0.9,
+        children: [
+          for (final it in items)
+            InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () { HapticFeedback.selectionClick(); it.$5(); },
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Container(
+                  width: 62, height: 62,
+                  decoration: BoxDecoration(color: it.$3, shape: BoxShape.circle),
+                  child: Icon(it.$1, color: it.$4, size: 27),
+                ),
+                const SizedBox(height: 7),
+                Text(it.$2,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontFamily: kFontBody, fontSize: 12, fontWeight: FontWeight.w600, color: kText)),
+              ]),
             ),
-            child: Row(children: [
-              Container(
-                width: 48, height: 48,
-                decoration: BoxDecoration(color: Colors.black.withOpacity(0.25), borderRadius: BorderRadius.circular(14)),
-                alignment: Alignment.center,
-                child: const Text('🎮', style: TextStyle(fontSize: 24)),
-              ),
-              const SizedBox(width: 14),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(tr('Games & Tools'), style: tsTitleLg(color: Colors.white)),
-                const SizedBox(height: 2),
-                Text(tr('Dama, racing, driving theory & test & more'),
-                    style: tsBodySm(color: Colors.white70)),
-              ])),
-              const Icon(Icons.chevron_right_rounded, color: kSecondary),
-            ]),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMarketplaceBanner(String Function(String) t) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
-      child: Material(
-        color: kCard,
-        borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketplaceScreen())),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: kSecondary.withOpacity(0.25)),
-            ),
-            child: Row(children: [
-              Container(
-                width: 48, height: 48,
-                decoration: BoxDecoration(color: kSecondary.withOpacity(0.12), borderRadius: BorderRadius.circular(14)),
-                alignment: Alignment.center,
-                child: const Text('🛍️', style: TextStyle(fontSize: 24)),
-              ),
-              const SizedBox(width: 14),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(t('marketplace_title'), style: tsTitleLg(color: kText)),
-                const SizedBox(height: 2),
-                Text(t('marketplace_subtitle'), style: tsBodySm(color: kTextSub)),
-              ])),
-              const Icon(Icons.chevron_right_rounded, color: kSecondary),
-            ]),
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -488,12 +482,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
       child: Column(children: [
         Container(
           width: 84, height: 84,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: kPrimaryContainer.withOpacity(0.25),
-            border: Border.all(color: kSecondary.withOpacity(0.4)),
-          ),
-          child: const Icon(Icons.near_me_rounded, color: kSecondary, size: 36),
+          decoration: BoxDecoration(shape: BoxShape.circle, color: kTintGreen),
+          child: Icon(Icons.near_me_outlined, color: kInkGreen, size: 36),
         ),
         const SizedBox(height: 18),
         Text(tr('Allow location to see Habesha businesses near you'),
@@ -535,41 +525,34 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
 
   Widget _buildCategoryChips() {
     return SizedBox(
-      height: 46,
+      height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: _categories.length,
         itemBuilder: (context, i) {
           final cat = _categories[i];
           final selected = _selectedCategory == cat['key'];
-          return GestureDetector(
-            onTap: () => setState(() => _selectedCategory = cat['key']!),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              margin: const EdgeInsets.only(right: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: selected ? kSecondary : kCardHigh,
-                borderRadius: BorderRadius.circular(100),
-                border: Border.all(
-                    color: selected
-                        ? kSecondary
-                        : kOutlineVariant.withOpacity(0.1),
-                    width: 0.5),
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Material(
+              color: selected ? kSecondary : kCard,
+              shape: const StadiumBorder(),
+              child: InkWell(
+                customBorder: const StadiumBorder(),
+                onTap: () => setState(() => _selectedCategory = cat['key']!),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Center(
+                    child: Text(_catLabel(cat['key']!),
+                        style: TextStyle(
+                            fontFamily: kFontBody,
+                            fontSize: 14,
+                            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                            color: selected ? kOnAccent : kText)),
+                  ),
+                ),
               ),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(cat['emoji']!, style: const TextStyle(fontSize: 14)),
-                const SizedBox(width: 6),
-                Text(_catLabel(cat['key']!),
-                    style: TextStyle(
-                        fontFamily: kFontBody,
-                        fontSize: 13,
-                        fontWeight:
-                            selected ? FontWeight.w700 : FontWeight.w500,
-                        color:
-                            selected ? const Color(0xFF342800) : kText)),
-              ]),
             ),
           );
         },
@@ -581,13 +564,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(children: [
-        Text(tr('Nearby'), style: tsHeadlineSm(color: kText)),
+        Text(tr('Nearby'), style: TextStyle(fontFamily: kFontHeadline, fontSize: 20, fontWeight: FontWeight.w800, color: kText)),
         const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(color: kSecondary.withOpacity(0.15), borderRadius: BorderRadius.circular(100)),
-          child: Text('${_filtered.length}', style: tsTitleMd(color: kSecondary)),
-        ),
+        Text('${_filtered.length}', style: tsTitleMd(color: kTextSub)),
         const Spacer(),
         if (_filtered.isNotEmpty)
           mapButton(() => Navigator.push(context, MaterialPageRoute(
@@ -664,60 +643,44 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   Widget _buildBottomNav(String Function(String) t) {
     // key = translation key; label = fallback if key not found
     final items = [
-      {'icon': Icons.home_rounded,                  'key': 'home',     'label': 'Home'},
-      {'icon': Icons.explore_rounded,               'key': 'explore',  'label': 'Explore'},
-      {'icon': Icons.miscellaneous_services_rounded,'key': 'services', 'label': 'Services'},
-      {'icon': Icons.play_circle_filled_rounded,    'key': 'tok',      'label': 'Hab Tok'},
-      {'icon': Icons.person_rounded,                'key': 'profile',  'label': 'Profile'},
+      {'icon': Icons.home_outlined, 'on': Icons.home_rounded, 'key': 'home', 'label': 'Home'},
+      {'icon': Icons.explore_outlined, 'on': Icons.explore_rounded, 'key': 'explore', 'label': 'Explore'},
+      {'icon': Icons.work_outline_rounded, 'on': Icons.work_rounded, 'key': 'services', 'label': 'Services'},
+      {'icon': Icons.smart_display_outlined, 'on': Icons.smart_display_rounded, 'key': 'tok', 'label': 'Hab Tok'},
+      {'icon': Icons.person_outline_rounded, 'on': Icons.person_rounded, 'key': 'profile', 'label': 'Profile'},
     ];
     return Container(
       decoration: BoxDecoration(
-        color: kCard.withOpacity(0.97),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(
-            top: BorderSide(color: kSecondary.withOpacity(0.1), width: 0.5)),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.5),
-              blurRadius: 20,
-              offset: const Offset(0, -8))
-        ],
+        color: themeNotifier.isDark ? const Color(0xFF181818) : Colors.white,
+        border: themeNotifier.isDark ? const Border(top: BorderSide(color: Color(0xFF2C2C2C))) : null,
+        boxShadow: themeNotifier.isDark
+            ? null
+            : [BoxShadow(color: const Color(0xFF1B1B1B).withOpacity(0.06), blurRadius: 12, offset: const Offset(0, -2))],
       ),
       child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+        top: false,
+        child: SizedBox(
+          height: 66,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(items.length, (i) {
               final selected = _currentTab == i;
-              return GestureDetector(
-                onTap: () => setState(() => _currentTab = i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? kPrimaryContainer.withOpacity(0.2)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(items[i]['icon'] as IconData,
-                        color:
-                            selected ? kSecondary : kText.withOpacity(0.4),
-                        size: 22),
-                    const SizedBox(height: 2),
-                    Text(
-                        () {
-                          final raw = t(items[i]['key'] as String);
-                          // if translation returned the key itself (not found), use fallback label
-                          return (raw == items[i]['key']) ? (items[i]['label'] as String) : raw;
-                        }(),
-                        style: tsLabel(
-                            color: selected
-                                ? kSecondary
-                                : kText.withOpacity(0.4))),
+              final color = selected ? kSecondary : kTextSub;
+              final raw = t(items[i]['key'] as String);
+              final label = (raw == items[i]['key']) ? (items[i]['label'] as String) : raw;
+              return Expanded(
+                child: InkWell(
+                  onTap: () => setState(() => _currentTab = i),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon((selected ? items[i]['on'] : items[i]['icon']) as IconData, color: color, size: 25),
+                    const SizedBox(height: 4),
+                    Text(label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontFamily: kFontBody,
+                            fontSize: 11,
+                            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                            color: color)),
                   ]),
                 ),
               );
@@ -728,4 +691,3 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     );
   }
 }
-

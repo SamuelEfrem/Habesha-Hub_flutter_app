@@ -209,7 +209,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                 decoration:
                     BoxDecoration(color: kSecondary, shape: BoxShape.circle),
                 child: Icon(Icons.auto_awesome_rounded,
-                    color: Color(0xFF1A1200), size: 20),
+                    color: kOnAccent, size: 20),
               ),
               const SizedBox(width: 10),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -266,10 +266,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                     decoration: BoxDecoration(
                                       color: kPrimaryContainer.withOpacity(0.3),
                                       borderRadius: BorderRadius.circular(100),
-                                      border: Border.all(
-                                          color: kSecondary.withOpacity(0.3),
-                                          width: 0.5),
-                                    ),
+                                      ),
                                     child: Text(s,
                                         style: tsBodySm(color: kSecondary)),
                                   ),
@@ -293,10 +290,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: kCard,
-                border: Border(
-                    top: BorderSide(
-                        color: kSecondary.withOpacity(0.1), width: 0.5)),
-              ),
+                ),
               child: Row(children: [
                 if (_sttAvailable)
                   GestureDetector(
@@ -355,7 +349,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(Icons.send_rounded,
-                        color: _loading ? kTextSub : const Color(0xFF1A1200),
+                        color: _loading ? kTextSub : kOnAccent,
                         size: 20),
                   ),
                 ),
@@ -430,7 +424,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
               ),
             Text(msg.text,
                 style: tsBodyLg(
-                    color: msg.isUser ? const Color(0xFF1A1200) : kText)),
+                    color: msg.isUser ? kOnAccent : kText)),
           ]),
         ),
       ),

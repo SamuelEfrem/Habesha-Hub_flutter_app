@@ -14,7 +14,7 @@ class BusinessCard extends StatefulWidget {
   final VoidCallback onTap;
   final VoidCallback? onFavoriteChanged;
 
-  const BusinessCard({
+  BusinessCard({
     super.key,
     required this.business,
     required this.userLat,
@@ -84,7 +84,7 @@ class _BusinessCardState extends State<BusinessCard> {
           style: tsBodySm(color: kText)),
         backgroundColor: kCardHigh,
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
+        duration: Duration(seconds: 2),
       ));
     }
   }
@@ -93,16 +93,16 @@ class _BusinessCardState extends State<BusinessCard> {
   Widget build(BuildContext context) {
     final b = widget.business;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: EdgeInsets.only(bottom: 14),
       child: Material(
-        color: kCardLow,
-        borderRadius: BorderRadius.circular(18),
+        color: kCard,
+        borderRadius: BorderRadius.circular(20),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: widget.onTap,
           child: b.imageUrl.isEmpty ? _buildCompact() : Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [_buildImage(), _buildInfo()],
+            children: [_buildImage(), habeshaStripe(height: 4), _buildInfo()],
           ),
         ),
       ),
@@ -119,7 +119,7 @@ class _BusinessCardState extends State<BusinessCard> {
   Widget _buildCompact() {
     final b = widget.business;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 14, 6, 14),
+      padding: EdgeInsets.fromLTRB(14, 14, 6, 14),
       child: Row(children: [
         Container(
           width: 56, height: 56,
@@ -128,25 +128,25 @@ class _BusinessCardState extends State<BusinessCard> {
             borderRadius: BorderRadius.circular(14),
           ),
           alignment: Alignment.center,
-          child: Text(_categoryEmoji(), style: const TextStyle(fontSize: 26)),
+          child: Text(_categoryEmoji(), style: TextStyle(fontSize: 26)),
         ),
-        const SizedBox(width: 14),
+        SizedBox(width: 14),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(b.name, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: tsTitleLg(color: kText).copyWith(fontSize: 16)),
-            const SizedBox(height: 3),
+            SizedBox(height: 3),
             Text(
               [tr(b.category), if (_distance.isNotEmpty) _distance].join('  ·  '),
               style: tsBodySm(color: kSecondary).copyWith(fontWeight: FontWeight.w600),
             ),
             if (b.address.isNotEmpty) ...[
-              const SizedBox(height: 2),
+              SizedBox(height: 2),
               Text(b.address, maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: tsBodySm(color: kTextSub)),
             ],
             if (b.hasKnownHours) ...[
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               _openDot(),
             ],
           ]),
@@ -165,7 +165,7 @@ class _BusinessCardState extends State<BusinessCard> {
     return Row(mainAxisSize: MainAxisSize.min, children: [
       Container(width: 7, height: 7,
           decoration: BoxDecoration(color: open ? kGreen : kRed, shape: BoxShape.circle)),
-      const SizedBox(width: 6),
+      SizedBox(width: 6),
       Text(open ? tr('Open now') : tr('Closed'),
           style: tsBodySm(color: open ? kGreen : kRed).copyWith(fontWeight: FontWeight.w600)),
     ]);
@@ -183,7 +183,7 @@ class _BusinessCardState extends State<BusinessCard> {
         placeholder: (_, __) => Container(height: 180, color: kCardHigh),
         errorWidget: (_, __, ___) => Container(height: 180, color: kCardHigh,
             alignment: Alignment.center,
-            child: Text(_categoryEmoji(), style: const TextStyle(fontSize: 48))),
+            child: Text(_categoryEmoji(), style: TextStyle(fontSize: 48))),
       ),
       if (b.hasKnownHours) Positioned(top: 12, right: 12, child: openBadge(b.isOpenNow)),
       Positioned(
@@ -191,27 +191,27 @@ class _BusinessCardState extends State<BusinessCard> {
         child: Row(children: [
           if (_hasMenu) ...[
             _iconBtn(Icons.menu_book_rounded, _showMenuDialog),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
           ],
           _iconBtn(_isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded, _toggleFav, color: _isFavorite ? Colors.redAccent : Colors.white),
         ]),
       ),
       if (b.isPremium)
         Positioned(bottom: 10, right: 12, child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(100), border: Border.all(color: kSecondary.withOpacity(0.5), width: 0.5)),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.verified_rounded, color: kSecondary, size: 12), const SizedBox(width: 4), Text('Premium', style: tsLabel())]),
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(100), ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.verified_rounded, color: kSecondary, size: 12), SizedBox(width: 4), Text('Premium', style: tsLabel())]),
         )),
     ]);
   }
 
-  Widget _iconBtn(IconData icon, VoidCallback onTap, {Color color = kSecondary}) {
+  Widget _iconBtn(IconData icon, VoidCallback onTap, {Color? color}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 36, height: 36,
         decoration: BoxDecoration(color: Colors.black.withOpacity(0.55), shape: BoxShape.circle),
-        child: Icon(icon, color: color, size: 18),
+        child: Icon(icon, color: color ?? kSecondary, size: 18),
       ),
     );
   }
@@ -228,7 +228,7 @@ class _BusinessCardState extends State<BusinessCard> {
           if (rated) ...[
             const SizedBox(width: 8),
             Row(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.star_rounded, color: kSecondary, size: 18),
+              Icon(Icons.star_rounded, color: kSecondary, size: 18),
               const SizedBox(width: 2),
               Text(b.rating.toStringAsFixed(1), style: tsTitleMd(color: kText)),
             ]),

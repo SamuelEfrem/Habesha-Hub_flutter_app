@@ -85,10 +85,9 @@ class ClaimBusinessCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: kSecondary.withOpacity(0.4)),
-          ),
+            ),
           child: Row(children: [
-            const Icon(Icons.storefront_rounded, color: kSecondary, size: 28),
+            Icon(Icons.storefront_rounded, color: kSecondary, size: 28),
             const SizedBox(width: 14),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(tr('Is this your business?'), style: tsTitleLg(color: kText)),
@@ -96,7 +95,7 @@ class ClaimBusinessCard extends StatelessWidget {
               Text(tr('Claim it for free — add photos, opening hours and your menu'),
                   style: tsBodySm(color: kTextSub)),
             ])),
-            const Icon(Icons.chevron_right_rounded, color: kSecondary),
+            Icon(Icons.chevron_right_rounded, color: kSecondary),
           ]),
         ),
       ),
@@ -322,7 +321,7 @@ class _SuggestBusinessScreenState extends State<SuggestBusinessScreen> {
       appBar: AppBar(
         backgroundColor: kBg,
         surfaceTintColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
         title: Text(tr('Suggest a business'), style: tsHeadlineSm(color: kText)),
       ),
       body: ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 40), children: [
@@ -343,7 +342,7 @@ class _SuggestBusinessScreenState extends State<SuggestBusinessScreen> {
               backgroundColor: kCard,
               side: BorderSide.none,
               labelStyle: TextStyle(fontFamily: kFontBody, fontWeight: FontWeight.w600,
-                  color: _category == c ? const Color(0xFF1A1200) : kText),
+                  color: _category == c ? kOnAccent : kText),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
             ),
         ]),
@@ -369,7 +368,7 @@ Widget suggestBusinessButton(BuildContext context, {String country = ''}) {
   return TextButton.icon(
     onPressed: () => Navigator.push(context,
         MaterialPageRoute(builder: (_) => SuggestBusinessScreen(country: country))),
-    icon: const Icon(Icons.add_business_rounded, color: kSecondary, size: 20),
+    icon: Icon(Icons.add_business_rounded, color: kSecondary, size: 20),
     label: Text(tr('Suggest a business'), style: tsTitleMd(color: kSecondary)),
   );
 }
@@ -445,7 +444,7 @@ class ClaimsAdminTab extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: _db.collection('claims').where('status', isEqualTo: 'pending').snapshots(),
       builder: (_, snap) {
-        if (!snap.hasData) return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+        if (!snap.hasData) return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
         final docs = snap.data!.docs;
         if (docs.isEmpty) return _empty(Icons.verified_user_rounded, 'No claims to review');
         return ListView(padding: const EdgeInsets.all(16), children: [
@@ -483,7 +482,7 @@ class ReportsAdminTab extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: _db.collection('reports').where('status', isEqualTo: 'open').snapshots(),
       builder: (_, snap) {
-        if (!snap.hasData) return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+        if (!snap.hasData) return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
         final docs = snap.data!.docs;
         if (docs.isEmpty) return _empty(Icons.flag_rounded, 'No reports');
         return ListView(padding: const EdgeInsets.all(16), children: [
@@ -545,7 +544,7 @@ class SuggestionsAdminTab extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: _db.collection('suggestions').where('status', isEqualTo: 'pending').snapshots(),
       builder: (_, snap) {
-        if (!snap.hasData) return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+        if (!snap.hasData) return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
         final docs = snap.data!.docs;
         if (docs.isEmpty) return _empty(Icons.add_business_rounded, 'No suggestions');
         return ListView(padding: const EdgeInsets.all(16), children: [
@@ -661,7 +660,7 @@ class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
               onSelected: (_) => setState(() => _product = e.key),
               selectedColor: kSecondary, backgroundColor: kCardHigh, side: BorderSide.none,
               labelStyle: TextStyle(fontFamily: kFontBody, fontWeight: FontWeight.w600,
-                  color: _product == e.key ? const Color(0xFF1A1200) : kText),
+                  color: _product == e.key ? kOnAccent : kText),
             ),
         ]),
         const SizedBox(height: 12),
@@ -673,7 +672,7 @@ class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
       StreamBuilder<QuerySnapshot>(
         stream: _db.collection('unlock_codes').orderBy('createdAt', descending: true).limit(50).snapshots(),
         builder: (_, snap) {
-          if (!snap.hasData) return const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+          if (!snap.hasData) return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
           if (snap.data!.docs.isEmpty) return _empty(Icons.key_rounded, 'No codes yet');
           return Column(children: [
             for (final d in snap.data!.docs) Builder(builder: (_) {
@@ -695,11 +694,11 @@ class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
                 if (!used) ...[
                   IconButton(tooltip: 'Copy',
                       onPressed: () { Clipboard.setData(ClipboardData(text: d.id)); _toast(context, '${d.id} copied'); },
-                      icon: const Icon(Icons.copy_rounded, color: kSecondary)),
+                      icon: Icon(Icons.copy_rounded, color: kSecondary)),
                   if ((c['phone'] ?? '').toString().isNotEmpty)
                     IconButton(tooltip: 'Send on WhatsApp',
                         onPressed: () => _sendOnWhatsApp(d.id, '${c['phone']}', '${c['product']}'),
-                        icon: const Icon(Icons.send_rounded, color: kSecondary)),
+                        icon: Icon(Icons.send_rounded, color: kSecondary)),
                   IconButton(tooltip: 'Delete',
                       onPressed: () => d.reference.delete(),
                       icon: const Icon(Icons.delete_outline_rounded, color: kRed)),

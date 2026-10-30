@@ -246,7 +246,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
         title: Text(tr('Edit business'), style: tsTitleLg(color: kSecondary)),
         elevation: 0,
         actions: [
@@ -378,12 +378,12 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: _geocoding
-                              ? const Padding(
+                              ? Padding(
                                   padding: EdgeInsets.all(14),
                                   child: CircularProgressIndicator(
-                                      color: kSurface, strokeWidth: 2))
-                              : const Icon(Icons.my_location_rounded,
-                                  color: kSurface, size: 22),
+                                      color: kOnAccent, strokeWidth: 2))
+                              : Icon(Icons.my_location_rounded,
+                                  color: kOnAccent, size: 22),
                         ),
                       ),
                     ]),
@@ -410,7 +410,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                       controller: _phoneCtrl,
                       keyboardType: TextInputType.phone,
                       style: tsBodyLg(color: kText),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: '+47 00 00 00 00',
                         prefixIcon:
                             Icon(Icons.phone_rounded, color: kSecondary),
@@ -515,7 +515,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                       keyboardType: TextInputType.url,
                       style: tsBodyLg(color: kText),
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'https://...',
                         prefixIcon:
                             Icon(Icons.image_outlined, color: kSecondary),
@@ -614,7 +614,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
               style: tsLabel(color: kTextSub).copyWith(fontSize: 9)),
           const SizedBox(height: 2),
           Row(children: [
-            const Icon(Icons.access_time_rounded, color: kSecondary, size: 14),
+            Icon(Icons.access_time_rounded, color: kSecondary, size: 14),
             const SizedBox(width: 5),
             Text(value, style: tsTitleMd()),
           ]),

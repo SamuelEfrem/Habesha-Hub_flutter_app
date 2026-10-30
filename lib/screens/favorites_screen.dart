@@ -58,17 +58,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kSecondary),
+        iconTheme: IconThemeData(color: kSecondary),
         title: AnimatedBuilder(animation: languageNotifier, builder: (_, __) => Text(languageNotifier.t('favorites_title'), style: tsTitleMd(color: kSecondary))),
         actions: [
           IconButton(
             tooltip: tr('Favorite services'),
-            icon: const Icon(Icons.miscellaneous_services_rounded, color: kSecondary),
+            icon: Icon(Icons.miscellaneous_services_rounded, color: kSecondary),
             onPressed: () => Navigator.push(context, MaterialPageRoute(
                 builder: (_) => const FavoriteServicesScreen())),
           ),
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: kSecondary),
+            icon: Icon(Icons.refresh_rounded, color: kSecondary),
             onPressed: () {
               setState(() => _loading = true);
               _loadFavorites();
@@ -77,7 +77,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))
+          ? Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))
           : _favorites.isEmpty
               ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   const Text('❤️', style: TextStyle(fontSize: 56)),
