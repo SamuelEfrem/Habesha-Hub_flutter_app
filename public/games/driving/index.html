@@ -308,8 +308,8 @@ function build(key){
     }
   }
   // hills
-  for(let i=0;i<34;i++){const a=i/34*Math.PI*2,r=HALF+60+Math.random()*90,h=25+Math.random()*50;
-    const m=new THREE.Mesh(new THREE.IcosahedronGeometry(40+Math.random()*30,2),STD(C.snow?0xe9eef3:C.hills,{flatShading:true,roughness:1}));
+  for(let i=0;i<34;i++){const a=i/34*Math.PI*2,rad=40+Math.random()*30,r=HALF*Math.SQRT2+RD+30+rad+Math.random()*60,h=25+Math.random()*50;
+    const m=new THREE.Mesh(new THREE.IcosahedronGeometry(rad,2),STD(C.snow?0xe9eef3:C.hills,{flatShading:true,roughness:1}));
     m.scale.y=h/55;m.position.set(Math.cos(a)*r,-6,Math.sin(a)*r);world.add(m)}
   mergeStatic(world);
   // traffic
@@ -723,7 +723,11 @@ addEventListener("keydown",e=>{if(e.key.toLowerCase()==="r"&&L&&L.on)setRev(!REV
 [["bL","l"],["bR","r"],["bG","g"],["bB","b"]].forEach(([id,k])=>{const el=$(id);
   el.addEventListener("pointerdown",e=>{e.preventDefault();P[k]=true;el.classList.add("on");el.setPointerCapture(e.pointerId)});
   ["pointerup","pointercancel","pointerleave"].forEach(ev=>el.addEventListener(ev,()=>{P[k]=false;el.classList.remove("on")}))});
-function blocked(x,z){if(Math.abs(x)>HALF+5||Math.abs(z)>HALF+5)return true;return buildings.some(b=>Math.abs(x-b.x)<b.w/2+1.2&&Math.abs(z-b.z)<b.d/2+1.2)}
+// edge of the map: a few metres past the outermost streets (roadPos(0) … roadPos(N)), never on a street
+const EDGE0=roadPos(0)-RD/2-6,EDGE1=roadPos(N)+RD/2+6;
+function offMap(x,z){return x<EDGE0||x>EDGE1||z<EDGE0||z>EDGE1}
+function hitsBuilding(x,z){return buildings.some(b=>Math.abs(x-b.x)<b.w/2+1.2&&Math.abs(z-b.z)<b.d/2+1.2)}
+function blocked(x,z){return offMap(x,z)||hitsBuilding(x,z)}
 function resize(){const r=stage.getBoundingClientRect();if(!r.width)return;renderer.setSize(r.width,r.height,false);cam.aspect=r.width/r.height;cam.updateProjectionMatrix()}
 new ResizeObserver(resize).observe(stage);
 
@@ -749,7 +753,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   player.v-=player.v*.55*dt;if(!gas&&Math.abs(player.v)<.25)player.v=0;player.v=REV?Math.max(-6,Math.min(0,player.v)):Math.max(0,Math.min(25,player.v));
   player.steer+=(steerIn-player.steer)*Math.min(1,dt*6);player.a+=player.steer*1.9*dt*Math.max(-1,Math.min(1,player.v/6));
   const nx=player.x+Math.sin(player.a)*player.v*dt,nz=player.z-Math.cos(player.a)*player.v*dt;
-  if(!blocked(nx,nz)){player.x=nx;player.z=nz}else{if(L&&L.on&&Math.abs(player.v)>2&&now>L.cool){crashFx(Math.abs(player.v));mistake("mCrash",true);L.cool=now+1000}player.v*=-.2}
+  if(!blocked(nx,nz)){player.x=nx;player.z=nz}else{if(L&&L.on&&hitsBuilding(nx,nz)&&Math.abs(player.v)>2&&now>L.cool){crashFx(Math.abs(player.v));mistake("mCrash",true);L.cool=now+1000}player.v*=offMap(nx,nz)?0:-.2}
   const kmh=Math.abs(player.v)*3.6;$("kmh").textContent=Math.round(kmh);
   seg.forEach(S=>{if(!S.light)return;const st=lightState(S,now),lm=S.light;lm.red.emissiveIntensity=(st==="red"||st==="redyellow")?3:0;lm.yel.emissiveIntensity=(st==="yellow"||st==="redyellow")?3:0;lm.grn.emissiveIntensity=st==="green"?3:0});
   if(L&&L.on){const S=seg[L.k],px=player.x-S.A.x,pz=player.z-S.A.z,s=px*S.d.x+pz*S.d.z,l=px*S.r.x+pz*S.r.z;
@@ -780,8 +784,8 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
       if(ld.stopT>0){ld.stopT-=dt;tv=0}ld.v+=(tv-ld.v)*Math.min(1,dt*(tv<ld.v?2.5:.8));ld.s+=ld.v*dt;
       const q=S.at(ld.s,3.2);ld.mesh.position.set(q.x,0,q.z);ld.mesh.rotation.y=-Math.atan2(S.d.x,-S.d.z);
       ld.mesh.userData.wheels.forEach(w=>w.children.forEach(c=>c.rotation.x+=ld.v*dt/.42));
-      const gap=ld.s-s-4.6;if(gap<.5&&now>L.cool){crashFx(Math.max(5,Math.abs(player.v)));mistake("mCrash",true);L.cool=now+1000;player.v=0}
-      if(player.v>3&&gap/player.v<2&&gap<40){L.distT+=dt;if(L.distT>2)mistake("mDist",false)}else L.distT=0;
+      const gap=ld.s-s-4.6,sameLane=Math.abs(l-3.2)<2.1;if(sameLane&&gap<.5&&gap>-9&&now>L.cool){crashFx(Math.max(5,Math.abs(player.v)));mistake("mCrash",true);L.cool=now+1000;player.v=0}
+      if(sameLane&&gap>0&&player.v>3&&gap/player.v<2&&gap<40){L.distT+=dt;if(L.distT>2)mistake("mDist",false)}else L.distT=0;
       if(ld.s>S.L+20){scene.remove(ld.mesh);L.lead=null}}
     // finish
     // finish: stop inside the P bay (position + straight car)

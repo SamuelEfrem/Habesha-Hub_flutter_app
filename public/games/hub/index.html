@@ -214,7 +214,7 @@ const TX={
  fidel:["Fidel for kids","ፊደል ንቖልዑ","ፊደል ለልጆች"],tagFidel:["kids learn to read","ቈልዑ ንባብ ይመሃሩ","ልጆች ማንበብ ይማራሉ"],dama:["Dama","ዳማ","ዳማ"],genna:["Genna","ገና","ገና"],hinq:["Riddles","ሕንቅልሕንቅሊተይ","እንቆቅልሽ"],
  tagDrive:["Practical driving test · traffic rules · voice","ፈተና ምዝዋር · ሕግታት ትራፊክ · ድምጺ መምህር","የመንጃ ተግባር ፈተና · የትራፊክ ሕግ · የአስተማሪ ድምፅ"],
  keberoAbout:["Tap the drum when the ring closes on it, like at a wedding.","ከም ኣብ መርዓ፡ ቀለበት ምስ በጽሐ ከበሮ ውቕዕ።","እንደ ሰርግ፣ ቀለበቱ ሲደርስ ከበሮውን ምታ።"],
- ruleDama:["Simple rules: pieces move forward diagonally, jump to capture, and become king at the far side. Rules differ between villages.","ቀሊል ሕጊ፦ ጠጠራት ብሰያፍ ንቕድሚት ይኸዱ፡ ብምዝላል ይበልዑ፡ መወዳእታ ምስ በጽሑ ንጉስ ይኾኑ።","ቀላል ህግ፦ ጠጠሮች በሰያፍ ወደ ፊት ይሄዳሉ፣ በመዝለል ይበላሉ፣ መጨረሻ ሲደርሱ ንጉሥ ይሆናሉ።"],
+ ruleDama:["Simple rules: pieces move forward diagonally, jump to capture, and become king at the far side. Only a king can capture a king. Rules differ between villages.","ቀሊል ሕጊ፦ ጠጠራት ብሰያፍ ንቕድሚት ይኸዱ፡ ብምዝላል ይበልዑ፡ መወዳእታ ምስ በጽሑ ንጉስ ይኾኑ። ንጉስ ብንጉስ ጥራይ ይብላዕ።","ቀላል ህግ፦ ጠጠሮች በሰያፍ ወደ ፊት ይሄዳሉ፣ በመዝለል ይበላሉ፣ መጨረሻ ሲደርሱ ንጉሥ ይሆናሉ። ንጉሥን የሚበላው ንጉሥ ብቻ ነው።"],
 };
 const LI={en:0,ti:1,am:2};
 let lang=(QS.get("lang")||"").slice(0,2);
@@ -317,14 +317,20 @@ $("afterRow").addEventListener("click",e=>{if(e.target.id==="againBtn")newRound(
 
 /* ================= DAMA ================= */
 let DSEL=-1;
+// a soft "ting" after every move; a lower double note when a piece is taken
+let DAC=null;function damaTing(st){try{DAC=DAC||new(window.AudioContext||window.webkitAudioContext)();if(DAC.state==="suspended")DAC.resume();
+ const caught=st.b.filter(Boolean).length<(damaTing.n||99);damaTing.n=st.b.filter(Boolean).length;
+ const notes=caught?[[660,0],[440,.09]]:[[1320,0]];const t0=DAC.currentTime;
+ notes.forEach(([f,dt])=>{const o=DAC.createOscillator(),g=DAC.createGain();o.type="sine";o.frequency.value=f;const t=t0+dt;
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.3,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+.35);o.connect(g).connect(DAC.destination);o.start(t);o.stop(t+.4)})}catch(e){}}
 const DAMA={rule:"ruleDama",
- init(first){const b=Array(64).fill("");for(let i=0;i<64;i++){const r=i>>3,c=i&7;if((r+c)%2===1){if(r<2)b[i]="b";else if(r>5)b[i]="a"}}DSEL=-1;return{b,turn:first||0,chain:-1,winner:null,last:null}},
+ init(first){const b=Array(64).fill("");for(let i=0;i<64;i++){const r=i>>3,c=i&7;if((r+c)%2===1){if(r<2)b[i]="b";else if(r>5)b[i]="a"}}DSEL=-1;DAMA._lk=undefined;damaTing.n=24;return{b,turn:first||0,chain:-1,winner:null,last:null}},
  own(p){return p?(p.toLowerCase()==="a"?0:1):-1},
  moves(st,i,onlyJ){const p=st.b[i];if(!p)return[];const o=DAMA.own(p),king=p!==p.toLowerCase(),r=i>>3,c=i&7;
   const dirs=king?[[1,1],[1,-1],[-1,1],[-1,-1]]:o===0?[[-1,1],[-1,-1]]:[[1,1],[1,-1]];const out=[];
   dirs.forEach(([dr,dc])=>{const r1=r+dr,c1=c+dc,r2=r+2*dr,c2=c+2*dc,in1=r1>=0&&r1<8&&c1>=0&&c1<8,in2=r2>=0&&r2<8&&c2>=0&&c2<8;
    if(in1&&!st.b[r1*8+c1]&&!onlyJ)out.push({from:i,to:r1*8+c1});
-   if(in1&&in2&&st.b[r1*8+c1]&&DAMA.own(st.b[r1*8+c1])!==o&&!st.b[r2*8+c2])out.push({from:i,to:r2*8+c2,cap:r1*8+c1})});return out},
+   const vic=in1?st.b[r1*8+c1]:"";if(in1&&in2&&vic&&DAMA.own(vic)!==o&&(king||vic===vic.toLowerCase())&&!st.b[r2*8+c2])out.push({from:i,to:r2*8+c2,cap:r1*8+c1})});return out},
  all(st,seat){if(st.chain>=0)return DAMA.moves(st,st.chain,true);const ms=[];for(let i=0;i<64;i++)if(DAMA.own(st.b[i])===seat)ms.push(...DAMA.moves(st,i,false));return ms},
  apply(st,mv,seat){const m=DAMA.all(st,seat).find(x=>x.from===mv.from&&x.to===mv.to);if(!m)return st;const p=st.b[m.from];st.b[m.to]=p;st.b[m.from]="";if(m.cap!=null)st.b[m.cap]="";
   const r=m.to>>3;let promo=false;if(p==="a"&&r===0){st.b[m.to]="A";promo=true}if(p==="b"&&r===7){st.b[m.to]="B";promo=true}
@@ -335,7 +341,7 @@ const DAMA={rule:"ruleDama",
   const safe=ms.filter(m=>{const t=clone(st);DAMA.apply(t,m,seat);return !DAMA.all({...t,chain:-1,turn:1-seat},1-seat).some(x=>x.cap===m.to)});
   const pool=caps.length?caps:(safe.length?safe:ms);return pool[Math.floor(Math.random()*pool.length)]},
  hint(st){return st.chain>=0?T("jump"):null},
- render(el,st,v){const order=[...Array(64).keys()];if(v.seat===1)order.reverse();
+ render(el,st,v){const lk=st.last?st.last.join('-')+':'+st.turn+':'+st.chain:'';if(lk&&lk!==DAMA._lk&&DAMA._lk!==undefined)damaTing(st);DAMA._lk=lk;const order=[...Array(64).keys()];if(v.seat===1)order.reverse();
   if(st.chain>=0&&v.mine)DSEL=st.chain;if(!v.mine)DSEL=-1;
   const targets=DSEL>=0?DAMA.all(st,v.seat).filter(m=>m.from===DSEL).map(m=>m.to):[];
   el.innerHTML=`<div class="dama" id="dboard">${order.map(i=>{const r=i>>3,c=i&7,dark=(r+c)%2===1,p=st.b[i];
