@@ -68,3 +68,8 @@ functions/node_modules/
 .osm-cache.json
 android/.kotlin/
 tools/private/
+
+# Google Cloud Translation credentials for tools/theory (never commit)
+*translate*credentials*.json
+*-translate-*.json
+.env
