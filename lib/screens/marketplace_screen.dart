@@ -54,6 +54,106 @@ List<String> _sList(dynamic v) {
   return one.isEmpty ? [] : [one];
 }
 
+// ═══════════════════════════════════════════════════════════
+// Sell, swap, rent or give away — and the Habesha clothes details
+// (zuria is often worn once, so renting and swapping matter)
+// ═══════════════════════════════════════════════════════════
+const _kHabesha = 'Habesha';
+const _deals = ['sell', 'swap', 'rent', 'free'];
+const _garments = ['zuria', 'kemis', 'netela', 'gabi', 'suit', 'kids'];
+const _sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const _occasions = ['wedding', 'church', 'holiday', 'graduation', 'mels'];
+const _conditions = ['new', 'once', 'used'];
+
+/// Old listings have no deal → "sell"
+String _dealOf(Map d) => _deals.contains(_s(d['deal'])) ? _s(d['deal']) : 'sell';
+bool _isDone(Map d) => _s(d['status']) == 'done';
+
+String _dealLabel(String k) => switch (k) {
+      'swap' => _mt('Swap', 'ምልዋጥ', 'ልውውጥ'),
+      'rent' => _mt('For rent', 'ንክራይ', 'ለኪራይ'),
+      'free' => _mt('Free', 'ብነጻ', 'በነጻ'),
+      _ => _mt('For sale', 'ይሽየጥ', 'ይሸጣል'),
+    };
+IconData _dealIcon(String k) => switch (k) {
+      'swap' => Icons.swap_horiz_rounded,
+      'rent' => Icons.event_available_rounded,
+      'free' => Icons.card_giftcard_rounded,
+      _ => Icons.sell_outlined,
+    };
+/// "Sold", "Rented out", "Swapped", "Given away"
+String _doneLabel(String deal) => switch (deal) {
+      'swap' => _mt('Swapped', 'ተለዊጡ', 'ተቀይሯል'),
+      'rent' => _mt('Rented out', 'ተኻርዩ', 'ተከራይቷል'),
+      'free' => _mt('Given away', 'ተዋሂቡ', 'ተሰጥቷል'),
+      _ => _mt('Sold', 'ተሸይጡ', 'ተሽጧል'),
+    };
+String _garmentLabel(String k) => switch (k) {
+      'zuria' => _mt('Zuria', 'ዙርያ', 'ዙሪያ'),
+      'kemis' => _mt('Habesha kemis', 'ሓበሻ ቀሚሽ', 'የሐበሻ ቀሚስ'),
+      'netela' => _mt('Netela', 'ነጸላ', 'ነጠላ'),
+      'gabi' => _mt('Gabi', 'ጋቢ', 'ጋቢ'),
+      'suit' => _mt("Men's suit", 'ናይ ደቂ ተባዕትዮ ክዳን', 'የወንዶች ልብስ'),
+      'kids' => _mt('Kids', 'ናይ ቆልዑ', 'የልጆች'),
+      _ => k,
+    };
+String _occasionLabel(String k) => switch (k) {
+      'wedding' => _mt('Wedding', 'መርዓ', 'ሰርግ'),
+      'church' => _mt('Church', 'ቤተ ክርስቲያን', 'ቤተ ክርስቲያን'),
+      'holiday' => _mt('Holiday', 'በዓል', 'በዓል'),
+      'graduation' => _mt('Graduation', 'ምምራቕ', 'ምረቃ'),
+      'mels' => _mt('Mels', 'መልሲ', 'መልስ'),
+      _ => k,
+    };
+String _conditionLabel(String k) => switch (k) {
+      'new' => _mt('New', 'ሓድሽ', 'አዲስ'),
+      'once' => _mt('Worn once', 'ሓንሳብ ተኸዲኑ', 'አንድ ጊዜ የተለበሰ'),
+      'used' => _mt('Used', 'ዝተጠቕመ', 'ያገለገለ'),
+      _ => k,
+    };
+
+/// Price as shown: "350 kr", "350 kr / day", "Free"
+String _priceText(Map d) {
+  final deal = _dealOf(d), p = _s(d['price']);
+  if (deal == 'free') return _dealLabel('free');
+  if (p.isEmpty) return '';
+  return deal == 'rent' ? '$p ${_mt('/ day', '/ መዓልቲ', '/ ቀን')}' : p;
+}
+
+/// The small facts under the title: deal, type, size, occasion, condition
+List<String> _facts(Map d) => [
+      _dealLabel(_dealOf(d)),
+      if (_s(d['garment']).isNotEmpty) _garmentLabel(_s(d['garment'])),
+      if (_s(d['size']).isNotEmpty) '${_mt('Size', 'መጠን', 'መጠን')} ${_s(d['size'])}',
+      if (_s(d['occasion']).isNotEmpty) _occasionLabel(_s(d['occasion'])),
+      if (_s(d['condition']).isNotEmpty) _conditionLabel(_s(d['condition'])),
+    ];
+
+/// A round selectable chip (filters and the sell form)
+Widget _pick(String label, bool on, VoidCallback onTap, {IconData? icon}) => Padding(
+      padding: const EdgeInsets.only(right: 8, bottom: 8),
+      child: Material(
+        color: on ? kSecondary : kCardHigh,
+        shape: const StadiumBorder(),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              if (icon != null) ...[Icon(icon, size: 16, color: on ? kOnAccent : kText), const SizedBox(width: 6)],
+              Text(label, style: tsTitleMd(color: on ? kOnAccent : kText).copyWith(fontSize: 13)),
+            ]),
+          ),
+        ),
+      ),
+    );
+
+Widget _formLabel(String text) => Padding(
+      padding: const EdgeInsets.only(top: 14, bottom: 8),
+      child: Text(text, style: tsTitleMd(color: kText)),
+    );
+
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});
   @override
@@ -74,7 +174,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
   final _categories = [
     {'key': 'All',         'emoji': '🌍'},
-    {'key': 'Clothes',     'emoji': '👗'},
+    {'key': 'Habesha',     'emoji': '👗'},
+    {'key': 'Clothes',     'emoji': '👕'},
     {'key': 'Electronics', 'emoji': '📱'},
     {'key': 'Furniture',   'emoji': '🛋️'},
     {'key': 'Food',        'emoji': '🍽️'},
@@ -85,8 +186,13 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     {'key': 'Other',       'emoji': '📦'},
   ];
 
+  String _dealFilter = '', _sizeFilter = '', _occFilter = '';
+
   void _applyFilters() {
     var docs = List<QueryDocumentSnapshot>.from(_allDocs);
+    if (_dealFilter.isNotEmpty) docs = docs.where((d) => _dealOf(d.data() as Map) == _dealFilter).toList();
+    if (_sizeFilter.isNotEmpty) docs = docs.where((d) => _s((d.data() as Map)['size']) == _sizeFilter).toList();
+    if (_occFilter.isNotEmpty) docs = docs.where((d) => _s((d.data() as Map)['occasion']) == _occFilter).toList();
     if (_selectedCategory != 'All') {
       docs = docs.where((d) => (d.data() as Map)['category'] == _selectedCategory).toList();
     }
@@ -105,7 +211,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   }
 
   List<QueryDocumentSnapshot> get _displayDocs {
-    final hasFilter = _nameFilter.isNotEmpty || _cityFilter.isNotEmpty || _selectedCategory != 'All';
+    final hasFilter = _nameFilter.isNotEmpty || _cityFilter.isNotEmpty || _selectedCategory != 'All' ||
+        _dealFilter.isNotEmpty || _sizeFilter.isNotEmpty || _occFilter.isNotEmpty;
     return hasFilter ? _filteredDocs : _allDocs;
   }
 
@@ -240,7 +347,13 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   final cat = _categories[i];
                   final sel = _selectedCategory == cat['key'];
                   return GestureDetector(
-                    onTap: () { setState(() => _selectedCategory = cat['key']!); _applyFilters(); },
+                    onTap: () {
+                      setState(() {
+                        _selectedCategory = cat['key']!;
+                        if (_selectedCategory != _kHabesha) { _sizeFilter = ''; _occFilter = ''; }
+                      });
+                      _applyFilters();
+                    },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
                       margin: const EdgeInsets.only(right: 8),
@@ -264,6 +377,32 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               ),
             ),
             const SizedBox(height: 10),
+            // ── Sell / swap / rent / free ───────────────
+            _filterRow([
+              for (final k in _deals)
+                _pick(_dealLabel(k), _dealFilter == k, () {
+                  setState(() => _dealFilter = _dealFilter == k ? '' : k);
+                  _applyFilters();
+                }, icon: _dealIcon(k)),
+            ]),
+            // ── Size and occasion (Habesha clothes) ─────
+            if (_selectedCategory == _kHabesha) ...[
+              _filterRow([
+                for (final z in _sizes)
+                  _pick(z, _sizeFilter == z, () {
+                    setState(() => _sizeFilter = _sizeFilter == z ? '' : z);
+                    _applyFilters();
+                  }),
+              ]),
+              _filterRow([
+                for (final o in _occasions)
+                  _pick(_occasionLabel(o), _occFilter == o, () {
+                    setState(() => _occFilter = _occFilter == o ? '' : o);
+                    _applyFilters();
+                  }),
+              ]),
+            ],
+            const SizedBox(height: 2),
             // ── Listings ────────────────────────────────
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
@@ -371,6 +510,15 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     );
   }
 
+  Widget _filterRow(List<Widget> chips) => SizedBox(
+        height: 46,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          children: chips,
+        ),
+      );
+
   Future<void> _confirmDelete(BuildContext ctx, String docId, String Function(String) t) async {
     final ok = await showDialog<bool>(
       context: ctx,
@@ -427,6 +575,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       });
     }
     String selCat = _s(existing?['category']).isEmpty ? 'Other' : _s(existing?['category']);
+    String deal = existing == null ? 'sell' : _dealOf(existing);
+    String garment = _s(existing?['garment']), size = _s(existing?['size']);
+    String occasion = _s(existing?['occasion']), condition = _s(existing?['condition']);
     // Photos already online (kept when editing) + new ones from the gallery
     final keptPhotos = <String>[..._sList(existing?['imageUrl']), ..._sList(existing?['extraImages'])];
     final newPhotos = <File>[];
@@ -516,15 +667,52 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   );
                 }).toList(),
               ),
+              _formLabel(_mt('What do you want to do?', 'እንታይ ክትገብር ትደሊ?', 'ምን ማድረግ ይፈልጋሉ?')),
+              Wrap(children: [
+                for (final k in _deals)
+                  _pick(_dealLabel(k), deal == k, () => setModal(() => deal = k), icon: _dealIcon(k)),
+              ]),
+              if (selCat == _kHabesha) ...[
+                _formLabel(_mt('Type', 'ዓይነት', 'ዓይነት')),
+                Wrap(children: [
+                  for (final g in _garments)
+                    _pick(_garmentLabel(g), garment == g, () => setModal(() => garment = garment == g ? '' : g)),
+                ]),
+                _formLabel(_mt('Size', 'መጠን', 'መጠን')),
+                Wrap(children: [
+                  for (final z in _sizes)
+                    _pick(z, size == z, () => setModal(() => size = size == z ? '' : z)),
+                ]),
+                _formLabel(_mt('Occasion', 'ኣጋጣሚ', 'አጋጣሚ')),
+                Wrap(children: [
+                  for (final o in _occasions)
+                    _pick(_occasionLabel(o), occasion == o, () => setModal(() => occasion = occasion == o ? '' : o)),
+                ]),
+                _formLabel(_mt('Condition', 'ኩነታት', 'ሁኔታ')),
+                Wrap(children: [
+                  for (final c in _conditions)
+                    _pick(_conditionLabel(c), condition == c, () => setModal(() => condition = condition == c ? '' : c)),
+                ]),
+              ],
               const SizedBox(height: 16),
               _field(titleCtrl, t('marketplace_title_field'), Icons.title_rounded),
               const SizedBox(height: 12),
               _field(descCtrl, t('marketplace_description'),
                 Icons.description_rounded, maxLines: 3),
               const SizedBox(height: 12),
-              _field(priceCtrl, t('marketplace_price'),
-                Icons.payments_rounded, keyboardType: TextInputType.number),
-              const SizedBox(height: 12),
+              if (deal != 'free') ...[
+                _field(priceCtrl,
+                  deal == 'rent' ? _mt('Price per day', 'ዋጋ ንሓንቲ መዓልቲ', 'ዋጋ በቀን')
+                      : deal == 'swap' ? _mt('Value (optional)', 'ዋጋ (እንተደሊኻ)', 'ዋጋ (ከፈለጉ)')
+                      : t('marketplace_price'),
+                  Icons.payments_rounded, keyboardType: TextInputType.number),
+                if (deal == 'swap') Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(_mt('Write in the description what you want in exchange.',
+                      'ኣብቲ መግለጺ እንታይ ክትቅየር ከም ትደሊ ጽሓፍ።', 'በመግለጫው ምን መቀየር እንደሚፈልጉ ይጻፉ።'),
+                      style: tsBodySm(color: kTextSub))),
+                const SizedBox(height: 12),
+              ],
               _field(cityCtrl, t('marketplace_city'), Icons.location_on_rounded),
               const SizedBox(height: 12),
               _field(phoneCtrl, t('phone'),
@@ -559,7 +747,12 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     final payload = {
                       'title': titleCtrl.text.trim(),
                       'description': descCtrl.text.trim(),
-                      'price': priceCtrl.text.trim(),
+                      'price': deal == 'free' ? '' : priceCtrl.text.trim(),
+                      'deal': deal,
+                      'garment': selCat == _kHabesha ? garment : '',
+                      'size': selCat == _kHabesha ? size : '',
+                      'occasion': selCat == _kHabesha ? occasion : '',
+                      'condition': selCat == _kHabesha ? condition : '',
                       'city': cityCtrl.text.trim(),
                       'category': selCat,
                       'imageUrl': urls.isEmpty ? '' : urls.first,
@@ -576,6 +769,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       await _db.collection('marketplace').doc(docId).update(payload);
                     } else {
                       payload['createdAt'] = FieldValue.serverTimestamp();
+                      payload['status'] = 'available';
                       await _db.collection('marketplace').add(payload);
                     }
                   } catch (e) {
@@ -783,14 +977,31 @@ class _ListingCardState extends State<_ListingCard> {
               ]),
             ]),
             if (_isPending(d)) ...[const SizedBox(height: 6), _pendingBadge()],
-            const SizedBox(height: 6),
+            if (_isDone(d)) ...[
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(color: kText, borderRadius: BorderRadius.circular(100)),
+                child: Text(_doneLabel(_dealOf(d)), style: tsTitleMd(color: kBg).copyWith(fontSize: 12)),
+              ),
+            ],
+            const SizedBox(height: 8),
+            Wrap(spacing: 6, runSpacing: 6, children: [
+              for (final f in _facts(d))
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: kTintGreen, borderRadius: BorderRadius.circular(100)),
+                  child: Text(f, style: tsBodySm(color: kText).copyWith(fontWeight: FontWeight.w600)),
+                ),
+            ]),
+            const SizedBox(height: 8),
             Row(children: [
-              if (_s(d['price']).isNotEmpty) ...[
+              if (_priceText(d).isNotEmpty) ...[
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
                     color: kSecondary, borderRadius: BorderRadius.circular(100)),
-                  child: Text(_s(d['price']),
+                  child: Text(_priceText(d),
                     style: tsTitleMd(color: kOnAccent).copyWith(fontSize: 13)),
                 ),
                 const SizedBox(width: 10),
@@ -821,6 +1032,23 @@ class _ListingCardState extends State<_ListingCard> {
                   ),
                 ),
             ],
+            // ── Owner: mark as sold / rented / swapped / given away ──
+            if (widget.isMe && !_isPending(d)) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => FirebaseFirestore.instance.collection('marketplace').doc(widget.docId)
+                      .update({'status': _isDone(d) ? 'available' : 'done', 'statusAt': FieldValue.serverTimestamp()}),
+                  icon: Icon(_isDone(d) ? Icons.undo_rounded : Icons.check_circle_outline_rounded, color: kText),
+                  label: Text(
+                      _isDone(d)
+                          ? _mt('Available again', 'ደጊሙ ይርከብ', 'እንደገና ይገኛል')
+                          : '${_mt('Mark as', 'ምልክት ግበር:', 'ምልክት አድርግ:')} ${_doneLabel(_dealOf(d))}',
+                      style: tsTitleMd(color: kText)),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             // ── Seller row ───────────────────────────────
             Row(children: [
@@ -831,7 +1059,7 @@ class _ListingCardState extends State<_ListingCard> {
                   style: tsBodySm(color: kTextSub), overflow: TextOverflow.ellipsis)),
               const Spacer(),
               GestureDetector(
-                onTap: () => _shareListing(d),
+                onTap: () => _shareListing(widget.docId, d),
                 child: Container(
                   margin: const EdgeInsets.only(right: 8),
                   padding: const EdgeInsets.all(8),
@@ -861,16 +1089,17 @@ class _ListingCardState extends State<_ListingCard> {
   }
 
   /// Share a listing on WhatsApp, Facebook, SMS… (title, price, place, seller, app link)
-  void _shareListing(Map<String, dynamic> d) {
+  void _shareListing(String id, Map<String, dynamic> d) {
     final lines = <String>[
-      '🛍️ ${_s(d['title'])}${_s(d['price']).isNotEmpty ? ' — ${_s(d['price'])}' : ''}',
+      '🛍️ ${_s(d['title'])}${_priceText(d).isNotEmpty ? ' — ${_priceText(d)}' : ''}',
+      _facts(d).join(' · '),
       if (_s(d['city']).isNotEmpty) '📍 ${_s(d['city'])}',
       if (_s(d['description']).isNotEmpty)
         _s(d['description']).length > 160 ? '${_s(d['description']).substring(0, 160)}…' : _s(d['description']),
       if (_s(d['sellerName']).isNotEmpty) '👤 ${_s(d['sellerName'])}',
-      if (_s(d['sellerPhone']).isNotEmpty) '📞 ${_s(d['sellerPhone'])}',
       '',
-      '${_mt('Seen on Habesha Hub', 'ኣብ ሓበሻ ሃብ ዝተረኽበ', 'በሐበሻ ሀብ ላይ የታየ')}: https://habesha-hub.no/download.html',
+      // the link opens a page with the photos and a contact button (works without the app)
+      'https://habesha-hub.no/m/$id',
     ];
     Share.share(lines.join('\n'));
   }
@@ -1051,7 +1280,8 @@ class _ListingThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imgs  = _listingImages(data);
-    final price = _s(data['price']);
+    final price = _priceText(data);
+    final deal = _dealOf(data);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Expanded(
         child: ClipRRect(
@@ -1071,7 +1301,24 @@ class _ListingThumb extends StatelessWidget {
                   child: Text(price, style: tsLabel(color: kOnAccent).copyWith(fontSize: 10)),
                 )),
             if (_isPending(data))
-              Positioned(left: 6, top: 6, child: _pendingBadge(fontSize: 9)),
+              Positioned(left: 6, top: 6, child: _pendingBadge(fontSize: 9))
+            else if (deal != 'sell')
+              Positioned(left: 6, top: 6, child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(color: kBg, borderRadius: BorderRadius.circular(100)),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(_dealIcon(deal), size: 11, color: kSecondary),
+                  const SizedBox(width: 3),
+                  Text(_dealLabel(deal), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: kText)),
+                ]),
+              )),
+            if (_isDone(data))
+              Container(
+                color: Colors.black.withOpacity(0.55),
+                alignment: Alignment.center,
+                child: Text(_doneLabel(deal).toUpperCase(),
+                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 1)),
+              ),
             if (_isPending(data) && docId != null && _isAdminUser)
               Positioned(right: 6, bottom: 6,
                 child: GestureDetector(

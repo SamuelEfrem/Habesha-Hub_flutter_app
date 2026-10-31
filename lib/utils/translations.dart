@@ -1097,6 +1097,12 @@ class AppTranslations {
       'English': 'Food',
       'Amharic': 'ምግብ'
     },
+    'market_habesha': {
+      'Norsk': 'Habesha-klær',
+      'Tigrinya': 'ሓበሻ ክዳን',
+      'English': 'Habesha clothes',
+      'Amharic': 'የሐበሻ ልብስ'
+    },
     'market_books': {
       'Norsk': 'Bøker',
       'Tigrinya': 'መጻሕፍቲ',
@@ -1666,6 +1672,12 @@ class AppTranslations {
       'Tigrinya': 'መግቢ',
       'English': 'Food',
       'Amharic': 'ምግብ'
+    },
+    'market_habesha': {
+      'Norsk': 'Habesha-klær',
+      'Tigrinya': 'ሓበሻ ክዳን',
+      'English': 'Habesha clothes',
+      'Amharic': 'የሐበሻ ልብስ'
     },
     'market_books': {
       'Norsk': 'Bøker',

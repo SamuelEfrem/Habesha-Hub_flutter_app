@@ -437,6 +437,78 @@ ${v.source === 'osm' ? '<p class="muted" style="font-size:12px">Data © OpenStre
 });
 
 
+
+// ═══════════════════════════════════════════════════════════
+// listingPage — habesha-hub.no/m/<id>: a marketplace listing shared on
+// WhatsApp, TikTok or Facebook (photos, price, details, contact, get the app)
+// ═══════════════════════════════════════════════════════════
+const DEAL = { sell: 'For sale', swap: 'Swap', rent: 'For rent', free: 'Free' };
+const DONE = { sell: 'Sold', swap: 'Swapped', rent: 'Rented out', free: 'Given away' };
+const GARMENT = { zuria: 'Zuria · ዙርያ', kemis: 'Habesha kemis', netela: 'Netela · ነጸላ', gabi: 'Gabi · ጋቢ', suit: "Men's suit", kids: 'Kids' };
+const OCCASION = { wedding: 'Wedding', church: 'Church', holiday: 'Holiday', graduation: 'Graduation', mels: 'Mels' };
+const CONDITION = { new: 'New', once: 'Worn once', used: 'Used' };
+exports.listingPage = onRequest({ invoker: 'public', maxInstances: 5 }, async (req, res) => {
+  const id = decodeURIComponent((req.path || '').split('/').filter(Boolean).pop() || '');
+  const doc = id && !id.includes('/') ? await getFirestore().collection('marketplace').doc(id).get() : null;
+  const v = doc?.exists ? doc.data() : null;
+  res.set('Cache-Control', 'public, max-age=300');
+  if (!v || v.approved === false) {
+    res.status(404).send('<h1>Not found</h1><p><a href="https://habesha-hub.no">Habesha Hub</a></p>');
+    return;
+  }
+  const deal = DEAL[v.deal] ? v.deal : 'sell';
+  const imgs = [].concat(v.imageUrl || [], v.extraImages || []).filter(Boolean).slice(0, 8);
+  const price = deal === 'free' ? 'Free' : (v.price ? String(v.price) + (deal === 'rent' ? ' / day' : '') : '');
+  const facts = [DEAL[deal], GARMENT[v.garment], v.size ? 'Size ' + v.size : '', OCCASION[v.occasion], CONDITION[v.condition]].filter(Boolean);
+  const done = v.status === 'done';
+  const phone = String(v.sellerPhone || '').replace(/[^\d+]/g, '');
+  const wa = phone ? 'https://wa.me/' + phone.replace(/^\+/, '').replace(/^00/, '') + '?text=' +
+    encodeURIComponent(`Hi! Is "${v.title || ''}" still available? (Habesha Hub)`) : '';
+  const desc = [price, facts.join(' · '), v.city].filter(Boolean).join(' · ');
+  res.send(`<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(v.title)} – Habesha Hub</title>
+<meta property="og:title" content="${esc((done ? DONE[deal] + ': ' : '') + v.title)} – Habesha Hub">
+<meta property="og:description" content="${esc(desc)}">
+<meta property="og:image" content="${esc(imgs[0] || 'https://habesha-hub.no/img/og.jpg')}">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#FFFFFF">
+<style>
+:root{--bg:#fff;--card:#F4F1EC;--text:#1B1B1B;--sub:#5E5A54;--g:#1E7B4F;--tint:#E3F1E9}
+@media(prefers-color-scheme:dark){:root{--bg:#121212;--card:#1F1F1F;--text:#F3EFE8;--sub:#A8A196;--g:#4FC48A;--tint:#173628}}
+body{margin:0;font-family:Manrope,system-ui,'Noto Sans Ethiopic',sans-serif;background:var(--bg);color:var(--text)}
+.wrap{max-width:640px;margin:0 auto;padding:16px}
+.top{display:flex;align-items:center;gap:10px;font-weight:800;text-decoration:none;color:var(--text);margin-bottom:12px}
+.top img{width:34px;height:34px;border-radius:9px}
+.pics{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;border-radius:20px}
+.pics img{flex:0 0 100%;width:100%;aspect-ratio:4/5;object-fit:cover;scroll-snap-align:center;border-radius:20px;background:var(--card)}
+.ph{aspect-ratio:4/3;border-radius:20px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:64px}
+.stripe{display:grid;grid-template-columns:repeat(4,1fr);height:4px;margin:10px 0 0;border-radius:2px;overflow:hidden}
+.stripe i:nth-child(1){background:#1E7B4F}.stripe i:nth-child(2){background:#E8B12E}.stripe i:nth-child(3){background:#C8341E}.stripe i:nth-child(4){background:#2A5DB0}
+h1{margin:14px 0 6px;font-size:26px;letter-spacing:-.5px}
+.price{display:inline-block;background:var(--g);color:var(--bg);font-weight:800;padding:6px 14px;border-radius:100px;margin-right:8px}
+.done{display:inline-block;background:var(--text);color:var(--bg);font-weight:800;padding:6px 14px;border-radius:100px;margin:4px 0}
+.facts{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.facts span{background:var(--tint);padding:5px 12px;border-radius:100px;font-weight:600;font-size:14px}
+.muted{color:var(--sub)}p{line-height:1.55;white-space:pre-line}
+.btn{display:block;text-align:center;background:var(--g);color:var(--bg);font-weight:800;padding:15px;border-radius:100px;text-decoration:none;margin:10px 0}
+.btn2{background:var(--card);color:var(--text)}
+</style></head><body><div class="wrap">
+<a class="top" href="https://habesha-hub.no"><img src="https://habesha-hub.no/img/icon-192.png" alt="">Habesha Hub · Market</a>
+${imgs.length ? `<div class="pics">${imgs.map(u => `<img src="${esc(u)}" alt="">`).join('')}</div>` : '<div class="ph">🛍️</div>'}
+${imgs.length > 1 ? `<div class="muted" style="font-size:13px;margin-top:6px">← ${imgs.length} photos →</div>` : ''}
+<div class="stripe"><i></i><i></i><i></i><i></i></div>
+<h1>${esc(v.title)}</h1>
+${done ? `<div class="done">${esc(DONE[deal])}</div>` : ''}
+<div>${price ? `<span class="price">${esc(price)}</span>` : ''}${v.city ? `<span class="muted">📍 ${esc(v.city)}</span>` : ''}</div>
+<div class="facts">${facts.map(f => `<span>${esc(f)}</span>`).join('')}</div>
+${v.description ? `<p>${esc(v.description)}</p>` : ''}
+${v.sellerName ? `<div class="muted">👤 ${esc(v.sellerName)}</div>` : ''}
+${!done && wa ? `<a class="btn" href="${esc(wa)}">💬 WhatsApp the seller</a>` : ''}
+${!done && phone ? `<a class="btn btn2" href="tel:${esc(phone)}">📞 Call</a>` : ''}
+<a class="btn ${!done && phone ? 'btn2' : ''}" href="https://habesha-hub.no/download.html">📲 See more zuria and Habesha items in the app</a>
+</div></body></html>`);
+});
 // ═══════════════════════════════════════════════════════════
 // Community help (claims / suggestions / reports)
 //  • notifyAdminCommunity — push to admin when something new arrives

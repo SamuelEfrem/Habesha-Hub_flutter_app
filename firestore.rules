@@ -88,7 +88,11 @@ service cloud.firestore {
             && request.resource.data.approved == false);
       allow update: if isAdmin()
         || (realUser() && resource.data.userId == uid() && request.resource.data.userId == uid()
-            && request.resource.data.approved == false);
+            && request.resource.data.approved == false)
+        // the seller marks it sold / rented / available again without a new approval
+        || (realUser() && resource.data.userId == uid()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusAt'])
+            && request.resource.data.status in ['available', 'done']);
       allow delete: if isAdmin() || (signedIn() && resource.data.userId == uid());
     }
 

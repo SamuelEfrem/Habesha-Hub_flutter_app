@@ -43,6 +43,13 @@
           "functionId": "businessPage",
           "region": "europe-west1"
         }
+      },
+      {
+        "source": "/m/**",
+        "function": {
+          "functionId": "listingPage",
+          "region": "europe-west1"
+        }
       }
     ],
     "headers": [
