@@ -1,7 +1,7 @@
 name: habesha_hub
 description: Habesha Hub - community app for the Ethiopian and Eritrean diaspora
 
-version: 2.3.1+50
+version: 2.3.1+51
 
 publish_to: "none"
 
@@ -59,8 +59,9 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/images/icon.png"
-  adaptive_icon_background: "#131313"
-  adaptive_icon_foreground: "assets/images/icon.png"
+  adaptive_icon_background: "#1D7B50"
+  adaptive_icon_foreground: "assets/images/icon_foreground.png"
+  remove_alpha_ios: true
   web:
     generate: false
   windows:
