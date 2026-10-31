@@ -7,7 +7,9 @@ const { initializeApp }     = require('firebase-admin/app');
 // Firestore database is in europe-west1 → functions must run in the same region
 setGlobalOptions({ region: 'europe-west1' });
 const { getMessaging }      = require('firebase-admin/messaging');
-const { getFirestore }      = require('firebase-admin/firestore');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+const { getAuth }           = require('firebase-admin/auth');
+const { getStorage, getDownloadURL } = require('firebase-admin/storage');
 
 initializeApp();
 
@@ -157,55 +159,207 @@ async function appContext() {
   return text;
 }
 
+// How the app works — so the assistant can guide people (also older people) step by step
+const APP_GUIDE = `HOW HABESHA HUB WORKS (use this to explain where things are; keep steps short and simple):
+- Top of the Home screen: the language button (EN / ትግ / አማ) and the light/dark button.
+- Home: search field, the green "near me" button (needs location), 4 round buttons: Services, Market, Send money, Games. Below: Habesha businesses near you (tap one for address, call, directions, opening hours, chat, booking).
+- Bottom menu: Home, Explore (businesses by country), Habesha AI (this chat), Hab Tok (short videos from service providers), Profile.
+- Services: choose a country, then a category (photographer, decoration & events, flight & visa, transport, clothing, accommodation, send money home), then a provider, then "Book now". Habesha Hub contacts the customer on WhatsApp and the customer gets a receipt with payment info.
+- Market: buy and sell second-hand things. Categories include Habesha clothes (zuria, habesha kemis, netela, gabi, men's suit, kids), clothes, electronics, furniture, food, books, jobs, housing, events. A listing can be For sale, Swap, For rent (price per day) or Free. Habesha clothes have size, occasion (wedding, church, holiday, graduation, mels) and condition (new, worn once, used). To sell yourself: Market, then the green "+ Sell" button. Every new listing is checked by Habesha Hub before it is shown. The seller can mark it Sold / Rented out. The share button gives a link for WhatsApp.
+- Send money: shows trusted partners (Remitly, Dahabshiil and others). Habesha Hub does not send money itself.
+- Games: Habesha Games (racing 3D, Dama, Genna, riddles; play the computer, a friend or online) and Life Tools (driving theory class B in Tigrinya with 500 questions, practical driving test with a voice teacher, languages, newcomer guides, Ge'ez calendar). The full driving course is unlocked with a code bought on WhatsApp; the code works for one phone number, verified by SMS.
+- Profile: log in or create an account (email, Google or Apple), nickname, my bookings, my favourites, register your business, share the app, help & support, delete account.
+- Businesses can register for free under Profile > Register your business; after approval they can edit their own page.
+- Help: WhatsApp +47 969 88 155 or the website habesha-hub.no.`;
+
+// Max questions per person, so nobody can run up the Google bill
+const AI_PER_HOUR = 20, AI_PER_DAY = 60;
+const LIMIT_TXT = {
+  English: 'You have asked many questions in a short time. Please wait a little and try again later. 🙏',
+  Tigrinya: 'ኣብ ሓጺር ግዜ ብዙሕ ሕቶታት ሓቲትካ። በጃኻ ቁሩብ ተጸበ እሞ ደሓር ደጊምካ ፈትን። 🙏',
+  Amharic: 'በአጭር ጊዜ ብዙ ጥያቄዎችን ጠይቀዋል። እባክዎ ትንሽ ይጠብቁና ቆይተው እንደገና ይሞክሩ። 🙏',
+};
+const REPEAT_TXT = {
+  English: 'You sent the same message several times. Please write a new question.',
+  Tigrinya: 'ተመሳሳሊ መልእኽቲ ብዙሕ ግዜ ሰዲድካ። በጃኻ ሓድሽ ሕቶ ጽሓፍ።',
+  Amharic: 'ተመሳሳይ መልእክት ብዙ ጊዜ ልከዋል። እባክዎ አዲስ ጥያቄ ይጻፉ።',
+};
+
+/** Counts questions per user (or per IP for old app versions). Returns 'ok', 'limit' or 'repeat'. */
+async function aiQuota(key, text, isAdminUser) {
+  if (isAdminUser) return 'ok';
+  const ref = getFirestore().collection('ai_usage').doc(key.replace(/[\/.#$\[\]]/g, '_').slice(0, 120));
+  const now = Date.now(), hour = Math.floor(now / 3600000), day = new Date(now).toISOString().slice(0, 10);
+  let verdict = 'ok', firstHitToday = false;
+  await getFirestore().runTransaction(async tx => {
+    const u = (await tx.get(ref)).data() || {};
+    const h = u.hour === hour ? (u.h || 0) : 0, d = u.day === day ? (u.d || 0) : 0;
+    const same = text && u.last === text ? (u.rep || 0) + 1 : 0;
+    if (h >= AI_PER_HOUR || d >= AI_PER_DAY) {
+      verdict = 'limit';
+      firstHitToday = u.limitDay !== day;
+      tx.set(ref, { limitDay: day, blocked: (u.blocked || 0) + 1, lastAt: now }, { merge: true });
+      return;
+    }
+    if (same >= 2) { verdict = 'repeat'; tx.set(ref, { rep: same, lastAt: now }, { merge: true }); return; }
+    tx.set(ref, { hour, h: h + 1, day, d: d + 1, last: text || '', rep: same, lastAt: now }, { merge: true });
+  });
+  if (verdict === 'limit' && firstHitToday) {
+    pushAdmin('🤖 AI limit reached', `${key} asked more than ${AI_PER_HOUR}/hour or ${AI_PER_DAY}/day`).catch(() => {});
+  }
+  return verdict;
+}
+
+// The assistant can post a market listing for the user (waits for approval like every listing)
+const LISTING_TOOL = {
+  name: 'create_listing',
+  description: 'Post a listing in the Habesha Hub Market for the user. Only call this after the user has confirmed ' +
+    'all the details you summarised for them. The listing waits for approval by Habesha Hub before it is shown.',
+  parameters: {
+    type: 'OBJECT',
+    properties: {
+      title: { type: 'STRING', description: 'Short title, e.g. "Green zuria, size M"' },
+      description: { type: 'STRING' },
+      category: { type: 'STRING', enum: ['Habesha', 'Clothes', 'Electronics', 'Furniture', 'Food', 'Books', 'Jobs', 'Housing', 'Events', 'Other'] },
+      deal: { type: 'STRING', enum: ['sell', 'swap', 'rent', 'free'] },
+      price: { type: 'STRING', description: 'Price with currency, e.g. "500 kr". Per day when deal is rent. Empty when free.' },
+      city: { type: 'STRING' },
+      phone: { type: 'STRING', description: 'Phone number buyers can call or WhatsApp' },
+      sellerName: { type: 'STRING', description: 'Name shown to buyers' },
+      garment: { type: 'STRING', enum: ['', 'zuria', 'kemis', 'netela', 'gabi', 'suit', 'kids'] },
+      size: { type: 'STRING', enum: ['', 'XS', 'S', 'M', 'L', 'XL', 'XXL'] },
+      occasion: { type: 'STRING', enum: ['', 'wedding', 'church', 'holiday', 'graduation', 'mels'] },
+      condition: { type: 'STRING', enum: ['', 'new', 'once', 'used'] },
+    },
+    required: ['title', 'category', 'deal', 'city', 'phone', 'sellerName'],
+  },
+};
+
+async function createListingFor(user, args, photos) {
+  if (!user) return { ok: false, reason: 'login', message: 'The user is not logged in. Ask them to log in first (Profile > Log in), then try again.' };
+  if (user.firebase?.sign_in_provider === 'anonymous') return { ok: false, reason: 'login', message: 'The user is a guest. Ask them to log in or create an account first (Profile > Log in).' };
+  const db = getFirestore();
+  // max 5 listings per day through the assistant
+  const today = new Date().toISOString().slice(0, 10);
+  const recent = await db.collection('marketplace').where('userId', '==', user.uid).where('viaAi', '==', today).get();
+  if (recent.size >= 5) return { ok: false, reason: 'limit', message: 'Too many listings today through the assistant. Try again tomorrow or use the + Sell button.' };
+  const bucket = getStorage().bucket();
+  const urls = [];
+  for (let i = 0; i < Math.min(photos.length, 8); i++) {
+    const f = bucket.file(`marketplace/${user.uid}/ai_${Date.now()}_${i}.jpg`);
+    await f.save(Buffer.from(photos[i], 'base64'), { contentType: 'image/jpeg', resumable: false });
+    urls.push(await getDownloadURL(f));
+  }
+  const s = v => String(v || '').trim().slice(0, 600);
+  const habesha = args.category === 'Habesha';
+  const ref = await db.collection('marketplace').add({
+    title: s(args.title).slice(0, 120), description: s(args.description),
+    category: s(args.category) || 'Other', deal: ['sell', 'swap', 'rent', 'free'].includes(args.deal) ? args.deal : 'sell',
+    price: args.deal === 'free' ? '' : s(args.price).slice(0, 40), city: s(args.city).slice(0, 60),
+    sellerPhone: s(args.phone).slice(0, 30), sellerName: s(args.sellerName).slice(0, 60),
+    garment: habesha ? s(args.garment) : '', size: habesha ? s(args.size) : '',
+    occasion: habesha ? s(args.occasion) : '', condition: habesha ? s(args.condition) : '',
+    imageUrl: urls[0] || '', extraImages: urls.slice(1), userId: user.uid, status: 'available',
+    approved: false, viaAi: today, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
+  });
+  return { ok: true, id: ref.id, photos: urls.length, message: 'Posted. It now waits for approval by Habesha Hub.' };
+}
+
 exports.aiChat = onRequest(
-  { secrets: [GEMINI_KEY], cors: true, invoker: 'public', maxInstances: 5, timeoutSeconds: 60 },
+  { secrets: [GEMINI_KEY], cors: true, invoker: 'public', maxInstances: 5, timeoutSeconds: 90, memory: '512MiB' },
   async (req, res) => {
     if (req.method !== 'POST') { res.status(405).send('POST only'); return; }
     try {
       const body = req.body || {};
       const text = String(body.text || '').slice(0, 1000).trim();
-      if (!text) { res.status(400).json({ error: 'empty' }); return; }
+      const audio = typeof body.audio === 'string' && body.audio.length < 2_000_000 ? body.audio : '';
+      const audioMime = /^audio\/[a-z0-9.+-]+$/.test(body.audioMime || '') ? body.audioMime : 'audio/wav';
+      const photos = (Array.isArray(body.photos) ? body.photos : []).filter(p => typeof p === 'string' && p.length < 1_500_000).slice(0, 4);
+      const newPhotos = Math.max(0, Math.min(photos.length, Number(body.newPhotos) || 0));
+      if (!text && !audio && !newPhotos) { res.status(400).json({ error: 'empty' }); return; }
       const lang = ['Tigrinya', 'Amharic'].includes(body.lang) ? body.lang : 'English';
-      const history = (Array.isArray(body.history) ? body.history : []).slice(-20).map(m => ({
-        role: m.role === 'model' ? 'model' : 'user',
-        parts: [{ text: String(m.text || '').slice(0, 2000) }],
-      }));
 
-      const langInstruction = lang === 'Tigrinya'
-        ? 'You MUST respond ONLY in Tigrinya (ትግርኛ). Keep it short; short lists are fine. Provider names may stay as written.'
-        : lang === 'Amharic'
-          ? 'You MUST respond ONLY in Amharic (አማርኛ). Keep it short; short lists are fine. Provider names may stay as written.'
-          : 'Respond in English. Keep it concise.';
-      const system = `${langInstruction}\n\n` +
-        `You are the Habesha Hub assistant in a community app for the Ethiopian & Eritrean diaspora. ` +
-        `Help users find services (photographers, decoration, guesthouses, transport, clothing, hawala, flight & visa), ` +
-        `businesses and marketplace items. Only recommend things from the lists below. ` +
-        `When the user asks for a type of service, list ALL matching providers (name, city, country, short description) ` +
-        `so they can choose, then explain how to book. If nothing matches, say so and suggest the closest options.\n\n` +
-        `${await appContext()}\n\nBe friendly and concise.`;
-
-      const r = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(cleanKey())}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: system }] },
-            contents: [...history, { role: 'user', parts: [{ text }] }],
-            generationConfig: { maxOutputTokens: 700, temperature: 0.5 },
-          }),
-        });
-      const data = await r.json();
-      if (!r.ok) {
-        console.error('Gemini error', r.status, JSON.stringify(data));
-        res.status(502).json({ error: 'ai', status: r.status, message: data?.error?.message || '' });
+      // who is asking (the app sends its Firebase login token; old versions do not)
+      let user = null;
+      const m = /^Bearer (.+)$/.exec(req.get('Authorization') || '');
+      if (m) user = await getAuth().verifyIdToken(m[1]).catch(() => null);
+      const ip = String(req.get('x-forwarded-for') || req.ip || '').split(',')[0].trim();
+      const quota = await aiQuota(user ? 'u_' + user.uid : 'ip_' + ip, audio ? '' : text, user?.uid === SAMUEL_UID);
+      if (quota !== 'ok') {
+        res.status(429).json({ reply: (quota === 'limit' ? LIMIT_TXT : REPEAT_TXT)[lang], limited: true });
         return;
       }
-      const reply = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
-      res.json({ reply });
+
+      const history = (Array.isArray(body.history) ? body.history : []).slice(-20).map(h => ({
+        role: h.role === 'model' ? 'model' : 'user',
+        parts: [{ text: String(h.text || '').slice(0, 2000) || '…' }],
+      }));
+      const langInstruction = lang === 'Tigrinya'
+        ? 'You MUST respond ONLY in Tigrinya (ትግርኛ), as spoken in Eritrea, with correct Ge\'ez spelling. Keep it short; short lists are fine. Names may stay as written.'
+        : lang === 'Amharic'
+          ? 'You MUST respond ONLY in Amharic (አማርኛ) with correct Ge\'ez spelling. Keep it short; short lists are fine. Names may stay as written.'
+          : 'Respond in English. Keep it concise.';
+      const loggedIn = user && user.firebase?.sign_in_provider !== 'anonymous';
+      const system = `${langInstruction}\n\n` +
+        `You are Habesha AI, the friendly assistant inside Habesha Hub, a community app for the Ethiopian & Eritrean diaspora. ` +
+        `Many users are older people who do not know apps well: use simple words and one step at a time. ` +
+        `Help users find services, businesses and market items, and explain how the app works. ` +
+        `Only recommend things from the lists below; never invent phone numbers, prices or places. ` +
+        `When the user asks for a type of service, list ALL matching providers (name, city, country, short description), then explain how to book. ` +
+        `If nothing matches, say so and suggest the closest options.\n` +
+        `PHOTOS: the user may attach photos. Describe what you see when it helps and answer questions about them.\n` +
+        `VOICE: when the user's message is a voice recording, START your reply with one line "🎤 " followed by exactly what they said (in their language), then an empty line, then your answer.\n` +
+        `SELLING FOR THE USER: if the user wants to sell, swap, rent out or give away something (often with a photo), help them post it in the Market. ` +
+        `Ask, one or two questions at a time, for what is missing: what it is, Habesha clothes or other category, sell / swap / rent / free, ` +
+        `price (with currency; per day for rent), size, occasion and condition for Habesha clothes, city, phone number for buyers, and the name shown to buyers. ` +
+        `Do NOT ask for an email address; the listing is linked to their account. ` +
+        `Then show a short summary and ask "Shall I post it?". Only after they say yes, call create_listing. ` +
+        `After posting, tell them it is sent and waits for approval by Habesha Hub, and that they can see it in Market. ` +
+        (loggedIn ? 'The user is logged in.' : 'The user is NOT logged in: before collecting details for a listing, tell them to log in first (Profile > Log in) and come back.') +
+        `\nIf someone only writes nonsense or tries to misuse the chat, answer very briefly and ask how you can help with Habesha Hub.\n\n` +
+        `${APP_GUIDE}\n\n${await appContext()}\n\nBe friendly and concise.`;
+
+      // the current turn: text, voice and the photos attached in this chat
+      const parts = [];
+      if (photos.length) parts.push({ text: `[${photos.length} photo(s) the user attached in this chat, newest last]` });
+      photos.forEach(p => parts.push({ inline_data: { mime_type: 'image/jpeg', data: p } }));
+      if (audio) parts.push({ inline_data: { mime_type: audioMime, data: audio } }, { text: '[This is a voice message from the user.]' });
+      if (text) parts.push({ text });
+      if (!text && !audio) parts.push({ text: '[The user sent a photo without text. Say briefly what you see and ask how you can help, e.g. sell it in the Market.]' });
+      const contents = [...history, { role: 'user', parts }];
+
+      const gemini = async () => {
+        const r = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(cleanKey())}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              system_instruction: { parts: [{ text: system }] },
+              contents,
+              tools: [{ function_declarations: [LISTING_TOOL] }],
+              generationConfig: { maxOutputTokens: 900, temperature: 0.4 },
+            }),
+          });
+        const data = await r.json();
+        if (!r.ok) throw Object.assign(new Error(data?.error?.message || 'ai'), { status: r.status, data });
+        return data?.candidates?.[0]?.content || { parts: [] };
+      };
+
+      let content = await gemini(), posted = null, action = null;
+      for (let step = 0; step < 2; step++) {
+        const call = (content.parts || []).find(p => p.functionCall)?.functionCall;
+        if (!call || call.name !== 'create_listing') break;
+        const result = await createListingFor(user, call.args || {}, photos).catch(e => ({ ok: false, message: String(e.message || e) }));
+        if (result.ok) posted = result.id; else if (result.reason === 'login') action = 'login';
+        contents.push(content, { role: 'user', parts: [{ functionResponse: { name: 'create_listing', response: result } }] });
+        content = await gemini();
+      }
+      const reply = (content.parts || []).map(p => p.text || '').join('').trim();
+      res.json({ reply, posted, action });
     } catch (e) {
-      console.error(e);
-      res.status(500).json({ error: 'server', message: String(e && e.message || e) });
+      console.error('aiChat', e.status || '', e.message, e.data ? JSON.stringify(e.data).slice(0, 500) : '');
+      res.status(e.status ? 502 : 500).json({ error: e.status ? 'ai' : 'server', message: String(e.message || e) });
     }
   }
 );

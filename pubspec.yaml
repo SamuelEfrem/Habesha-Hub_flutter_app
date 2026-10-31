@@ -1,7 +1,7 @@
 name: habesha_hub
 description: Habesha Hub - community app for the Ethiopian and Eritrean diaspora
 
-version: 2.3.1+49
+version: 2.3.1+50
 
 publish_to: "none"
 
@@ -12,7 +12,6 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_tts: ^4.2.0
-  speech_to_text: ^7.0.0
   google_places_flutter: ^2.0.9
 
   firebase_core: ^3.6.0
@@ -46,6 +45,8 @@ dependencies:
   in_app_purchase: ^3.3.1
   cloud_functions: ^5.6.2
   device_info_plus: ^12.4.0
+  record: ^6.2.1
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:
