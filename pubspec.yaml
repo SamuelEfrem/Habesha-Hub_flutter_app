@@ -90,6 +90,20 @@ flutter:
         - asset: assets/fonts/NotoSerif-BlackItalic.ttf
           weight: 900
           style: italic
+    - family: BricolageGrotesque
+      fonts:
+        - asset: assets/fonts/BricolageGrotesque-400.ttf
+        - asset: assets/fonts/BricolageGrotesque-600.ttf
+          weight: 600
+        - asset: assets/fonts/BricolageGrotesque-700.ttf
+          weight: 700
+        - asset: assets/fonts/BricolageGrotesque-800.ttf
+          weight: 800
+    - family: NotoSansEthiopic
+      fonts:
+        - asset: assets/fonts/NotoSansEthiopic-400.ttf
+        - asset: assets/fonts/NotoSansEthiopic-700.ttf
+          weight: 700
     - family: Manrope
       fonts:
         - asset: assets/fonts/Manrope-Regular.ttf

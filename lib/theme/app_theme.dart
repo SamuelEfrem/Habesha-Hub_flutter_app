@@ -55,8 +55,10 @@ Color get kInkYellow => themeNotifier.isDark ? const Color(0xFFF0BE3C) : const C
 Color get kInkRed => themeNotifier.isDark ? const Color(0xFFF27A63) : kHabRed;
 Color get kInkBlue => themeNotifier.isDark ? const Color(0xFF7EA6EE) : kHabBlue;
 
-const kFontHeadline = 'Manrope';
-const kFontBody = 'Manrope';
+// Bricolage Grotesque for Latin, Noto Sans Ethiopic for Ge'ez (bundled, same on every phone)
+const kFontHeadline = 'BricolageGrotesque';
+const kFontFallback = ['NotoSansEthiopic'];
+const kFontBody = 'BricolageGrotesque';
 
 TextStyle tsDisplay({Color? color}) => TextStyle(
     fontFamily: kFontHeadline,
@@ -133,6 +135,7 @@ ThemeData _myk(bool dark) {
     brightness: dark ? Brightness.dark : Brightness.light,
     scaffoldBackgroundColor: bg,
     fontFamily: kFontBody,
+    fontFamilyFallback: kFontFallback,
     colorScheme: base.copyWith(
       primary: accent,
       onPrimary: dark ? kSurface : Colors.white,

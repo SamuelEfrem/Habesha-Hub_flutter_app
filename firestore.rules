@@ -96,6 +96,47 @@ service cloud.firestore {
       allow delete: if isAdmin() || (signedIn() && resource.data.userId == uid());
     }
 
+    // ── Home shops (ቤት ዕዳጋ): small sellers from home ───────
+    // Only approved shops are public. Owners edit their own shop; every edit goes back
+    // to "pending". Without a new approval the owner may only change availability or
+    // pause / open the shop. Only the admin approves. Never an address (area only).
+    match /homeShops/{shopId} {
+      allow read: if resource.data.status == 'approved' || isAdmin()
+        || (signedIn() && resource.data.ownerId == uid());
+      allow create: if realUser()
+        && request.resource.data.ownerId == uid()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.rating == 0
+        && !request.resource.data.keys().hasAny(['address']);
+      allow update: if isAdmin()
+        || (realUser() && resource.data.ownerId == uid()
+            && request.resource.data.ownerId == uid()
+            && request.resource.data.status == 'pending'
+            && request.resource.data.get('rating', 0) == resource.data.get('rating', 0)
+            && !request.resource.data.keys().hasAny(['address']))
+        || (realUser() && resource.data.ownerId == uid()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['availability', 'status', 'updatedAt'])
+            && request.resource.data.availability in ['now', 'order']
+            && (request.resource.data.status == resource.data.status
+                || (resource.data.status == 'approved' && request.resource.data.status == 'paused')
+                || (resource.data.status == 'paused' && request.resource.data.status == 'approved')));
+      allow delete: if isAdmin() || (signedIn() && resource.data.ownerId == uid());
+
+      match /products/{productId} {
+        function shop() { return get(/databases/$(database)/documents/homeShops/$(shopId)).data; }
+        allow read: if shop().status == 'approved' || isAdmin()
+          || (signedIn() && shop().ownerId == uid());
+        allow write: if isAdmin()
+          || (realUser() && shop().ownerId == uid() && shop().status == 'pending');
+      }
+    }
+
+    // App switches the admin turns on/off (e.g. the Home shops holiday banner)
+    match /app_config/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // ── Anonymous service providers (only admin edits) ─────
     match /anonymous_services/{id} {
       allow read: if true;
@@ -161,7 +202,7 @@ service cloud.firestore {
     match /reports/{id} {
       allow create: if request.resource.data.status == 'open'
         && request.resource.data.keys().hasOnly(
-             ['businessId', 'businessName', 'reason', 'note', 'userId', 'status', 'createdAt'])
+             ['businessId', 'businessName', 'reason', 'note', 'userId', 'status', 'createdAt', 'kind'])
         && request.resource.data.note.size() <= 1000
         && (request.resource.data.userId == null || (signedIn() && request.resource.data.userId == uid()));
       allow read, update, delete: if isAdmin();
