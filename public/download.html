@@ -11,7 +11,8 @@
 <script>
   // Send phones straight to the right store
   var ua = navigator.userAgent.toLowerCase();
-  if (/iphone|ipad|ipod|macintosh/.test(ua) && 'ontouchend' in document) {
+  // iPhone always; an iPad can say "Macintosh", so then also check for touch
+  if (/iphone|ipad|ipod/.test(ua) || (/macintosh/.test(ua) && navigator.maxTouchPoints > 1)) {
     location.replace("https://apps.apple.com/app/habesha-hub/id6764527251");
   } else if (/android/.test(ua)) {
     location.replace("https://play.google.com/store/apps/details?id=no.habesha.hub");
