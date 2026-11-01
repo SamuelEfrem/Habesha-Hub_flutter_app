@@ -119,7 +119,7 @@ exports.notifyCustomer = onDocumentUpdated(
 //   firebase functions:secrets:set GEMINI_KEY
 // ═══════════════════════════════════════════════════════════
 const GEMINI_KEY   = defineSecret('GEMINI_KEY');
-const GEMINI_MODEL = 'gemini-3.5-flash-lite';
+const GEMINI_MODEL = 'gemini-3.5-flash';   // writes better Tigrinya than flash-lite
 
 // strip BOM, quotes, spaces and line breaks that sneak in from Notepad / copy-paste
 const cleanKey = () => GEMINI_KEY.value().replace(/^\uFEFF/, '').replace(/["'\s]/g, '');
@@ -226,10 +226,10 @@ const LISTING_TOOL = {
       city: { type: 'STRING' },
       phone: { type: 'STRING', description: 'Phone number buyers can call or WhatsApp' },
       sellerName: { type: 'STRING', description: 'Name shown to buyers' },
-      garment: { type: 'STRING', enum: ['', 'zuria', 'kemis', 'netela', 'gabi', 'suit', 'kids'] },
-      size: { type: 'STRING', enum: ['', 'XS', 'S', 'M', 'L', 'XL', 'XXL'] },
-      occasion: { type: 'STRING', enum: ['', 'wedding', 'church', 'holiday', 'graduation', 'mels'] },
-      condition: { type: 'STRING', enum: ['', 'new', 'once', 'used'] },
+      garment: { type: 'STRING', enum: ['zuria', 'kemis', 'netela', 'gabi', 'suit', 'kids'] },
+      size: { type: 'STRING', enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
+      occasion: { type: 'STRING', enum: ['wedding', 'church', 'holiday', 'graduation', 'mels'] },
+      condition: { type: 'STRING', enum: ['new', 'once', 'used'] },
     },
     required: ['title', 'category', 'deal', 'city', 'phone', 'sellerName'],
   },
@@ -316,6 +316,8 @@ exports.aiChat = onRequest(
         `Then show a short summary and ask "Shall I post it?". Only after they say yes, call create_listing. ` +
         `After posting, tell them it is sent and waits for approval by Habesha Hub, and that they can see it in Market. ` +
         (loggedIn ? 'The user is logged in.' : 'The user is NOT logged in: before collecting details for a listing, tell them to log in first (Profile > Log in) and come back.') +
+        `\nFORMAT: plain text only. No HTML and no Markdown (no **, no <b>). Short lines and simple numbered steps are fine. ` +
+        `Write Tigrinya and Amharic words only in Ge'ez letters; never mix Latin, Arabic or Cyrillic letters into a word.` +
         `\nIf someone only writes nonsense or tries to misuse the chat, answer very briefly and ask how you can help with Habesha Hub.\n\n` +
         `${APP_GUIDE}\n\n${await appContext()}\n\nBe friendly and concise.`;
 
@@ -338,7 +340,7 @@ exports.aiChat = onRequest(
               system_instruction: { parts: [{ text: system }] },
               contents,
               tools: [{ function_declarations: [LISTING_TOOL] }],
-              generationConfig: { maxOutputTokens: 900, temperature: 0.4 },
+              generationConfig: { maxOutputTokens: 2048, temperature: 0.4, thinkingConfig: { thinkingLevel: 'low' } },
             }),
           });
         const data = await r.json();
@@ -355,7 +357,11 @@ exports.aiChat = onRequest(
         contents.push(content, { role: 'user', parts: [{ functionResponse: { name: 'create_listing', response: result } }] });
         content = await gemini();
       }
-      const reply = (content.parts || []).map(p => p.text || '').join('').trim();
+      // plain text for the app: drop HTML/Markdown and stray Arabic/Cyrillic marks next to Ge'ez letters
+      const reply = (content.parts || []).filter(p => !p.thought).map(p => p.text || '').join('')
+        .replace(/<\/?[a-z][^>]*>/gi, '').replace(/\*\*|__/g, '')
+        .replace(/[Ѐ-ӿ؀-ۿ]+(?=[ሀ-፿])|(?<=[ሀ-፿])[Ѐ-ӿ؀-ۿ]+/g, '')
+        .trim();
       res.json({ reply, posted, action });
     } catch (e) {
       console.error('aiChat', e.status || '', e.message, e.data ? JSON.stringify(e.data).slice(0, 500) : '');
