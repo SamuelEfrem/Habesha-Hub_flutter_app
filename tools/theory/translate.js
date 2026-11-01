@@ -57,26 +57,46 @@ function protect(text) {
   return h;
 }
 
-(async () => {
-  const credFile = process.env.GOOGLE_TRANSLATE_CREDENTIALS || process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  if (!credFile || !fs.existsSync(credFile)) {
-    console.log('Set GOOGLE_TRANSLATE_CREDENTIALS to the translation service account file first (see the top of this script).');
-    process.exit(1);
+// Login, first one found:
+//   1. service account file: GOOGLE_TRANSLATE_CREDENTIALS or tools/private/translate-credentials.json  → v3
+//   2. API key: GOOGLE_TRANSLATE_KEY or the file tools/private/translate-api-key.txt (only the key)      → v2
+// Both stay out of git (tools/private/ is ignored) and are never printed.
+async function translator() {
+  const credFile = process.env.GOOGLE_TRANSLATE_CREDENTIALS || path.join(L.PRIVATE, 'translate-credentials.json');
+  if (fs.existsSync(credFile)) {
+    const { GoogleAuth } = require(path.join(L.ROOT, 'node_modules', 'google-auth-library'));
+    const auth = new GoogleAuth({ keyFile: credFile, scopes: ['https://www.googleapis.com/auth/cloud-translation'] });
+    const project = process.env.GOOGLE_TRANSLATE_PROJECT || await auth.getProjectId();
+    const client = await auth.getClient();
+    const url = `https://translation.googleapis.com/v3/projects/${project}/locations/global:translateText`;
+    return async contents => (await client.request({
+      url, method: 'POST', data: { sourceLanguageCode: FROM, targetLanguageCode: TO, mimeType: 'text/html', contents },
+    })).data.translations.map(t => t.translatedText);
   }
-  const { GoogleAuth } = require(path.join(L.ROOT, 'node_modules', 'google-auth-library'));
-  const auth = new GoogleAuth({ keyFile: credFile, scopes: ['https://www.googleapis.com/auth/cloud-translation'] });
-  const project = process.env.GOOGLE_TRANSLATE_PROJECT || await auth.getProjectId();
-  const client = await auth.getClient();
-  const url = `https://translation.googleapis.com/v3/projects/${project}/locations/global:translateText`;
+  const keyFile = path.join(L.PRIVATE, 'translate-api-key.txt');
+  const key = (process.env.GOOGLE_TRANSLATE_KEY || (fs.existsSync(keyFile) ? fs.readFileSync(keyFile, 'utf8') : '')).trim();
+  if (key) {
+    return async contents => {
+      const r = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${encodeURIComponent(key)}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: contents, source: FROM, target: TO, format: 'html' }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d?.error?.message || 'HTTP ' + r.status);
+      return d.data.translations.map(t => t.translatedText);
+    };
+  }
+  console.log('No login found. Put the API key in tools/private/translate-api-key.txt (see the top of this script).');
+  process.exit(1);
+}
 
+(async () => {
+  const translate = await translator();
   let done = 0;
   for (let i = 0; i < todo.length; i += 40) {
     const batch = todo.slice(i, i + 40);
-    const r = await client.request({
-      url, method: 'POST',
-      data: { sourceLanguageCode: FROM, targetLanguageCode: TO, mimeType: 'text/html', contents: batch.map(e => protect(e[FROM])) },
-    });
-    r.data.translations.forEach((t, k) => { batch[k][FIELD] = unesc(t.translatedText).replace(/\s+/g, ' ').trim(); });
+    const out = await translate(batch.map(e => protect(e[FROM])));
+    out.forEach((t, k) => { batch[k][FIELD] = unesc(t).replace(/\s+/g, ' ').trim(); });
     done += batch.length;
     L.save(items);   // saved after every batch, so nothing is lost if it stops
     process.stdout.write(`\r${done}/${todo.length}`);
