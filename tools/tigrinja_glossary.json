@@ -1,38 +1,146 @@
 {
-  "vikeplikt": { "en": "give way", "ti": "" },
-  "forkjørsvei": { "en": "priority road", "ti": "" },
-  "høyreregelen": { "en": "right-hand rule", "ti": "" },
-  "forbikjøring": { "en": "overtaking", "ti": "" },
-  "rundkjøring": { "en": "roundabout", "ti": "" },
-  "fotgjengerovergang": { "en": "pedestrian crossing", "ti": "" },
-  "fartsgrense": { "en": "speed limit", "ti": "" },
-  "skilt": { "en": "sign", "ti": "" },
-  "trafikklys": { "en": "traffic light", "ti": "" },
-  "kryss": { "en": "junction", "ti": "" },
-  "kjørefelt": { "en": "lane", "ti": "" },
-  "sperrelinje": { "en": "solid centre line", "ti": "" },
-  "vikelinje": { "en": "give way line", "ti": "" },
-  "stopplinje": { "en": "stop line", "ti": "" },
-  "motorvei": { "en": "motorway", "ti": "" },
-  "motortrafikkvei": { "en": "expressway", "ti": "" },
-  "fortau": { "en": "pavement", "ti": "" },
-  "sykkelfelt": { "en": "cycle lane", "ti": "" },
-  "kollektivfelt": { "en": "bus lane", "ti": "" },
-  "parkering forbudt": { "en": "no parking", "ti": "" },
-  "stans forbudt": { "en": "no stopping", "ti": "" },
-  "innkjøring forbudt": { "en": "no entry", "ti": "" },
-  "fareskilt": { "en": "warning sign", "ti": "" },
-  "forbudsskilt": { "en": "prohibitory sign", "ti": "" },
-  "påbudsskilt": { "en": "mandatory sign", "ti": "" },
-  "opplysningsskilt": { "en": "information sign", "ti": "" },
-  "bremselengde": { "en": "braking distance", "ti": "" },
-  "reaksjonstid": { "en": "reaction time", "ti": "" },
-  "promillegrense": { "en": "blood alcohol limit", "ti": "" },
-  "førerkort": { "en": "driving licence", "ti": "" },
-  "nærlys": { "en": "dipped headlights", "ti": "" },
-  "fjernlys": { "en": "full beam", "ti": "" },
-  "varseltrekant": { "en": "warning triangle", "ti": "" },
-  "refleksvest": { "en": "high-visibility vest", "ti": "" },
-  "blindsone": { "en": "blind spot", "ti": "" },
-  "glatt vei": { "en": "slippery road", "ti": "" }
+  "vikeplikt": {
+    "en": "give way",
+    "ti": "ቅድሚያ ምሃብ"
+  },
+  "forkjørsvei": {
+    "en": "priority road",
+    "ti": "ቀዳምነት ዘለዎ ጽርግያ"
+  },
+  "høyreregelen": {
+    "en": "right-hand rule",
+    "ti": "ሕጊ የማን"
+  },
+  "forbikjøring": {
+    "en": "overtaking",
+    "ti": "ምሕላፍ"
+  },
+  "rundkjøring": {
+    "en": "roundabout",
+    "ti": "ሮቶንዳ"
+  },
+  "fotgjengerovergang": {
+    "en": "pedestrian crossing",
+    "ti": "መሳገሪ እግረኛታት"
+  },
+  "fartsgrense": {
+    "en": "speed limit",
+    "ti": "ደረት ፍጥነት"
+  },
+  "skilt": {
+    "en": "sign",
+    "ti": "ምልክት"
+  },
+  "trafikklys": {
+    "en": "traffic light",
+    "ti": "መብራህቲ ትራፊክ"
+  },
+  "kryss": {
+    "en": "junction",
+    "ti": "መስቀለኛ መገዲ"
+  },
+  "kjørefelt": {
+    "en": "lane",
+    "ti": "መስመር ጽርግያ"
+  },
+  "sperrelinje": {
+    "en": "solid centre line",
+    "ti": "ዘይሰገር ማእከላይ መስመር"
+  },
+  "vikelinje": {
+    "en": "give way line",
+    "ti": "መስመር ቅድሚያ ምሃብ"
+  },
+  "stopplinje": {
+    "en": "stop line",
+    "ti": "መስመር ደው ምባል"
+  },
+  "motorvei": {
+    "en": "motorway",
+    "ti": "ኣውቶስትራዳ"
+  },
+  "motortrafikkvei": {
+    "en": "expressway",
+    "ti": "ናይ መካይን ጥራይ ጽርግያ"
+  },
+  "fortau": {
+    "en": "pavement",
+    "ti": "መንገዲ እግረኛታት"
+  },
+  "sykkelfelt": {
+    "en": "cycle lane",
+    "ti": "መስመር ብሽክለታ"
+  },
+  "kollektivfelt": {
+    "en": "bus lane",
+    "ti": "መስመር ኣውቶቡስ"
+  },
+  "parkering forbudt": {
+    "en": "no parking",
+    "ti": "ምዕሻግ ኣይፍቀድን"
+  },
+  "stans forbudt": {
+    "en": "no stopping",
+    "ti": "ደው ምባል ኣይፍቀድን"
+  },
+  "innkjøring forbudt": {
+    "en": "no entry",
+    "ti": "ምእታው ኣይፍቀድን"
+  },
+  "fareskilt": {
+    "en": "warning sign",
+    "ti": "ምልክት መጠንቀቕታ"
+  },
+  "forbudsskilt": {
+    "en": "prohibitory sign",
+    "ti": "ምልክት ክልከላ"
+  },
+  "påbudsskilt": {
+    "en": "mandatory sign",
+    "ti": "ምልክት ግዴታ"
+  },
+  "opplysningsskilt": {
+    "en": "information sign",
+    "ti": "ምልክት ሓበሬታ"
+  },
+  "bremselengde": {
+    "en": "braking distance",
+    "ti": "ርሕቀት ፍሬኖ"
+  },
+  "reaksjonstid": {
+    "en": "reaction time",
+    "ti": "ግዜ ግብረ-መልሲ"
+  },
+  "promillegrense": {
+    "en": "blood alcohol limit",
+    "ti": "ደረት ኣልኮል ኣብ ደም"
+  },
+  "førerkort": {
+    "en": "driving licence",
+    "ti": "መንጃ ፍቓድ"
+  },
+  "nærlys": {
+    "en": "dipped headlights",
+    "ti": "ትሑት መብራህቲ"
+  },
+  "fjernlys": {
+    "en": "full beam",
+    "ti": "ልዑል መብራህቲ"
+  },
+  "varseltrekant": {
+    "en": "warning triangle",
+    "ti": "ሰለስተ-ኩርናዕ መጠንቀቕታ"
+  },
+  "refleksvest": {
+    "en": "high-visibility vest",
+    "ti": "ዝበርቕ ጃኬት"
+  },
+  "blindsone": {
+    "en": "blind spot",
+    "ti": "ዘይርአ ቦታ"
+  },
+  "glatt vei": {
+    "en": "slippery road",
+    "ti": "ሸራፊ ጽርግያ"
+  }
 }
