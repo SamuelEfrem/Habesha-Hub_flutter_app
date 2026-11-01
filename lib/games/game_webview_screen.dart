@@ -8,6 +8,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/auth_screen.dart';
+import '../theme/app_theme.dart';
+import '../utils/translations.dart';
 import 'purchase_service.dart';
 import 'unlock_service.dart';
 
@@ -188,13 +190,26 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> with WidgetsBindi
           children: [
             WebViewWidget(controller: _controller),
             if (_progress < 100) LinearProgressIndicator(value: _progress / 100),
+            // green "Back" pill (easier to see than an X), like the other buttons in the app
             Positioned(
-              top: 4,
-              left: 4,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white70),
-                tooltip: 'Close',
-                onPressed: () => Navigator.of(context).pop(),
+              top: 8,
+              left: 10,
+              child: Material(
+                color: kHabGreen,
+                shape: const StadiumBorder(),
+                elevation: 2,
+                child: InkWell(
+                  customBorder: const StadiumBorder(),
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 8, 16, 8),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
+                      const SizedBox(width: 6),
+                      Text(tr('Back'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
+                    ]),
+                  ),
+                ),
               ),
             ),
           ],
