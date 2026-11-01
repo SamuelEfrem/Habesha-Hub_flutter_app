@@ -171,7 +171,7 @@ const APP_GUIDE = `HOW HABESHA HUB WORKS (use this to explain where things are; 
 - Games: Habesha Games (racing 3D, Dama, Genna, riddles; play the computer, a friend or online) and Life Tools (driving theory class B in Tigrinya with 500 questions, practical driving test with a voice teacher, languages, newcomer guides, Ge'ez calendar). The full driving course is unlocked with a code bought on WhatsApp; the code works for one phone number, verified by SMS.
 - Profile: log in or create an account (email, Google or Apple), nickname, my bookings, my favourites, register your business, share the app, help & support, delete account.
 - Businesses can register for free under Profile > Register your business; after approval they can edit their own page.
-- Help: WhatsApp +47 969 88 155 or the website habesha-hub.no.`;
+- Help: WhatsApp +47 973 74 482 or the website habesha-hub.no.`;
 
 // Max questions per person, so nobody can run up the Google bill
 const AI_PER_HOUR = 20, AI_PER_DAY = 60;

@@ -572,7 +572,7 @@ class AppTranslations {
     'Safety and help': {'Tigrinya': 'ድሕንነትን ሓገዝን', 'Amharic': 'ደህንነትና እርዳታ'},
     'Never send money to people you only know from the internet.': {'Tigrinya': 'ካብ ኢንተርነት ጥራይ ንትፈልጦም ሰባት ፈጺምካ ገንዘብ ኣይትስደድ።', 'Amharic': 'ከኢንተርኔት ብቻ ለሚያውቋቸው ሰዎች በፍጹም ገንዘብ አይላኩ።'},
     'If something looks wrong, use Report on the listing or shop.': {'Tigrinya': 'ገለ ጌጋ እንተመሲሉካ፡ ኣብቲ መወዓውዒ ወይ ድኳን ኣመልክት ተጠቐም።', 'Amharic': 'አንድ ነገር የተሳሳተ ከመሰለዎ በማስታወቂያው ወይም በሱቁ ሪፖርት ያድርጉ።'},
-    'Need help? Write to us on WhatsApp: +47 969 88 155.': {'Tigrinya': 'ሓገዝ የድልየካ ድዩ? ብዋትስኣፕ ጽሓፉልና፦ +47 969 88 155።', 'Amharic': 'እርዳታ ያስፈልግዎታል? በዋትስአፕ ይጻፉልን፦ +47 969 88 155።'},
+    'Need help? Write to us on WhatsApp: +47 973 74 482.': {'Tigrinya': 'ሓገዝ የድልየካ ድዩ? ብዋትስኣፕ ጽሓፉልና፦ +47 973 74 482።', 'Amharic': 'እርዳታ ያስፈልግዎታል? በዋትስአፕ ይጻፉልን፦ +47 973 74 482።'},
     'You can delete your account under Profile at any time.': {'Tigrinya': 'ኣካውንትካ ኣብ ዝኾነ ግዜ ኣብ ፕሮፋይል ክትድምስሶ ትኽእል።', 'Amharic': 'አካውንትዎን በማንኛውም ጊዜ በፕሮፋይል መሰረዝ ይችላሉ።'},
   };
 

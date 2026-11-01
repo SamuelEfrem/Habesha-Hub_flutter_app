@@ -705,7 +705,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         } else {
           msg = 'Hello Habesha Hub, I want Premium for: ' + bizName;
         }
-        final url = Uri.parse('https://wa.me/4796988155?text=' + Uri.encodeComponent(msg));
+        final url = Uri.parse('https://wa.me/4797374482?text=' + Uri.encodeComponent(msg));
         if (await canLaunchUrl(url)) await launchUrl(url, mode: LaunchMode.externalApplication);
       },
       child: Container(
@@ -1207,7 +1207,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           } else {
             msg = 'Hello Habesha Hub, I want to upgrade to Premium. My business: ' + bizName;
           }
-          final url = Uri.parse('https://wa.me/4796988155?text=' + Uri.encodeComponent(msg));
+          final url = Uri.parse('https://wa.me/4797374482?text=' + Uri.encodeComponent(msg));
           if (await canLaunchUrl(url)) await launchUrl(url, mode: LaunchMode.externalApplication);
         },
         child: Container(
