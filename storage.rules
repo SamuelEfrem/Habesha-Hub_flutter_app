@@ -109,6 +109,13 @@ service firebase.storage {
                    && (request.resource == null || isImage(10));
     }
 
+    // Recorded voices for the Life Tools phrases (Tigrinya / Amharic) — admin records on record.html
+    match /voices/{lang}/{file} {
+      allow write: if isAdmin()
+        && (request.resource == null
+            || (request.resource.size < 3 * 1024 * 1024 && request.resource.contentType.matches('audio/.*')));
+    }
+
     // Service provider photos — admin only
     match /services/{folder}/{file} {
       allow write: if isAdmin();

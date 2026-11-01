@@ -1,0 +1,362 @@
+[
+ {
+  "id": "basic_0",
+  "topic": "basic",
+  "ti": "ሰላም!",
+  "am": "ሰላም!",
+  "en": "Hello!",
+  "no": "Hei!"
+ },
+ {
+  "id": "basic_1",
+  "topic": "basic",
+  "ti": "የቐንየለይ",
+  "am": "አመሰግናለሁ",
+  "en": "Thank you",
+  "no": "Takk"
+ },
+ {
+  "id": "basic_2",
+  "topic": "basic",
+  "ti": "ይቕሬታ",
+  "am": "ይቅርታ",
+  "en": "Excuse me",
+  "no": "Unnskyld"
+ },
+ {
+  "id": "basic_3",
+  "topic": "basic",
+  "ti": "ኣይተረድኣንን",
+  "am": "አልገባኝም",
+  "en": "I don't understand",
+  "no": "Jeg forstår ikke"
+ },
+ {
+  "id": "basic_4",
+  "topic": "basic",
+  "ti": "ቀስ ኢልካ ክትዛረብ ትኽእልዶ?",
+  "am": "ቀስ ብለህ መናገር ትችላለህ?",
+  "en": "Can you speak more slowly?",
+  "no": "Kan du snakke saktere?"
+ },
+ {
+  "id": "basic_5",
+  "topic": "basic",
+  "ti": "ካበይ ኢኻ?",
+  "am": "ከየት ነህ?",
+  "en": "Where are you from?",
+  "no": "Hvor kommer du fra?"
+ },
+ {
+  "id": "basic_6",
+  "topic": "basic",
+  "ti": "ሽቓቕ ኣበይ ኣሎ?",
+  "am": "መጸዳጃ ቤት የት ነው?",
+  "en": "Where is the toilet?",
+  "no": "Hvor er toalettet?"
+ },
+ {
+  "id": "basic_7",
+  "topic": "basic",
+  "ti": "ክትሕግዘኒ ትኽእልዶ?",
+  "am": "ልትረዳኝ ትችላለህ?",
+  "en": "Can you help me?",
+  "no": "Kan du hjelpe meg?"
+ },
+ {
+  "id": "doc_0",
+  "topic": "doc",
+  "ti": "ሓሚመ ኣለኹ",
+  "am": "ታምሜአለሁ",
+  "en": "I am sick",
+  "no": "Jeg er syk"
+ },
+ {
+  "id": "doc_1",
+  "topic": "doc",
+  "ti": "ርእሰይ የሕመኒ ኣሎ",
+  "am": "ራሴን ያመኛል",
+  "en": "I have a headache",
+  "no": "Jeg har vondt i hodet"
+ },
+ {
+  "id": "doc_2",
+  "topic": "doc",
+  "ti": "ከብደይ የሕመኒ ኣሎ",
+  "am": "ሆዴን ያመኛል",
+  "en": "I have a stomach ache",
+  "no": "Jeg har vondt i magen"
+ },
+ {
+  "id": "doc_3",
+  "topic": "doc",
+  "ti": "ረስኒ ኣሎኒ",
+  "am": "ትኩሳት አለብኝ",
+  "en": "I have a fever",
+  "no": "Jeg har feber"
+ },
+ {
+  "id": "doc_4",
+  "topic": "doc",
+  "ti": "ኣብዚ የሕመኒ ኣሎ",
+  "am": "እዚህ ጋ ያመኛል",
+  "en": "It hurts here",
+  "no": "Det gjør vondt her"
+ },
+ {
+  "id": "doc_5",
+  "topic": "doc",
+  "ti": "ተርጓሚ የድልየኒ",
+  "am": "አስተርጓሚ ያስፈልገኛል",
+  "en": "I need an interpreter",
+  "no": "Jeg trenger en tolk"
+ },
+ {
+  "id": "doc_6",
+  "topic": "doc",
+  "ti": "ኣምቡላንስ ጸውዑ!",
+  "am": "አምቡላንስ ጥሩ!",
+  "en": "Call an ambulance!",
+  "no": "Ring en ambulanse!"
+ },
+ {
+  "id": "work_0",
+  "topic": "work",
+  "ti": "መዓስ እየ ዝጅምር?",
+  "am": "መቼ ነው የምጀምረው?",
+  "en": "When do I start?",
+  "no": "Når begynner jeg?"
+ },
+ {
+  "id": "work_1",
+  "topic": "work",
+  "ti": "ከተርእየኒ ትኽእልዶ?",
+  "am": "ልታሳየኝ ትችላለህ?",
+  "en": "Can you show me?",
+  "no": "Kan du vise meg?"
+ },
+ {
+  "id": "work_2",
+  "topic": "work",
+  "ti": "ደጊምካ ክትገልጸለይ ትኽእልዶ?",
+  "am": "እንደገና ልታስረዳኝ ትችላለህ?",
+  "en": "Can you explain it again?",
+  "no": "Kan du forklare det igjen?"
+ },
+ {
+  "id": "work_3",
+  "topic": "work",
+  "ti": "ግዜ ዕረፍቲ መዓስ እዩ?",
+  "am": "የእረፍት ጊዜ መቼ ነው?",
+  "en": "When is the break?",
+  "no": "Når er pausen?"
+ },
+ {
+  "id": "work_4",
+  "topic": "work",
+  "ti": "ደሞዝ መዓስ ይኽፈል?",
+  "am": "ደመወዝ መቼ ይከፈላል?",
+  "en": "When is payday?",
+  "no": "Når kommer lønnen?"
+ },
+ {
+  "id": "work_5",
+  "topic": "work",
+  "ti": "ሎሚ ሓሚመ ኣለኹ፡ ናብ ስራሕ ክመጽእ ኣይክእልን",
+  "am": "ዛሬ ታምሜአለሁ፣ ወደ ስራ መምጣት አልችልም",
+  "en": "I'm sick today and can't come to work",
+  "no": "Jeg er syk i dag og kan ikke komme på jobb"
+ },
+ {
+  "id": "shop_0",
+  "topic": "shop",
+  "ti": "ክንደይ ዋጋኡ?",
+  "am": "ዋጋው ስንት ነው?",
+  "en": "How much does it cost?",
+  "no": "Hvor mye koster det?"
+ },
+ {
+  "id": "shop_1",
+  "topic": "shop",
+  "ti": "ብካርድ ክኸፍል ይኽእልዶ?",
+  "am": "በካርድ መክፈል እችላለሁ?",
+  "en": "Can I pay by card?",
+  "no": "Kan jeg betale med kort?"
+ },
+ {
+  "id": "shop_2",
+  "topic": "shop",
+  "ti": "ደረሰኝ ክረክብ ይኽእልዶ?",
+  "am": "ደረሰኝ ማግኘት እችላለሁ?",
+  "en": "Can I have a receipt?",
+  "no": "Kan jeg få kvittering?"
+ },
+ {
+  "id": "shop_3",
+  "topic": "shop",
+  "ti": "እዚ ኣበይ ክረኽቦ ይኽእል?",
+  "am": "ይህን የት ማግኘት እችላለሁ?",
+  "en": "Where can I find this?",
+  "no": "Hvor finner jeg dette?"
+ },
+ {
+  "id": "shop_4",
+  "topic": "shop",
+  "ti": "ቆጸራ ኣለኒ",
+  "am": "ቀጠሮ አለኝ",
+  "en": "I have an appointment",
+  "no": "Jeg har en avtale"
+ },
+ {
+  "id": "shop_5",
+  "topic": "shop",
+  "ti": "ነዚ ፎርም ክመልእ ክትሕግዘኒ ትኽእልዶ?",
+  "am": "ቅጹን እንድሞላ ልትረዳኝ ትችላለህ?",
+  "en": "Can you help me with the form?",
+  "no": "Kan du hjelpe meg med skjemaet?"
+ },
+ {
+  "id": "travel_0",
+  "topic": "travel",
+  "ti": "ኣውቶቡስ ናብ ማእከል ከተማ ኣበይ ኣሎ?",
+  "am": "ወደ መሃል ከተማ የሚሄደው አውቶቡስ የት ነው?",
+  "en": "Where is the bus to the city centre?",
+  "no": "Hvor går bussen til sentrum?"
+ },
+ {
+  "id": "travel_1",
+  "topic": "travel",
+  "ti": "ሓደ ትኬት በጃኻ",
+  "am": "አንድ ቲኬት እባክህ",
+  "en": "One ticket, please",
+  "no": "Én billett, takk"
+ },
+ {
+  "id": "travel_2",
+  "topic": "travel",
+  "ti": "እዚ ኣውቶቡስ ናብ ሆስፒታል ይኸይድ ድዩ?",
+  "am": "ይህ አውቶቡስ ወደ ሆስፒታል ይሄዳል?",
+  "en": "Does this bus go to the hospital?",
+  "no": "Går denne bussen til sykehuset?"
+ },
+ {
+  "id": "travel_3",
+  "topic": "travel",
+  "ti": "ኣበይ ክወርድ ኣለኒ?",
+  "am": "የት መውረድ አለብኝ?",
+  "en": "Where do I get off?",
+  "no": "Hvor skal jeg gå av?"
+ },
+ {
+  "id": "travel_4",
+  "topic": "travel",
+  "ti": "ብእግሪ ክንደይ ይርሕቕ?",
+  "am": "በእግር ምን ያህል ይርቃል?",
+  "en": "How far is it on foot?",
+  "no": "Hvor langt er det å gå?"
+ },
+ {
+  "id": "travel_5",
+  "topic": "travel",
+  "ti": "ታክሲ ክትጽውዓለይ ትኽእልዶ?",
+  "am": "ታክሲ ልትጠራልኝ ትችላለህ?",
+  "en": "Can you call me a taxi?",
+  "no": "Kan du ringe en taxi til meg?"
+ },
+ {
+  "id": "interview_0",
+  "topic": "interview",
+  "ti": "ኣብዚ ስራሕ'ዚ ተሞክሮ ኣሎኒ",
+  "am": "በዚህ ስራ ልምድ አለኝ",
+  "en": "I have experience in this work",
+  "no": "Jeg har erfaring med dette arbeidet"
+ },
+ {
+  "id": "interview_1",
+  "topic": "interview",
+  "ti": "ቀልጢፈ ክመሃር እኽእል እየ",
+  "am": "በፍጥነት መማር እችላለሁ",
+  "en": "I learn quickly",
+  "no": "Jeg lærer raskt"
+ },
+ {
+  "id": "interview_2",
+  "topic": "interview",
+  "ti": "ኣብ ቀዳመ-ሰንበት ክሰርሕ እኽእል እየ",
+  "am": "ቅዳሜና እሁድ መስራት እችላለሁ",
+  "en": "I can work weekends",
+  "no": "Jeg kan jobbe i helgene"
+ },
+ {
+  "id": "interview_3",
+  "topic": "interview",
+  "ti": "መንጃ ፍቓድ ኣሎኒ",
+  "am": "መንጃ ፈቃድ አለኝ",
+  "en": "I have a driver's licence",
+  "no": "Jeg har førerkort"
+ },
+ {
+  "id": "interview_4",
+  "topic": "interview",
+  "ti": "ብዛዕባ እቲ ስራሕ ዝያዳ ክትነግረኒ ትኽእልዶ?",
+  "am": "ስለ ስራው ተጨማሪ ልትነግረኝ ትችላለህ?",
+  "en": "Can you tell me more about the job?",
+  "no": "Kan du fortelle mer om jobben?"
+ },
+ {
+  "id": "interview_5",
+  "topic": "interview",
+  "ti": "ስለቲ ዕድል የቐንየለይ",
+  "am": "ስለ እድሉ አመሰግናለሁ",
+  "en": "Thank you for the opportunity",
+  "no": "Takk for muligheten"
+ },
+ {
+  "id": "home_0",
+  "topic": "home",
+  "ti": "ገዛ ይደሊ ኣለኹ",
+  "am": "ቤት እየፈለግሁ ነው",
+  "en": "I'm looking for an apartment",
+  "no": "Jeg leter etter en leilighet"
+ },
+ {
+  "id": "home_1",
+  "topic": "home",
+  "ti": "ክራይ ክንደይ እዩ?",
+  "am": "ኪራዩ ስንት ነው?",
+  "en": "How much is the rent?",
+  "no": "Hvor mye er husleien?"
+ },
+ {
+  "id": "home_2",
+  "topic": "home",
+  "ti": "ኤሌክትሪክ ኣብ ክራይ ይሓውስ ድዩ?",
+  "am": "መብራት በኪራዩ ውስጥ ይካተታል?",
+  "en": "Is electricity included?",
+  "no": "Er strøm inkludert?"
+ },
+ {
+  "id": "home_3",
+  "topic": "home",
+  "ti": "ማይ ይፈስስ ኣሎ፡ ክትጽግንዎ ትኽእሉዶ?",
+  "am": "ውሃ እያፈሰሰ ነው፣ ልታስተካክሉት ትችላላችሁ?",
+  "en": "There is a water leak, can you fix it?",
+  "no": "Det lekker vann, kan dere fikse det?"
+ },
+ {
+  "id": "home_4",
+  "topic": "home",
+  "ti": "መፍትሕ ጠፊኡኒ",
+  "am": "ቁልፌ ጠፍቶብኛል",
+  "en": "I have lost the key",
+  "no": "Jeg har mistet nøkkelen"
+ },
+ {
+  "id": "home_5",
+  "topic": "home",
+  "ti": "መዓስ ክኣቱ ይኽእል?",
+  "am": "መቼ መግባት እችላለሁ?",
+  "en": "When can I move in?",
+  "no": "Når kan jeg flytte inn?"
+ }
+]

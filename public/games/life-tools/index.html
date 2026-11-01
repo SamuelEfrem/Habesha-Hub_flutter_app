@@ -110,6 +110,7 @@ h2{font-size:1.15rem;margin:0}
 .guides .body{padding:0 14px 14px;line-height:1.6}
 .guides .body p{margin:6px 0}
 .guides a.link{display:inline-block;margin-top:6px;font-weight:800;color:var(--accent);text-decoration:none}
+.qopts{display:grid;gap:8px;margin:12px 0}.qo{text-align:left;padding:12px 14px;border-radius:14px;border:2px solid transparent;background:rgba(255,255,255,.08);color:inherit;font:inherit;cursor:pointer}.qo.ok{border-color:#4FC48A;background:rgba(79,196,138,.18)}.qo.no{border-color:#F27A63;background:rgba(242,122,99,.15)}
 </style>
 
 <style>
@@ -145,7 +146,7 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
     <p class="lbl" id="learnLbl"></p>
     <div class="chips" id="langs"></div>
     <div class="chips topics" id="topics"></div>
-    <div class="switch" id="modeRow"><span class="muted" id="modeTxt"></span><button id="mode"></button></div>
+    <div class="switch" id="modeRow"><span class="muted" id="modeTxt"></span><button id="quizBtn" hidden></button><button id="mode"></button></div>
     <ul class="phrases" id="phrases"></ul>
     <p class="note" id="voiceNote"></p>
   </section>
@@ -551,34 +552,101 @@ const UI={
  am:{speak:"የምናገረው ቋንቋ",learn:"መማር የምፈልገው ቋንቋ",listen:"🔊 ስማ",noVoice:"ድምፅ የለም",test:"ራስህን ፈትን",showAll:"ሁሉንም አሳይ",visible:"ሁሉም ይታያል",hidden:"ትርጉሙ ተደብቋል፣ ለማየት ንካ",
   locked:"ይህ ርዕስ በክፍያ ይከፈታል",unlock:"ክፈት",note:"«ስማ» ስትነካ ስልክህ ጮክ ብሎ ያነበዋል። አንዳንድ ቋንቋዎች በአንዳንድ ስልኮች ድምፅ የላቸውም።",title:"ቋንቋ መማር"}
 };
+
+/* ── Learn your mother tongue: people born in the diaspora learn Tigrinya / Amharic ──
+   base = the language the learner already speaks; L = ti | am. */
+const HAB=k=>k==="ti"||k==="am";
+const LEARNERS=[["en","English"],["no","Norsk"],["sv","Svenska"],["de","Deutsch"],["nl","Nederlands"],["it","Italiano"],["fr","Français"]];
+Object.assign(UI,{
+ en:{title:"Learn your mother tongue",speak:"I speak",learn:"I want to learn",listen:"🔊 Listen",noVoice:"No sound yet",test:"Test yourself",showAll:"Show all",visible:"Everything is shown",hidden:"Tap to see the answer",locked:"This topic is opened with payment",unlock:"Open",note:"Tap 🔊 to hear the phrase. Some sounds are made by a computer until a native speaker has recorded them.",quiz:"🎯 Quiz",right:"Right! ⭐",wrong:"Not quite – the right answer is marked",stars:"stars",next:"Next"},
+ no:{title:"Lær morsmålet ditt",speak:"Jeg snakker",learn:"Jeg vil lære",listen:"🔊 Hør",noVoice:"Ingen lyd ennå",test:"Test deg selv",showAll:"Vis alt",visible:"Alt vises",hidden:"Trykk for å se svaret",locked:"Dette temaet åpnes med betaling",unlock:"Åpne",note:"Trykk 🔊 for å høre frasen. Noen lyder er laget av en datamaskin til en med språket som morsmål har spilt dem inn.",quiz:"🎯 Quiz",right:"Riktig! ⭐",wrong:"Ikke helt – riktig svar er markert",stars:"stjerner",next:"Neste"},
+ sv:{title:"Lär dig ditt modersmål",speak:"Jag talar",learn:"Jag vill lära mig",listen:"🔊 Lyssna",noVoice:"Inget ljud än",test:"Testa dig själv",showAll:"Visa allt",visible:"Allt visas",hidden:"Tryck för att se svaret",locked:"Det här ämnet öppnas med betalning",unlock:"Öppna",note:"Tryck 🔊 för att höra frasen. Vissa ljud är gjorda av en dator tills någon med språket som modersmål har spelat in dem.",quiz:"🎯 Quiz",right:"Rätt! ⭐",wrong:"Inte riktigt – rätt svar är markerat",stars:"stjärnor",next:"Nästa"},
+ de:{title:"Lerne deine Muttersprache",speak:"Ich spreche",learn:"Ich möchte lernen",listen:"🔊 Anhören",noVoice:"Noch kein Ton",test:"Teste dich",showAll:"Alles zeigen",visible:"Alles wird gezeigt",hidden:"Tippen, um die Antwort zu sehen",locked:"Dieses Thema wird mit Bezahlung geöffnet",unlock:"Öffnen",note:"Tippe auf 🔊, um den Satz zu hören. Manche Töne sind computergemacht, bis ein Muttersprachler sie aufgenommen hat.",quiz:"🎯 Quiz",right:"Richtig! ⭐",wrong:"Nicht ganz – die richtige Antwort ist markiert",stars:"Sterne",next:"Weiter"},
+ nl:{title:"Leer je moedertaal",speak:"Ik spreek",learn:"Ik wil leren",listen:"🔊 Luister",noVoice:"Nog geen geluid",test:"Test jezelf",showAll:"Alles tonen",visible:"Alles wordt getoond",hidden:"Tik om het antwoord te zien",locked:"Dit onderwerp wordt met betaling geopend",unlock:"Openen",note:"Tik op 🔊 om de zin te horen. Sommige geluiden zijn door een computer gemaakt tot een moedertaalspreker ze heeft opgenomen.",quiz:"🎯 Quiz",right:"Goed! ⭐",wrong:"Niet helemaal – het goede antwoord is gemarkeerd",stars:"sterren",next:"Volgende"},
+ it:{title:"Impara la tua lingua madre",speak:"Parlo",learn:"Voglio imparare",listen:"🔊 Ascolta",noVoice:"Ancora nessun suono",test:"Mettiti alla prova",showAll:"Mostra tutto",visible:"Tutto è visibile",hidden:"Tocca per vedere la risposta",locked:"Questo argomento si apre a pagamento",unlock:"Apri",note:"Tocca 🔊 per sentire la frase. Alcuni suoni sono fatti al computer finché un madrelingua non li registra.",quiz:"🎯 Quiz",right:"Giusto! ⭐",wrong:"Non proprio – la risposta giusta è segnata",stars:"stelle",next:"Avanti"},
+ fr:{title:"Apprends ta langue maternelle",speak:"Je parle",learn:"Je veux apprendre",listen:"🔊 Écouter",noVoice:"Pas encore de son",test:"Teste-toi",showAll:"Tout afficher",visible:"Tout est affiché",hidden:"Touche pour voir la réponse",locked:"Ce thème s'ouvre avec un paiement",unlock:"Ouvrir",note:"Touche 🔊 pour écouter la phrase. Certains sons sont faits par ordinateur jusqu'à ce qu'un locuteur natif les enregistre.",quiz:"🎯 Quiz",right:"Bravo ! ⭐",wrong:"Pas tout à fait – la bonne réponse est marquée",stars:"étoiles",next:"Suivant"}
+});
+Object.assign(UI.ti,{quiz:"🎯 ፈተና",right:"ቅኑዕ! ⭐",wrong:"ኣይኮነን – ቅኑዕ መልሲ ተመልኪቱ ኣሎ",stars:"ኮኾባት",next:"ቀጽል"});
+Object.assign(UI.am,{quiz:"🎯 ጥያቄ",right:"ትክክል! ⭐",wrong:"አይደለም – ትክክለኛው መልስ ምልክት ተደርጎበታል",stars:"ኮከቦች",next:"ቀጥል"});
+const TOPIC_NAMES={
+ basic:{en:"Basics",no:"Grunnleggende",sv:"Grunder",de:"Grundlagen",nl:"Basis",it:"Base",fr:"Les bases"},
+ doc:{en:"Doctor",no:"Lege",sv:"Läkare",de:"Arzt",nl:"Dokter",it:"Medico",fr:"Médecin"},
+ work:{en:"Work",no:"Jobb",sv:"Jobb",de:"Arbeit",nl:"Werk",it:"Lavoro",fr:"Travail"},
+ shop:{en:"Shop and office",no:"Butikk og kontor",sv:"Butik och kontor",de:"Laden und Amt",nl:"Winkel en kantoor",it:"Negozio e ufficio",fr:"Magasin et bureau"},
+ travel:{en:"Travel",no:"Reise",sv:"Resa",de:"Reisen",nl:"Reizen",it:"Viaggio",fr:"Voyage"},
+ interview:{en:"Job interview",no:"Jobbintervju",sv:"Anställningsintervju",de:"Vorstellungsgespräch",nl:"Sollicitatiegesprek",it:"Colloquio di lavoro",fr:"Entretien d'embauche"},
+ home:{en:"At home",no:"Hjemme",sv:"Hemma",de:"Zu Hause",nl:"Thuis",it:"A casa",fr:"À la maison"}
+};
+const tname=t=>t[base]||(TOPIC_NAMES[t.k]||{})[base]||(TOPIC_NAMES[t.k]||{}).en||t.k;
+/* Ge'ez → Latin letters, so children who cannot read Ge'ez yet can say the words */
+const GZ={0x1200:"h",0x1208:"l",0x1210:"h",0x1218:"m",0x1220:"s",0x1228:"r",0x1230:"s",0x1238:"sh",0x1240:"q",0x1250:"qh",0x1260:"b",0x1268:"v",0x1270:"t",0x1278:"ch",0x1280:"h",0x1290:"n",0x1298:"ny",0x12A0:"",0x12A8:"k",0x12B8:"kh",0x12C8:"w",0x12D0:"",0x12D8:"z",0x12E0:"zh",0x12E8:"y",0x12F0:"d",0x1300:"j",0x1308:"g",0x1320:"t",0x1328:"ch",0x1330:"p",0x1338:"ts",0x1340:"ts",0x1348:"f",0x1350:"p"};
+const GV=["e","u","i","a","ie","","o","wa"];
+// the 6th form (ክ ት ሕ …) is said with a short "i" when another 6th form follows, silent at the end of a word
+const gzInfo=ch=>{const c=ch?ch.codePointAt(0):0;if(c<0x1200||c>0x137F)return null;const b=c-((c-0x1200)%8);return b in GZ?{b,o:(c-0x1200)%8}:null};
+function geezRoman(t){const chars=[...(t||"")];let out="";
+  chars.forEach((ch,k)=>{const g=gzInfo(ch);
+    if(g){let v=GV[g.o];if(g.o===5){const n=gzInfo(chars[k+1]);v=n&&n.o===5?"i":""}out+=GZ[g.b]+v;return}
+    out+=ch==="፡"?" ":ch==="።"?".":ch==="፣"?",":ch==="፧"?"?":ch});
+  return out.replace(/\s+/g," ").trim()}
+/* sound for Tigrinya / Amharic: a recorded voice (uploaded on record.html) first, else the computer voice */
+const VOICE_BUCKET="https://firebasestorage.googleapis.com/v0/b/habesha-hub-7bd1d.firebasestorage.app/o/";
+let voiceAudio=null;
+function playHab(lang,id,btn){const U=UI[base];
+  const urls=[VOICE_BUCKET+encodeURIComponent(`voices/${lang}/${id}`)+"?alt=media",`voice/${lang}/${id}.mp3`];
+  const tryAt=i=>{if(i>=urls.length){btn.textContent=U.noVoice;setTimeout(()=>btn.textContent=U.listen,1500);return}
+    if(voiceAudio)voiceAudio.pause();const a=new Audio(urls[i]);voiceAudio=a;
+    a.onerror=()=>tryAt(i+1);a.onended=()=>{btn.textContent=U.listen};btn.textContent="🔊 …";a.play().catch(()=>tryAt(i+1))};
+  tryAt(0)}
+/* quiz: hear / read the Tigrinya or Amharic phrase, pick what it means */
+let qz=null;
+function stars(){try{return +localStorage.getItem("lt-stars")||0}catch(e){return 0}}
+function addStar(){try{localStorage.setItem("lt-stars",String(stars()+1))}catch(e){}}
+function quizHTML(){const U=UI[base],items=PTOPICS.find(t=>t.k===topic).items;const p=items[qz.i];
+  return `<li class="quiz"><div style="min-width:0;flex:1"><div class="tg gz" style="font-size:1.6rem">${esc(p[L])}</div>
+    <div class="rom">${esc(geezRoman(p[L]))}</div>
+    <div class="qopts">${qz.opts.map(j=>`<button class="qo ${qz.done?(j===qz.i?"ok":j===qz.pick?"no":""):""}" data-q="${j}">${esc(items[j][base])}</button>`).join("")}</div>
+    ${qz.done?`<p class="muted">${esc(qz.pick===qz.i?U.right:U.wrong)}</p><button class="btn" id="qzNext">${esc(U.next)}</button>`:""}
+    <p class="muted">⭐ ${stars()} ${esc(U.stars)}</p></div><button class="say" data-i="${qz.i}">${U.listen}</button></li>`}
+function newQuiz(){const items=PTOPICS.find(t=>t.k===topic).items;const i=Math.floor(Math.random()*items.length);
+  const others=items.map((_,j)=>j).filter(j=>j!==i).sort(()=>Math.random()-.5).slice(0,3);
+  qz={i,opts:[i,...others].sort(()=>Math.random()-.5),done:false,pick:-1}}
+
 let base="ti",L="no",topic="basic",quiz=false;
 try{base=localStorage.getItem("lt-base")||"ti";L=localStorage.getItem("lt-lang")||"no"}catch(e){}
 if(!UI[base])base="ti";
 function drawLang(){const U=UI[base];
-  if(L===base)L="no";
+  if(HAB(base)&&L===base)L="no";
+  if(!HAB(base)&&!HAB(L))L="ti";
   $("langTitle").textContent=U.title;$("speakLbl").textContent=U.speak;$("learnLbl").textContent=U.learn;$("voiceNote").textContent=U.note;
-  $("bases").innerHTML=[["ti","ትግርኛ"],["am","አማርኛ"]].map(([k,n])=>`<button data-k="${k}" aria-pressed="${k===base}">${n}</button>`).join("");
-  $("langs").innerHTML=TARGETS.filter(x=>x.k!==base).map(x=>`<button data-k="${x.k}" aria-pressed="${x.k===L}" ${x.rtl?'dir="rtl"':""}>${esc(x.n)}</button>`).join("");
-  $("topics").innerHTML=PTOPICS.map(t=>`<button data-k="${t.k}" aria-pressed="${t.k===topic}">${t.pro&&!isPro("lang_pro")?"🔒 ":""}${esc(t[base])}</button>`).join("");
+  $("bases").innerHTML=[["ti","ትግርኛ"],["am","አማርኛ"],...LEARNERS].map(([k,n])=>`<button data-k="${k}" aria-pressed="${k===base}">${n}</button>`).join("");
+  $("langs").innerHTML=TARGETS.filter(x=>x.k!==base&&(HAB(base)||HAB(x.k))).map(x=>`<button data-k="${x.k}" aria-pressed="${x.k===L}" ${x.rtl?'dir="rtl"':""}>${esc(x.n)}</button>`).join("");
+  $("topics").innerHTML=PTOPICS.map(t=>`<button data-k="${t.k}" aria-pressed="${t.k===topic}">${t.pro&&!isPro("lang_pro")?"🔒 ":""}${esc(tname(t))}</button>`).join("");
   const T_=PTOPICS.find(t=>t.k===topic),meta=TARGETS.find(x=>x.k===L);
   if(T_.pro&&!isPro("lang_pro")){
     $("modeRow").hidden=true;
-    $("phrases").innerHTML=`<li class="lockli"><div><b>🔒 ${esc(U.locked)}</b><p class="muted">${esc(PTOPICS.filter(t=>t.pro).map(t=>t[base]).join(" · "))}</p></div><button class="btn" data-buy="lang_pro">${esc(U.unlock)} · ${PRICE.lang_pro}</button></li><li class="muted" id="langBuyMsg" style="border:0;background:none"></li>`;return}
+    $("phrases").innerHTML=`<li class="lockli"><div><b>🔒 ${esc(U.locked)}</b><p class="muted">${esc(PTOPICS.filter(t=>t.pro).map(tname).join(" · "))}</p></div><button class="btn" data-buy="lang_pro">${esc(U.unlock)} · ${PRICE.lang_pro}</button></li><li class="muted" id="langBuyMsg" style="border:0;background:none"></li>`;return}
   $("modeRow").hidden=false;
+  $("quizBtn").hidden=!HAB(L);$("quizBtn").textContent=qz?U.showAll:U.quiz;
+  if(qz&&HAB(L)){$("phrases").innerHTML=quizHTML();$("modeTxt").textContent="";$("mode").hidden=true;return}
+  $("mode").hidden=false;
   $("phrases").innerHTML=T_.items.map((p,i)=>`<li><div style="min-width:0">
       <div class="tix">${esc(p[base])}</div>
       <div class="tg ${quiz?"hide":""} ${meta.geez?"gz":""}" ${meta.rtl?'dir="rtl"':""} lang="${meta.tts.slice(0,2)}">${esc(p[L])}</div>
-      ${meta.rom?`<div class="rom ${quiz?"hide":""}">${esc(p[meta.rom])}</div>`:""}
+      ${meta.rom?`<div class="rom ${quiz?"hide":""}">${esc(p[meta.rom])}</div>`:(meta.geez&&!HAB(base)?`<div class="rom ${quiz?"hide":""}">${esc(geezRoman(p[L]))}</div>`:"")}
     </div><button class="say" data-i="${i}">${U.listen}</button></li>`).join("");
   $("modeTxt").textContent=quiz?U.hidden:U.visible;$("mode").textContent=quiz?U.showAll:U.test}
-$("bases").onclick=e=>{const b=e.target.closest("button");if(!b)return;base=b.dataset.k;try{localStorage.setItem("lt-base",base)}catch(err){}drawLang()};
-$("langs").onclick=e=>{const b=e.target.closest("button");if(!b)return;L=b.dataset.k;try{localStorage.setItem("lt-lang",L)}catch(err){}drawLang()};
-$("topics").onclick=e=>{const b=e.target.closest("button");if(!b)return;topic=b.dataset.k;drawLang()};
+$("bases").onclick=e=>{const b=e.target.closest("button");if(!b)return;base=b.dataset.k;qz=null;try{localStorage.setItem("lt-base",base)}catch(err){}drawLang()};
+$("langs").onclick=e=>{const b=e.target.closest("button");if(!b)return;L=b.dataset.k;qz=null;try{localStorage.setItem("lt-lang",L)}catch(err){}drawLang()};
+$("topics").onclick=e=>{const b=e.target.closest("button");if(!b)return;topic=b.dataset.k;if(qz)newQuiz();drawLang()};
+$("quizBtn").onclick=()=>{if(qz)qz=null;else newQuiz();drawLang()};
 $("mode").onclick=()=>{quiz=!quiz;drawLang()};
 $("phrases").onclick=e=>{
   const bb=e.target.closest("[data-buy]");if(bb){buy(bb.dataset.buy,$("langBuyMsg"));return}
+  const qo=e.target.closest(".qo");if(qo&&qz&&!qz.done){qz.pick=+qo.dataset.q;qz.done=true;if(qz.pick===qz.i)addStar();drawLang();return}
+  if(e.target.id==="qzNext"){newQuiz();drawLang();return}
   const h=e.target.closest(".tg.hide");if(h){h.classList.remove("hide");const r=h.parentElement.querySelector(".rom");if(r)r.classList.remove("hide");return}
   const b=e.target.closest(".say");if(!b)return;const U=UI[base];const p=PTOPICS.find(t=>t.k===topic).items[+b.dataset.i];const meta=TARGETS.find(x=>x.k===L);
+  if(HAB(L)){playHab(L,`${topic}_${b.dataset.i}`,b);return}
   // In the app: the phone's own text-to-speech does it (WebView has no speechSynthesis)
   if(window.HabeshaApp&&typeof HabeshaApp.postMessage==="function"){
     sayBtn=b;b.textContent="🔊 …";HabeshaApp.postMessage(JSON.stringify({type:"speak",text:p[L],lang:meta.tts}));return}
