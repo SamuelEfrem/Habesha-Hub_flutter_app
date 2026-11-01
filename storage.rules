@@ -103,6 +103,12 @@ service firebase.storage {
                    && (request.resource == null || isImage(10));
     }
 
+    // Housing photos — each user only in their own folder
+    match /housing/{userId}/{file} {
+      allow write: if signedIn() && (request.auth.uid == userId || isAdmin())
+                   && (request.resource == null || isImage(10));
+    }
+
     // Service provider photos — admin only
     match /services/{folder}/{file} {
       allow write: if isAdmin();

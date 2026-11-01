@@ -96,6 +96,31 @@ service cloud.firestore {
       allow delete: if isAdmin() || (signedIn() && resource.data.userId == uid());
     }
 
+    // ── Housing (Market > Housing): rent out / look for flats and rooms ──
+    // Only approved (and recently rented) listings are public. Owners edit their own;
+    // every edit goes back to "pending". Without a new approval the owner may only
+    // switch approved <-> rented. Only the admin approves. Never an exact address.
+    match /housing/{id} {
+      allow read: if resource.data.status in ['approved', 'rented'] || isAdmin()
+        || (signedIn() && resource.data.ownerId == uid());
+      allow create: if realUser()
+        && request.resource.data.ownerId == uid()
+        && request.resource.data.status == 'pending'
+        && !request.resource.data.keys().hasAny(['address'])
+        && request.resource.data.photos.size() <= 10;
+      allow update: if isAdmin()
+        || (realUser() && resource.data.ownerId == uid()
+            && request.resource.data.ownerId == uid()
+            && request.resource.data.status == 'pending'
+            && !request.resource.data.keys().hasAny(['address'])
+            && request.resource.data.photos.size() <= 10)
+        || (realUser() && resource.data.ownerId == uid()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'rentedAt', 'updatedAt'])
+            && ((resource.data.status == 'approved' && request.resource.data.status == 'rented')
+                || (resource.data.status == 'rented' && request.resource.data.status == 'approved')));
+      allow delete: if isAdmin() || (signedIn() && resource.data.ownerId == uid());
+    }
+
     // ── Home shops (ቤት ዕዳጋ): small sellers from home ───────
     // Only approved shops are public. Owners edit their own shop; every edit goes back
     // to "pending". Without a new approval the owner may only change availability or

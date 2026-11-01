@@ -610,9 +610,32 @@ const OCCASION = { wedding: 'Wedding', church: 'Church', holiday: 'Holiday', gra
 const CONDITION = { new: 'New', once: 'Worn once', used: 'Used' };
 exports.listingPage = onRequest({ invoker: 'public', maxInstances: 5 }, async (req, res) => {
   const id = decodeURIComponent((req.path || '').split('/').filter(Boolean).pop() || '');
-  const doc = id && !id.includes('/') ? await getFirestore().collection('marketplace').doc(id).get() : null;
-  const v = doc?.exists ? doc.data() : null;
+  const db = getFirestore();
+  const doc = id && !id.includes('/') ? await db.collection('marketplace').doc(id).get() : null;
+  let v = doc?.exists ? doc.data() : null;
   res.set('Cache-Control', 'public, max-age=300');
+  // housing listings live in their own collection: show them in the same page format
+  if (!v && id && !id.includes('/')) {
+    const h = await db.collection('housing').doc(id).get();
+    const d = h.exists ? h.data() : null;
+    if (d && ['approved', 'rented'].includes(d.status)) {
+      const cur = d.currency === 'kr' ? 'kr' : (d.currency || '');
+      const looking = d.type === 'looking';
+      const amount = looking ? d.budget : d.rentMonth;
+      v = {
+        title: d.title, description: d.description, city: [d.area, d.city].filter(Boolean).join(', '),
+        imageUrl: (d.photos || [])[0] || '', extraImages: (d.photos || []).slice(1),
+        price: amount ? `${amount} ${cur} / month` : '', deal: 'sell',
+        sellerName: d.contactName, sellerPhone: d.whatsapp || d.phone,
+        status: d.status === 'rented' ? 'done' : 'available', doneLabel: 'Rented',
+        housingFacts: [
+          { forRent: 'For rent', room: 'Room for rent', looking: 'Looking for housing', shortTerm: 'Short-term' }[d.type] || 'Housing',
+          d.rooms ? `${d.rooms} rooms` : '', d.sizeM2 ? `${d.sizeM2} m²` : '',
+          d.availableFrom ? `Available from ${d.availableFrom}` : '', d.furnished ? 'Furnished' : '',
+        ].filter(Boolean),
+      };
+    }
+  }
   if (!v || v.approved === false) {
     res.status(404).send('<h1>Not found</h1><p><a href="https://habesha-hub.no">Habesha Hub</a></p>');
     return;
@@ -620,7 +643,7 @@ exports.listingPage = onRequest({ invoker: 'public', maxInstances: 5 }, async (r
   const deal = DEAL[v.deal] ? v.deal : 'sell';
   const imgs = [].concat(v.imageUrl || [], v.extraImages || []).filter(Boolean).slice(0, 8);
   const price = deal === 'free' ? 'Free' : (v.price ? String(v.price) + (deal === 'rent' ? ' / day' : '') : '');
-  const facts = [DEAL[deal], GARMENT[v.garment], v.size ? 'Size ' + v.size : '', OCCASION[v.occasion], CONDITION[v.condition]].filter(Boolean);
+  const facts = v.housingFacts || [DEAL[deal], GARMENT[v.garment], v.size ? 'Size ' + v.size : '', OCCASION[v.occasion], CONDITION[v.condition]].filter(Boolean);
   const done = v.status === 'done';
   const phone = String(v.sellerPhone || '').replace(/[^\d+]/g, '');
   const wa = phone ? 'https://wa.me/' + phone.replace(/^\+/, '').replace(/^00/, '') + '?text=' +
@@ -629,7 +652,7 @@ exports.listingPage = onRequest({ invoker: 'public', maxInstances: 5 }, async (r
   res.send(`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(v.title)} – Habesha Hub</title>
-<meta property="og:title" content="${esc((done ? DONE[deal] + ': ' : '') + v.title)} – Habesha Hub">
+<meta property="og:title" content="${esc((done ? (v.doneLabel || DONE[deal]) + ': ' : '') + v.title)} – Habesha Hub">
 <meta property="og:description" content="${esc(desc)}">
 <meta property="og:image" content="${esc(imgs[0] || 'https://habesha-hub.no/img/og.jpg')}">
 <meta property="og:type" content="website">
@@ -660,7 +683,7 @@ ${imgs.length ? `<div class="pics">${imgs.map(u => `<img src="${esc(u)}" alt="">
 ${imgs.length > 1 ? `<div class="muted" style="font-size:13px;margin-top:6px">← ${imgs.length} photos →</div>` : ''}
 <div class="stripe"><i></i><i></i><i></i><i></i></div>
 <h1>${esc(v.title)}</h1>
-${done ? `<div class="done">${esc(DONE[deal])}</div>` : ''}
+${done ? `<div class="done">${esc(v.doneLabel || DONE[deal])}</div>` : ''}
 <div>${price ? `<span class="price">${esc(price)}</span>` : ''}${v.city ? `<span class="muted">📍 ${esc(v.city)}</span>` : ''}</div>
 <div class="facts">${facts.map(f => `<span>${esc(f)}</span>`).join('')}</div>
 ${v.description ? `<p>${esc(v.description)}</p>` : ''}

@@ -12,6 +12,7 @@ import 'dart:io';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import 'auth_screen.dart';
+import 'housing_screen.dart';
 import '../utils/translations.dart';
 
 // ═══════════════════════════════════════════════════════════
@@ -348,6 +349,10 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   final sel = _selectedCategory == cat['key'];
                   return GestureDetector(
                     onTap: () {
+                      if (cat['key'] == 'Housing') {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const HousingScreen()));
+                        return;
+                      }
                       setState(() {
                         _selectedCategory = cat['key']!;
                         if (_selectedCategory != _kHabesha) { _sizeFilter = ''; _occFilter = ''; }
@@ -652,7 +657,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               // Category chips
               Wrap(
                 spacing: 8, runSpacing: 8,
-                children: _categories.where((c) => c['key'] != 'All').map((cat) {
+                // housing has its own form (Market > Housing); old housing listings keep their category
+                children: _categories.where((c) => c['key'] != 'All' && (c['key'] != 'Housing' || selCat == 'Housing')).map((cat) {
                   final sel = selCat == cat['key'];
                   return GestureDetector(
                     onTap: () => setModal(() => selCat = cat['key']!),

@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/app_theme.dart';
 import 'home_shops_screen.dart';
+import 'housing_screen.dart';
 import '../models/business.dart';
 import 'edit_business_screen.dart';
 import 'booking_screen.dart';
@@ -115,6 +116,7 @@ class _AdminScreenState extends State<AdminScreen>
     (Icons.design_services_rounded, 'Services'),
     (Icons.receipt_long_rounded, 'Orders'),
     (Icons.storefront_outlined, 'Home shops'),
+    (Icons.home_work_outlined, 'Housing'),
   ];
 
   @override
@@ -229,6 +231,8 @@ class _AdminScreenState extends State<AdminScreen>
             const ManageBookingsTab(),
             // ─ HOME SHOPS (ቤት ዕዳጋ) ─
             const HomeShopsAdminTab(),
+            // ─ HOUSING (Market > Housing) ─
+            const HousingAdminTab(),
           ],
         ),
       ),
