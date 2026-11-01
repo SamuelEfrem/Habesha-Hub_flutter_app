@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'user_guide_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -682,6 +683,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 12),
                 const AdminButton(),
+                const SizedBox(height: 12),
+                _menuRow(Icons.menu_book_outlined, tr('How to use Habesha Hub'),
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UserGuideScreen())), color: kText),
                 const SizedBox(height: 12),
                 _menuRow(Icons.help_outline_rounded, t('help_support'), () => _showHelp()),
                 const SizedBox(height: 12),

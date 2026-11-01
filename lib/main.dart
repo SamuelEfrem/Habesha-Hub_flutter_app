@@ -138,7 +138,8 @@ class AppEntry extends StatelessWidget {
       future: SharedPreferences.getInstance(),
       builder: (_, snap) {
         if (!snap.hasData) return Scaffold(backgroundColor: kBg);
-        final done = snap.data!.getBool('onboarding_done') ?? false;
+        // the new intro is shown once to everyone, also after updating
+        final done = snap.data!.getBool(kOnboardingKey) ?? false;
         return done ? const SplashScreen() : const OnboardingScreen();
       },
     );
