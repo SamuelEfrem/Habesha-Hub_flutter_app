@@ -119,7 +119,8 @@ exports.notifyCustomer = onDocumentUpdated(
 //   firebase functions:secrets:set GEMINI_KEY
 // ═══════════════════════════════════════════════════════════
 const GEMINI_KEY   = defineSecret('GEMINI_KEY');
-const GEMINI_MODEL = 'gemini-3.5-flash';   // writes better Tigrinya than flash-lite
+const GEMINI_MODEL = 'gemini-3.5-flash';         // writes better Tigrinya than flash-lite
+const GEMINI_FALLBACK = 'gemini-3.5-flash-lite'; // used when the big model is busy
 
 // strip BOM, quotes, spaces and line breaks that sneak in from Notepad / copy-paste
 const cleanKey = () => GEMINI_KEY.value().replace(/^\uFEFF/, '').replace(/["'\s]/g, '');
@@ -331,9 +332,11 @@ exports.aiChat = onRequest(
       if (!text && !audio) parts.push({ text: '[The user sent a photo without text. Say briefly what you see and ask how you can help, e.g. sell it in the Market.]' });
       const contents = [...history, { role: 'user', parts }];
 
-      const gemini = async () => {
+      // When Google is busy (503 / 429 / 500) try again, then fall back to the light model,
+      // so people get an answer instead of "connection error".
+      const callModel = async model => {
         const r = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(cleanKey())}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(cleanKey())}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -341,12 +344,26 @@ exports.aiChat = onRequest(
               system_instruction: { parts: [{ text: system }] },
               contents,
               tools: [{ function_declarations: [LISTING_TOOL] }],
-              generationConfig: { maxOutputTokens: 2048, temperature: 0.4, thinkingConfig: { thinkingLevel: 'low' } },
+              generationConfig: model === GEMINI_MODEL
+                ? { maxOutputTokens: 2048, temperature: 0.4, thinkingConfig: { thinkingLevel: 'low' } }
+                : { maxOutputTokens: 1500, temperature: 0.4 },
             }),
           });
         const data = await r.json();
         if (!r.ok) throw Object.assign(new Error(data?.error?.message || 'ai'), { status: r.status, data });
         return data?.candidates?.[0]?.content || { parts: [] };
+      };
+      const gemini = async () => {
+        let last;
+        for (const [model, wait] of [[GEMINI_MODEL, 0], [GEMINI_MODEL, 1200], [GEMINI_FALLBACK, 0], [GEMINI_FALLBACK, 1500]]) {
+          if (wait) await new Promise(r => setTimeout(r, wait));
+          try { return await callModel(model); } catch (e) {
+            last = e;
+            if (![429, 500, 503, 504].includes(e.status)) throw e;   // a real error: no point trying again
+            console.warn('aiChat busy', model, e.status);
+          }
+        }
+        throw last;
       };
 
       let content = await gemini(), posted = null, action = null;
