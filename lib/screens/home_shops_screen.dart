@@ -14,6 +14,7 @@ import '../utils/language_notifier.dart';
 import '../utils/theme_notifier.dart';
 import '../utils/translations.dart';
 import 'auth_screen.dart';
+import 'marketplace_screen.dart';
 
 // ═══════════════════════════════════════════════════════════
 // HOME SHOPS (ቤት ዕዳጋ) — small sellers who sell from home.
@@ -114,8 +115,20 @@ Future<User?> _realUser(BuildContext context) async {
 // ═══════════════════════════════════════════════════════════
 // SCREEN 1 — list
 // ═══════════════════════════════════════════════════════════
+/// Opens the user's own shop for editing, or the form for a new one (guests log in first).
+Future<void> openMyHomeShop(BuildContext context) async {
+  final u = await _realUser(context);
+  if (u == null || !context.mounted) return;
+  final mine = await _shops.where('ownerId', isEqualTo: u.uid).limit(1).get();
+  if (!context.mounted) return;
+  Navigator.push(context, MaterialPageRoute(
+      builder: (_) => ShopFormScreen(shopId: mine.docs.isEmpty ? null : mine.docs.first.id)));
+}
+
 class HomeShopsScreen extends StatefulWidget {
-  const HomeShopsScreen({super.key});
+  /// true = shown as a tab inside the Market (no own header / back button)
+  final bool embedded;
+  const HomeShopsScreen({super.key, this.embedded = false});
   @override
   State<HomeShopsScreen> createState() => _HomeShopsScreenState();
 }
@@ -142,17 +155,12 @@ class _HomeShopsScreenState extends State<HomeShopsScreen> {
     } catch (_) {}
   }
 
-  Future<void> _openShop() async {
-    final u = await _realUser(context);
-    if (u == null || !mounted) return;
-    final mine = await _shops.where('ownerId', isEqualTo: u.uid).limit(1).get();
-    if (!mounted) return;
-    Navigator.push(context, MaterialPageRoute(
-        builder: (_) => ShopFormScreen(shopId: mine.docs.isEmpty ? null : mine.docs.first.id)));
-  }
+  Future<void> _openShop() => openMyHomeShop(context);
 
   @override
   Widget build(BuildContext context) {
+    // the standalone Home shops page now lives in Market > Home shops
+    if (!widget.embedded) return const MarketplaceScreen(initialTab: 'shops');
     return AnimatedBuilder(
       animation: Listenable.merge([languageNotifier, themeNotifier]),
       builder: (context, _) {
@@ -167,8 +175,9 @@ class _HomeShopsScreenState extends State<HomeShopsScreen> {
             label: Text(tr('Open your shop'), style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
           body: SafeArea(
+            top: !widget.embedded,
             child: CustomScrollView(slivers: [
-              SliverToBoxAdapter(child: Padding(
+              if (!widget.embedded) SliverToBoxAdapter(child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                 child: Row(children: [
                   _circleBtn(Icons.arrow_back_rounded, () => Navigator.pop(context), tr('Back')),
@@ -180,7 +189,7 @@ class _HomeShopsScreenState extends State<HomeShopsScreen> {
                 ]),
               )),
               SliverToBoxAdapter(child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                padding: EdgeInsets.fromLTRB(16, widget.embedded ? 4 : 16, 16, 12),
                 child: Container(
                   height: 52,
                   decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(26)),
@@ -1039,5 +1048,40 @@ class HomeShopsAdminTab extends StatelessWidget {
         },
       ),
     ]);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SEARCH — home shops (and their products) that match the Market search
+// ═══════════════════════════════════════════════════════════
+class HomeShopSearchResults extends StatelessWidget {
+  final String query; // lower case
+  const HomeShopSearchResults({super.key, required this.query});
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _shops.where('status', isEqualTo: 'approved').snapshots(),
+      builder: (_, snap) {
+        final hits = (snap.data?.docs ?? []).where((doc) {
+          final d = doc.data();
+          final hay = [d['name'], d['description'], d['area'], d['city'], ...(d['productNames'] as List? ?? [])]
+              .map(_s).join(' ').toLowerCase();
+          return hay.contains(query);
+        }).take(3).toList();
+        if (hits.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              _chip(tr('Home shop'), bg: kTintGreen, icon: Icons.storefront_outlined),
+              const SizedBox(width: 8),
+              Text('${hits.length}', style: tsTitleMd(color: kTextSub)),
+            ]),
+            const SizedBox(height: 8),
+            for (final h in hits) Padding(padding: const EdgeInsets.only(bottom: 8), child: _ShopTile(id: h.id, d: h.data())),
+          ]),
+        );
+      },
+    );
   }
 }

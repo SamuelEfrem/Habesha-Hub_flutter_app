@@ -631,6 +631,16 @@ class AppTranslations {
     'e.g. Family of 3 looking for a flat': {'Tigrinya': 'ንኣብነት 3 ሰባት ዘለዋ ስድራ ገዛ ትደሊ', 'Amharic': 'ለምሳሌ 3 ሰዎች ያሉት ቤተሰብ ቤት ይፈልጋል'},
     'listings': {'Tigrinya': 'መወዓውዒታት', 'Amharic': 'ማስታወቂያዎች'},
     'rooms': {'Tigrinya': 'ክፍልታት', 'Amharic': 'ክፍሎች'},
+    // Market tabs
+    'Press Market on the home screen. At the top you choose Listings, Home shops or Housing.': {'Tigrinya': 'ኣብ ቀንዲ ገጽ ዕዳጋ ጠውቕ። ኣብ ላዕሊ መወዓውዒታት፡ ቤት ዕዳጋ ወይ ገዛ ትመርጽ።', 'Amharic': 'በዋናው ገጽ ገበያን ይጫኑ። ከላይ ማስታወቂያዎች፣ የቤት ሱቆች ወይም ቤት ይመርጣሉ።'},
+    'Use the search to find items and home shops. Each result shows if it is an item or a home shop.': {'Tigrinya': 'ኣቑሑን ቤት ዕዳጋን ንምርካብ ድሌት ተጠቐም። ነፍሲ ወከፍ ውጽኢት ኣቕሓ ድዩ ወይ ቤት ዕዳጋ የርኢ።', 'Amharic': 'ዕቃዎችንና የቤት ሱቆችን ለማግኘት ፍለጋን ይጠቀሙ። እያንዳንዱ ውጤት ዕቃ ወይም የቤት ሱቅ መሆኑን ያሳያል።'},
+    'To sell: press + and choose Sell an item. Add photos, choose For sale, Swap, For rent (price per day) or Free.': {'Tigrinya': 'ንምሻጥ፦ + ጠውቕ እሞ ኣቕሓ ሸጥ ምረጽ። ስእልታት ወስኽ፡ ይሽየጥ፡ ምልዋጥ፡ ንክራይ (ዋጋ ንመዓልቲ) ወይ ብነጻ ምረጽ።', 'Amharic': 'ለመሸጥ፦ + ይጫኑና ዕቃ ሽጥ ይምረጡ። ፎቶዎች ይጨምሩ፣ ይሸጣል፣ ልውውጥ፣ ለኪራይ (ዋጋ በቀን) ወይም በነጻ ይምረጡ።'},
+    'Your own shop: Market > + > Open your home shop. Add a photo, name, area, WhatsApp number and products.': {'Tigrinya': 'ናትካ ድኳን፦ ዕዳጋ > + > ቤት ዕዳጋኻ ክፈት። ስእሊ፡ ስም፡ ከባቢ፡ ቁጽሪ ዋትስኣፕን ፍርያትን ወስኽ።', 'Amharic': 'የራስዎ ሱቅ፦ ገበያ > + > የቤት ሱቅዎን ይክፈቱ። ፎቶ፣ ስም፣ አካባቢ፣ የዋትስአፕ ቁጥርና ምርቶች ይጨምሩ።'},
+    'Market > Home shops: small sellers who make things at home – injera, spices, coffee, clothes, beauty, crafts.': {'Tigrinya': 'ዕዳጋ > ቤት ዕዳጋ፦ ኣብ ገዛ ዝሰርሑ ንኣሽቱ ሸየጥቲ – እንጀራ፡ ቀመማት፡ ቡን፡ ክዳን፡ ጽባቐ፡ ኢደ-ጥበብ።', 'Amharic': 'ገበያ > የቤት ሱቆች፦ በቤት የሚሰሩ ትናንሽ ሻጮች – እንጀራ፣ ቅመማ ቅመም፣ ቡና፣ ልብስ፣ ውበት፣ የእጅ ሥራ።'},
+    'Market > Housing: flats and rooms for rent, short-term, and people looking for housing.': {'Tigrinya': 'ዕዳጋ > ገዛ፦ ንክራይ ዝኾኑ ኣባይትን ክፍልታትን፡ ንሓጺር እዋን፡ ከምኡውን ገዛ ዝደልዩ ሰባት።', 'Amharic': 'ገበያ > ቤት፦ ለኪራይ አፓርታማዎችና ክፍሎች፣ ለአጭር ጊዜ፣ እንዲሁም ቤት የሚፈልጉ ሰዎች።'},
+    'Filter by type, city, max price, rooms and furnished. Tap a listing to see photos and contact the owner.': {'Tigrinya': 'ብዓይነት፡ ከተማ፡ ዝለዓለ ዋጋ፡ ክፍልታትን ኣቑሑ ዘለዎን ምረጽ። ስእልታት ንምርኣይን ንወናኒ ንምርካብን መወዓውዒ ጠውቕ።', 'Amharic': 'በዓይነት፣ ከተማ፣ ከፍተኛ ዋጋ፣ ክፍሎችና ዕቃ ያለው ያጣሩ። ፎቶዎችን ለማየትና ባለቤቱን ለማግኘት ማስታወቂያውን ይንኩ።'},
+    'To rent out: Market > + > Rent out housing. Only the area is shown, never your address.': {'Tigrinya': 'ንምክራይ፦ ዕዳጋ > + > ገዛ ኣካርን። ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን።', 'Amharic': 'ለማከራየት፦ ገበያ > + > ቤት ያከራዩ። የሚታየው አካባቢው ብቻ ነው፣ አድራሻዎ በፍጹም አይታይም።'},
+    'Home shop': {'Tigrinya': 'ቤት ዕዳጋ', 'Amharic': 'የቤት ሱቅ'},
   };
 
   static String get(String key) {

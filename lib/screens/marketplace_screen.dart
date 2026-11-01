@@ -13,6 +13,7 @@ import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import 'auth_screen.dart';
 import 'housing_screen.dart';
+import 'home_shops_screen.dart';
 import '../utils/translations.dart';
 
 // ═══════════════════════════════════════════════════════════
@@ -155,8 +156,13 @@ Widget _formLabel(String text) => Padding(
       child: Text(text, style: tsTitleMd(color: kText)),
     );
 
+/// Market tabs: one item sold once · a home seller with several products · housing
+const kMarketTabs = ['listings', 'shops', 'housing'];
+
 class MarketplaceScreen extends StatefulWidget {
-  const MarketplaceScreen({super.key});
+  /// 'listings', 'shops' or 'housing'; null = the tab the user had last time
+  final String? initialTab;
+  const MarketplaceScreen({super.key, this.initialTab});
   @override
   State<MarketplaceScreen> createState() => _MarketplaceScreenState();
 }
@@ -164,6 +170,7 @@ class MarketplaceScreen extends StatefulWidget {
 class _MarketplaceScreenState extends State<MarketplaceScreen> {
   final _db = FirebaseFirestore.instance;
   String _selectedCategory = 'All';
+  String _tab = 'listings';
   bool _pendingOnly = false;   // admin: show only listings waiting for approval
   String _nameFilter = '';
   bool _locating = false;
@@ -189,6 +196,83 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
   String _dealFilter = '', _sizeFilter = '', _occFilter = '';
 
+  @override
+  void initState() {
+    super.initState();
+    if (kMarketTabs.contains(widget.initialTab)) {
+      _tab = widget.initialTab!;
+      _saveTab(_tab);
+    } else {
+      SharedPreferences.getInstance().then((p) {
+        final t = p.getString('market_tab');
+        if (mounted && kMarketTabs.contains(t)) setState(() => _tab = t!);
+      });
+    }
+  }
+
+  void _saveTab(String t) => SharedPreferences.getInstance().then((p) => p.setString('market_tab', t));
+
+  // Listings · Home shops · Housing — green pills like the rest of the app
+  Widget _tabBar() {
+    final labels = {'listings': _mt('Listings', 'መወዓውዒታት', 'ማስታወቂያዎች'), 'shops': tr('Home shops'), 'housing': tr('Housing')};
+    final icons = {'listings': Icons.sell_outlined, 'shops': Icons.storefront_outlined, 'housing': Icons.home_work_outlined};
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(100)),
+      child: Row(children: [
+        for (final k in kMarketTabs)
+          Expanded(child: Material(
+            color: _tab == k ? kSecondary : Colors.transparent,
+            shape: const StadiumBorder(),
+            child: InkWell(
+              customBorder: const StadiumBorder(),
+              onTap: () { setState(() => _tab = k); _saveTab(k); },
+              child: SizedBox(height: 42, child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(icons[k], size: 17, color: _tab == k ? kOnAccent : kText),
+                const SizedBox(width: 5),
+                Flexible(child: Text(labels[k]!, maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: tsTitleMd(color: _tab == k ? kOnAccent : kText).copyWith(fontSize: 13))),
+              ])),
+            ),
+          )),
+      ]),
+    );
+  }
+
+  /// "+": what do you want to add?
+  void _addMenu(BuildContext context, String Function(String) t) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(_mt('What do you want to add?', 'እንታይ ክትውስኽ ትደሊ?', 'ምን መጨመር ይፈልጋሉ?'), style: tsHeadlineSm(color: kText)),
+          const SizedBox(height: 8),
+          for (final (icon, label, sub, go) in [
+            (Icons.sell_outlined, _mt('Sell an item', 'ኣቕሓ ሸጥ', 'ዕቃ ሽጥ'),
+                _mt('One thing: sell, swap, rent out or give away', 'ሓደ ነገር፦ ሸጥ፡ ቀይር፡ ኣካርን ወይ ሃብ', 'አንድ ነገር፦ ሽጥ፣ ቀይር፣ አከራይ ወይም ስጥ'),
+                () => _sell(context, t)),
+            (Icons.storefront_outlined, _mt('Open your home shop', 'ቤት ዕዳጋኻ ክፈት', 'የቤት ሱቅዎን ይክፈቱ'),
+                _mt('Sell several things you make at home', 'ኣብ ገዛ እትሰርሖም ብዙሓት ነገራት ሸጥ', 'በቤት የሚሰሯቸውን ብዙ ነገሮች ይሽጡ'),
+                () => openMyHomeShop(context)),
+            (Icons.home_work_outlined, _mt('Rent out housing', 'ገዛ ኣካርን', 'ቤት ያከራዩ'),
+                _mt('A flat, a room or short-term', 'ገዛ፡ ክፍሊ ወይ ንሓጺር እዋን', 'አፓርታማ፣ ክፍል ወይም ለአጭር ጊዜ'),
+                () => openHousingForm(context)),
+          ])
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(width: 44, height: 44, decoration: BoxDecoration(color: kTintGreen, shape: BoxShape.circle),
+                  child: Icon(icon, color: kInkGreen)),
+              title: Text(label, style: tsTitleMd(color: kText)),
+              subtitle: Text(sub, style: tsBodySm(color: kTextSub)),
+              onTap: () { Navigator.pop(ctx); go(); },
+            ),
+        ]),
+      )),
+    );
+  }
+
   void _applyFilters() {
     var docs = List<QueryDocumentSnapshot>.from(_allDocs);
     if (_dealFilter.isNotEmpty) docs = docs.where((d) => _dealOf(d.data() as Map) == _dealFilter).toList();
@@ -211,6 +295,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     setState(() => _filteredDocs = docs);
   }
 
+  List<Map<String, String>> get _chipCats => _categories.where((c) => c['key'] != 'Housing').toList();
+
   List<QueryDocumentSnapshot> get _displayDocs {
     final hasFilter = _nameFilter.isNotEmpty || _cityFilter.isNotEmpty || _selectedCategory != 'All' ||
         _dealFilter.isNotEmpty || _sizeFilter.isNotEmpty || _occFilter.isNotEmpty;
@@ -229,10 +315,10 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           appBar: AppBar(
             backgroundColor: kCard,
             iconTheme: IconThemeData(color: kSecondary),
-            title: Text(t('marketplace_title'), style: tsTitleMd(color: kSecondary)),
+            title: Text(t('marketplace_title'), style: tsTitleMd(color: kText).copyWith(fontSize: 18)),
             actions: [
               GestureDetector(
-                  onTap: () => _sell(context, t),
+                  onTap: () => _addMenu(context, t),
                   child: Container(
                     margin: const EdgeInsets.only(right: 16),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
@@ -247,6 +333,10 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             ],
           ),
           body: Column(children: [
+            _tabBar(),
+            Expanded(child: _tab == 'shops' ? const HomeShopsScreen(embedded: true)
+                : _tab == 'housing' ? const HousingScreen(embedded: true)
+                : Column(children: [
             // ── Name search ─────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -343,16 +433,12 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _categories.length,
+                itemCount: _chipCats.length,
                 itemBuilder: (_, i) {
-                  final cat = _categories[i];
+                  final cat = _chipCats[i];
                   final sel = _selectedCategory == cat['key'];
                   return GestureDetector(
                     onTap: () {
-                      if (cat['key'] == 'Housing') {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const HousingScreen()));
-                        return;
-                      }
                       setState(() {
                         _selectedCategory = cat['key']!;
                         if (_selectedCategory != _kHabesha) { _sizeFilter = ''; _occFilter = ''; }
@@ -408,6 +494,20 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               ]),
             ],
             const SizedBox(height: 2),
+            // ── Search: matching home shops first (a different type than items) ──
+            if (_nameFilter.isNotEmpty) HomeShopSearchResults(query: _nameFilter),
+            if (_nameFilter.isNotEmpty) Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Align(alignment: Alignment.centerLeft, child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(color: kTintBlue, borderRadius: BorderRadius.circular(100)),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.sell_outlined, size: 15, color: kInkBlue),
+                  const SizedBox(width: 5),
+                  Text(_mt('Items', 'ኣቑሑ', 'ዕቃዎች'), style: tsBodySm(color: kText).copyWith(fontWeight: FontWeight.w600, fontSize: 13)),
+                ]),
+              )),
+            ),
             // ── Listings ────────────────────────────────
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
@@ -509,6 +609,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 },
               ),
             ),
+          ])),
           ]),
         );
       },

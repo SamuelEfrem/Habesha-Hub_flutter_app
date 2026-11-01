@@ -12,6 +12,7 @@ import '../utils/language_notifier.dart';
 import '../utils/theme_notifier.dart';
 import '../utils/translations.dart';
 import 'auth_screen.dart';
+import 'marketplace_screen.dart';
 
 // ═══════════════════════════════════════════════════════════
 // HOUSING (Market > Housing) — rent out or look for apartments and rooms.
@@ -125,8 +126,17 @@ Future<User?> _realUser(BuildContext context) async {
 // ═══════════════════════════════════════════════════════════
 // LIST with filters
 // ═══════════════════════════════════════════════════════════
+/// Opens the form for a new housing listing (guests log in first).
+Future<void> openHousingForm(BuildContext context) async {
+  final u = await _realUser(context);
+  if (u == null || !context.mounted) return;
+  Navigator.push(context, MaterialPageRoute(builder: (_) => const HousingFormScreen()));
+}
+
 class HousingScreen extends StatefulWidget {
-  const HousingScreen({super.key});
+  /// true = shown as a tab inside the Market (no own header / back button)
+  final bool embedded;
+  const HousingScreen({super.key, this.embedded = false});
   @override
   State<HousingScreen> createState() => _HousingScreenState();
 }
@@ -153,14 +163,12 @@ class _HousingScreenState extends State<HousingScreen> {
     return true;
   }
 
-  Future<void> _add() async {
-    final u = await _realUser(context);
-    if (u == null || !mounted) return;
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const HousingFormScreen()));
-  }
+  Future<void> _add() => openHousingForm(context);
 
   @override
   Widget build(BuildContext context) {
+    // the standalone Housing page now lives in Market > Housing
+    if (!widget.embedded) return const MarketplaceScreen(initialTab: 'housing');
     final weekAgo = Timestamp.fromDate(DateTime.now().subtract(const Duration(days: 7)));
     return AnimatedBuilder(
       animation: Listenable.merge([languageNotifier, themeNotifier]),
@@ -176,6 +184,7 @@ class _HousingScreenState extends State<HousingScreen> {
             label: Text(tr('Add housing'), style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
           body: SafeArea(
+            top: !widget.embedded,
             child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: _col.where('status', isEqualTo: 'approved').orderBy('createdAt', descending: true).snapshots(),
               builder: (_, live) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -185,7 +194,7 @@ class _HousingScreenState extends State<HousingScreen> {
                 builder: (_, rented) {
                   final docs = [...?live.data?.docs, ...?rented.data?.docs].where((d) => _match(d.data())).toList();
                   return CustomScrollView(slivers: [
-                    SliverToBoxAdapter(child: Padding(
+                    if (!widget.embedded) SliverToBoxAdapter(child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                       child: Row(children: [
                         _circleBtn(Icons.arrow_back_rounded, () => Navigator.pop(context), tr('Back')),
@@ -244,7 +253,7 @@ class _HousingScreenState extends State<HousingScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       child: Text('${docs.length} ${tr('listings')}', style: tsTitleMd(color: kTextSub)),
                     )),
-                    if (!live.hasData)
+                    if (!live.hasData && !live.hasError)
                       SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.all(40),
                           child: Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2))))
                     else if (docs.isEmpty)
