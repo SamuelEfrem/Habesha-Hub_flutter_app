@@ -562,7 +562,8 @@ const TXT={
 };
 const PED={ti:["ፍሬን","ነዳዲ"],am:["ፍሬን","ነዳጅ"],en:["Brake","Gas"],no:["Brems","Gass"]};
 const QSD=new URLSearchParams(location.search);
-let LANG=QSD.get("lang")||"ti";try{LANG=localStorage.getItem("dl-lang")||LANG}catch(e){}
+const APP_LANG=QSD.get("lang")||"ti",LANG_KEY="dl-lang-"+APP_LANG;
+let LANG=APP_LANG;try{LANG=localStorage.getItem(LANG_KEY)||LANG}catch(e){}
 if(!TXT[LANG])LANG="ti";
 let TI=TXT[LANG];
 const VOICE={ti:"ti-ER",am:"am-ET",en:"en-GB",no:"nb-NO"};
@@ -841,7 +842,7 @@ function drawMenu(){TI=TXT[LANG];document.documentElement.lang=LANG;preloadVoice
     <p class="small">${TI.passRule}</p>${langs}<p class="keys">${TI.tap}</p><button class="btn" id="go">${TI.start} → ${DESTS[destI][1]}</button>`;$("ov").hidden=false;
   $("dests").onclick=e=>{const b=e.target.closest("[data-i]");if(!b)return;destI=+b.dataset.i;newRoute(true);drawMenu()};
   $("go").onclick=startLesson;bindLangs()}
-function bindLangs(){$("dLangs").onclick=e=>{const b=e.target.closest("[data-l]");if(!b)return;LANG=b.dataset.l;tiFallback=false;try{localStorage.setItem("dl-lang",LANG)}catch(err){}drawMenu()}}
+function bindLangs(){$("dLangs").onclick=e=>{const b=e.target.closest("[data-l]");if(!b)return;LANG=b.dataset.l;tiFallback=false;try{localStorage.setItem(LANG_KEY,LANG)}catch(err){}drawMenu()}}
 // steering wheel: drag left/right
 (function(){const pad=$("wheel"),k=$("wheelK");let id=null,x0=0;
   pad.addEventListener("pointerdown",e=>{e.preventDefault();id=e.pointerId;x0=e.clientX;pad.setPointerCapture(id);P.steer=0});
