@@ -796,7 +796,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
     if (!_isRealUser(user)) return _loginRequired();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.paddingOf(context).bottom),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
           padding: const EdgeInsets.all(16),

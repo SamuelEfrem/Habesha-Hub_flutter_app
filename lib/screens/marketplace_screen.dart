@@ -704,7 +704,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           builder: (_, ctrl) => SingleChildScrollView(
             controller: ctrl,
             padding: EdgeInsets.fromLTRB(
-              20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+              20, 20, 20, MediaQuery.of(context).viewInsets.bottom + MediaQuery.paddingOf(context).bottom + 20),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Center(child: Container(
                 width: 40, height: 4,
