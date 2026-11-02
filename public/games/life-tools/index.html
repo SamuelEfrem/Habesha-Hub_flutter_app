@@ -503,6 +503,7 @@ function drawTheoryHome(){if(run)return;const pro=isPro("theory_pro");
    <button class="btn" data-run="sign" style="text-align:left">🚸 ልምምድ ምልክታት<small>${ns} ሕቶታት ብስእሊ ምልክታት</small></button>
    <button class="btn" data-run="exam" style="text-align:left">📝 ፈተና ከም ናይ ሓቂ<small>${examN()} ሕቶታት፡ ክሳብ ${examMaxWrong()} ጌጋ ትሓልፍ፡ ውጽኢት ኣብ መወዳእታ</small></button>
    <button class="btn ghost" data-run="gallery">📖 ኩሎም ምልክታት ተማሃር (${SIGNS.length})</button>
+   ${pro?"":`<a class="btn" href="../driving/${location.search}" style="text-align:left;text-decoration:none;background:#1f7a4a">🚗 ናጻ ምዝዋር<small>ንኹሉ ብነጻ፡ ኣብ ዝደለኻዮ ዘውር</small></a>`}
    ${pro?`<div class="probox"><b>✓ ምሉእ ኮርስ ክፉት እዩ</b><a class="btn" href="../driving/${location.search}" style="text-align:left;text-decoration:none;background:#1f7a4a">🚦 ፈተና ምዝዋር ብመኪና<small>ምስ መምህር ብድምጺ፡ GPS፡ ሕግታት ትራፊክ፡ ፓርክ</small></a></div>`
     :`<div class="lock"><div><b>🔒 ምሉእ ኮርስ</b><ul class="locklist"><li>📘 ${PRO_TOTAL} ተወሳኺ ሕቶታት: ምልክታት፡ መብራህቲ፡ መስመራት ጽርግያ፡ ቀዳማይ ረድኤት፡ ኣውቶስትራዳ</li><li>🚦 ፈተና ምዝዋር ብመኪና ምስ መምህር ብድምጺ</li></ul></div><button class="btn" data-buy="theory_pro">🔓 ክፈት ብኮድ</button></div><p class="muted" id="buyMsg"></p>`}`}
 // the driving test links straight to the right practice
