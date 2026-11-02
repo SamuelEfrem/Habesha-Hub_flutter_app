@@ -1,6 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'user_guide_screen.dart';
-import 'package:share_plus/share_plus.dart';
+import '../utils/share_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -449,7 +449,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     _user = FirebaseAuth.instance.currentUser;
-    setState(() {
+    if (mounted) setState(() {
       _nicknameCtrl.text = _user?.displayName ?? prefs.getString('nickname') ?? '';
       _selectedLang = languageNotifier.language;
     });
@@ -461,11 +461,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _loadingBiz = true);
     try {
       final snap = await FirebaseFirestore.instance.collection('businesses').where('ownerId', isEqualTo: _user!.uid).get();
-      setState(() {
+      if (mounted) setState(() {
         _myBusinesses = snap.docs.map((d) => Business.fromFirestore(d.data(), d.id)).toList();
         _loadingBiz = false;
       });
-    } catch (_) { setState(() => _loadingBiz = false); }
+    } catch (_) { if (mounted) setState(() => _loadingBiz = false); }
   }
 
   String get _initial {
@@ -668,7 +668,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
                 ],
                 GestureDetector(
-                  onTap: () => Share.share(tr('Check out Habesha Hub!\n\nFind Ethiopian & Eritrean businesses near you.\n\nDownload now: https://habesha-hub.no/download.html')),
+                  onTap: () => shareText(tr('Check out Habesha Hub!\n\nFind Ethiopian & Eritrean businesses near you.\n\nDownload now: https://habesha-hub.no/download.html')),
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), ),
@@ -865,7 +865,7 @@ class _ContactScreenState extends State<ContactScreen> {
     final body = Uri.encodeComponent('From: ${_nameCtrl.text.trim()}\nEmail: ${_emailCtrl.text.trim()}\n\nMessage:\n${_msgCtrl.text.trim()}');
     final url = Uri.parse('mailto:support@habesha-hub.no?subject=$subject&body=$body');
     if (await canLaunchUrl(url)) await launchUrl(url);
-    setState(() { _sending = false; _sent = true; });
+    if (mounted) setState(() { _sending = false; _sent = true; });
   }
 
   @override

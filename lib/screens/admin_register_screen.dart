@@ -76,12 +76,12 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
         'openingHours': {},
         'source': 'google_places',
       });
-      setState(() {
+      if (mounted) setState(() {
         _success = true;
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
+      if (mounted) setState(() {
         _error = 'Feil ved lagring: $e';
         _isLoading = false;
       });

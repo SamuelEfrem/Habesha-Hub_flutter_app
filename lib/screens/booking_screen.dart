@@ -21,6 +21,7 @@ class BookingScreen extends StatefulWidget {
 class _BookingScreenState extends State<BookingScreen> {
   final _db = FirebaseFirestore.instance;
   final _messageCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   String _selectedTime = '10:00';
   bool _sending = false;
@@ -51,7 +52,7 @@ class _BookingScreenState extends State<BookingScreen> {
   Future<void> _loadNickname() async {
     final user = FirebaseAuth.instance.currentUser;
     final prefs = await SharedPreferences.getInstance();
-    setState(() => _nickname = user?.displayName ??
+    if (mounted) setState(() => _nickname = user?.displayName ??
         prefs.getString('nickname') ??
         languageNotifier.t('guest'));
   }
@@ -59,6 +60,11 @@ class _BookingScreenState extends State<BookingScreen> {
   Future<void> _sendBooking() async {
     final t = languageNotifier.t;
     if (_messageCtrl.text.isEmpty) return;
+    if (_phoneCtrl.text.replaceAll(RegExp(r'[^0-9]'), '').length < 8) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr('Please enter your WhatsApp number with country code (e.g. +47…)'))));
+      return;
+    }
     setState(() => _sending = true);
     final user = FirebaseAuth.instance.currentUser;
 
@@ -69,6 +75,8 @@ class _BookingScreenState extends State<BookingScreen> {
       'ownerEmail': widget.business.ownerEmail,
       'userId': user?.uid ?? 'guest',
       'nickname': _nickname,
+      'userEmail': user?.email ?? '',
+      'phone': _phoneCtrl.text.trim(),
       'date': Timestamp.fromDate(_selectedDate),
       'time': _selectedTime,
       'message': _messageCtrl.text.trim(),
@@ -84,7 +92,7 @@ class _BookingScreenState extends State<BookingScreen> {
       data: {'type': 'booking', 'businessId': widget.business.id},
     );
 
-    setState(() => _sending = false);
+    if (mounted) setState(() => _sending = false);
     if (mounted) {
       showDialog(
         context: context,
@@ -184,7 +192,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       child: child!,
                     ),
                   );
-                  if (picked != null) setState(() => _selectedDate = picked);
+                  if ((picked != null) && mounted) setState(() => _selectedDate = picked);
                 },
                 child: Container(
                   padding: const EdgeInsets.all(16),
@@ -237,6 +245,17 @@ class _BookingScreenState extends State<BookingScreen> {
                     );
                   },
                 ),
+              ),
+              const SizedBox(height: 20),
+
+              // Phone
+              Text(tr('WhatsApp number'), style: tsLabel()),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _phoneCtrl,
+                keyboardType: TextInputType.phone,
+                style: tsBodyLg(color: kText),
+                decoration: const InputDecoration(hintText: '+47…'),
               ),
               const SizedBox(height: 20),
 
@@ -295,6 +314,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   void dispose() {
     _messageCtrl.dispose();
+    _phoneCtrl.dispose();
     super.dispose();
   }
 }

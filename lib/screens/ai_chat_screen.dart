@@ -93,7 +93,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     final dir = await getTemporaryDirectory();
     final path = '${dir.path}/habesha_ai_${DateTime.now().millisecondsSinceEpoch}.wav';
     await _rec.start(const RecordConfig(encoder: AudioEncoder.wav, sampleRate: 16000, numChannels: 1), path: path);
-    setState(() { _recording = true; _recSeconds = 0; });
+    if (mounted) setState(() { _recording = true; _recSeconds = 0; });
     _recTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
       setState(() => _recSeconds++);
@@ -105,7 +105,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     _recTimer?.cancel();
     if (!_recording) return;
     final path = await _rec.stop();
-    setState(() => _recording = false);
+    if (mounted) setState(() => _recording = false);
     if (path == null) return;
     final file = File(path);
     final bytes = await file.readAsBytes();
@@ -117,7 +117,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
   Future<void> _cancelRecord() async {
     _recTimer?.cancel();
     await _rec.cancel();
-    setState(() => _recording = false);
+    if (mounted) setState(() => _recording = false);
   }
 
   // ── photos: camera or gallery ──
@@ -202,7 +202,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
           userMsg.text = (nl > 0 ? reply.substring(0, nl) : reply).trim();
           reply = nl > 0 ? reply.substring(nl).trim() : '';
         }
-        setState(() => _messages.add(_ChatMessage(
+        if (mounted) setState(() => _messages.add(_ChatMessage(
               isUser: false,
               text: reply.isEmpty ? '…' : reply,
               action: data['action'] == 'login'

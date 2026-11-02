@@ -762,10 +762,10 @@ class _ShopFormScreenState extends State<ShopFormScreen> {
     final user = await _realUser(context);
     if (user == null) return;
     if (_name.text.trim().isEmpty || _area.text.trim().isEmpty || _digits(_whatsapp.text).length < 7) {
-      setState(() => _error = tr('Please write the shop name, area and a WhatsApp number.'));
+      if (mounted) setState(() => _error = tr('Please write the shop name, area and a WhatsApp number.'));
       return;
     }
-    setState(() { _saving = true; _error = ''; });
+    if (mounted) setState(() { _saving = true; _error = ''; });
     try {
       if (_photo != null) _photoUrl = await _upload(user.uid, _photo!);
       final names = <String>[];

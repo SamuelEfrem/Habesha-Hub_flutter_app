@@ -624,7 +624,7 @@ class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
     await _db.collection('unlock_codes').doc(code).set({
       'product': _product, 'phone': phone, 'used': false, 'createdAt': FieldValue.serverTimestamp(),
     });
-    setState(() => _busy = false);
+    if (mounted) setState(() => _busy = false);
     if (!mounted) return;
     if (phone.isNotEmpty) {
       _sendOnWhatsApp(code, phone, _product);

@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:share_plus/share_plus.dart';
+import '../utils/share_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
@@ -503,7 +503,7 @@ class HousingDetailScreen extends StatelessWidget {
                 Positioned(left: 16, top: MediaQuery.paddingOf(context).top + 8,
                     child: _circleBtn(Icons.arrow_back_rounded, () => Navigator.pop(context), tr('Back'), bg: kBg)),
                 Positioned(right: 16, top: MediaQuery.paddingOf(context).top + 8, child: Row(children: [
-                  _circleBtn(Icons.share_outlined, () => Share.share(
+                  _circleBtn(Icons.share_outlined, () => shareText(
                       '🏠 ${_s(d['title'])}\n${_priceLine(d)}\n$where\n\nhttps://habesha-hub.no/m/$id'), tr('Share'), bg: kBg),
                   const SizedBox(width: 8),
                   _circleBtn(Icons.flag_outlined, () => _report(context, d), tr('Report listing'), bg: kBg, fg: kRed),
@@ -717,7 +717,7 @@ class _HousingFormScreenState extends State<HousingFormScreen> {
         lastDate: now.add(const Duration(days: 730)), initialDate: now);
     if (d == null) return;
     final iso = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-    setState(() => moveIn ? _moveIn = iso : _availableFrom = iso);
+    if (mounted) setState(() => moveIn ? _moveIn = iso : _availableFrom = iso);
   }
 
   Future<void> _submit() async {
@@ -727,12 +727,12 @@ class _HousingFormScreenState extends State<HousingFormScreen> {
     if (_title.text.trim().isEmpty || _city.text.trim().isEmpty ||
         (_digits(_whatsapp.text).length < 7 && _digits(_phone.text).length < 7) ||
         (!looking && _n(_rent.text) == null)) {
-      setState(() => _error = looking
+      if (mounted) setState(() => _error = looking
           ? tr('Please write a title, city and a WhatsApp or phone number.')
           : tr('Please write a title, city, price per month and a WhatsApp or phone number.'));
       return;
     }
-    setState(() { _saving = true; _error = ''; });
+    if (mounted) setState(() { _saving = true; _error = ''; });
     try {
       final urls = [..._kept];
       for (final f in _new) {
@@ -859,7 +859,7 @@ class _HousingFormScreenState extends State<HousingFormScreen> {
                         onTap: () async {
                           final picked = await ImagePicker().pickMultiImage(imageQuality: 80, maxWidth: 1600);
                           final room = _maxPhotos - _kept.length - _new.length;
-                          setState(() => _new.addAll(picked.take(room).map((x) => File(x.path))));
+                          if (mounted) setState(() => _new.addAll(picked.take(room).map((x) => File(x.path))));
                         },
                         child: Container(
                           width: 96,

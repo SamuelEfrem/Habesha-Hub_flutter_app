@@ -3,7 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:share_plus/share_plus.dart';
+import '../utils/share_helper.dart';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import '../utils/translations.dart';
@@ -34,7 +34,7 @@ String providerSlug(Map<String, dynamic> data) {
 void shareProvider(Map<String, dynamic> data) {
   final name = serviceText(data, 'publicName');
   final url = 'https://habesha-hub.no/p/${providerSlug(data)}';
-  Share.share('$name — Habesha Hub\n${tr('See photos, videos and book here')}:\n$url');
+  shareText('$name — Habesha Hub\n${tr('See photos, videos and book here')}:\n$url');
 }
 
 // ───────────────────────────────────────────────────────────

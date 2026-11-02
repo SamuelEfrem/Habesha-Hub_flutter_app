@@ -21,6 +21,7 @@ class HotelBookingScreen extends StatefulWidget {
 class _HotelBookingScreenState extends State<HotelBookingScreen> {
   final _db = FirebaseFirestore.instance;
   final _messageCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   DateTime _checkIn = DateTime.now().add(const Duration(days: 1));
   DateTime _checkOut = DateTime.now().add(const Duration(days: 2));
   int _guests = 1;
@@ -37,7 +38,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
   Future<void> _loadNickname() async {
     final user = FirebaseAuth.instance.currentUser;
     final prefs = await SharedPreferences.getInstance();
-    setState(() => _nickname = user?.displayName ?? prefs.getString('nickname') ?? 'Guest');
+    if (mounted) setState(() => _nickname = user?.displayName ?? prefs.getString('nickname') ?? 'Guest');
   }
 
   int get _nights => _checkOut.difference(_checkIn).inDays;
@@ -50,6 +51,11 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
       ));
       return;
     }
+    if (_phoneCtrl.text.replaceAll(RegExp(r'[^0-9]'), '').length < 8) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr('Please enter your WhatsApp number with country code (e.g. +47…)'))));
+      return;
+    }
     setState(() => _sending = true);
     final user = FirebaseAuth.instance.currentUser;
     await _db.collection('bookings').add({
@@ -59,6 +65,8 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
       'ownerEmail': widget.business.ownerEmail,
       'userId': user?.uid ?? 'guest',
       'nickname': _nickname,
+      'userEmail': user?.email ?? '',
+      'phone': _phoneCtrl.text.trim(),
       'type': 'hotel',
       'checkIn': Timestamp.fromDate(_checkIn),
       'checkOut': Timestamp.fromDate(_checkOut),
@@ -74,7 +82,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
       body: '$_nickname wants to book ${widget.business.name} - $_nights nights, $_guests guests',
       data: {'type': 'booking', 'businessId': widget.business.id},
     );
-    setState(() { _sending = false; _sent = true; });
+    if (mounted) setState(() { _sending = false; _sent = true; });
   }
 
   @override
@@ -127,7 +135,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                 GestureDetector(
                   onTap: () async {
                     final picked = await showDatePicker(context: context, initialDate: _checkIn, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)));
-                    if (picked != null) setState(() { _checkIn = picked; if (_checkOut.isBefore(_checkIn.add(const Duration(days: 1)))) _checkOut = _checkIn.add(const Duration(days: 1)); });
+                    if ((picked != null) && mounted) setState(() { _checkIn = picked; if (_checkOut.isBefore(_checkIn.add(const Duration(days: 1)))) _checkOut = _checkIn.add(const Duration(days: 1)); });
                   },
                   child: Container(
                     padding: const EdgeInsets.all(14),
@@ -147,7 +155,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                 GestureDetector(
                   onTap: () async {
                     final picked = await showDatePicker(context: context, initialDate: _checkOut, firstDate: _checkIn.add(const Duration(days: 1)), lastDate: DateTime.now().add(const Duration(days: 365)));
-                    if (picked != null) setState(() => _checkOut = picked);
+                    if ((picked != null) && mounted) setState(() => _checkOut = picked);
                   },
                   child: Container(
                     padding: const EdgeInsets.all(14),
@@ -191,6 +199,17 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
                 ),
                 const SizedBox(height: 16),
 
+                // Phone
+                Text(tr('WhatsApp number'), style: tsLabel()),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _phoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  style: tsBodyLg(color: kText),
+                  decoration: const InputDecoration(hintText: '+47…'),
+                ),
+                const SizedBox(height: 16),
+
                 // Message
                 Text(t('special_requests'), style: tsLabel()),
                 const SizedBox(height: 8),
@@ -221,6 +240,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
   @override
   void dispose() {
     _messageCtrl.dispose();
+    _phoneCtrl.dispose();
     super.dispose();
   }
 }

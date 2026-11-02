@@ -822,7 +822,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
                 data: ThemeData.dark().copyWith(colorScheme: ColorScheme.dark(primary: kSecondary, surface: kCard)),
                 child: child!),
             );
-            if (picked != null) setState(() => _selectedDate = picked);
+            if ((picked != null) && mounted) setState(() => _selectedDate = picked);
           },
           child: Container(
             padding: const EdgeInsets.all(14),
@@ -888,7 +888,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
                 content: Text(waError[lang] ?? waError['English']!)));
             return;
           }
-          setState(() => _saving = true);
+          if (mounted) setState(() => _saving = true);
           final ref = _db.collection('service_bookings').doc();
           try {
           // remember the number for next time
@@ -905,6 +905,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
             'country':     widget.country.code,
             'userId':      user.uid,
             'userEmail':   user.email ?? '',
+            'userName':    user.displayName ?? '',
             'date':        _selectedDate.toIso8601String(),
             'notes':       _notesCtrl.text.trim(),
             'status':      'created',

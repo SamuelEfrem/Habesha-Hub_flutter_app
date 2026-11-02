@@ -493,6 +493,7 @@ class AppTranslations {
     'e.g. Grønland': {'Tigrinya': 'ንኣብነት Grønland', 'Amharic': 'ለምሳሌ Grønland'},
     'Only the area is shown. Never write your street address.': {'Tigrinya': 'ከባቢ ጥራይ እዩ ዝርአ። ኣድራሻ ገዛኻ ፈጺምካ ኣይትጽሓፍ።', 'Amharic': 'የሚታየው አካባቢው ብቻ ነው። የቤትዎን አድራሻ በፍጹም አይጻፉ።'},
     'WhatsApp number': {'Tigrinya': 'ቁጽሪ ዋትስኣፕ', 'Amharic': 'የዋትስአፕ ቁጥር'},
+    'Please enter your WhatsApp number with country code (e.g. +47…)': {'Tigrinya': 'በጃኹም ቁጽሪ WhatsApp ምስ ኮድ ሃገር ጽሓፉ (ን.ኣ. +47…)', 'Amharic': 'እባክዎ የ WhatsApp ቁጥር ከአገር ኮድ ጋር ያስገቡ (ለምሳሌ +47…)'},
     'Phone for calls (optional)': {'Tigrinya': 'ተሌፎን ንምድዋል (እንተደሊኻ)', 'Amharic': 'ለጥሪ ስልክ (ከፈለጉ)'},
     'Add product': {'Tigrinya': 'ፍርያት ወስኽ', 'Amharic': 'ምርት ጨምር'},
     'Add what you sell, with a photo and price.': {'Tigrinya': 'እትሸጦ ምስ ስእልን ዋጋን ወስኽ።', 'Amharic': 'የሚሸጡትን ከፎቶና ዋጋ ጋር ይጨምሩ።'},

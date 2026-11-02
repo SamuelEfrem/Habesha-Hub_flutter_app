@@ -188,12 +188,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
       }
       final pos = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
-      setState(() => _position = pos);
+      if (mounted) setState(() => _position = pos);
       final snapshot = await _service.getBusinessesNear(pos.latitude, pos.longitude);
       snapshot.sort((a, b) => a
           .distanceTo(pos.latitude, pos.longitude)
           .compareTo(b.distanceTo(pos.latitude, pos.longitude)));
-      setState(() {
+      if (mounted) setState(() {
         _businesses = snapshot;
         _hasSearched = true;
         _isSearching = false;
@@ -201,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
       _listAnim.forward(from: 0);
     } catch (e) {
       print('GPS Error: ' + e.toString());
-      setState(() => _isSearching = false);
+      if (mounted) setState(() => _isSearching = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Location error: ' + e.toString()),

@@ -32,7 +32,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     final favIds = prefs.getStringList('favorites') ?? [];
     
     if (favIds.isEmpty) {
-      setState(() { _favorites = []; _loading = false; });
+      if (mounted) setState(() { _favorites = []; _loading = false; });
       return;
     }
 
@@ -48,7 +48,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       }
     }
 
-    setState(() { _favorites = businesses; _loading = false; });
+    if (mounted) setState(() { _favorites = businesses; _loading = false; });
   }
 
   @override

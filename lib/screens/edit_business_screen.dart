@@ -125,15 +125,15 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
       if (locations.isNotEmpty) {
         _lat = locations.first.latitude;
         _lng = locations.first.longitude;
-        setState(() => _geoStatus =
+        if (mounted) setState(() => _geoStatus =
             '✓ ${tr('Location')}: ${_lat!.toStringAsFixed(5)}, ${_lng!.toStringAsFixed(5)}');
       } else {
-        setState(() => _geoStatus = tr('⚠ Address not found'));
+        if (mounted) setState(() => _geoStatus = tr('⚠ Address not found'));
       }
     } catch (_) {
-      setState(() => _geoStatus = tr('⚠ Could not find location'));
+      if (mounted) setState(() => _geoStatus = tr('⚠ Could not find location'));
     } finally {
-      setState(() => _geocoding = false);
+      if (mounted) setState(() => _geocoding = false);
     }
   }
 
@@ -156,7 +156,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
       }
       // Keep the old pin rather than moving the business to a made-up place
       if (_lat == null || _lng == null) {
-        setState(() => _saving = false);
+        if (mounted) setState(() => _saving = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(tr('⚠ Address not found. Check and try again.'))));
         return;
@@ -221,7 +221,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
     );
     if (confirm != true) return;
 
-    setState(() => _deleting = true);
+    if (mounted) setState(() => _deleting = true);
     try {
       await _db.collection('businesses').doc(widget.docId).delete();
       if (mounted) {

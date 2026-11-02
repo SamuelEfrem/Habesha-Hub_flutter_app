@@ -19,7 +19,7 @@ import '../utils/language_notifier.dart';
 import '../theme/app_theme.dart';
 import 'edit_business_screen.dart';
 import 'booking_screen.dart';
-import 'package:share_plus/share_plus.dart';
+import '../utils/share_helper.dart';
 import 'package:video_player/video_player.dart';
 import '../utils/translations.dart';
 import 'community_screens.dart';
@@ -242,7 +242,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     final picked =
         await picker.pickImage(source: ImageSource.gallery, imageQuality: 80, maxWidth: 1600);
     if (picked == null) return;
-    setState(() => _uploadingMenu = true);
+    if (mounted) setState(() => _uploadingMenu = true);
     try {
       final file = File(picked.path);
       final ref = FirebaseStorage.instance.ref(
@@ -274,7 +274,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     final picked =
         await picker.pickImage(source: ImageSource.gallery, imageQuality: 80, maxWidth: 1600);
     if (picked == null) return;
-    setState(() => _uploadingMenu = true);
+    if (mounted) setState(() => _uploadingMenu = true);
     try {
       final file = File(picked.path);
       final ref = FirebaseStorage.instance.ref(
@@ -315,7 +315,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     final picked =
         await picker.pickImage(source: ImageSource.gallery, imageQuality: 80, maxWidth: 1600);
     if (picked == null) return;
-    setState(() => _uploadingGallery = true);
+    if (mounted) setState(() => _uploadingGallery = true);
     try {
       final file = File(picked.path);
       final ref = FirebaseStorage.instance.ref(
@@ -347,7 +347,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     final picked = await picker.pickVideo(
         source: ImageSource.gallery, maxDuration: const Duration(seconds: 30));
     if (picked == null) return;
-    setState(() => _uploadingVideo = true);
+    if (mounted) setState(() => _uploadingVideo = true);
     try {
       final file = File(picked.path);
       final ref = FirebaseStorage.instance.ref(
@@ -400,7 +400,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         GestureDetector(
           onTap: () {
             // Link opens a page with photo, directions, call + download
-            Share.share(
+            shareText(
                 '${widget.business.name} – ${tr(widget.business.category)}\n${widget.business.address}\n\nhttps://habesha-hub.no/b/${widget.business.id}');
           },
           child: Padding(
@@ -1494,7 +1494,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                     onTap: () async {
                       final newList = List<String>.from(_localGalleryImages)..removeAt(i);
                       await _db.collection('businesses').doc(widget.business.id).update({'galleryImages': newList});
-                      setState(() => _localGalleryImages = newList);
+                      if (mounted) setState(() => _localGalleryImages = newList);
                     },
                     child: Container(
                       padding: const EdgeInsets.all(4),

@@ -108,7 +108,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
     final urls = <String>[];
     try {
       for (var i = 0; i < picked.length; i++) {
-        setState(() => _uploadStatus = 'Uploading ${i + 1} / ${picked.length}…');
+        if (mounted) setState(() => _uploadStatus = 'Uploading ${i + 1} / ${picked.length}…');
         final file = File(picked[i].path);
         final name = '${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
         final meta = SettableMetadata(contentType: 'image/jpeg');
@@ -211,9 +211,9 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
         data['createdAt'] = FieldValue.serverTimestamp();
         await col.doc(wantedId).set(data);
       }
-      setState(() { _saving = false; _done = true; });
+      if (mounted) setState(() { _saving = false; _done = true; });
     } catch (err) {
-      setState(() => _saving = false);
+      if (mounted) setState(() => _saving = false);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $err')));
     }
@@ -757,6 +757,7 @@ class _ManageBookingsTabState extends State<ManageBookingsTab> {
             _chip('confirmed', 'Confirmed', kGreen),
             _chip('completed', 'Done',      kTextSub),
             _chip('cancelled', 'Cancelled', kRed),
+            _chip('places',    'Places',    kInkBlue),
             const SizedBox(width: 4),
             IconButton(
               tooltip: 'Statistics',
@@ -774,7 +775,7 @@ class _ManageBookingsTabState extends State<ManageBookingsTab> {
         ),
       ),
 
-      Expanded(child: StreamBuilder<QuerySnapshot>(
+      Expanded(child: _filter == 'places' ? const _PlaceBookingsList() : StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('service_bookings')
             .where('status', isEqualTo: _filter)
@@ -821,34 +822,20 @@ class _ManageBookingsTabState extends State<ManageBookingsTab> {
                     _badge(status),
                   ]),
                   const SizedBox(height: 6),
-                  Text('👤 ${serviceStr(data['userEmail'])}', style: tsBodySm(color: kTextSub)),
-                  if (serviceStr(data['whatsapp']).isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    GestureDetector(
-                      onTap: () {
-                        final num = serviceStr(data['whatsapp']).replaceAll(RegExp(r'[^0-9]'), '');
-                        final code = serviceStr(data['bookingCode']).isNotEmpty ? data['bookingCode'] : bookingCode(doc.id);
-                        final msg = 'Hi! This is Habesha Hub about your booking $code – ${serviceStr(data['serviceName'])}.';
-                        launchUrl(Uri.parse('https://wa.me/$num?text=${Uri.encodeComponent(msg)}'),
-                            mode: LaunchMode.externalApplication);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(color: const Color(0xFF25D366).withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(100)),
-                        child: Text('💬 WhatsApp ${serviceStr(data['whatsapp'])}',
-                            style: tsBodySm(color: const Color(0xFF25D366))),
-                      ),
-                    ),
-                  ],
-                  if (serviceStr(data['date']) != '') ...[
-                    const SizedBox(height: 2),
-                    Text('📅 ${data['date'].toString().substring(0, 10)}', style: tsBodySm(color: kTextSub)),
-                  ],
-                  if (serviceStr(data['notes']).isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text('📝 ${data['notes']}', style: tsBodySm(color: kTextSub)),
-                  ],
+                  Text([serviceStr(data['category']), serviceStr(data['country'])].where((x) => x.isNotEmpty).join(' · '),
+                      style: tsBodySm(color: kTextSub)),
+                  const SizedBox(height: 10),
+                  _CustomerBox(
+                    name: serviceStr(data['userName']),
+                    email: serviceStr(data['userEmail']),
+                    phone: serviceStr(data['whatsapp']),
+                    orderedAt: data['createdAt'],
+                    when: serviceStr(data['date']).length >= 10 ? serviceStr(data['date']).substring(0, 10) : '',
+                    need: serviceStr(data['notes']),
+                    waMessage: 'Hi! This is Habesha Hub about your booking '
+                        '${serviceStr(data['bookingCode']).isNotEmpty ? data['bookingCode'] : bookingCode(doc.id)} – ${serviceStr(data['serviceName'])}.',
+                  ),
+                  const SizedBox(height: 8),
                   Text('🔖 ${serviceStr(data['bookingCode']).isNotEmpty ? data['bookingCode'] : bookingCode(doc.id)}'
                       '   ${payCountry(serviceStr(data['payCountry'])).flag} pays from ${payCountry(serviceStr(data['payCountry'])).name}',
                       style: tsBodySm(color: kTextSub)),
@@ -989,5 +976,119 @@ class _ManageBookingsTabState extends State<ManageBookingsTab> {
       'status':    status,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+  }
+}
+
+String _stamp(dynamic t) {
+  if (t is! Timestamp) return '';
+  final d = t.toDate();
+  String two(int n) => n.toString().padLeft(2, '0');
+  return '${two(d.day)}.${two(d.month)}.${d.year} ${two(d.hour)}:${two(d.minute)}';
+}
+
+/// Who ordered, how to reach them and what they need — shown before the booking goes to a supplier.
+class _CustomerBox extends StatelessWidget {
+  final String name, email, phone, when, need, waMessage;
+  final dynamic orderedAt;
+  const _CustomerBox({required this.name, required this.email, required this.phone,
+      required this.when, required this.need, required this.waMessage, this.orderedAt});
+
+  Widget _line(String label, String value) => Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      SizedBox(width: 82, child: Text(label, style: tsBodySm(color: kTextSub))),
+      Expanded(child: SelectableText(value, style: tsBodySm(color: kText))),
+    ]),
+  );
+
+  Widget _btn(IconData icon, String label, Color color, Uri uri) => Expanded(child: OutlinedButton.icon(
+    onPressed: () => launchUrl(uri, mode: LaunchMode.externalApplication),
+    style: OutlinedButton.styleFrom(foregroundColor: color, side: BorderSide(color: color.withOpacity(0.4)),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8)),
+    icon: Icon(icon, size: 16),
+    label: Text(label, style: tsBodySm(color: color), maxLines: 1, overflow: TextOverflow.ellipsis),
+  ));
+
+  @override
+  Widget build(BuildContext context) {
+    final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: kBg, borderRadius: BorderRadius.circular(12)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _line('Name', name.isNotEmpty ? name : '(not saved on older bookings)'),
+        _line('Email', email.isNotEmpty ? email : '–'),
+        _line('Phone', phone.isNotEmpty ? phone : '– (not given)'),
+        if (_stamp(orderedAt).isNotEmpty) _line('Ordered', _stamp(orderedAt)),
+        if (when.isNotEmpty) _line('For date', when),
+        _line('Needs', need.isNotEmpty ? need : '(no message – ask them)'),
+        const SizedBox(height: 6),
+        Row(children: [
+          if (digits.isNotEmpty) ...[
+            _btn(Icons.chat_rounded, 'WhatsApp', const Color(0xFF25D366),
+                Uri.parse('https://wa.me/$digits?text=${Uri.encodeComponent(waMessage)}')),
+            const SizedBox(width: 6),
+            _btn(Icons.call_rounded, 'Call', kGreen, Uri.parse('tel:+$digits')),
+          ],
+          if (digits.isNotEmpty && email.isNotEmpty) const SizedBox(width: 6),
+          if (email.isNotEmpty)
+            _btn(Icons.mail_outline_rounded, 'Email', kInkBlue, Uri(scheme: 'mailto', path: email)),
+        ]),
+      ]),
+    );
+  }
+}
+
+/// Restaurant / barber / hotel bookings (`bookings`) — the business answers them, the admin can see them.
+class _PlaceBookingsList extends StatelessWidget {
+  const _PlaceBookingsList();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('bookings')
+          .orderBy('createdAt', descending: true).limit(200).snapshots(),
+      builder: (_, snap) {
+        if (snap.hasError) {
+          return Center(child: Text('Error: ${snap.error}', style: tsBodySm(color: kRed)));
+        }
+        if (!snap.hasData) return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+        final docs = snap.data!.docs;
+        if (docs.isEmpty) return Center(child: Text('No bookings at places yet', style: tsTitleLg(color: kText)));
+        return ListView.builder(
+          padding: const EdgeInsets.all(14),
+          itemCount: docs.length,
+          itemBuilder: (_, i) {
+            final d = docs[i].data() as Map<String, dynamic>;
+            final hotel = d['type'] == 'hotel';
+            final when = hotel
+                ? '${_stamp(d['checkIn']).split(' ').first} → ${_stamp(d['checkOut']).split(' ').first}, ${d['guests'] ?? '?'} guests'
+                : '${_stamp(d['date']).split(' ').first} ${serviceStr(d['time'])}';
+            return Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(14)),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  Expanded(child: Text(serviceStr(d['businessName']), style: tsTitleMd(color: kText))),
+                  Text(serviceStr(d['status']).toUpperCase(), style: tsLabel(color: kTextSub).copyWith(fontSize: 9)),
+                ]),
+                const SizedBox(height: 10),
+                _CustomerBox(
+                  name: serviceStr(d['nickname']),
+                  email: serviceStr(d['userEmail']),
+                  phone: serviceStr(d['phone']),
+                  orderedAt: d['createdAt'],
+                  when: when,
+                  need: serviceStr(d['message']),
+                  waMessage: 'Hi! This is Habesha Hub about your booking at ${serviceStr(d['businessName'])}.',
+                ),
+              ]),
+            );
+          },
+        );
+      },
+    );
   }
 }

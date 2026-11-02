@@ -134,13 +134,13 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       await _geocodeAddress();
     }
     await _stepCtrl.reverse();
-    setState(() => _step++);
+    if (mounted) setState(() => _step++);
     await _stepCtrl.forward();
   }
 
   Future<void> _prev() async {
     await _stepCtrl.reverse();
-    setState(() => _step--);
+    if (mounted) setState(() => _step--);
     await _stepCtrl.forward();
   }
 
@@ -161,17 +161,17 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       if (locations.isNotEmpty) {
         _lat = locations.first.latitude;
         _lng = locations.first.longitude;
-        setState(() => _geoStatus =
+        if (mounted) setState(() => _geoStatus =
             '✓ ${tr('Location found')}: ${_lat!.toStringAsFixed(5)}, ${_lng!.toStringAsFixed(5)}');
       } else {
-        setState(
+        if (mounted) setState(
             () => _geoStatus = tr('⚠ Address not found. Check and try again.'));
       }
     } catch (e) {
-      setState(
+      if (mounted) setState(
           () => _geoStatus = tr('⚠ Could not find location. Check the address.'));
     } finally {
-      setState(() => _geocoding = false);
+      if (mounted) setState(() => _geocoding = false);
     }
   }
 
@@ -185,18 +185,18 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       var perm = await Geolocator.checkPermission();
       if (perm == LocationPermission.denied) perm = await Geolocator.requestPermission();
       if (perm == LocationPermission.denied || perm == LocationPermission.deniedForever) {
-        setState(() => _geoStatus = tr('⚠ Could not find location. Check the address.'));
+        if (mounted) setState(() => _geoStatus = tr('⚠ Could not find location. Check the address.'));
         return;
       }
       final p = await Geolocator.getCurrentPosition();
       _lat = p.latitude;
       _lng = p.longitude;
-      setState(() => _geoStatus =
+      if (mounted) setState(() => _geoStatus =
           '✓ ${tr('Location found')}: ${_lat!.toStringAsFixed(5)}, ${_lng!.toStringAsFixed(5)}');
     } catch (_) {
-      setState(() => _geoStatus = tr('⚠ Could not find location. Check the address.'));
+      if (mounted) setState(() => _geoStatus = tr('⚠ Could not find location. Check the address.'));
     } finally {
-      setState(() => _geocoding = false);
+      if (mounted) setState(() => _geocoding = false);
     }
   }
 
@@ -215,14 +215,14 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
   Future<void> _pickAndUploadImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 75, maxWidth: 1600);
     if (picked == null) return;
-    setState(() { _selectedImage = File(picked.path); _uploadingImage = true; });
+    if (mounted) setState(() { _selectedImage = File(picked.path); _uploadingImage = true; });
     try {
       final ref = FirebaseStorage.instance.ref().child('businesses/' + DateTime.now().millisecondsSinceEpoch.toString() + '.jpg');
       await ref.putFile(_selectedImage!);
       _uploadedImageUrl = await ref.getDownloadURL();
-      setState(() => _uploadingImage = false);
+      if (mounted) setState(() => _uploadingImage = false);
     } catch (e) {
-      setState(() => _uploadingImage = false);
+      if (mounted) setState(() => _uploadingImage = false);
       print('Upload error: ' + e.toString());
     }
   }
@@ -234,7 +234,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         : (_addrCtrl.text.trim().isEmpty || _country.isEmpty) ? 1 : -1;
     if (missingStep >= 0) {
       await _stepCtrl.reverse();
-      setState(() => _step = missingStep);
+      if (mounted) setState(() => _step = missingStep);
       await _stepCtrl.forward();
       WidgetsBinding.instance.addPostFrameCallback((_) => _formKey.currentState?.validate());
       return;
@@ -245,7 +245,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
           content: Text(tr('You must log in to register a business'))));
       return;
     }
-    setState(() => _saving = true);
+    if (mounted) setState(() => _saving = true);
     try {
       // Geocode if not done
       if (_lat == null || _lng == null) {
@@ -253,7 +253,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
       }
       // Never save a made-up pin: without a real location the business would show in the wrong city
       if (_lat == null || _lng == null) {
-        setState(() => _saving = false);
+        if (mounted) setState(() => _saving = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(tr('Address not found on the map. Write street, number and city, or tap "Use my current location".'))));
         return;
@@ -279,12 +279,12 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         'country': _country,
         'status': 'pending', // ← must be approved by admin
       });
-      setState(() {
+      if (mounted) setState(() {
         _saving = false;
         _done = true;
       });
     } catch (e) {
-      setState(() => _saving = false);
+      if (mounted) setState(() => _saving = false);
       if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('${tr('Error')}: $e')));

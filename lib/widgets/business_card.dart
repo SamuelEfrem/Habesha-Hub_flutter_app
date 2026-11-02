@@ -51,7 +51,7 @@ class _BusinessCardState extends State<BusinessCard> {
       favs.add(widget.business.id);
     }
     await prefs.setStringList('favorites', favs);
-    setState(() => _isFavorite = !_isFavorite);
+    if (mounted) setState(() => _isFavorite = !_isFavorite);
     widget.onFavoriteChanged?.call();
   }
 

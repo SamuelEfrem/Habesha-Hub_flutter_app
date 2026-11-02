@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:share_plus/share_plus.dart';
+import '../utils/share_helper.dart';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import '../utils/translations.dart';
@@ -357,7 +357,7 @@ class ReceiptScreen extends StatelessWidget {
 
                 const SizedBox(height: 20),
                 OutlinedButton.icon(
-                  onPressed: () => Share.share(receiptText),
+                  onPressed: () => shareText(receiptText),
                   icon: Icon(Icons.share_rounded, color: kSecondary),
                   label: Text(tr('Share receipt'), style: tsTitleMd(color: kSecondary)),
                   style: OutlinedButton.styleFrom(

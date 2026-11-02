@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:share_plus/share_plus.dart';
+import '../utils/share_helper.dart';
 import 'dart:io';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
@@ -412,7 +412,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         _applyFilters();
                       }
                     } catch (_) {}
-                    setState(() => _locating = false);
+                    if (mounted) setState(() => _locating = false);
                   },
                   child: Container(
                     width: 42, height: 42,
@@ -439,7 +439,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   final sel = _selectedCategory == cat['key'];
                   return GestureDetector(
                     onTap: () {
-                      setState(() {
+                      if (mounted) setState(() {
                         _selectedCategory = cat['key']!;
                         if (_selectedCategory != _kHabesha) { _sizeFilter = ''; _occFilter = ''; }
                       });
@@ -472,7 +472,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             _filterRow([
               for (final k in _deals)
                 _pick(_dealLabel(k), _dealFilter == k, () {
-                  setState(() => _dealFilter = _dealFilter == k ? '' : k);
+                  if (mounted) setState(() => _dealFilter = _dealFilter == k ? '' : k);
                   _applyFilters();
                 }, icon: _dealIcon(k)),
             ]),
@@ -481,14 +481,14 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               _filterRow([
                 for (final z in _sizes)
                   _pick(z, _sizeFilter == z, () {
-                    setState(() => _sizeFilter = _sizeFilter == z ? '' : z);
+                    if (mounted) setState(() => _sizeFilter = _sizeFilter == z ? '' : z);
                     _applyFilters();
                   }),
               ]),
               _filterRow([
                 for (final o in _occasions)
                   _pick(_occasionLabel(o), _occFilter == o, () {
-                    setState(() => _occFilter = _occFilter == o ? '' : o);
+                    if (mounted) setState(() => _occFilter = _occFilter == o ? '' : o);
                     _applyFilters();
                   }),
               ]),
@@ -1208,7 +1208,7 @@ class _ListingCardState extends State<_ListingCard> {
       // the link opens a page with the photos and a contact button (works without the app)
       'https://habesha-hub.no/m/$id',
     ];
-    Share.share(lines.join('\n'));
+    shareText(lines.join('\n'));
   }
 
   void _showSellerContact(
