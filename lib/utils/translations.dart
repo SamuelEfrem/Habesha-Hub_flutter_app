@@ -651,6 +651,14 @@ class AppTranslations {
   }
 
   static final Map<String, Map<String, String>> _translations = {
+    // Market form
+    'contact_seller': {'English': 'Contact seller', 'Tigrinya': 'ሸያጢ ርኸብ', 'Amharic': 'ሻጩን ያግኙ'},
+    'contact_seller_note': {'English': 'Agree with the seller on price and place. Meet in a safe place and never pay before you have seen the item.', 'Tigrinya': 'ምስ ሸያጢ ኣብ ዋጋን ቦታን ተሰማምዑ። ኣብ ውሑስ ቦታ ተራኸቡ፡ ነቲ ኣቕሓ ከይረኣኹም ከኣ ኣይትኽፈሉ።', 'Amharic': 'ከሻጩ ጋር በዋጋና በቦታ ይስማሙ። በአስተማማኝ ቦታ ይገናኙ፣ ዕቃውን ሳያዩ አይክፈሉ።'},
+    'delete_listing': {'English': 'Delete listing', 'Tigrinya': 'መወዓውዒ ደምስስ', 'Amharic': 'ማስታወቂያ ሰርዝ'},
+    'delete_listing_confirm': {'English': 'Delete this listing? This cannot be undone.', 'Tigrinya': 'እዚ መወዓውዒ ይደምሰስ ድዩ? ክምለስ ኣይክእልን እዩ።', 'Amharic': 'ይህ ማስታወቂያ ይሰረዝ? መልሶ ማምጣት አይቻልም።'},
+    'marketplace_description': {'English': 'Description', 'Tigrinya': 'መግለጺ', 'Amharic': 'መግለጫ'},
+    'marketplace_post': {'English': 'Post listing', 'Tigrinya': 'መወዓውዒ ኣእቱ', 'Amharic': 'ማስታወቂያ ለጥፍ'},
+    'phone': {'English': 'Phone', 'Tigrinya': 'ቴሌፎን', 'Amharic': 'ስልክ'},
     'switch_to_light': {
       'English': 'Light mode',
       'Tigrinya': 'ብሩህ ሕብሪ',

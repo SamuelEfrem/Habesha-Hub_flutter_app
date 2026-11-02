@@ -770,7 +770,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       decoration: BoxDecoration(
                         color: sel ? kSecondary : kCardHigh,
                         borderRadius: BorderRadius.circular(100)),
-                      child: Text('${cat['emoji']} ${cat['key']}',
+                      child: Text('${cat['emoji']} ${t('market_${cat['key']!.toLowerCase()}')}',
                         style: tsLabel(color: sel ? kOnAccent : kTextSub)),
                     ),
                   );
