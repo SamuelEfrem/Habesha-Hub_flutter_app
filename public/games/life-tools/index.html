@@ -505,6 +505,8 @@ function drawTheoryHome(){if(run)return;const pro=isPro("theory_pro");
    <button class="btn ghost" data-run="gallery">📖 ኩሎም ምልክታት ተማሃር (${SIGNS.length})</button>
    ${pro?`<div class="probox"><b>✓ ምሉእ ኮርስ ክፉት እዩ</b><a class="btn" href="../driving/${location.search}" style="text-align:left;text-decoration:none;background:#1f7a4a">🚦 ፈተና ምዝዋር ብመኪና<small>ምስ መምህር ብድምጺ፡ GPS፡ ሕግታት ትራፊክ፡ ፓርክ</small></a></div>`
     :`<div class="lock"><div><b>🔒 ምሉእ ኮርስ</b><ul class="locklist"><li>📘 ${PRO_TOTAL} ተወሳኺ ሕቶታት: ምልክታት፡ መብራህቲ፡ መስመራት ጽርግያ፡ ቀዳማይ ረድኤት፡ ኣውቶስትራዳ</li><li>🚦 ፈተና ምዝዋር ብመኪና ምስ መምህር ብድምጺ</li></ul></div><button class="btn" data-buy="theory_pro">🔓 ክፈት ብኮድ</button></div><p class="muted" id="buyMsg"></p>`}`}
+// the driving test links straight to the right practice
+if(["sign","rule"].includes(QS.get("run")))setTimeout(()=>startRun(QS.get("run")),300);
 $("qbody").addEventListener("click",e=>{
   const r=e.target.closest("[data-run]");if(r){r.dataset.run==="gallery"?gallery():startRun(r.dataset.run);return}
   const b=e.target.closest("[data-buy]");if(b){buy(b.dataset.buy,$("buyMsg"));return}});
