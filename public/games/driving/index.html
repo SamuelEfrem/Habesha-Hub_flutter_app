@@ -464,7 +464,7 @@ function build(key){
   sun.userData.dir=sunDir.clone();sun.castShadow=true;sun.shadow.mapSize.set(MOBILE?1024:2048,MOBILE?1024:2048);sun.shadow.bias=-.0004;sun.shadow.normalBias=.02;
   Object.assign(sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:1,far:400});scene.add(sun);scene.add(sun.target);
   // ground
-  const gm=STD(C.ground,{roughness:1,map:TEX.ground});const g=new THREE.Mesh(new THREE.PlaneGeometry(1400,1400),gm);g.rotation.x=-Math.PI/2;g.receiveShadow=true;world.add(g);
+  const gm=STD(C.ground,{roughness:1,map:TEX.ground});const g=new THREE.Mesh(new THREE.PlaneGeometry(1400,1400),gm);g.rotation.x=-Math.PI/2;g.position.y=-.2;g.receiveShadow=true;world.add(g);
   // roads
   const roadMat=STD(0xffffff,{map:TEX.road,roughness:C.snow?.55:.92,metalness:C.snow?.15:0});
   const len=N*CELL+RD;
