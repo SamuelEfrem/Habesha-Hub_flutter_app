@@ -33,6 +33,12 @@ h1{margin:0;font-weight:800;font-size:1.45rem}
 .pb{pointer-events:auto;width:62px;height:62px;border-radius:16px;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.42);color:#fff;font:800 1.3rem "Sora";touch-action:none;backdrop-filter:blur(4px);cursor:pointer}
 .pb.on{background:rgba(255,255,255,.3)}
 .pb.g{background:rgba(60,207,142,.35)}.pb.b{background:rgba(255,93,93,.35)}
+.inds{position:absolute;left:50%;bottom:112px;transform:translateX(-50%);display:flex;gap:64px;pointer-events:none}
+.ind{pointer-events:auto;width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.42);color:#fff;font:800 1.2rem "Sora";touch-action:none;cursor:pointer}
+.ind.on{border-color:#3ccf8e}.ind.flash{background:#3ccf8e;color:#04210f}
+.speed.over .num{color:#ff5d5d}
+.tilt{font:700 .9rem var(--display);width:100%;margin-top:8px;padding:10px;border-radius:12px;border:1px solid var(--line);background:#0b1118;color:var(--ink);cursor:pointer}
+.tilt.on{background:var(--gold);color:#2a1d00;border-color:var(--gold)}
 .ov{position:absolute;inset:0;display:grid;place-items:center;background:rgba(5,9,14,.62);padding:14px;overflow:auto}
 .card{background:#111a25;border:2px solid var(--line);border-radius:18px;padding:18px;max-width:440px;width:100%;max-height:100%;overflow:auto}
 .card h2{margin:0 0 8px;font-size:1.3rem}
@@ -106,12 +112,13 @@ html,body{margin:0;overscroll-behavior:none}
   <div class="stage" id="stage">
     <div class="instr" id="instr"><b>…</b></div>
     <div class="mistbox"><span id="mistL">ጌጋ</span><strong id="mist">0</strong></div>
-    <div class="speed"><span id="limit"></span><span><span class="num" id="kmh">0</span><br><small>km/h</small></span></div>
+    <div class="speed" id="speedBox"><span id="limit"></span><span><span class="num" id="kmh">0</span><br><small>km/h</small></span></div>
     <div class="nav"><span class="arr" id="arrow">⬆</span><span id="dist">0 m</span></div>
     <div class="toast" id="toast" hidden></div>
     <canvas class="gps" id="gps" width="236" height="236"></canvas><div class="hitflash" id="hitflash"></div>
     <div class="pedals"><div class="wheelpad" id="wheel"><div class="wheel" id="wheelK"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="41" fill="none" stroke="#1b1e23" stroke-width="12"/><circle cx="50" cy="50" r="41" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.5"/><path d="M50 52 L13 45 M50 52 L87 45 M50 52 L50 89" stroke="#2a2f36" stroke-width="10" stroke-linecap="round"/><circle cx="50" cy="51" r="14" fill="#2a2f36" stroke="#f7c948" stroke-width="2.5"/><rect x="45.5" y="4" width="9" height="11" rx="2.5" fill="#f7c948"/></svg></div><button id="bL" hidden></button><button id="bR" hidden></button></div>
       <div class="pdl"><button class="gearb" id="bRv" type="button"><b id="gear">D</b><small id="gearTo">⇄ R</small></button><button class="pb b" id="bB"><i></i><span id="lB">ፍሬን</span></button><button class="pb g" id="bG"><i></i><span id="lG">ነዳዲ</span></button></div></div>
+    <div class="inds"><button class="ind" id="iL" type="button" aria-label="Left indicator">◀</button><button class="ind" id="iR" type="button" aria-label="Right indicator">▶</button></div>
     <div class="ov" id="ov"><div class="card" id="menu"></div></div>
   </div>
 </div>
@@ -399,6 +406,10 @@ function build(key){
     snow=new THREE.Points(geo,new THREE.PointsMaterial({color:0xffffff,size:.45,map:st,transparent:true,depthWrite:false}));scene.add(snow)}
   // player
   player.mesh=carMesh(C.player,true);scene.add(player.mesh);
+  const lampBox=(x,y,z,w,mat)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,.14,.06),mat);m.position.set(x,y,z);player.mesh.add(m);return m};
+  player.brakeMat=new THREE.MeshBasicMaterial({color:0x3a0606});[-.62,.62].forEach(x=>lampBox(x,.86,2.32,.42,player.brakeMat));
+  player.indL=new THREE.MeshBasicMaterial({color:0x3a2606});player.indR=new THREE.MeshBasicMaterial({color:0x3a2606});
+  [[-.92,player.indL],[.92,player.indR]].forEach(([x,m])=>{lampBox(x,.86,2.32,.14,m);lampBox(x,.72,-2.32,.14,m)});
   if(C.night){[-.7,.7].forEach(x=>{const s=glowSprite(0xfff3d6,2.2);s.position.set(x,.86,-2.3);player.mesh.userData.body.add(s)});
     const beam=new THREE.SpotLight(0xfff1d6,3,60,.5,.6,1);beam.position.set(0,1,-2);beam.target.position.set(0,0,-20);player.mesh.add(beam);player.mesh.add(beam.target);}
   ring=new THREE.Mesh(new THREE.TorusGeometry(4,.35,12,48),new THREE.MeshBasicMaterial({color:0xffd34d}));ring.rotation.x=Math.PI/2;scene.add(ring);
@@ -577,7 +588,7 @@ const TXT={
  ti:{title:"🚗 ፈተና ምዝዋር",sub:"መምህር ብትግርኛ ይእዝዘካ። ኩሉ ሕጊ ትራፊክ ይፍተሽ።",
   turnR:"ኣብ ዝቕጽል መስቀላ ናብ የማን ጠውይ",turnL:"ኣብ ዝቕጽል መስቀላ ናብ ጸጋም ጠውይ",straight:"ኣብ ዝቕጽል መስቀላ ቀጥ ኪድ",finish:"ናብ ቦታ ፓርክ ኣቱ፡ ኣብ P ደው በል",
   light:"መብራህቲ ትራፊክ ኣሎ፡ ቀይሕ እንተኾይኑ ደው በል",stop:"ምልክት STOP ኣሎ፡ ኣብ መስመር ምሉእ ብምሉእ ደው በል",give:"ምልክት «ቅድሚ ሃብ» ኣሎ፡ ቀስ በል",none:"ምልክት የለን፡ ሕጊ የማን ይሰርሕ፡ ቀስ በል",
-  round:"ዙርያ መገዲ፦ ኣብ ውሽጢ ዘለዉ መካይን ቅድሚ ሃብ፡ ብየማን ዙር",prio:"ኣብ ናይ ቀዳምነት ጽርግያ ኣለኻ",zebra:"መሳገሪ እግረኛ ኣሎ፡ እግረኛ እንተሎ ደው ኢልካ ኣሕልፎ",lead:"ምስቲ ኣብ ቅድሜኻ ዘሎ መኪና ብውሑዱ 3 ካልኢት ርሕቀት ሓሉ",
+  round:"ዙርያ መገዲ፦ ኣብ ውሽጢ ዘለዉ መካይን ቅድሚ ሃብ፡ ብየማን ዙር",prio:"ኣብ ናይ ቀዳምነት ጽርግያ ኣለኻ",tilt:"ስልኪ ብምዝንባል ዘውር",zebra:"መሳገሪ እግረኛ ኣሎ፡ እግረኛ እንተሎ ደው ኢልካ ኣሕልፎ",lead:"ምስቲ ኣብ ቅድሜኻ ዘሎ መኪና ብውሑዱ 3 ካልኢት ርሕቀት ሓሉ",
   mSpeed:"ፍጥነት ሓሊፍካ",mRed:"ብቀይሕ መብራህቲ ሓሊፍካ",mStop:"ኣብ STOP ምሉእ ብምሉእ ደው ኣይበልካን",mZebra:"ንእግረኛ ቅድሚ ኣይሃብካን",
   mDist:"ምስቲ ቅድሜኻ ዘሎ መኪና ርሕቀት ኣይሓለኻን",mLane:"ብጸጋም ጎድኒ ጽርግያ ዘዊርካ",mWrong:"ጌጋ ኣንፈት ወሲድካ",mCrash:"ተጋጪኻ",
   mGive:"ኣብ «ቅድሚ ሃብ» ፍጥነት ኣይነከኻን",mRight:"ኣብ መስቀላ ብዘይ ምልክት ፍጥነት ኣይነከኻን",mHitPed:"ሰብ ሃሪምካ! ፈተና ተቋሪጹ",mPark:"ኣብቲ ቦታ ፓርክ ብግቡእ ደው ኣይበልካን",
@@ -591,7 +602,7 @@ const TXT={
  am:{title:"🚗 የመንጃ ፈተና",sub:"አስተማሪው በአማርኛ ያዝዝሃል። ሁሉም የትራፊክ ሕግ ይፈተሻል።",
   turnR:"በሚቀጥለው መገናኛ ወደ ቀኝ ታጠፍ",turnL:"በሚቀጥለው መገናኛ ወደ ግራ ታጠፍ",straight:"በሚቀጥለው መገናኛ ቀጥ ብለህ ሂድ",finish:"ወደ መኪና ማቆሚያው ግባ፣ በP ቦታ ቁም",
   light:"የትራፊክ መብራት አለ፣ ቀይ ከሆነ ቁም",stop:"STOP ምልክት አለ፣ መስመሩ ላይ ሙሉ በሙሉ ቁም",give:"«ቅድሚያ ስጥ» ምልክት አለ፣ ቀስ በል",none:"ምልክት የለም፣ የቀኝ ሕግ ይሰራል፣ ቀስ በል",
-  round:"አደባባይ፦ በውስጡ ላሉ መኪኖች ቅድሚያ ስጥ፣ በቀኝ ዙር",prio:"በቅድሚያ መንገድ ላይ ነህ",zebra:"የእግረኛ ማቋረጫ አለ፣ እግረኛ ካለ ቆመህ አሳልፍ",lead:"ከፊትህ ካለው መኪና ቢያንስ 3 ሰከንድ ርቀት ጠብቅ",
+  round:"አደባባይ፦ በውስጡ ላሉ መኪኖች ቅድሚያ ስጥ፣ በቀኝ ዙር",prio:"በቅድሚያ መንገድ ላይ ነህ",tilt:"ስልኩን በማዘንበል ንዳ",zebra:"የእግረኛ ማቋረጫ አለ፣ እግረኛ ካለ ቆመህ አሳልፍ",lead:"ከፊትህ ካለው መኪና ቢያንስ 3 ሰከንድ ርቀት ጠብቅ",
   mSpeed:"ፍጥነት አልፈሃል",mRed:"በቀይ መብራት አልፈሃል",mStop:"STOP ላይ ሙሉ በሙሉ አልቆምክም",mZebra:"ለእግረኛ ቅድሚያ አልሰጠህም",
   mDist:"ከፊትህ ካለው መኪና ርቀት አልጠበቅህም",mLane:"በመንገዱ ግራ በኩል ነድተሃል",mWrong:"የተሳሳተ አቅጣጫ ወስደሃል",mCrash:"ተጋጭተሃል",
   mGive:"«ቅድሚያ ስጥ» ላይ ፍጥነት አልቀነስክም",mRight:"ምልክት በሌለው መገናኛ ፍጥነት አልቀነስክም",mHitPed:"ሰው ገጭተሃል! ፈተናው ተቋርጧል",mPark:"በማቆሚያው በትክክል አልቆምክም",
@@ -605,7 +616,7 @@ const TXT={
  en:{title:"🚗 Driving test",sub:"Your instructor guides you. Every traffic rule is checked.",
   turnR:"Turn right at the next crossing",turnL:"Turn left at the next crossing",straight:"Go straight at the next crossing",finish:"Drive into the car park and stop in the P bay",
   round:"Roundabout: give way to traffic in the circle, drive around to the right",prio:"You are on the priority road",light:"Traffic light ahead: stop if it is red",stop:"STOP sign: stop completely at the line",give:"Give-way sign: slow down",none:"No sign: give way to the right, slow down",
-  zebra:"Zebra crossing: stop and let pedestrians cross",lead:"Keep at least 3 seconds from the car in front",
+  tilt:"Steer by tilting the phone",zebra:"Zebra crossing: stop and let pedestrians cross",lead:"Keep at least 3 seconds from the car in front",
   mSpeed:"You were speeding",mRed:"You drove through a red light",mStop:"You did not stop completely at STOP",mZebra:"You did not let the pedestrian cross",
   mDist:"You were too close to the car in front",mLane:"You drove on the left side",mWrong:"Wrong direction",mCrash:"You crashed",
   mGive:"You did not slow down at give way",mRight:"You did not slow down at an unmarked crossing",mHitPed:"You hit a person! The test is over",mPark:"You did not park correctly",
@@ -619,7 +630,7 @@ const TXT={
  no:{title:"🚗 Oppkjøring",sub:"Læreren gir deg beskjeder. Alle trafikkregler sjekkes.",
   turnR:"Ta til høyre i neste kryss",turnL:"Ta til venstre i neste kryss",straight:"Kjør rett fram i neste kryss",finish:"Kjør inn på parkeringen og stopp i P-plassen",
   light:"Lyskryss: stopp hvis det er rødt",stop:"Stoppskilt: stopp helt ved linja",give:"Vikepliktskilt: senk farten",none:"Ingen skilt: høyreregelen gjelder, senk farten",
-  round:"Rundkjøring: vikeplikt for dem i sirkelen, kjør til høyre rundt",prio:"Du er på forkjørsvei",zebra:"Gangfelt: stopp og slipp fotgjengere over",lead:"Hold minst 3 sekunder til bilen foran",
+  round:"Rundkjøring: vikeplikt for dem i sirkelen, kjør til høyre rundt",prio:"Du er på forkjørsvei",tilt:"Styr ved å vippe telefonen",zebra:"Gangfelt: stopp og slipp fotgjengere over",lead:"Hold minst 3 sekunder til bilen foran",
   mSpeed:"Du kjørte for fort",mRed:"Du kjørte på rødt",mStop:"Du stoppet ikke helt ved stoppskiltet",mZebra:"Du slapp ikke fotgjengeren over",
   mDist:"For kort avstand til bilen foran",mLane:"Du kjørte på venstre side",mWrong:"Feil retning",mCrash:"Du krasjet",
   mGive:"Du senket ikke farten ved vikeplikt",mRight:"Du senket ikke farten i krysset",mHitPed:"Du kjørte på en person! Prøven er stoppet",mPark:"Du parkerte ikke riktig",
@@ -738,8 +749,9 @@ function placeOnSeg(k,s){const S=seg[k];const p=S.at(s,3.2);player.x=p.x;player.
   cam.position.set(player.x-Math.sin(player.a)*11,5,player.z+Math.cos(player.a)*11);enterSeg(k)}
 function enterSeg(k){L.k=k;L.flags={};L.overS=0;L.laneT=0;L.distT=0;const S=seg[k];S.entered=performance.now();if(S.light)S.light.t0=performance.now();
   if(L.lead){scene.remove(L.lead.mesh);L.lead=null}
-  if(S.lead){const m=carMesh(0x9aa5ad,false);scene.add(m);L.lead={mesh:m,s:Math.min(S.L-30,32),v:0,stopT:0,braked:false}}
-  const keys=[S.turn];if(S.ev!=="finish")keys.push(S.ev);if(S.zebra)keys.push("zebra");if(S.lead)keys.push("lead");
+  // a car ahead only on streets long enough, otherwise it would appear on top of you
+  const lead=S.lead&&S.L>=80;if(lead){const m=carMesh(0x9aa5ad,false);scene.add(m);L.lead={mesh:m,s:Math.min(S.L-30,32),v:0,stopT:0,braked:false}}
+  const keys=[S.turn];if(S.ev!=="finish")keys.push(S.ev);if(S.zebra)keys.push("zebra");if(lead)keys.push("lead");
   S.hints=keys.slice(1).map(k=>TI[k]).join(" · ");L.lastMain="";S.keys=keys;showInstr(TI[S.turn],S.hints,S.lim);if(L.on)say(keys)}
 
 function showInstr(main,sub,lim){if(L)L.lastMain=main;$("instr").innerHTML=`<b>${esc(main)}</b>${sub?`<span>${esc(sub)}</span>`:""}`;$("limit").innerHTML=signSVG("speed"+lim,62)}
@@ -792,7 +804,7 @@ function ouch(){if(sfx("ouch"))return;try{AC=AC||new (window.AudioContext||windo
 
 /* ---------- input ---------- */
 const K={};addEventListener("keydown",e=>{K[e.key.toLowerCase()]=true;if(e.key.startsWith("Arrow"))e.preventDefault()});addEventListener("keyup",e=>K[e.key.toLowerCase()]=false);
-const P={};let REV=false;
+const P={};let REV=false,brakeT=0;
 function setRev(on){REV=on;player.v=0;$("bRv").classList.toggle("on",on);$("gear").textContent=on?"R":"D";$("gearTo").textContent=on?"⇄ D":"⇄ R";chime(on?520:700,.15)}
 $("bRv").addEventListener("click",e=>{e.stopPropagation();if(L&&L.on)setRev(!REV)});
 addEventListener("keydown",e=>{if(e.key.toLowerCase()==="r"&&L&&L.on)setRev(!REV)});
@@ -817,7 +829,7 @@ function finishLesson(hardFail){L.on=false;L.done=true;const ser=L.mist.filter(m
    <button class="btn" id="again">${TI.again}</button><button class="btn" id="nextD" style="background:#2b3d18;color:#fff">${TI.next} →</button>`;$("ov").hidden=false;
   $("hStars").textContent="⭐ "+total;
   $("again").onclick=()=>{newRoute(false);startLesson()};$("nextD").onclick=()=>{destI=(destI+1)%DESTS.length;newRoute(true);drawMenu()}}
-function startLesson(){newLesson();L.on=true;setRev(false);$("ov").hidden=true;$("mist").textContent="0";chime(660,.3);setTimeout(()=>{if(L.on)say(seg[L.k].keys)},350)}
+function startLesson(){newLesson();L.on=true;setRev(false);if(IND)setInd(IND);$("ov").hidden=true;$("mist").textContent="0";chime(660,.3);setTimeout(()=>{if(L.on)say(seg[L.k].keys)},350)}
 
 /* ---------- main loop ---------- */
 let last=performance.now();
@@ -825,9 +837,13 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   let gas=false,brk=false,steerIn=0;
   if(L&&L.on){gas=K.arrowup||K.w||P.g;brk=K.arrowdown||K.s||K[" "]||P.b;steerIn=P.steer!=null?P.steer:((K.arrowright||K.d||P.r)?1:0)-((K.arrowleft||K.a||P.l)?1:0)}
   // gear D drives forward, gear R backwards; the brake only stops the car
-  if(gas)player.v+=(REV?-7:11)*dt;if(brk)player.v-=Math.sign(player.v)*Math.min(Math.abs(player.v),26*dt);
+  // the engine pulls hard from standstill and less at speed; the brake bites harder the longer it is held
+  if(gas)player.v+=(REV?-5:Math.max(2.2,10.5*(1-Math.abs(player.v)/30)))*dt;
+  brakeT=brk?Math.min(1,brakeT+dt*2.2):0;if(brk)player.v-=Math.sign(player.v)*Math.min(Math.abs(player.v),(9+17*brakeT)*dt);
   player.v-=player.v*.55*dt;if(!gas&&Math.abs(player.v)<.25)player.v=0;player.v=REV?Math.max(-6,Math.min(0,player.v)):Math.max(0,Math.min(25,player.v));
-  player.steer+=(steerIn-player.steer)*Math.min(1,dt*6);player.a+=player.steer*1.9*dt*Math.max(-1,Math.min(1,player.v/6));
+  // the wheel comes back faster than it turns in, and the car turns less sharply at speed
+  const av=Math.abs(player.v);player.steer+=(steerIn-player.steer)*Math.min(1,dt*(steerIn===0?8:5));
+  const yaw=player.steer*1.9*Math.min(1,av/5)/(1+Math.pow(av/15,2))*Math.sign(player.v||1);player.a+=yaw*dt;
   const nx=player.x+Math.sin(player.a)*player.v*dt,nz=player.z-Math.cos(player.a)*player.v*dt;
   if(!blocked(nx,nz)){player.x=nx;player.z=nz}else{if(L&&L.on&&hitsBuilding(nx,nz)&&Math.abs(player.v)>2&&now>L.cool){crashFx(Math.abs(player.v));mistake("mCrash",true);L.cool=now+1000}player.v*=offMap(nx,nz)?0:-.2}
   const kmh=Math.abs(player.v)*3.6;$("kmh").textContent=Math.round(kmh);
@@ -885,7 +901,11 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
     const dm=Math.max(0,Math.round(Math.hypot(tg.x-player.x,tg.z-player.z)-6));$("dist").textContent=dm+" m";
     if(L.on){const near=dm<=45;const main=near?TI[S.turn]:TI.go(Math.ceil(dm/10)*10,TI.dir[S.turn]);if(main!==L.lastMain){showInstr(main,S.hints,S.lim);if(near&&!L.flags.saidNear){L.flags.saidNear=1;say([S.turn])}}}}
   if(shake>0){shake=Math.max(0,shake-dt*2.2);cam.position.x+=(Math.random()-.5)*shake*.8;cam.position.y+=(Math.random()-.5)*shake*.5}
-  player.mesh.userData.body.rotation.z=damage*.004;
+  // body leans in corners and dips when braking
+  const bd=player.mesh.userData.body;player.roll+=((-yaw*av*.006)-player.roll)*Math.min(1,dt*6);player.pitch+=((brk&&av>1?.022:gas?-.01:0)-player.pitch)*Math.min(1,dt*7);
+  bd.rotation.z=damage*.004+player.roll;bd.rotation.x=player.pitch;
+  player.brakeMat.color.setHex(brk?0xff2020:0x3a0606);tickInd(now,dt,yaw);
+  if(L)$("speedBox").classList.toggle("over",L.on&&kmh>seg[L.k].lim+4);
   adaptQuality(dt);if((gpsF=(gpsF+1)%4)===0)drawGPS();
   renderer.render(scene,cam);requestAnimationFrame(loop)}
 let gpsF=0;
@@ -914,15 +934,28 @@ function drawMenu(){TI=TXT[LANG];document.documentElement.lang=LANG;preloadVoice
     $("back").onclick=()=>{location.href="../life-tools/"+location.search};return}
   $("menu").innerHTML=`<h2>${TI.choose}</h2><div class="dests" id="dests">${DESTS.map(([k,ic],i)=>`<button data-i="${i}" class="${i===destI?"on":""}"><b>${ic}</b>${esc(TI.dest[k])}</button>`).join("")}</div>
     <div class="rules" id="rules">${["speed30","speed50","lightsAhead","stop","give","crossingHere","keepRight","parking"].map(i=>signSVG(i,48)).join("")}</div>
-    <p class="small">${TI.passRule}</p>${langs}<p class="keys">${TI.tap}</p><button class="btn" id="go">${TI.start} → ${DESTS[destI][1]}</button>`;$("ov").hidden=false;
+    <p class="small">${TI.passRule}</p>${langs}<button class="tilt ${TILT?"on":""}" id="tiltB">📱 ${TI.tilt}</button><p class="keys">${TI.tap}</p><button class="btn" id="go">${TI.start} → ${DESTS[destI][1]}</button>`;$("ov").hidden=false;
   $("dests").onclick=e=>{const b=e.target.closest("[data-i]");if(!b)return;destI=+b.dataset.i;newRoute(true);drawMenu()};
-  $("go").onclick=startLesson;bindLangs()}
+  $("go").onclick=startLesson;$("tiltB").onclick=toggleTilt;bindLangs()}
 function bindLangs(){$("dLangs").onclick=e=>{const b=e.target.closest("[data-l]");if(!b)return;LANG=b.dataset.l;tiFallback=false;try{localStorage.setItem(LANG_KEY,LANG)}catch(err){}drawMenu()}}
 // steering wheel: drag left/right
 (function(){const pad=$("wheel"),k=$("wheelK");let id=null,x0=0;
   pad.addEventListener("pointerdown",e=>{e.preventDefault();id=e.pointerId;x0=e.clientX;pad.setPointerCapture(id);P.steer=0});
   pad.addEventListener("pointermove",e=>{if(e.pointerId!==id)return;const v=Math.max(-1,Math.min(1,(e.clientX-x0)/55));P.steer=v;k.style.transform=`rotate(${v*120}deg)`});
   const up=e=>{if(e.pointerId!==id)return;id=null;P.steer=null;k.style.transform=""};pad.addEventListener("pointerup",up);pad.addEventListener("pointercancel",up)})();
+// indicators: tap once on, again off; they switch off by themselves after the turn
+let IND=0,indTurned=0,indPhase=false,indNext=0;
+function setInd(d){IND=IND===d?0:d;indTurned=0;$("iL").classList.toggle("on",IND<0);$("iR").classList.toggle("on",IND>0);if(!IND){$("iL").classList.remove("flash");$("iR").classList.remove("flash");player.indL.color.setHex(0x3a2606);player.indR.color.setHex(0x3a2606)}}
+function tickInd(now,dt,yaw){if(!IND)return;indTurned+=Math.abs(yaw)*dt;if(indTurned>1&&Math.abs(player.steer)<.12){setInd(IND);return}
+  if(now<indNext)return;indNext=now+350;indPhase=!indPhase;const el=$(IND<0?"iL":"iR"),m=IND<0?player.indL:player.indR;el.classList.toggle("flash",indPhase);m.color.setHex(indPhase?0xffa41c:0x3a2606);chime(indPhase?1500:1100,.03)}
+[["iL",-1],["iR",1]].forEach(([id,d])=>$(id).addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(L&&L.on)setInd(d)}));
+addEventListener("keydown",e=>{const k=e.key.toLowerCase();if(L&&L.on&&!e.repeat&&(k==="q"||k==="e"))setInd(k==="q"?-1:1)});
+// optional: steer by tilting the phone
+let TILT=false;try{TILT=localStorage.getItem("dl-tilt")==="1"}catch(e){}
+addEventListener("deviceorientation",e=>{if(!TILT||!L||!L.on||e.beta==null)return;const land=innerWidth>innerHeight,ang=(screen.orientation&&screen.orientation.angle)||window.orientation||0;
+  const deg=land?(ang===90?e.beta:-e.beta):e.gamma,v=Math.abs(deg)<2.5?0:Math.max(-1,Math.min(1,deg/26));P.steer=v;$("wheelK").style.transform=`rotate(${v*120}deg)`});
+async function toggleTilt(){if(!TILT&&window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission==="function"){try{if(await DeviceOrientationEvent.requestPermission()!=="granted")return}catch(e){return}}
+  TILT=!TILT;if(!TILT)P.steer=null;try{localStorage.setItem("dl-tilt",TILT?"1":"0")}catch(e){}drawMenu()}
 // tap the 3D view → hide/show the top bar
 stage.addEventListener("click",e=>{if(e.target.closest("button,.wheelpad,.ov"))return;document.documentElement.classList.toggle("focus");setTimeout(resize,50)});
 makeShared();newRoute(true);drawMenu();
