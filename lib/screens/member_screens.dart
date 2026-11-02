@@ -61,9 +61,13 @@ Future<bool> ensureMember(BuildContext context) async {
   if (!doc.exists) {
     final ok = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const MemberFormScreen()));
     if (ok != true || !context.mounted) return false;
-    await Future.delayed(const Duration(seconds: 3)); // the Cloud Function passes existing accounts
-    doc = await _members.doc(u.uid).get();
-    if (!context.mounted) return false;
+    // the Cloud Function passes existing accounts; it can need some seconds to wake up
+    for (var i = 0; i < 6; i++) {
+      await Future.delayed(const Duration(seconds: 2));
+      doc = await _members.doc(u.uid).get();
+      if (!context.mounted) return false;
+      if (doc.data()?['status'] != 'pending') break;
+    }
   }
   final status = doc.data()?['status'];
   if (status == 'approved') return true;
