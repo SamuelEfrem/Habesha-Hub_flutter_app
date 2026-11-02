@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/share_helper.dart';
 import 'dart:io';
 import '../theme/app_theme.dart';
+import 'member_screens.dart';
 import '../utils/language_notifier.dart';
 import 'auth_screen.dart';
 import 'housing_screen.dart';
@@ -648,6 +649,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
   /// Sell: guests log in or register first, then the form opens right away.
   Future<void> _sell(BuildContext context, String Function(String) t) async {
+    if (!await ensureMember(context) || !context.mounted) return;
     var u = FirebaseAuth.instance.currentUser;
     if (!_canSell(u)) {
       await Navigator.push(context,
@@ -1175,7 +1177,9 @@ class _ListingCardState extends State<_ListingCard> {
               ),
               if (_s(d['sellerPhone']).isNotEmpty)
                 GestureDetector(
-                  onTap: () => _showSellerContact(context, d, widget.t),
+                  onTap: () async {
+                    if (await ensureMember(context) && context.mounted) _showSellerContact(context, d, widget.t);
+                  },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(

@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/app_theme.dart';
+import 'member_screens.dart';
 import 'home_shops_screen.dart';
 import 'housing_screen.dart';
 import '../models/business.dart';
@@ -117,6 +118,7 @@ class _AdminScreenState extends State<AdminScreen>
     (Icons.receipt_long_rounded, 'Orders'),
     (Icons.storefront_outlined, 'Home shops'),
     (Icons.home_work_outlined, 'Housing'),
+    (Icons.verified_user_outlined, 'Members'),
   ];
 
   @override
@@ -233,6 +235,8 @@ class _AdminScreenState extends State<AdminScreen>
             const HomeShopsAdminTab(),
             // ─ HOUSING (Market > Housing) ─
             const HousingAdminTab(),
+            // ─ MEMBERS (who may book / sell) ─
+            const MembersAdminTab(),
           ],
         ),
       ),

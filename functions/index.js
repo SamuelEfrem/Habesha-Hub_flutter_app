@@ -242,6 +242,11 @@ async function createListingFor(user, args, photos) {
   if (!user) return { ok: false, reason: 'login', message: 'The user is not logged in. Ask them to log in first (Profile > Log in), then try again.' };
   if (user.firebase?.sign_in_provider === 'anonymous') return { ok: false, reason: 'login', message: 'The user is a guest. Ask them to log in or create an account first (Profile > Log in).' };
   const db = getFirestore();
+  const cfg = (await db.collection('app_config').doc('members').get()).data();
+  if (cfg?.enforce === true && user.email !== 'samuelefriem@gmail.com') {
+    const m = (await db.collection('members').doc(user.uid).get()).data();
+    if (m?.status !== 'approved') return { ok: false, reason: 'member', message: 'This account is not approved yet. Tell the user to press + in the Market to confirm their email and send their details. Habesha Hub approves it, then they can sell.' };
+  }
   // max 5 listings per day through the assistant
   const today = new Date().toISOString().slice(0, 10);
   const recent = await db.collection('marketplace').where('userId', '==', user.uid).where('viaAi', '==', today).get();
@@ -726,6 +731,36 @@ async function pushAdmin(title, body) {
     apns: { payload: { aps: { sound: 'default' } } },
   }).catch(e => console.error('pushAdmin', e.message));
 }
+
+// Accounts from before approval was turned on pass by themselves; new ones wait for the admin.
+exports.onMemberCreated = onDocumentCreated('members/{uid}', async (event) => {
+  const m = event.data?.data();
+  if (!m) return;
+  const db = getFirestore();
+  const cfg = (await db.collection('app_config').doc('members').get()).data();
+  const user = await getAuth().getUser(event.params.uid);
+  const since = cfg?.enforcedAt?.toDate?.();
+  const existing = !cfg?.enforce || !since || new Date(user.metadata.creationTime) < since;
+  if (existing) {
+    await event.data.ref.update({ status: 'approved', approvedBy: 'existing account', decidedAt: FieldValue.serverTimestamp() });
+    return;
+  }
+  await pushAdmin('👤 New member to approve', `${m.name || 'Someone'} · ${m.city || ''}`);
+});
+
+exports.onMemberDecided = onDocumentUpdated('members/{uid}', async (event) => {
+  const a = event.data?.before.data(), b = event.data?.after.data();
+  if (!a || !b || a.status === b.status || b.approvedBy) return;
+  if (b.status !== 'approved' && b.status !== 'rejected') return;
+  const token = await tokenOf(event.params.uid);
+  if (!token) return;
+  await getMessaging().send({
+    token,
+    notification: b.status === 'approved'
+      ? { title: 'Habesha Hub', body: 'Your account is approved. You can now book and sell.' }
+      : { title: 'Habesha Hub', body: 'Your account was not approved. Contact us on WhatsApp.' },
+  }).catch(e => console.error('onMemberDecided', e.message));
+});
 
 exports.notifyNewClaim = onDocumentCreated('claims/{id}', async (event) => {
   const c = event.data?.data();

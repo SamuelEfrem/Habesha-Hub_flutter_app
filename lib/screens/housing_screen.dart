@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../utils/share_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
+import 'member_screens.dart';
 import '../utils/language_notifier.dart';
 import '../utils/theme_notifier.dart';
 import '../utils/translations.dart';
@@ -128,6 +129,7 @@ Future<User?> _realUser(BuildContext context) async {
 // ═══════════════════════════════════════════════════════════
 /// Opens the form for a new housing listing (guests log in first).
 Future<void> openHousingForm(BuildContext context) async {
+  if (!await ensureMember(context) || !context.mounted) return;
   final u = await _realUser(context);
   if (u == null || !context.mounted) return;
   Navigator.push(context, MaterialPageRoute(builder: (_) => const HousingFormScreen()));
@@ -569,8 +571,11 @@ class HousingDetailScreen extends StatelessWidget {
               child: Row(children: [
                 if (wa.isNotEmpty) Expanded(child: SizedBox(height: 52, child: FilledButton.icon(
                   style: FilledButton.styleFrom(backgroundColor: kHabGreen, foregroundColor: Colors.white),
-                  onPressed: () => launchUrl(Uri.parse('https://wa.me/$wa?text=${Uri.encodeComponent(
-                      '${tr('Hi, I saw your housing listing on Habesha Hub')}: ${_s(d['title'])}')}'), mode: LaunchMode.externalApplication),
+                  onPressed: () async {
+                    if (!await ensureMember(context)) return;
+                    launchUrl(Uri.parse('https://wa.me/$wa?text=${Uri.encodeComponent(
+                      '${tr('Hi, I saw your housing listing on Habesha Hub')}: ${_s(d['title'])}')}'), mode: LaunchMode.externalApplication);
+                  },
                   icon: const Icon(Icons.chat_outlined),
                   label: Text(tr('WhatsApp'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
                 ))),
@@ -579,9 +584,9 @@ class HousingDetailScreen extends StatelessWidget {
                   wa.isEmpty
                       ? Expanded(child: SizedBox(height: 52, child: FilledButton.icon(
                           style: FilledButton.styleFrom(backgroundColor: kHabGreen, foregroundColor: Colors.white),
-                          onPressed: () => launchUrl(Uri.parse('tel:${phone.replaceAll(' ', '')}')),
+                          onPressed: () async { if (await ensureMember(context)) launchUrl(Uri.parse('tel:${phone.replaceAll(' ', '')}')); },
                           icon: const Icon(Icons.call_outlined), label: Text(tr('Call')))))
-                      : _circleBtn(Icons.call_outlined, () => launchUrl(Uri.parse('tel:${phone.replaceAll(' ', '')}')), tr('Call'), bg: kCardHigh),
+                      : _circleBtn(Icons.call_outlined, () async { if (await ensureMember(context)) launchUrl(Uri.parse('tel:${phone.replaceAll(' ', '')}')); }, tr('Call'), bg: kCardHigh),
               ]),
             ),
           );

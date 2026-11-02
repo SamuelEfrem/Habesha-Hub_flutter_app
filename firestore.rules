@@ -18,6 +18,17 @@ service cloud.firestore {
     }
     // a real account (email/Apple/Google) — not an anonymous guest
     function realUser() { return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous'; }
+    // Approval: the switch is app_config/members.enforce (old app versions keep working until it is on).
+    function approvalOn() {
+      return exists(/databases/$(database)/documents/app_config/members)
+        && get(/databases/$(database)/documents/app_config/members).data.get('enforce', false) == true;
+    }
+    function isMember() {
+      return request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/members/$(uid()))
+        && get(/databases/$(database)/documents/members/$(uid())).data.status == 'approved';
+    }
+    function canAct() { return realUser() && (isAdmin() || !approvalOn() || isMember()); }
     function changed()  { return request.resource.data.diff(resource.data).affectedKeys(); }
     function bizOwner(bizId) {
       return signedIn() &&
@@ -73,10 +84,23 @@ service cloud.firestore {
 
     // ── Business bookings (restaurant / barber / hotel) ────
     match /bookings/{id} {
-      allow create: if request.resource.data.status == 'pending';
+      allow create: if request.resource.data.status == 'pending'
+        && (!approvalOn() || canAct());
       allow read: if isAdmin()
         || (signedIn() && (resource.data.ownerId == uid() || resource.data.userId == uid()));
       allow update, delete: if isAdmin() || (signedIn() && resource.data.ownerId == uid());
+    }
+
+    // ── Members: private details, only the person and the admin ──
+    match /members/{id} {
+      allow read: if isAdmin() || (signedIn() && uid() == id);
+      allow create: if realUser() && uid() == id
+        && request.auth.token.email_verified == true
+        && request.resource.data.status == 'pending'
+        && request.resource.data.keys().hasOnly(['name', 'phone', 'city', 'address', 'email', 'status', 'createdAt']);
+      allow update: if isAdmin()
+        || (signedIn() && uid() == id && changed().hasOnly(['name', 'phone', 'city', 'address']));
+      allow delete: if isAdmin() || (signedIn() && uid() == id);
     }
 
     // ── Marketplace (buy & sell) ───────────────────────────
@@ -84,7 +108,7 @@ service cloud.firestore {
       allow read: if true;
       // New and edited listings must wait for admin approval (approved == false).
       allow create: if isAdmin()
-        || (realUser() && request.resource.data.userId == uid()
+        || (canAct() && request.resource.data.userId == uid()
             && request.resource.data.approved == false);
       allow update: if isAdmin()
         || (realUser() && resource.data.userId == uid() && request.resource.data.userId == uid()
@@ -103,7 +127,7 @@ service cloud.firestore {
     match /housing/{id} {
       allow read: if resource.data.status in ['approved', 'rented'] || isAdmin()
         || (signedIn() && resource.data.ownerId == uid());
-      allow create: if realUser()
+      allow create: if canAct()
         && request.resource.data.ownerId == uid()
         && request.resource.data.status == 'pending'
         && !request.resource.data.keys().hasAny(['address'])
@@ -128,7 +152,7 @@ service cloud.firestore {
     match /homeShops/{shopId} {
       allow read: if resource.data.status == 'approved' || isAdmin()
         || (signedIn() && resource.data.ownerId == uid());
-      allow create: if realUser()
+      allow create: if canAct()
         && request.resource.data.ownerId == uid()
         && request.resource.data.status == 'pending'
         && request.resource.data.rating == 0
@@ -191,7 +215,7 @@ service cloud.firestore {
 
     // ── Service bookings + receipts ────────────────────────
     match /service_bookings/{id} {
-      allow create: if realUser()
+      allow create: if canAct()
         && request.resource.data.userId == uid()
         && request.resource.data.status == 'created'
         && !('amount' in request.resource.data)

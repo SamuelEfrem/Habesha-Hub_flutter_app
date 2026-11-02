@@ -9,6 +9,7 @@ import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/app_theme.dart';
+import 'member_screens.dart';
 import '../utils/language_notifier.dart';
 import 'payment.dart';
 import 'provider_extras.dart';
@@ -882,6 +883,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
         const SizedBox(height: 24),
         primaryButton(_saving ? '' : (btnLabel[lang] ?? btnLabel['English']!), _saving ? null : () async {
           if (user == null || user.isAnonymous) return;
+          if (!await ensureMember(context)) return;
           final wa = _waCtrl.text.trim();
           if (wa.replaceAll(RegExp(r'[^0-9]'), '').length < 8) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(

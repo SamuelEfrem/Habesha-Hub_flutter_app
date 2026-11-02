@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/business.dart';
 import '../theme/app_theme.dart';
+import 'member_screens.dart';
 import '../utils/language_notifier.dart';
 import '../services/notification_service.dart';
 import '../utils/translations.dart';
@@ -60,6 +61,7 @@ class _BookingScreenState extends State<BookingScreen> {
   Future<void> _sendBooking() async {
     final t = languageNotifier.t;
     if (_messageCtrl.text.isEmpty) return;
+    if (!await ensureMember(context) || !mounted) return;
     if (_phoneCtrl.text.replaceAll(RegExp(r'[^0-9]'), '').length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(tr('Please enter your WhatsApp number with country code (e.g. +47…)'))));

@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
+import 'member_screens.dart';
 import '../utils/language_notifier.dart';
 import '../utils/theme_notifier.dart';
 import '../utils/translations.dart';
@@ -117,6 +118,7 @@ Future<User?> _realUser(BuildContext context) async {
 // ═══════════════════════════════════════════════════════════
 /// Opens the user's own shop for editing, or the form for a new one (guests log in first).
 Future<void> openMyHomeShop(BuildContext context) async {
+  if (!await ensureMember(context) || !context.mounted) return;
   final u = await _realUser(context);
   if (u == null || !context.mounted) return;
   final mine = await _shops.where('ownerId', isEqualTo: u.uid).limit(1).get();
@@ -460,14 +462,16 @@ class _ShopProfileScreenState extends State<ShopProfileScreen> {
     }
   }
 
-  void _whatsApp(Map d) {
+  Future<void> _whatsApp(Map d) async {
+    if (!await ensureMember(context)) return;
     final n = _digits(_s(d['whatsapp']).isNotEmpty ? _s(d['whatsapp']) : _s(d['phone']));
     if (n.isEmpty) return;
     final text = '${tr('Hi, I saw your shop on Habesha Hub')} (${_s(d['name'])}). ';
     launchUrl(Uri.parse('https://wa.me/$n?text=${Uri.encodeComponent(text)}'), mode: LaunchMode.externalApplication);
   }
 
-  void _call(Map d) {
+  Future<void> _call(Map d) async {
+    if (!await ensureMember(context)) return;
     final n = _s(d['phone']).isNotEmpty ? _s(d['phone']) : _s(d['whatsapp']);
     if (n.isEmpty) return;
     launchUrl(Uri.parse('tel:${n.replaceAll(' ', '')}'));

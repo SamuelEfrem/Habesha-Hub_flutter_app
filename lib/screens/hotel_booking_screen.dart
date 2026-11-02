@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/business.dart';
 import '../theme/app_theme.dart';
+import 'member_screens.dart';
 import '../utils/language_notifier.dart';
 import '../services/notification_service.dart';
 import '../utils/translations.dart';
@@ -44,6 +45,7 @@ class _HotelBookingScreenState extends State<HotelBookingScreen> {
   int get _nights => _checkOut.difference(_checkIn).inDays;
 
   Future<void> _submit() async {
+    if (!await ensureMember(context) || !mounted) return;
     if (_nights < 1) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(tr('Check-out must be after check-in')),

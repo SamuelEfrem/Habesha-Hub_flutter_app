@@ -523,6 +523,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
       await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
+      await FirebaseFirestore.instance.collection('members').doc(user.uid).delete();
       await user.delete();
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
