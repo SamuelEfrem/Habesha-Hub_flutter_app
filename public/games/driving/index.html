@@ -770,7 +770,7 @@ let TI=TXT[LANG];
 const VOICE={ti:"ti-ER",am:"am-ET",en:"en-GB",no:"nb-NO"};
 const DESTS=[["hospital","🏥"],["school","🏫"],["church","⛪"],["market","🛒"],["home","🏠"],["cafe","☕"],["shop","🏪"]];
 const TEST_DESTS=5;   // the first five are the destinations in the driving test
-const MISSIONS=[{id:"cafe",d:5,t:"mCafe",ic:"☕"},{id:"shop",d:6,t:"mShop",ic:"🏪"},{id:"pass",d:4,t:"mPass",ic:"🧍",pick:true},{id:"school",d:1,t:"mSchool",ic:"🏫"},{id:"church",d:2,t:"mChurch",ic:"⛪"},{id:"hosp",d:0,t:"mHosp",ic:"🏥",pick:true}];
+const MISSIONS=[{id:"cafe",d:5,t:"mCafe",ic:"☕",free:true},{id:"shop",d:6,t:"mShop",ic:"🏪",free:true},{id:"pass",d:4,t:"mPass",ic:"🧍",pick:true},{id:"school",d:1,t:"mSchool",ic:"🏫"},{id:"church",d:2,t:"mChurch",ic:"⛪"},{id:"hosp",d:0,t:"mHosp",ic:"🏥",pick:true}];
 let MENU="home",MIS=null;
 // progress: on the phone, and in the account through the app when logged in
 let PROG={stars:{},km:0,tests:0,passed:0};try{PROG=Object.assign(PROG,JSON.parse(localStorage.getItem("dl-prog")||"{}"))}catch(e){}
@@ -1090,11 +1090,11 @@ function drawMenu(){TI=TXT[LANG];document.documentElement.lang=LANG;preloadVoice
   const homeBtn=`<button class="btn" id="homeB" style="background:#2b3d18;color:#fff">← ${TI.home}</button>`,bindHome=()=>{const b=$("homeB");if(b)b.onclick=()=>{MENU="home";drawMenu()}};
   if(MENU==="home"){const tot=MISSIONS.reduce((n,m)=>n+(PROG.stars[m.id]||0),0),lock=PRO?"":"🔒";
     $("menu").innerHTML=`<h2>${TI.title}</h2><div class="modes"><button class="modec" data-m="free"><b>🚗</b><span>${TI.modeFree}<small>${TI.modeFreeS}</small></span>${PROG.km?`<span class="st">${(+PROG.km).toFixed(1)} km</span>`:""}</button>
-      <button class="modec" data-m="mis"><b>🎯</b><span>${TI.modeMis} ${lock}<small>${TI.modeMisS}</small></span><span class="st">⭐ ${tot}/${MISSIONS.length*3}</span></button>
+      <button class="modec" data-m="mis"><b>🎯</b><span>${TI.modeMis}<small>${TI.modeMisS}</small></span><span class="st">⭐ ${tot}/${MISSIONS.length*3}</span></button>
       <button class="modec" data-m="test"><b>📝</b><span>${TI.modeTest} ${lock}<small>${TI.modeTestS}</small></span>${PROG.passed?`<span class="st">✓ ${PROG.passed}</span>`:""}</button></div>${langs}<button class="tilt ${TILT?"on":""}" id="tiltB">📱 ${TI.tilt}</button>`;$("ov").hidden=false;
     $("menu").querySelector(".modes").onclick=e=>{const b=e.target.closest("[data-m]");if(!b)return;if(b.dataset.m==="free"){startFree();return}MENU=b.dataset.m;MIS=null;drawMenu()};$("tiltB").onclick=toggleTilt;bindLangs();return}
-  if(MENU==="mis"&&PRO){$("menu").innerHTML=`<h2>🎯 ${TI.modeMis}</h2><div class="modes" id="misL">${MISSIONS.map((m,i)=>`<button class="modec" data-i="${i}"><b>${m.ic}</b><span>${esc(TI[m.t])}</span><span class="st">${"⭐".repeat(PROG.stars[m.id]||0)}${"☆".repeat(3-(PROG.stars[m.id]||0))}</span></button>`).join("")}</div>${homeBtn}`;$("ov").hidden=false;
-    $("misL").onclick=e=>{const b=e.target.closest("[data-i]");if(b)startMission(MISSIONS[+b.dataset.i])};bindHome();return}
+  if(MENU==="mis"){$("menu").innerHTML=`<h2>🎯 ${TI.modeMis}</h2><div class="modes" id="misL">${MISSIONS.map((m,i)=>`<button class="modec" data-i="${i}"><b>${m.ic}</b><span>${esc(TI[m.t])} ${PRO||m.free?"":"🔒"}</span><span class="st">${"⭐".repeat(PROG.stars[m.id]||0)}${"☆".repeat(3-(PROG.stars[m.id]||0))}</span></button>`).join("")}</div>${homeBtn}`;$("ov").hidden=false;
+    $("misL").onclick=e=>{const b=e.target.closest("[data-i]");if(!b)return;const m=MISSIONS[+b.dataset.i];if(PRO||m.free)startMission(m);else{MENU="test";drawMenu()}};bindHome();return}
   // slow phones: give the app up to 7 s to send the unlock before showing the lock screen
   if(!PRO&&QSD.get("app")==="1"&&performance.now()<7000){$("menu").innerHTML=`<h2>${TI.title}</h2><p>…</p>`;$("ov").hidden=false;setTimeout(()=>{if(!L||!L.on)drawMenu()},7100-performance.now());return}
   if(!PRO){$("menu").innerHTML=`<h2>🔒 ${TI.title}</h2><p>${TI.locked}</p><p class="small">${TI.lockHow}</p><button class="btn" id="back">← ${TI.backTxt}</button>${homeBtn}`;$("ov").hidden=false;bindHome();
