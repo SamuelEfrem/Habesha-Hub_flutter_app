@@ -253,6 +253,74 @@ function lamp(x,z,rotY,night){const g=new THREE.Group();g.position.set(x,0,z);g.
     const pool=new THREE.Mesh(new THREE.CircleGeometry(4,24),new THREE.MeshBasicMaterial({color:0xffb860,transparent:true,opacity:.18,depthWrite:false,blending:THREE.AdditiveBlending}));
     pool.rotation.x=-Math.PI/2;pool.position.set(0,.06,2.4);g.add(pool)}}
 
+/* ---------- Norwegian city: the same streets every time, so the rules can be learned ---------- */
+const MAIN_V=3,MAIN_H=4,TRAM_H=4,ONEWAY_V=6;            // street numbers on the grid
+const ROUNDABOUTS=[[1,2],[5,6]],PETROL=[1,5],CARPARK=[4,2];
+const SHOPS=[["Café","#7a4a2b"],["Bakeri","#b3702a"],["Butikk","#1f7a4a"],["Apotek","#1d7f6f"],["Kiosk","#c8341e"],["Frisør","#3b4a6b"],["Habesha Restaurant","#1e7b4f"],["Pizza","#a32b22"],["Bank","#23395d"],["Blomster","#8a3b70"]];
+const isRound=(i,j)=>ROUNDABOUTS.some(([a,b])=>a===i&&b===j);
+// a side street meets the main street: STOP at some crossings, give way at the others (same place every time)
+const armSign=(i,j)=>(i*3+j)%4===0?"stop":"give";
+function streetLimit(vertical,n){if(vertical?n===MAIN_V:n===MAIN_H)return vertical?60:50;return n%2?30:50}
+function nodeEvent(i,j,vertical){if(isRound(i,j))return"round";const mv=i===MAIN_V,mh=j===MAIN_H;if(mv&&mh)return"light";
+  if(vertical?mv:mh)return"prio";if(mv||mh)return armSign(i,j);return Math.random()<.3?"light":"none"}
+let shopMats=null;
+function shopMat(k){shopMats=shopMats||{};if(shopMats[k])return shopMats[k];const[n,c]=SHOPS[k];const cv=document.createElement("canvas");cv.width=512;cv.height=64;const g=cv.getContext("2d");
+  g.fillStyle=c;g.fillRect(0,0,512,64);g.fillStyle="#fff";g.font="700 42px Arial,Helvetica,sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText(n,256,34);
+  const t=new THREE.CanvasTexture(cv);t.encoding=THREE.sRGBEncoding;return shopMats[k]=new THREE.MeshBasicMaterial({map:t})}
+// shop sign + awning on the two street sides of a building
+function shopFront(x,z,ox,oz){[[Math.sign(ox),0],[0,Math.sign(oz)]].forEach(([sx,sz])=>{if(Math.random()>.6)return;
+  const k=Math.floor(Math.random()*SHOPS.length),m=new THREE.Mesh(new THREE.PlaneGeometry(9.4,1.15),shopMat(k));
+  m.position.set(x+sx*5.56,3.7,z+sz*5.56);m.rotation.y=sx?(sx>0?Math.PI/2:-Math.PI/2):(sz>0?0:Math.PI);world.add(m);
+  box(sx?1.2:9.4,.12,sx?9.4:1.2,STD(0xe8e2d6),x+sx*6.1,3,z+sz*6.1)})}
+function petrolStation(cx,cz){const steel=STD(0xd8dde2,{metalness:.4,roughness:.5}),red=STD(0xc8341e,{roughness:.5});
+  box(BLK-1,.04,BLK-1,STD(0x4a4c50,{roughness:.95}),cx,.27,cz);
+  box(15,.5,10,steel,cx,5,cz-3);box(15.2,.45,10.2,red,cx,4.6,cz-3);
+  [[-6,-7],[6,-7],[-6,1],[6,1]].forEach(([a,b])=>box(.35,4.5,.35,steel,cx+a,2.5,cz+b));
+  [-3,3].forEach(a=>{box(.9,1.7,.6,red,cx+a,1.1,cz-3);buildings.push({x:cx+a,z:cz-3,w:.9,d:.6})});
+  box(10,3.4,5,STD(0xf1eee6),cx,1.9,cz+8);box(10.4,.3,5.4,red,cx,3.7,cz+8);buildings.push({x:cx,z:cz+8,w:10,d:5});
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(9.4,1.15),shopMat(4));m.position.set(cx,2.9,cz+5.48);m.rotation.y=Math.PI;world.add(m);
+  const cv=document.createElement("canvas");cv.width=512;cv.height=64;const g=cv.getContext("2d");g.fillStyle="#c8341e";g.fillRect(0,0,512,64);g.fillStyle="#fff";g.font="800 44px Arial,Helvetica,sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText("BENSIN · DIESEL",256,34);
+  const t=new THREE.CanvasTexture(cv);t.encoding=THREE.sRGBEncoding;[[0,cz-8.04,Math.PI],[0,cz+2.04,0]].forEach(([a,zz,r])=>{const b=new THREE.Mesh(new THREE.PlaneGeometry(14,1),new THREE.MeshBasicMaterial({map:t}));b.position.set(cx+a,4.85,zz);b.rotation.y=r;world.add(b)})}
+function carPark(cx,cz){box(BLK-1,.04,BLK-1,STD(0x47494d,{roughness:.95}),cx,.27,cz);const line=new THREE.MeshBasicMaterial({color:0xffffff});
+  [-1,1].forEach(side=>{for(let n=-4;n<=4;n++){const l=new THREE.Mesh(new THREE.PlaneGeometry(.14,6),line);l.rotation.x=-Math.PI/2;l.position.set(cx+n*3,.3,cz+side*9.5);world.add(l)}
+    for(let n=-4;n<4;n++){if((n+side*3+9)%3===0)continue;const c=carMesh([0xd9dde2,0x23272e,0x8b1e1e,0x9aa5ad,0x2a5bd7][(n+9)%5],false);c.position.set(cx+n*3+1.5,.27,cz+side*9.5);c.rotation.y=side>0?0:Math.PI;world.add(c);buildings.push({x:cx+n*3+1.5,z:cz+side*9.5,w:1.8,d:4.4})}});
+  placeSign("parking",cx-13,cz-13,Math.PI*.75,3)}
+function specialBlock(bi,bj,cx,cz){if(bi===PETROL[0]&&bj===PETROL[1]){petrolStation(cx,cz);return true}if(bi===CARPARK[0]&&bj===CARPARK[1]){carPark(cx,cz);return true}return false}
+function roundabout(x,z){const curb=new THREE.Mesh(new THREE.CylinderGeometry(2.3,2.45,.3,28),STD(0xc9c6bf,{roughness:.9}));curb.position.set(x,.17,z);curb.receiveShadow=true;world.add(curb);
+  const grass=new THREE.Mesh(new THREE.CylinderGeometry(2.1,2.1,.1,28),STD(0x5f8a3f,{roughness:1}));grass.position.set(x,.34,z);world.add(grass);tree(x,z,false);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(2.75,2.95,36),new THREE.MeshBasicMaterial({color:0xf2f2f2}));ring.rotation.x=-Math.PI/2;ring.position.set(x,.05,z);world.add(ring);
+  // on every arm: give way + the blue roundabout sign in the middle
+  [[0,-1],[1,0],[0,1],[-1,0]].forEach(([dx,dz])=>{const d={x:-dx,z:-dz},r={x:-d.z,z:d.x},f=Math.atan2(-d.x,-d.z);placeSign("give",x+dx*8.5+r.x*7.2,z+dz*8.5+r.z*7.2,f);placeSign("roundAhead",x+dx*30+r.x*7.2,z+dz*30+r.z*7.2,f);
+    const m=signMesh("roundMand",1.5);m.position.set(x+dx*1.9,2.1,z+dz*1.9);m.rotation.y=f;world.add(m)})}
+function zebraArm(x,z,dx,dz){const mat=zebraArm.m||(zebraArm.m=new THREE.MeshBasicMaterial({color:0xf0f0f0}));const lat={x:-dz,z:dx};
+  for(let l=-5;l<=5;l+=2){const st=new THREE.Mesh(new THREE.PlaneGeometry(dx?3:1.1,dx?1.1:3),mat);st.rotation.x=-Math.PI/2;st.position.set(x+dx*8.2+lat.x*l,.05,z+dz*8.2+lat.z*l);world.add(st)}}
+function roadArrow(x,z,rot){const mat=roadArrow.m||(roadArrow.m=(()=>{const cv=document.createElement("canvas");cv.width=64;cv.height=128;const g=cv.getContext("2d");g.fillStyle="#fff";g.beginPath();g.moveTo(32,4);g.lineTo(60,52);g.lineTo(42,52);g.lineTo(42,124);g.lineTo(22,124);g.lineTo(22,52);g.lineTo(4,52);g.closePath();g.fill();
+    return new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false})})());
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(1.6,4),mat);m.rotation.x=-Math.PI/2;m.rotation.z=rot;m.position.set(x,.06,z);world.add(m)}
+function shelter(x,z,rot,label){const g=new THREE.Group();g.position.set(x,.25,z);g.rotation.y=rot;world.add(g);const glass=new THREE.MeshStandardMaterial({color:0x9fc3d8,transparent:true,opacity:.45,roughness:.2});
+  box(4,.1,1.5,STD(0x30343a),0,2.5,0,g);box(4,2.3,.06,glass,0,1.3,-.7,g);[-1.9,1.9].forEach(a=>box(.08,2.5,1.4,glass,a,1.3,0,g));box(2.4,.08,.4,STD(0x7a6a55),0,.55,-.45,g);
+  const cv=document.createElement("canvas");cv.width=128;cv.height=64;const c=cv.getContext("2d");c.fillStyle=label==="TRIKK"?"#1f5fbf":"#c8341e";c.fillRect(0,0,128,64);c.fillStyle="#fff";c.font="800 34px Arial,Helvetica,sans-serif";c.textAlign="center";c.textBaseline="middle";c.fillText(label,64,34);
+  const t=new THREE.CanvasTexture(cv);const m=new THREE.Mesh(new THREE.PlaneGeometry(1.4,.7),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}));m.position.set(2.5,2.4,.72);g.add(m);box(.08,2.8,.08,STD(0x5b6066),2.5,1.4,.72,g)}
+function cityDetails(){
+  // tram rails along the main east-west street
+  const rail=new THREE.MeshStandardMaterial({color:0x8a8f96,metalness:.8,roughness:.35}),z0=roadPos(TRAM_H),len=N*CELL+RD;
+  [-3.9,-2.5,2.5,3.9].forEach(o=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(len,.12),rail);m.rotation.x=-Math.PI/2;m.position.set(0,.045,z0+o);world.add(m)});
+  for(let i=0;i<N;i+=2){const x=roadPos(i)+CELL/2;shelter(x,z0-7.4,0,"TRIKK");shelter(x+12,z0+7.4,Math.PI,"TRIKK")}
+  for(let j=1;j<N;j+=2){const z=roadPos(j)+CELL/2;if(j===TRAM_H)continue;shelter(roadPos(MAIN_V)+7.4,z,-Math.PI/2,"BUSS");shelter(roadPos(MAIN_V)-7.4,z+10,Math.PI/2,"BUSS")}
+  // crossings: zebra on every arm of the main streets, signs for who has priority
+  for(let i=0;i<=N;i++)for(let j=0;j<=N;j++){const x=roadPos(i),z=roadPos(j);if(isRound(i,j)){roundabout(x,z);continue}
+    const mv=i===MAIN_V,mh=j===MAIN_H;if(!mv&&!mh)continue;
+    [[0,-1],[1,0],[0,1],[-1,0]].forEach(([dx,dz])=>{const ni=i+dx,nj=j+dz;if(ni<0||ni>N||nj<0||nj>N)return;zebraArm(x,z,dx,dz);
+      const along=dx?mh:mv,d={x:-dx,z:-dz},r={x:-d.z,z:d.x},f=Math.atan2(-d.x,-d.z),sx=x+dx*8.5+r.x*7.2,sz=z+dz*8.5+r.z*7.2;
+      if(mv&&mh)return;placeSign(along?"prio":armSign(i,j),sx,sz,f)})}
+  // one-way street: runs north only; no entry from the other end
+  const xo=roadPos(ONEWAY_V);for(let j=0;j<N;j++){const m=roadPos(j)+CELL/2;roadArrow(xo-2.6,m,0);roadArrow(xo+2.6,m,0)}
+  for(let j=0;j<=N;j++){const z=roadPos(j);if(j<N)placeSign("noEntry",xo-7.2,z+9,Math.PI);if(j>0)placeSign("oneWay",xo+7.2,z+9,0)}
+  // street trees
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){if((i===PETROL[0]&&j===PETROL[1])||(i===CARPARK[0]&&j===CARPARK[1]))continue;const cx=roadPos(i)+CELL/2,cz=roadPos(j)+CELL/2;
+    if((i+j)%2===0){tree(cx-1,cz-14,false);tree(cx+1,cz+14,false)}}
+}
+
 function build(key){
   const C=CITIES[key];
   scene=new THREE.Scene();world=new THREE.Group();scene.add(world);
@@ -294,6 +362,7 @@ function build(key){
     // lamps on block corners
     [[-1,-1],[1,1]].forEach(([sx,sz])=>lamp(cx+sx*(BLK/2-.6),cz+sz*(BLK/2-.6),sx>0?Math.PI*.75:-Math.PI*.25,C.night));
     if(bi===3&&bj===3){landmark(C.landmark).position.set(cx,.25,cz);buildings.push({x:cx,z:cz,w:BLK-2,d:BLK-2});continue}
+    if(key==="lesson"&&specialBlock(bi,bj,cx,cz))continue;
     for(const[ox,oz]of[[-7,-7],[7,-7],[-7,7],[7,7]]){
       if(Math.random()<C.trees){tree(cx+ox,cz+oz,C.palms);continue}
       const h=Math.round((C.hmin+Math.random()*(C.hmax-C.hmin)*(Math.random()<.15?1.6:1))/3)*3;
@@ -305,8 +374,10 @@ function build(key){
       box(11.4,.5,11.4,STD(C.snow?0xf4f7fa:0x8a857c),cx+ox,h+.5,cz+oz);
       if(h>15&&!C.snow)box(2.5,1.6,2.5,STD(0x9aa0a6,{metalness:.5,roughness:.5}),cx+ox+2,h+1.5,cz+oz-2);
       buildings.push({x:cx+ox,z:cz+oz,w:11,d:11});
+      if(key==="lesson")shopFront(cx+ox,cz+oz,ox,oz);
     }
   }
+  if(key==="lesson")cityDetails();
   // hills
   for(let i=0;i<34;i++){const a=i/34*Math.PI*2,rad=40+Math.random()*30,r=HALF*Math.SQRT2+RD+30+rad+Math.random()*60,h=25+Math.random()*50;
     const m=new THREE.Mesh(new THREE.IcosahedronGeometry(rad,2),STD(C.snow?0xe9eef3:C.hills,{flatShading:true,roughness:1}));
@@ -506,7 +577,7 @@ const TXT={
  ti:{title:"🚗 ፈተና ምዝዋር",sub:"መምህር ብትግርኛ ይእዝዘካ። ኩሉ ሕጊ ትራፊክ ይፍተሽ።",
   turnR:"ኣብ ዝቕጽል መስቀላ ናብ የማን ጠውይ",turnL:"ኣብ ዝቕጽል መስቀላ ናብ ጸጋም ጠውይ",straight:"ኣብ ዝቕጽል መስቀላ ቀጥ ኪድ",finish:"ናብ ቦታ ፓርክ ኣቱ፡ ኣብ P ደው በል",
   light:"መብራህቲ ትራፊክ ኣሎ፡ ቀይሕ እንተኾይኑ ደው በል",stop:"ምልክት STOP ኣሎ፡ ኣብ መስመር ምሉእ ብምሉእ ደው በል",give:"ምልክት «ቅድሚ ሃብ» ኣሎ፡ ቀስ በል",none:"ምልክት የለን፡ ሕጊ የማን ይሰርሕ፡ ቀስ በል",
-  zebra:"መሳገሪ እግረኛ ኣሎ፡ እግረኛ እንተሎ ደው ኢልካ ኣሕልፎ",lead:"ምስቲ ኣብ ቅድሜኻ ዘሎ መኪና ብውሑዱ 3 ካልኢት ርሕቀት ሓሉ",
+  round:"ዙርያ መገዲ፦ ኣብ ውሽጢ ዘለዉ መካይን ቅድሚ ሃብ፡ ብየማን ዙር",prio:"ኣብ ናይ ቀዳምነት ጽርግያ ኣለኻ",zebra:"መሳገሪ እግረኛ ኣሎ፡ እግረኛ እንተሎ ደው ኢልካ ኣሕልፎ",lead:"ምስቲ ኣብ ቅድሜኻ ዘሎ መኪና ብውሑዱ 3 ካልኢት ርሕቀት ሓሉ",
   mSpeed:"ፍጥነት ሓሊፍካ",mRed:"ብቀይሕ መብራህቲ ሓሊፍካ",mStop:"ኣብ STOP ምሉእ ብምሉእ ደው ኣይበልካን",mZebra:"ንእግረኛ ቅድሚ ኣይሃብካን",
   mDist:"ምስቲ ቅድሜኻ ዘሎ መኪና ርሕቀት ኣይሓለኻን",mLane:"ብጸጋም ጎድኒ ጽርግያ ዘዊርካ",mWrong:"ጌጋ ኣንፈት ወሲድካ",mCrash:"ተጋጪኻ",
   mGive:"ኣብ «ቅድሚ ሃብ» ፍጥነት ኣይነከኻን",mRight:"ኣብ መስቀላ ብዘይ ምልክት ፍጥነት ኣይነከኻን",mHitPed:"ሰብ ሃሪምካ! ፈተና ተቋሪጹ",mPark:"ኣብቲ ቦታ ፓርክ ብግቡእ ደው ኣይበልካን",
@@ -520,7 +591,7 @@ const TXT={
  am:{title:"🚗 የመንጃ ፈተና",sub:"አስተማሪው በአማርኛ ያዝዝሃል። ሁሉም የትራፊክ ሕግ ይፈተሻል።",
   turnR:"በሚቀጥለው መገናኛ ወደ ቀኝ ታጠፍ",turnL:"በሚቀጥለው መገናኛ ወደ ግራ ታጠፍ",straight:"በሚቀጥለው መገናኛ ቀጥ ብለህ ሂድ",finish:"ወደ መኪና ማቆሚያው ግባ፣ በP ቦታ ቁም",
   light:"የትራፊክ መብራት አለ፣ ቀይ ከሆነ ቁም",stop:"STOP ምልክት አለ፣ መስመሩ ላይ ሙሉ በሙሉ ቁም",give:"«ቅድሚያ ስጥ» ምልክት አለ፣ ቀስ በል",none:"ምልክት የለም፣ የቀኝ ሕግ ይሰራል፣ ቀስ በል",
-  zebra:"የእግረኛ ማቋረጫ አለ፣ እግረኛ ካለ ቆመህ አሳልፍ",lead:"ከፊትህ ካለው መኪና ቢያንስ 3 ሰከንድ ርቀት ጠብቅ",
+  round:"አደባባይ፦ በውስጡ ላሉ መኪኖች ቅድሚያ ስጥ፣ በቀኝ ዙር",prio:"በቅድሚያ መንገድ ላይ ነህ",zebra:"የእግረኛ ማቋረጫ አለ፣ እግረኛ ካለ ቆመህ አሳልፍ",lead:"ከፊትህ ካለው መኪና ቢያንስ 3 ሰከንድ ርቀት ጠብቅ",
   mSpeed:"ፍጥነት አልፈሃል",mRed:"በቀይ መብራት አልፈሃል",mStop:"STOP ላይ ሙሉ በሙሉ አልቆምክም",mZebra:"ለእግረኛ ቅድሚያ አልሰጠህም",
   mDist:"ከፊትህ ካለው መኪና ርቀት አልጠበቅህም",mLane:"በመንገዱ ግራ በኩል ነድተሃል",mWrong:"የተሳሳተ አቅጣጫ ወስደሃል",mCrash:"ተጋጭተሃል",
   mGive:"«ቅድሚያ ስጥ» ላይ ፍጥነት አልቀነስክም",mRight:"ምልክት በሌለው መገናኛ ፍጥነት አልቀነስክም",mHitPed:"ሰው ገጭተሃል! ፈተናው ተቋርጧል",mPark:"በማቆሚያው በትክክል አልቆምክም",
@@ -533,7 +604,7 @@ const TXT={
   dest:{hospital:"ሆስፒታል",school:"ትምህርት ቤት",church:"ቤተ ክርስቲያን",market:"ገበያ",home:"ቤት"}},
  en:{title:"🚗 Driving test",sub:"Your instructor guides you. Every traffic rule is checked.",
   turnR:"Turn right at the next crossing",turnL:"Turn left at the next crossing",straight:"Go straight at the next crossing",finish:"Drive into the car park and stop in the P bay",
-  light:"Traffic light ahead: stop if it is red",stop:"STOP sign: stop completely at the line",give:"Give-way sign: slow down",none:"No sign: give way to the right, slow down",
+  round:"Roundabout: give way to traffic in the circle, drive around to the right",prio:"You are on the priority road",light:"Traffic light ahead: stop if it is red",stop:"STOP sign: stop completely at the line",give:"Give-way sign: slow down",none:"No sign: give way to the right, slow down",
   zebra:"Zebra crossing: stop and let pedestrians cross",lead:"Keep at least 3 seconds from the car in front",
   mSpeed:"You were speeding",mRed:"You drove through a red light",mStop:"You did not stop completely at STOP",mZebra:"You did not let the pedestrian cross",
   mDist:"You were too close to the car in front",mLane:"You drove on the left side",mWrong:"Wrong direction",mCrash:"You crashed",
@@ -548,7 +619,7 @@ const TXT={
  no:{title:"🚗 Oppkjøring",sub:"Læreren gir deg beskjeder. Alle trafikkregler sjekkes.",
   turnR:"Ta til høyre i neste kryss",turnL:"Ta til venstre i neste kryss",straight:"Kjør rett fram i neste kryss",finish:"Kjør inn på parkeringen og stopp i P-plassen",
   light:"Lyskryss: stopp hvis det er rødt",stop:"Stoppskilt: stopp helt ved linja",give:"Vikepliktskilt: senk farten",none:"Ingen skilt: høyreregelen gjelder, senk farten",
-  zebra:"Gangfelt: stopp og slipp fotgjengere over",lead:"Hold minst 3 sekunder til bilen foran",
+  round:"Rundkjøring: vikeplikt for dem i sirkelen, kjør til høyre rundt",prio:"Du er på forkjørsvei",zebra:"Gangfelt: stopp og slipp fotgjengere over",lead:"Hold minst 3 sekunder til bilen foran",
   mSpeed:"Du kjørte for fort",mRed:"Du kjørte på rødt",mStop:"Du stoppet ikke helt ved stoppskiltet",mZebra:"Du slapp ikke fotgjengeren over",
   mDist:"For kort avstand til bilen foran",mLane:"Du kjørte på venstre side",mWrong:"Feil retning",mCrash:"Du krasjet",
   mGive:"Du senket ikke farten ved vikeplikt",mRight:"Du senket ikke farten i krysset",mHitPed:"Du kjørte på en person! Prøven er stoppet",mPark:"Du parkerte ikke riktig",
@@ -584,14 +655,19 @@ function makeRoute(){
   const legs=5+Math.floor(Math.random()*3);
   for(let k=0;k<legs;k++){
     // straight, right or left only: never back down the same street
-    const opts=k===0?[0]:Math.random()<.25?[0,1,3]:Math.random()<.5?[1,3,0]:[3,1,0];let moved=false;
-    for(const t of opts){const nd=(d+t)%4;for(const len of [2+Math.floor(Math.random()*2),2,1]){const nx=x+DIRS[nd][0]*len,nz=z+DIRS[nd][1]*len;
+    let opts=k===0?[0]:Math.random()<.25?[0,1,3]:Math.random()<.5?[1,3,0]:[3,1,0];let moved=false;
+    // try to pass a roundabout: the turn that leads straight to one comes first
+    if(k>0){const hit=[0,1,3].find(t=>{const nd=(d+t)%4;return[1,2,3].some(n=>isRound(x+DIRS[nd][0]*n,z+DIRS[nd][1]*n))});if(hit!=null)opts=[hit,...opts.filter(t=>t!==hit)]}
+    for(const t of opts){const nd=(d+t)%4;if(nd===2&&x===ONEWAY_V)continue; // never the wrong way down the one-way street
+      const toRound=[1,2,3].find(n=>isRound(x+DIRS[nd][0]*n,z+DIRS[nd][1]*n));
+      for(const len of toRound?[toRound]:[2+Math.floor(Math.random()*2),2,1]){const nx=x+DIRS[nd][0]*len,nz=z+DIRS[nd][1]*len;
       if(nx<0||nx>N||nz<0||nz>N)continue;d=nd;x=nx;z=nz;NODES.push([x,z]);moved=true;break}if(moved)break}
     if(!moved)break}
-  const EV=["light","light","stop","give","none"],LIM=[30,50,50,60];
-  SEGS=[];for(let k=0;k<NODES.length-1;k++){const last=k===NODES.length-2;
-    SEGS.push({lim:last?30:LIM[Math.floor(Math.random()*LIM.length)],ev:last?"finish":EV[Math.floor(Math.random()*EV.length)],
-      zebra:!last&&Math.random()<.4,lead:!last&&k>0&&Math.random()<.3})}
+  // the car park at the end must not be inside a roundabout
+  while(NODES.length>3&&isRound(...NODES[NODES.length-1]))NODES.pop();
+  SEGS=[];for(let k=0;k<NODES.length-1;k++){const last=k===NODES.length-2,[ax,az]=NODES[k],[bx,bz]=NODES[k+1],az0=Math.round(az),vertical=ax===bx,ev=last?"finish":nodeEvent(bx,bz,vertical);
+    SEGS.push({lim:last?30:streetLimit(vertical,vertical?ax:az0),ev,side:ev==="give"||ev==="stop",
+      zebra:!last&&Math.random()<.4,lead:!last&&k>0&&ev!=="round"&&Math.random()<.3})}
 }
 let seg=[];
 
@@ -617,10 +693,9 @@ function setupRoute(){
     // speed limit sign at the start, on the right
     const p=at(9,7.2);placeSign("speed"+S.lim,p.x,p.z,S.face);
     // stop line
-    if(S.ev==="light"||S.ev==="stop"||S.ev==="give"){const q=at(S.stopS,3);const line=new THREE.Mesh(new THREE.PlaneGeometry(6,S.ev==="give"?.25:.5),new THREE.MeshBasicMaterial({color:0xffffff}));
+    if(S.ev==="light"||S.ev==="stop"||S.ev==="give"||S.ev==="round"){const q=at(S.stopS,3);const line=new THREE.Mesh(new THREE.PlaneGeometry(6,S.ev==="give"||S.ev==="round"?.25:.5),new THREE.MeshBasicMaterial({color:0xffffff}));
       line.rotation.x=-Math.PI/2;line.rotation.z=-Math.atan2(S.d.x,-S.d.z);line.position.set(q.x,.06,q.z);world.add(line)}
-    if(S.ev==="stop"){const q=at(S.stopS-1,7.2);placeSign("stop",q.x,q.z,S.face)}
-    if(S.ev==="give"){const q=at(S.stopS-1,7.2);placeSign("give",q.x,q.z,S.face)}
+    // STOP / give way at main streets and roundabouts already stand there (cityDetails)
     if(S.ev==="light"){const q=at(S.stopS,7);S.light=trafficLight(q.x,q.z,S.face)}
     if(S.zebra){S.zs=Math.round(S.L*.5);const q=at(S.zs-12,7.2);placeSign("crossingHere",q.x,q.z,S.face);
       for(let l=-5;l<=5;l+=2){const c=at(S.zs,l);const st=new THREE.Mesh(new THREE.PlaneGeometry(1.1,3.2),new THREE.MeshBasicMaterial({color:0xf4f4f4}));
@@ -690,7 +765,7 @@ function speakText(text){if(!text)return;const now=performance.now();if(text===l
 // no Tigrinya voice on the phone → read the same Ge'ez text with the Amharic voice
 window.habeshaSpeakResult=ok=>{if(!ok&&LANG==="ti"&&!tiFallback){tiFallback=true;const t=lastSaid;lastSaid="";speakText(t)}};
 // Every spoken line has a key; a recorded voice/<lang>/<key>.mp3 is played when it exists
-const VKEYS=["turnR","turnL","straight","finish","light","stop","give","none","zebra","lead","mSpeed","mRed","mStop","mZebra","mDist","mLane","mWrong",
+const VKEYS=["turnR","turnL","straight","finish","light","stop","give","none","round","prio","zebra","lead","mSpeed","mRed","mStop","mZebra","mDist","mLane","mWrong",
   "mCrash","mGive","mRight","mHitPed","mPark","okRed","okStop","okZebra","okTurn","okPark","pass","fail","slow","praise0","praise1","praise2"];
 const vtext=k=>(/^praise\d$/.test(k)?TI.praise[+k.slice(6)]:TI[k])||"";
 function preloadVoice(){VKEYS.forEach(k=>{const src=`voice/${LANG}/${k}.mp3`;if(src in vcache)return;vcache[src]=null;const a=new Audio();a.preload="auto";
@@ -727,7 +802,7 @@ addEventListener("keydown",e=>{if(e.key.toLowerCase()==="r"&&L&&L.on)setRev(!REV
 // edge of the map: a few metres past the outermost streets (roadPos(0) … roadPos(N)), never on a street
 const EDGE0=roadPos(0)-RD/2-6,EDGE1=roadPos(N)+RD/2+6;
 function offMap(x,z){return x<EDGE0||x>EDGE1||z<EDGE0||z>EDGE1}
-function hitsBuilding(x,z){return buildings.some(b=>Math.abs(x-b.x)<b.w/2+1.2&&Math.abs(z-b.z)<b.d/2+1.2)}
+function hitsBuilding(x,z){return buildings.some(b=>Math.abs(x-b.x)<b.w/2+1.2&&Math.abs(z-b.z)<b.d/2+1.2)||ROUNDABOUTS.some(([i,j])=>Math.hypot(x-roadPos(i),z-roadPos(j))<2.7)}
 function blocked(x,z){return offMap(x,z)||hitsBuilding(x,z)}
 function resize(){const r=stage.getBoundingClientRect();if(!r.width)return;renderer.setSize(r.width,r.height,false);cam.aspect=r.width/r.height;cam.updateProjectionMatrix()}
 new ResizeObserver(resize).observe(stage);
@@ -770,8 +845,8 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
     if(S.ev==="stop"){if(s>S.stopS-9&&s<S.stopS+.3&&kmh<1)L.flags.stopped=1;
       if(s>=S.stopS+.3&&!L.flags.lineDone){L.flags.lineDone=1;if(!L.flags.stopped)mistake("mStop",true);else praise("okStop")}}
     // give way / no sign: slow down before the crossing
-    if(S.ev==="give"||S.ev==="none"){const lim=S.ev==="give"?20:25;if(s>S.stopS-12&&s<S.stopS+1){L.flags.minK=Math.min(L.flags.minK??99,kmh)}
-      if(s>=S.stopS+1&&!L.flags.lineDone){L.flags.lineDone=1;if((L.flags.minK??99)>lim)mistake(S.ev==="give"?"mGive":"mRight",false)}}
+    if(S.ev==="give"||S.ev==="none"||S.ev==="round"){const lim=S.ev==="give"?20:S.ev==="round"?30:25;if(s>S.stopS-12&&s<S.stopS+1){L.flags.minK=Math.min(L.flags.minK??99,kmh)}
+      if(s>=S.stopS+1&&!L.flags.lineDone){L.flags.lineDone=1;if((L.flags.minK??99)>lim)mistake(S.ev==="none"?"mRight":"mGive",false)}}
     // zebra crossing + pedestrian
     if(S.zebra){if(S.pedState==="wait"&&s>S.zs-40)S.pedState="walk";
       if(S.pedState==="walk"&&!L.flags.hitPed){S.pedL-=1.5*dt;if(S.pedL<-8)S.pedState="done";const w=S.at(S.zs,S.pedL);S.ped.position.set(w.x,.25,w.z);S.ped.rotation.y=Math.atan2(-S.r.x,-S.r.z);
