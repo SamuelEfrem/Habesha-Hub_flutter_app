@@ -6,6 +6,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/auth_screen.dart';
 import '../theme/app_theme.dart';
@@ -63,7 +64,7 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> with WidgetsBindi
       ..addJavaScriptChannel('HabeshaApp', onMessageReceived: _onPageMessage)
       ..setNavigationDelegate(NavigationDelegate(
         onProgress: (p) => setState(() => _progress = p),
-        onPageFinished: (_) => _sendUnlocked(),
+        onPageFinished: (_) { _sendUnlocked(); _sendDriving(); },
       ))
       ..loadRequest(widget.url);
 
@@ -90,12 +91,32 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> with WidgetsBindi
         _openExternal(data['url'] as String);
       } else if (type == 'speak' && data['text'] is String) {
         _speak(data['text'] as String, '${data['lang'] ?? 'en-GB'}');
+      } else if (type == 'driving_progress' && data['data'] is Map) {
+        _saveDriving(data['data'] as Map);
       } else if (type == 'redeem' && data['code'] is String) {
         _redeem(data['code'] as String);
       }
     } catch (_) {
       // ignore messages we don't understand
     }
+  }
+
+  // Driving game progress follows the account, for logged-in users
+  void _saveDriving(Map data) {
+    final u = FirebaseAuth.instance.currentUser;
+    if (u == null || u.isAnonymous) return;
+    FirebaseFirestore.instance.collection('users').doc(u.uid)
+        .set({'drivingProgress': data}, SetOptions(merge: true)).catchError((_) {});
+  }
+
+  Future<void> _sendDriving() async {
+    final u = FirebaseAuth.instance.currentUser;
+    if (u == null || u.isAnonymous) return;
+    try {
+      final d = await FirebaseFirestore.instance.collection('users').doc(u.uid).get();
+      final p = d.data()?['drivingProgress'];
+      if (p != null) await _controller.runJavaScript('window.habeshaProgress && window.habeshaProgress(${jsonEncode(p)})');
+    } catch (_) {}
   }
 
   // A purchase is tied to an account, so log in first

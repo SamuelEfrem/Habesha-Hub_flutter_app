@@ -40,6 +40,11 @@ h1{margin:0;font-weight:800;font-size:1.45rem}
 .speed.over .num{color:#ff5d5d}
 .tilt{font:700 .9rem var(--display);width:100%;margin-top:8px;padding:10px;border-radius:12px;border:1px solid var(--line);background:#0b1118;color:var(--ink);cursor:pointer}
 .tilt.on{background:var(--gold);color:#2a1d00;border-color:var(--gold)}
+.modes{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.modec{display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);background:#0b1118;color:var(--ink);border-radius:14px;padding:12px;cursor:pointer;font:700 1rem var(--display);width:100%}
+.modec b{font-size:1.5rem}.modec small{display:block;color:var(--muted);font-weight:500;font-size:.8rem;margin-top:2px}.modec .st{margin-left:auto;color:var(--gold);white-space:nowrap}
+#endB{position:absolute;top:64px;right:10px;font:800 .8rem var(--display);padding:7px 11px;border-radius:999px;border:0;background:var(--gold);color:#2a1d00;cursor:pointer}
+.freeM .nav{display:none}
 .ov{position:absolute;inset:0;display:grid;place-items:center;background:rgba(5,9,14,.62);padding:14px;overflow:auto}
 .card{background:#111a25;border:2px solid var(--line);border-radius:18px;padding:18px;max-width:440px;width:100%;max-height:100%;overflow:auto}
 .card h2{margin:0 0 8px;font-size:1.3rem}
@@ -120,6 +125,7 @@ html,body{margin:0;overscroll-behavior:none}
     <div class="pedals"><div class="wheelpad" id="wheel"><div class="wheel" id="wheelK"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="41" fill="none" stroke="#1b1e23" stroke-width="12"/><circle cx="50" cy="50" r="41" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.5"/><path d="M50 52 L13 45 M50 52 L87 45 M50 52 L50 89" stroke="#2a2f36" stroke-width="10" stroke-linecap="round"/><circle cx="50" cy="51" r="14" fill="#2a2f36" stroke="#f7c948" stroke-width="2.5"/><rect x="45.5" y="4" width="9" height="11" rx="2.5" fill="#f7c948"/></svg></div><button id="bL" hidden></button><button id="bR" hidden></button></div>
       <div class="pdl"><button class="gearb" id="bRv" type="button"><b id="gear">D</b><small id="gearTo">⇄ R</small></button><button class="pb b" id="bB"><i></i><span id="lB">ፍሬን</span></button><button class="pb g" id="bG"><i></i><span id="lG">ነዳዲ</span></button></div></div>
     <div class="inds"><button class="ind" id="iL" type="button" aria-label="Left indicator">◀</button><button class="ind" id="iR" type="button" aria-label="Right indicator">▶</button></div>
+    <button id="endB" type="button" hidden></button>
     <div class="ov" id="ov"><div class="card" id="menu"></div></div>
   </div>
 </div>
@@ -412,6 +418,19 @@ function stepAgent(a,dt,now){const last=a.pts.length-1,pt=a.pts[Math.min(a.p+1,l
 function priorityNear(S){const c=S.B,dir=S.d;for(const a of agents){if(a.k==="bike"||a.v<1.5)continue;const q=a.mesh.position,d=Math.hypot(q.x-c.x,q.z-c.z);if(d>16)continue;
     const ax=Math.sin(a.a),az=-Math.cos(a.a),toward=(c.x-q.x)*ax+(c.z-q.z)*az;if(toward<-4)continue;const same=ax*dir.x+az*dir.z;if(same>.7||same<-.7&&S.ev!=="round")continue;
     if(a.k==="tram")return a;if(S.ev==="none"){const fromRight=(q.x-c.x)*S.r.x+(q.z-c.z)*S.r.z;if(fromRight>2)return a;continue}return a}return null}
+function generalRules(kmh,dt){
+    // driving on the pavement
+    {const nearV=Math.min(...Array.from({length:N+1},(_,i)=>Math.abs(player.x-roadPos(i)))),nearH=Math.min(...Array.from({length:N+1},(_,j)=>Math.abs(player.z-roadPos(j))));
+     const bi=Math.floor((player.x-roadPos(0))/CELL),bj=Math.floor((player.z-roadPos(0))/CELL),open=(bi===PETROL[0]&&bj===PETROL[1])||(bi===CARPARK[0]&&bj===CARPARK[1]);
+     if(nearV>RD/2+.9&&nearH>RD/2+.9&&!open&&kmh>4)mistake("mWalk",true)}
+    // the wrong way down the one-way street
+    if(Math.abs(player.x-roadPos(ONEWAY_V))<6.5&&Math.cos(player.a)<-.7&&kmh>4&&Math.abs(player.z)<HALF)mistake("mOneWay",true);
+    // the wrong way round
+    ROUNDABOUTS.forEach(([i,j])=>{const rx=player.x-roadPos(i),rz=player.z-roadPos(j),r=Math.hypot(rx,rz);if(r<7&&r>2.7&&kmh>4){const vx=Math.sin(player.a),vz=-Math.cos(player.a);if((rx*vz-rz*vx)/r>.55)mistake("mRound",true)}});
+    // too close behind anyone ahead
+    {const fx=Math.sin(player.a),fz=-Math.cos(player.a);let tail=false;if(player.v>4)for(const a of agents){const dx=a.mesh.position.x-player.x,dz=a.mesh.position.z-player.z,f=dx*fx+dz*fz,l=-dx*fz+dz*fx;if(f>0&&Math.abs(l)<1.6&&Math.abs(a.a-player.a)<.5&&(f-a.len/2-2.4)/player.v<1.1){tail=true;break}}
+     if(tail){L.distT+=dt;if(L.distT>2)mistake("mDist",false)}else if(!L.lead)L.distT=0}
+}
 function stepTraffic(dt,now){for(const a of agents)stepAgent(a,dt,now);
   // the person on a zebra crossing you have passed walks on to the other side
   seg.forEach((S,k)=>{if(S.pedState!=="walk"||(L&&k===L.k))return;S.pedL-=1.5*dt;if(S.pedL<-8){S.pedState="done";return}const w=S.at(S.zs,S.pedL);S.ped.position.set(w.x,.25,w.z)});
@@ -688,7 +707,7 @@ const TXT={
  ti:{title:"🚗 ፈተና ምዝዋር",sub:"መምህር ብትግርኛ ይእዝዘካ። ኩሉ ሕጊ ትራፊክ ይፍተሽ።",
   turnR:"ኣብ ዝቕጽል መስቀላ ናብ የማን ጠውይ",turnL:"ኣብ ዝቕጽል መስቀላ ናብ ጸጋም ጠውይ",straight:"ኣብ ዝቕጽል መስቀላ ቀጥ ኪድ",finish:"ናብ ቦታ ፓርክ ኣቱ፡ ኣብ P ደው በል",
   light:"መብራህቲ ትራፊክ ኣሎ፡ ቀይሕ እንተኾይኑ ደው በል",stop:"ምልክት STOP ኣሎ፡ ኣብ መስመር ምሉእ ብምሉእ ደው በል",give:"ምልክት «ቅድሚ ሃብ» ኣሎ፡ ቀስ በል",none:"ምልክት የለን፡ ሕጊ የማን ይሰርሕ፡ ቀስ በል",
-  round:"ዙርያ መገዲ፦ ኣብ ውሽጢ ዘለዉ መካይን ቅድሚ ሃብ፡ ብየማን ዙር",prio:"ኣብ ናይ ቀዳምነት ጽርግያ ኣለኻ",tilt:"ስልኪ ብምዝንባል ዘውር",mInd:"ምልክት መጠወዪ ኣይተጠቐምካን",mOneWay:"ኣብ ሓደ ኣንፈት ጽርግያ ብጌጋ ኣንፈት",mWalk:"ኣብ ጽርግያ እግረኛ ዘዊርካ",mYield:"ቅድሚ ኣይሃብካን",mTram:"ንትራም ቅድሚ ኣይሃብካን",mRound:"ኣብ ዙርያ መገዲ ብጌጋ ኣንፈት",readRule:"ነዚ ኣብ ቲዮሪ ተለማመድ",why:{"mSpeed": "ገደብ ኣብ ምልክት ኣሎ። ዝለዓለ ፍጥነት ዝነውሐ ርሕቀት ደው ምባል ማለት እዩ።", "mRed": "ቀይሕ ማለት ቅድሚ መስመር ደው በል፡ ሰብ እንተዘይሃለወ እውን።", "mStop": "ኣብ STOP መንኮርኮር ምሉእ ብምሉእ ደው ክብል ኣለዎ።", "mZebra": "ኣብ መሳገሪ ዘለዉ ወይ ክኣትዉ ዝደልዩ ሰባት ይቕድሙ።", "mDist": "ካብ ቅድሜኻ ዘላ መኪና እንተወሓደ 3 ካልኢት ርሕቀት ሓዝ።", "mLane": "ኣብ ኖርወይ ብየማን ጽርግያ ኢኻ ትዝውር።", "mWrong": "ነቲ መገዲን ነቶም ምልክታትን ተኸተል።", "mCrash": "ርሒቕካ ርአ፡ ርሕቀት ሓዝ፡ ብግዜኡ ፍረን ግበር።", "mGive": "ኣብ ምልክት ቅድሚ ሃብ፡ ኣብቲ ዝሰግር ጽርግያ ዘለዉ ይቕድሙ።", "mRight": "ምልክት እንተዘየለ ካብ የማን ንዝመጽእ ቅድሚ ሃብ።", "mHitPed": "እግረኛታት ምሉእ ኣተኩሮኻ የድልዮም።", "mPark": "ቀጥ ኢልካ ኣብ ውሽጢ መስመራት ደው በል።", "mInd": "ቅድሚ ፍረን ምግባርን ምጥዋይን ኣቐዲምካ ምልክት ሃብ።", "mOneWay": "እቲ ቀይሕ ምልክት ምእታው ክልኩል ማለት እዩ።", "mWalk": "ጽርግያ እግረኛ ንሰባት እዩ፡ መኪና ኣብ መገዲ ትጸንሕ።", "mYield": "ክሳብ እቲ መገዲ ነጻ ዝኸውን ተጸበ።", "mTram": "ትራም ክትጥውን ኣይትኽእልን። ቅድሚ ሃባ።", "mRound": "ብየማን ናይቲ ማእከል ዙር፡ ኩሉ ግዜ ኣንጻር ሰዓት።"},zebra:"መሳገሪ እግረኛ ኣሎ፡ እግረኛ እንተሎ ደው ኢልካ ኣሕልፎ",lead:"ምስቲ ኣብ ቅድሜኻ ዘሎ መኪና ብውሑዱ 3 ካልኢት ርሕቀት ሓሉ",
+  round:"ዙርያ መገዲ፦ ኣብ ውሽጢ ዘለዉ መካይን ቅድሚ ሃብ፡ ብየማን ዙር",prio:"ኣብ ናይ ቀዳምነት ጽርግያ ኣለኻ",tilt:"ስልኪ ብምዝንባል ዘውር",mInd:"ምልክት መጠወዪ ኣይተጠቐምካን",mOneWay:"ኣብ ሓደ ኣንፈት ጽርግያ ብጌጋ ኣንፈት",mWalk:"ኣብ ጽርግያ እግረኛ ዘዊርካ",mYield:"ቅድሚ ኣይሃብካን",mTram:"ንትራም ቅድሚ ኣይሃብካን",mRound:"ኣብ ዙርያ መገዲ ብጌጋ ኣንፈት",readRule:"ነዚ ኣብ ቲዮሪ ተለማመድ",why:{"mPick":"ሰቢ ክኣቱ ኣብ ጥቓኡ ደው በል።","mSpeed": "ገደብ ኣብ ምልክት ኣሎ። ዝለዓለ ፍጥነት ዝነውሐ ርሕቀት ደው ምባል ማለት እዩ።", "mRed": "ቀይሕ ማለት ቅድሚ መስመር ደው በል፡ ሰብ እንተዘይሃለወ እውን።", "mStop": "ኣብ STOP መንኮርኮር ምሉእ ብምሉእ ደው ክብል ኣለዎ።", "mZebra": "ኣብ መሳገሪ ዘለዉ ወይ ክኣትዉ ዝደልዩ ሰባት ይቕድሙ።", "mDist": "ካብ ቅድሜኻ ዘላ መኪና እንተወሓደ 3 ካልኢት ርሕቀት ሓዝ።", "mLane": "ኣብ ኖርወይ ብየማን ጽርግያ ኢኻ ትዝውር።", "mWrong": "ነቲ መገዲን ነቶም ምልክታትን ተኸተል።", "mCrash": "ርሒቕካ ርአ፡ ርሕቀት ሓዝ፡ ብግዜኡ ፍረን ግበር።", "mGive": "ኣብ ምልክት ቅድሚ ሃብ፡ ኣብቲ ዝሰግር ጽርግያ ዘለዉ ይቕድሙ።", "mRight": "ምልክት እንተዘየለ ካብ የማን ንዝመጽእ ቅድሚ ሃብ።", "mHitPed": "እግረኛታት ምሉእ ኣተኩሮኻ የድልዮም።", "mPark": "ቀጥ ኢልካ ኣብ ውሽጢ መስመራት ደው በል።", "mInd": "ቅድሚ ፍረን ምግባርን ምጥዋይን ኣቐዲምካ ምልክት ሃብ።", "mOneWay": "እቲ ቀይሕ ምልክት ምእታው ክልኩል ማለት እዩ።", "mWalk": "ጽርግያ እግረኛ ንሰባት እዩ፡ መኪና ኣብ መገዲ ትጸንሕ።", "mYield": "ክሳብ እቲ መገዲ ነጻ ዝኸውን ተጸበ።", "mTram": "ትራም ክትጥውን ኣይትኽእልን። ቅድሚ ሃባ።", "mRound": "ብየማን ናይቲ ማእከል ዙር፡ ኩሉ ግዜ ኣንጻር ሰዓት።"},mPick:"ነቲ ተሳፋሪ ኣይወሰድካዮን",modeFree:"ናጻ ምዝዋር",modeFreeS:"ኣብ ዝደለኻዮ ዘውር፡ ብዘይ ጸቕጢ። ንኹሉ ብነጻ።",modeMis:"ዕማማት",modeMisS:"ሓጸርቲ ጉዕዞታት ክሳብ 3 ኮኾብ",modeTest:"ፈተና ምዝዋር",modeTestS:"ምሉእ መገዲ ምስ መርማሪ፡ ሓሊፍካ ወይ ኣይሓለፍካን",home:"ዝርዝር",end:"ወድእ",km:"ኪሜ ዝተዘውረ",best:"ዝበለጸ",freeHint:"ኣብ ዝደለኻዮ ዘውር። ሕግታት ግን ይሰርሑ።",pickHere:"ነቲ ዝጽበ ዘሎ ሰብ ክትወስዶ ኣብ ጥቓኡ ደው በል",picked:"✓ ተሳፋሪ ኣትዩ",misDone:"ዕማም ተወዲኡ!",misFail:"ነቲ ዕማም ደጊምካ ፈትን",passWord:"ዝሓለፍካዮም ፈተናታት",mCafe:"ናብ ካፈ ዘውር",mShop:"ኣብ ድኳን ኣቑም",mPass:"ተሳፋሪ ወሲድካ ናብ ገዛ ዘውር",mSchool:"ናብ ቤት ትምህርቲ ዘውር",mChurch:"ናብ ቤተ ክርስትያን ዘውር",mHosp:"ናብ ሆስፒታል ዘውር",zebra:"መሳገሪ እግረኛ ኣሎ፡ እግረኛ እንተሎ ደው ኢልካ ኣሕልፎ",lead:"ምስቲ ኣብ ቅድሜኻ ዘሎ መኪና ብውሑዱ 3 ካልኢት ርሕቀት ሓሉ",
   mSpeed:"ፍጥነት ሓሊፍካ",mRed:"ብቀይሕ መብራህቲ ሓሊፍካ",mStop:"ኣብ STOP ምሉእ ብምሉእ ደው ኣይበልካን",mZebra:"ንእግረኛ ቅድሚ ኣይሃብካን",
   mDist:"ምስቲ ቅድሜኻ ዘሎ መኪና ርሕቀት ኣይሓለኻን",mLane:"ብጸጋም ጎድኒ ጽርግያ ዘዊርካ",mWrong:"ጌጋ ኣንፈት ወሲድካ",mCrash:"ተጋጪኻ",
   mGive:"ኣብ «ቅድሚ ሃብ» ፍጥነት ኣይነከኻን",mRight:"ኣብ መስቀላ ብዘይ ምልክት ፍጥነት ኣይነከኻን",mHitPed:"ሰብ ሃሪምካ! ፈተና ተቋሪጹ",mPark:"ኣብቲ ቦታ ፓርክ ብግቡእ ደው ኣይበልካን",
@@ -698,11 +717,11 @@ const TXT={
   go:(m,d)=>`ቀጥ ኪድ — ድሕሪ ${m} ሜትር ${d}`,dir:{turnR:"ናብ የማን ጠውይ",turnL:"ናብ ጸጋም ጠውይ",straight:"ቀጥ ኪድ",finish:"ፓርክ ግበር"},
   praise:["ኣንበሳ!","ጽቡቕ!","ብሩኽ ኢኻ!"],slow:"ኣታ ቀስ በል!",locked:"🔒 እዚ ፈተና ምዝዋር ምስ ምሉእ ኮርስ ቲዮሪ ይኽፈት።",lockHow:"ኣብ Life Tools → መንጃ ፍቓድ → «ክፈት ብኮድ»። ኮድ ንምርካብ ብ WhatsApp «help» ጽሓፍ።",
   stars:"ኮኾብ",backTxt:"ናብ ቲዮሪ ተመለስ",tap:"ጸወታ ጠውቕ፡ ላዕለዋይ ክፋል ክሕባእ",
-  dest:{hospital:"ሆስፒታል",school:"ቤት ትምህርቲ",church:"ቤተ ክርስትያን",market:"ዕዳጋ",home:"ገዛ"}},
+  dest:{cafe:"ካፈ",shop:"ድኳን",hospital:"ሆስፒታል",school:"ቤት ትምህርቲ",church:"ቤተ ክርስትያን",market:"ዕዳጋ",home:"ገዛ"}},
  am:{title:"🚗 የመንጃ ፈተና",sub:"አስተማሪው በአማርኛ ያዝዝሃል። ሁሉም የትራፊክ ሕግ ይፈተሻል።",
   turnR:"በሚቀጥለው መገናኛ ወደ ቀኝ ታጠፍ",turnL:"በሚቀጥለው መገናኛ ወደ ግራ ታጠፍ",straight:"በሚቀጥለው መገናኛ ቀጥ ብለህ ሂድ",finish:"ወደ መኪና ማቆሚያው ግባ፣ በP ቦታ ቁም",
   light:"የትራፊክ መብራት አለ፣ ቀይ ከሆነ ቁም",stop:"STOP ምልክት አለ፣ መስመሩ ላይ ሙሉ በሙሉ ቁም",give:"«ቅድሚያ ስጥ» ምልክት አለ፣ ቀስ በል",none:"ምልክት የለም፣ የቀኝ ሕግ ይሰራል፣ ቀስ በል",
-  round:"አደባባይ፦ በውስጡ ላሉ መኪኖች ቅድሚያ ስጥ፣ በቀኝ ዙር",prio:"በቅድሚያ መንገድ ላይ ነህ",tilt:"ስልኩን በማዘንበል ንዳ",mInd:"የመታጠፊያ ምልክት አልተጠቀምክም",mOneWay:"በአንድ አቅጣጫ መንገድ በተሳሳተ አቅጣጫ",mWalk:"በእግረኛ መንገድ ነድተሃል",mYield:"ቅድሚያ አልሰጠህም",mTram:"ለትራም ቅድሚያ አልሰጠህም",mRound:"በአደባባይ በተሳሳተ አቅጣጫ",readRule:"ይህን በቲዎሪ ተለማመድ",why:{"mSpeed": "ገደቡ በምልክቱ ላይ ነው። ከፍተኛ ፍጥነት ረጅም የማቆሚያ ርቀት ማለት ነው።", "mRed": "ቀይ ማለት ከመስመሩ በፊት ቁም ማለት ነው፣ ማንም ባይኖርም።", "mStop": "በ STOP ላይ ጎማዎቹ ሙሉ በሙሉ መቆም አለባቸው።", "mZebra": "በመሻገሪያ ላይ ያሉ ወይም ሊገቡ ያሉ ሰዎች ይቀድማሉ።", "mDist": "ከፊትህ ካለው መኪና ቢያንስ 3 ሰከንድ ርቀት ጠብቅ።", "mLane": "በኖርዌይ በመንገዱ ቀኝ በኩል ትነዳለህ።", "mWrong": "መንገዱንና ምልክቶቹን ተከተል።", "mCrash": "ወደ ፊት ተመልከት፣ ርቀት ጠብቅ፣ በጊዜ ፍሬን ያዝ።", "mGive": "በቅድሚያ ስጥ ምልክት ላይ በተሻጋሪው መንገድ ያሉት ይቀድማሉ።", "mRight": "ምልክት ከሌለ ከቀኝ ለሚመጡ ቅድሚያ ስጥ።", "mHitPed": "እግረኞች ሙሉ ትኩረትህን ይፈልጋሉ።", "mPark": "ቀጥ ብለህ በመስመሮቹ ውስጥ ቁም።", "mInd": "ፍሬን ከመያዝና ከመታጠፍ በፊት ቀድመህ ምልክት ስጥ።", "mOneWay": "ቀዩ ምልክት መግባት ክልክል ማለት ነው።", "mWalk": "የእግረኛ መንገድ ለሰዎች ነው፣ መኪና በመንገድ ላይ ይቆያል።", "mYield": "መንገዱ ነጻ እስኪሆን ጠብቅ።", "mTram": "ትራም መታጠፍ አይችልም። ቅድሚያ ስጠው።", "mRound": "በመሃሉ ቀኝ በኩል ዙር፣ ሁልጊዜ ከሰዓት አቅጣጫ ተቃራኒ።"},zebra:"የእግረኛ ማቋረጫ አለ፣ እግረኛ ካለ ቆመህ አሳልፍ",lead:"ከፊትህ ካለው መኪና ቢያንስ 3 ሰከንድ ርቀት ጠብቅ",
+  round:"አደባባይ፦ በውስጡ ላሉ መኪኖች ቅድሚያ ስጥ፣ በቀኝ ዙር",prio:"በቅድሚያ መንገድ ላይ ነህ",tilt:"ስልኩን በማዘንበል ንዳ",mInd:"የመታጠፊያ ምልክት አልተጠቀምክም",mOneWay:"በአንድ አቅጣጫ መንገድ በተሳሳተ አቅጣጫ",mWalk:"በእግረኛ መንገድ ነድተሃል",mYield:"ቅድሚያ አልሰጠህም",mTram:"ለትራም ቅድሚያ አልሰጠህም",mRound:"በአደባባይ በተሳሳተ አቅጣጫ",readRule:"ይህን በቲዎሪ ተለማመድ",why:{"mPick":"ሰውየው እንዲገባ አጠገቡ ቁም።","mSpeed": "ገደቡ በምልክቱ ላይ ነው። ከፍተኛ ፍጥነት ረጅም የማቆሚያ ርቀት ማለት ነው።", "mRed": "ቀይ ማለት ከመስመሩ በፊት ቁም ማለት ነው፣ ማንም ባይኖርም።", "mStop": "በ STOP ላይ ጎማዎቹ ሙሉ በሙሉ መቆም አለባቸው።", "mZebra": "በመሻገሪያ ላይ ያሉ ወይም ሊገቡ ያሉ ሰዎች ይቀድማሉ።", "mDist": "ከፊትህ ካለው መኪና ቢያንስ 3 ሰከንድ ርቀት ጠብቅ።", "mLane": "በኖርዌይ በመንገዱ ቀኝ በኩል ትነዳለህ።", "mWrong": "መንገዱንና ምልክቶቹን ተከተል።", "mCrash": "ወደ ፊት ተመልከት፣ ርቀት ጠብቅ፣ በጊዜ ፍሬን ያዝ።", "mGive": "በቅድሚያ ስጥ ምልክት ላይ በተሻጋሪው መንገድ ያሉት ይቀድማሉ።", "mRight": "ምልክት ከሌለ ከቀኝ ለሚመጡ ቅድሚያ ስጥ።", "mHitPed": "እግረኞች ሙሉ ትኩረትህን ይፈልጋሉ።", "mPark": "ቀጥ ብለህ በመስመሮቹ ውስጥ ቁም።", "mInd": "ፍሬን ከመያዝና ከመታጠፍ በፊት ቀድመህ ምልክት ስጥ።", "mOneWay": "ቀዩ ምልክት መግባት ክልክል ማለት ነው።", "mWalk": "የእግረኛ መንገድ ለሰዎች ነው፣ መኪና በመንገድ ላይ ይቆያል።", "mYield": "መንገዱ ነጻ እስኪሆን ጠብቅ።", "mTram": "ትራም መታጠፍ አይችልም። ቅድሚያ ስጠው።", "mRound": "በመሃሉ ቀኝ በኩል ዙር፣ ሁልጊዜ ከሰዓት አቅጣጫ ተቃራኒ።"},mPick:"ተሳፋሪውን አልወሰድክም",modeFree:"ነጻ መንዳት",modeFreeS:"በፈለግከው ቦታ ንዳ፣ ያለ ጭንቀት። ለሁሉም በነጻ።",modeMis:"ተልዕኮዎች",modeMisS:"አጫጭር ጉዞዎች እስከ 3 ኮከብ",modeTest:"የመንጃ ፈተና",modeTestS:"ሙሉ መንገድ ከመርማሪ ጋር፣ አለፍክ ወይም አላለፍክም",home:"ምናሌ",end:"ጨርስ",km:"ኪሜ ተነድቷል",best:"ምርጥ",freeHint:"በፈለግከው ቦታ ንዳ። ህጎቹ ግን ይሰራሉ።",pickHere:"የሚጠብቀውን ሰው ለመውሰድ አጠገቡ ቁም",picked:"✓ ተሳፋሪ ገብቷል",misDone:"ተልዕኮው ተጠናቋል!",misFail:"ተልዕኮውን እንደገና ሞክር",passWord:"ያለፍካቸው ፈተናዎች",mCafe:"ወደ ካፌ ንዳ",mShop:"በሱቅ አቁም",mPass:"ተሳፋሪ ወስደህ ወደ ቤት ንዳ",mSchool:"ወደ ትምህርት ቤት ንዳ",mChurch:"ወደ ቤተ ክርስቲያን ንዳ",mHosp:"ወደ ሆስፒታል ንዳ",zebra:"የእግረኛ ማቋረጫ አለ፣ እግረኛ ካለ ቆመህ አሳልፍ",lead:"ከፊትህ ካለው መኪና ቢያንስ 3 ሰከንድ ርቀት ጠብቅ",
   mSpeed:"ፍጥነት አልፈሃል",mRed:"በቀይ መብራት አልፈሃል",mStop:"STOP ላይ ሙሉ በሙሉ አልቆምክም",mZebra:"ለእግረኛ ቅድሚያ አልሰጠህም",
   mDist:"ከፊትህ ካለው መኪና ርቀት አልጠበቅህም",mLane:"በመንገዱ ግራ በኩል ነድተሃል",mWrong:"የተሳሳተ አቅጣጫ ወስደሃል",mCrash:"ተጋጭተሃል",
   mGive:"«ቅድሚያ ስጥ» ላይ ፍጥነት አልቀነስክም",mRight:"ምልክት በሌለው መገናኛ ፍጥነት አልቀነስክም",mHitPed:"ሰው ገጭተሃል! ፈተናው ተቋርጧል",mPark:"በማቆሚያው በትክክል አልቆምክም",
@@ -712,11 +731,11 @@ const TXT={
   go:(m,d)=>`ቀጥ ሂድ — ከ${m} ሜትር በኋላ ${d}`,dir:{turnR:"ወደ ቀኝ ታጠፍ",turnL:"ወደ ግራ ታጠፍ",straight:"ቀጥ ሂድ",finish:"አቁም"},
   praise:["አንበሳ!","ጎበዝ!","በርታ!"],slow:"አንተ፣ ቀስ በል!",locked:"🔒 ይህ የመንጃ ፈተና ከሙሉ የቲዎሪ ኮርስ ጋር ይከፈታል።",lockHow:"በ Life Tools → መንጃ ፈቃድ → «በኮድ ክፈት»። ኮድ ለማግኘት በ WhatsApp «help» ይጻፉ።",
   stars:"ኮከብ",backTxt:"ወደ ቲዎሪ ተመለስ",tap:"ጨዋታውን ይንኩ፣ ላይኛው ክፍል ይደበቃል",
-  dest:{hospital:"ሆስፒታል",school:"ትምህርት ቤት",church:"ቤተ ክርስቲያን",market:"ገበያ",home:"ቤት"}},
+  dest:{cafe:"ካፌ",shop:"ሱቅ",hospital:"ሆስፒታል",school:"ትምህርት ቤት",church:"ቤተ ክርስቲያን",market:"ገበያ",home:"ቤት"}},
  en:{title:"🚗 Driving test",sub:"Your instructor guides you. Every traffic rule is checked.",
   turnR:"Turn right at the next crossing",turnL:"Turn left at the next crossing",straight:"Go straight at the next crossing",finish:"Drive into the car park and stop in the P bay",
   round:"Roundabout: give way to traffic in the circle, drive around to the right",prio:"You are on the priority road",light:"Traffic light ahead: stop if it is red",stop:"STOP sign: stop completely at the line",give:"Give-way sign: slow down",none:"No sign: give way to the right, slow down",
-  tilt:"Steer by tilting the phone",mInd:"You did not use the indicator",mOneWay:"Wrong way on a one-way street",mWalk:"You drove on the pavement",mYield:"You did not give way",mTram:"You did not give way to the tram",mRound:"Wrong direction in the roundabout",readRule:"Practise this in the theory",why:{"mSpeed": "The limit is on the sign. Higher speed means a longer stopping distance.", "mRed": "Red means stop before the line, even with no one around.", "mStop": "At STOP the wheels must stand completely still at the line.", "mZebra": "People on or about to step onto a crossing go first.", "mDist": "Keep at least 3 seconds to the car in front.", "mLane": "In Norway you drive on the right side of the road.", "mWrong": "Follow the route and the arrows.", "mCrash": "Look ahead, keep your distance and slow down in time.", "mGive": "At a give-way sign, everyone on the crossing road goes first.", "mRight": "With no signs you give way to traffic from the right.", "mHitPed": "Pedestrians always need your full attention.", "mPark": "Stop straight, inside the lines.", "mInd": "Indicate early, before you brake and turn.", "mOneWay": "The red sign means no entry, the arrows show the only direction.", "mWalk": "The pavement is for people, cars stay on the road.", "mYield": "Wait until the road is clear before you drive out.", "mTram": "Trams cannot steer away. Give way to them.", "mRound": "Drive to the right around the middle, always counter-clockwise."},zebra:"Zebra crossing: stop and let pedestrians cross",lead:"Keep at least 3 seconds from the car in front",
+  tilt:"Steer by tilting the phone",mInd:"You did not use the indicator",mOneWay:"Wrong way on a one-way street",mWalk:"You drove on the pavement",mYield:"You did not give way",mTram:"You did not give way to the tram",mRound:"Wrong direction in the roundabout",readRule:"Practise this in the theory",why:{"mPick":"Stop close to the person so they can get in.","mSpeed": "The limit is on the sign. Higher speed means a longer stopping distance.", "mRed": "Red means stop before the line, even with no one around.", "mStop": "At STOP the wheels must stand completely still at the line.", "mZebra": "People on or about to step onto a crossing go first.", "mDist": "Keep at least 3 seconds to the car in front.", "mLane": "In Norway you drive on the right side of the road.", "mWrong": "Follow the route and the arrows.", "mCrash": "Look ahead, keep your distance and slow down in time.", "mGive": "At a give-way sign, everyone on the crossing road goes first.", "mRight": "With no signs you give way to traffic from the right.", "mHitPed": "Pedestrians always need your full attention.", "mPark": "Stop straight, inside the lines.", "mInd": "Indicate early, before you brake and turn.", "mOneWay": "The red sign means no entry, the arrows show the only direction.", "mWalk": "The pavement is for people, cars stay on the road.", "mYield": "Wait until the road is clear before you drive out.", "mTram": "Trams cannot steer away. Give way to them.", "mRound": "Drive to the right around the middle, always counter-clockwise."},mPick:"You did not pick up the passenger",modeFree:"Free drive",modeFreeS:"Drive anywhere, no pressure. Free for everyone.",modeMis:"Missions",modeMisS:"Short trips with up to 3 stars",modeTest:"Driving test",modeTestS:"A full route with an examiner: pass or fail",home:"Menu",end:"End drive",km:"km driven",best:"Best",freeHint:"Drive where you like. The rules still count.",pickHere:"Stop by the waiting person to pick them up",picked:"✓ Passenger on board",misDone:"Mission complete!",misFail:"Try the mission again",passWord:"Passed tests",mCafe:"Drive to the café",mShop:"Park at the shop",mPass:"Pick up a passenger and drive home",mSchool:"Drive to the school",mChurch:"Drive to the church",mHosp:"Drive to the hospital",zebra:"Zebra crossing: stop and let pedestrians cross",lead:"Keep at least 3 seconds from the car in front",
   mSpeed:"You were speeding",mRed:"You drove through a red light",mStop:"You did not stop completely at STOP",mZebra:"You did not let the pedestrian cross",
   mDist:"You were too close to the car in front",mLane:"You drove on the left side",mWrong:"Wrong direction",mCrash:"You crashed",
   mGive:"You did not slow down at give way",mRight:"You did not slow down at an unmarked crossing",mHitPed:"You hit a person! The test is over",mPark:"You did not park correctly",
@@ -726,11 +745,11 @@ const TXT={
   go:(m,d)=>`Go straight — in ${m} metres ${d}`,dir:{turnR:"turn right",turnL:"turn left",straight:"go straight",finish:"park"},
   praise:["Lion! Well done!","Good!","Great driving!"],slow:"Hey, slow down!",locked:"🔒 The driving test opens with the full theory course.",lockHow:"Life Tools → Driving → «Unlock with code». Write «help» on WhatsApp to get a code.",
   stars:"stars",backTxt:"Back to theory",tap:"Tap the game to hide the top bar",
-  dest:{hospital:"Hospital",school:"School",church:"Church",market:"Supermarket",home:"Home"}},
+  dest:{cafe:"Café",shop:"Shop",hospital:"Hospital",school:"School",church:"Church",market:"Supermarket",home:"Home"}},
  no:{title:"🚗 Oppkjøring",sub:"Læreren gir deg beskjeder. Alle trafikkregler sjekkes.",
   turnR:"Ta til høyre i neste kryss",turnL:"Ta til venstre i neste kryss",straight:"Kjør rett fram i neste kryss",finish:"Kjør inn på parkeringen og stopp i P-plassen",
   light:"Lyskryss: stopp hvis det er rødt",stop:"Stoppskilt: stopp helt ved linja",give:"Vikepliktskilt: senk farten",none:"Ingen skilt: høyreregelen gjelder, senk farten",
-  round:"Rundkjøring: vikeplikt for dem i sirkelen, kjør til høyre rundt",prio:"Du er på forkjørsvei",tilt:"Styr ved å vippe telefonen",mInd:"Du brukte ikke blinklys",mOneWay:"Feil vei i enveiskjøring",mWalk:"Du kjørte på fortauet",mYield:"Du overholdt ikke vikeplikten",mTram:"Du overholdt ikke vikeplikten for trikken",mRound:"Feil retning i rundkjøringen",readRule:"Øv på dette i teorien",why:{"mSpeed": "Grensen står på skiltet. Høyere fart gir lengre stopplengde.", "mRed": "Rødt betyr stopp før linjen, også når ingen er der.", "mStop": "Ved STOPP må hjulene stå helt stille ved linjen.", "mZebra": "De som går i eller er på vei ut i gangfeltet går først.", "mDist": "Hold minst 3 sekunders avstand til bilen foran.", "mLane": "I Norge kjører du på høyre side av veien.", "mWrong": "Følg ruten og pilene.", "mCrash": "Se langt fram, hold avstand og brems i tide.", "mGive": "Ved vikepliktskilt går alle på kryssende vei først.", "mRight": "Uten skilt har du vikeplikt for trafikk fra høyre.", "mHitPed": "Fotgjengere trenger hele oppmerksomheten din.", "mPark": "Stopp rett, innenfor linjene.", "mInd": "Blink tidlig, før du bremser og svinger.", "mOneWay": "Det røde skiltet betyr innkjøring forbudt, pilene viser eneste retning.", "mWalk": "Fortauet er for folk, bilen hører til på veien.", "mYield": "Vent til veien er fri før du kjører ut.", "mTram": "Trikken kan ikke svinge unna. Slipp den fram.", "mRound": "Kjør til høyre rundt midten, alltid mot klokka."},zebra:"Gangfelt: stopp og slipp fotgjengere over",lead:"Hold minst 3 sekunder til bilen foran",
+  round:"Rundkjøring: vikeplikt for dem i sirkelen, kjør til høyre rundt",prio:"Du er på forkjørsvei",tilt:"Styr ved å vippe telefonen",mInd:"Du brukte ikke blinklys",mOneWay:"Feil vei i enveiskjøring",mWalk:"Du kjørte på fortauet",mYield:"Du overholdt ikke vikeplikten",mTram:"Du overholdt ikke vikeplikten for trikken",mRound:"Feil retning i rundkjøringen",readRule:"Øv på dette i teorien",why:{"mPick":"Stopp nær personen så hen kan gå inn.","mSpeed": "Grensen står på skiltet. Høyere fart gir lengre stopplengde.", "mRed": "Rødt betyr stopp før linjen, også når ingen er der.", "mStop": "Ved STOPP må hjulene stå helt stille ved linjen.", "mZebra": "De som går i eller er på vei ut i gangfeltet går først.", "mDist": "Hold minst 3 sekunders avstand til bilen foran.", "mLane": "I Norge kjører du på høyre side av veien.", "mWrong": "Følg ruten og pilene.", "mCrash": "Se langt fram, hold avstand og brems i tide.", "mGive": "Ved vikepliktskilt går alle på kryssende vei først.", "mRight": "Uten skilt har du vikeplikt for trafikk fra høyre.", "mHitPed": "Fotgjengere trenger hele oppmerksomheten din.", "mPark": "Stopp rett, innenfor linjene.", "mInd": "Blink tidlig, før du bremser og svinger.", "mOneWay": "Det røde skiltet betyr innkjøring forbudt, pilene viser eneste retning.", "mWalk": "Fortauet er for folk, bilen hører til på veien.", "mYield": "Vent til veien er fri før du kjører ut.", "mTram": "Trikken kan ikke svinge unna. Slipp den fram.", "mRound": "Kjør til høyre rundt midten, alltid mot klokka."},mPick:"Du hentet ikke passasjeren",modeFree:"Fri kjøring",modeFreeS:"Kjør hvor du vil, uten press. Gratis for alle.",modeMis:"Oppdrag",modeMisS:"Korte turer med opptil 3 stjerner",modeTest:"Oppkjøring",modeTestS:"Full rute med sensor: bestått eller ikke",home:"Meny",end:"Avslutt",km:"km kjørt",best:"Beste",freeHint:"Kjør hvor du vil. Reglene gjelder fortsatt.",pickHere:"Stopp ved personen som venter for å hente",picked:"✓ Passasjer om bord",misDone:"Oppdraget er fullført!",misFail:"Prøv oppdraget igjen",passWord:"Beståtte prøver",mCafe:"Kjør til kafeen",mShop:"Parker ved butikken",mPass:"Hent en passasjer og kjør hjem",mSchool:"Kjør til skolen",mChurch:"Kjør til kirken",mHosp:"Kjør til sykehuset",zebra:"Gangfelt: stopp og slipp fotgjengere over",lead:"Hold minst 3 sekunder til bilen foran",
   mSpeed:"Du kjørte for fort",mRed:"Du kjørte på rødt",mStop:"Du stoppet ikke helt ved stoppskiltet",mZebra:"Du slapp ikke fotgjengeren over",
   mDist:"For kort avstand til bilen foran",mLane:"Du kjørte på venstre side",mWrong:"Feil retning",mCrash:"Du krasjet",
   mGive:"Du senket ikke farten ved vikeplikt",mRight:"Du senket ikke farten i krysset",mHitPed:"Du kjørte på en person! Prøven er stoppet",mPark:"Du parkerte ikke riktig",
@@ -740,7 +759,7 @@ const TXT={
   go:(m,d)=>`Kjør rett fram — om ${m} meter ${d}`,dir:{turnR:"ta til høyre",turnL:"ta til venstre",straight:"kjør rett fram",finish:"parker"},
   praise:["Løve! Bra!","Bra!","Flott kjørt!"],slow:"Hei, senk farten!",locked:"🔒 Oppkjøringen åpnes med hele teorikurset.",lockHow:"Life Tools → Førerkort → «Lås opp med kode». Skriv «help» på WhatsApp for kode.",
   stars:"stjerner",backTxt:"Tilbake til teori",tap:"Trykk på spillet for å skjule toppen",
-  dest:{hospital:"Sykehus",school:"Skole",church:"Kirke",market:"Butikk",home:"Hjem"}}
+  dest:{cafe:"Kafé",shop:"Butikk",hospital:"Sykehus",school:"Skole",church:"Kirke",market:"Butikk",home:"Hjem"}}
 };
 const PED={ti:["ፍሬን","ነዳዲ"],am:["ፍሬን","ነዳጅ"],en:["Brake","Gas"],no:["Brems","Gass"]};
 const QSD=new URLSearchParams(location.search);
@@ -749,7 +768,14 @@ let LANG=APP_LANG;try{LANG=localStorage.getItem(LANG_KEY)||LANG}catch(e){}
 if(!TXT[LANG])LANG="ti";
 let TI=TXT[LANG];
 const VOICE={ti:"ti-ER",am:"am-ET",en:"en-GB",no:"nb-NO"};
-const DESTS=[["hospital","🏥"],["school","🏫"],["church","⛪"],["market","🛒"],["home","🏠"]];
+const DESTS=[["hospital","🏥"],["school","🏫"],["church","⛪"],["market","🛒"],["home","🏠"],["cafe","☕"],["shop","🏪"]];
+const TEST_DESTS=5;   // the first five are the destinations in the driving test
+const MISSIONS=[{id:"cafe",d:5,t:"mCafe",ic:"☕"},{id:"shop",d:6,t:"mShop",ic:"🏪"},{id:"pass",d:4,t:"mPass",ic:"🧍",pick:true},{id:"school",d:1,t:"mSchool",ic:"🏫"},{id:"church",d:2,t:"mChurch",ic:"⛪"},{id:"hosp",d:0,t:"mHosp",ic:"🏥",pick:true}];
+let MENU="home",MIS=null;
+// progress: on the phone, and in the account through the app when logged in
+let PROG={stars:{},km:0,tests:0,passed:0};try{PROG=Object.assign(PROG,JSON.parse(localStorage.getItem("dl-prog")||"{}"))}catch(e){}
+function saveProg(){try{localStorage.setItem("dl-prog",JSON.stringify(PROG))}catch(e){}if(window.HabeshaApp&&typeof HabeshaApp.postMessage==="function")HabeshaApp.postMessage(JSON.stringify({type:"driving_progress",data:PROG}))}
+window.habeshaProgress=o=>{if(!o)return;for(const k in o.stars||{})PROG.stars[k]=Math.max(PROG.stars[k]||0,o.stars[k]);["km","tests","passed"].forEach(k=>PROG[k]=Math.max(PROG[k]||0,o[k]||0));try{localStorage.setItem("dl-prog",JSON.stringify(PROG))}catch(e){}if(!L||!L.on)drawMenu()};
 let destI=0;
 if(QSD.get("app")==="1")document.documentElement.classList.add("app");
 // Unlocked together with the full theory course (the app calls habeshaUnlock)
@@ -819,6 +845,9 @@ function setupRoute(){
   lightNodes=new Set([MAIN_V+","+MAIN_H]);seg.forEach(S=>{if(S.light)lightNodes.add(S.ni+","+S.nj)});extraLights=[];
   {const x=roadPos(MAIN_V),z=roadPos(MAIN_H);[[0,-1],[1,0],[0,1],[-1,0]].forEach(([dx,dz])=>{const vert=dx===0;if(seg.some(S=>S.light&&S.ni===MAIN_V&&S.nj===MAIN_H&&Math.abs(S.d.x+dx)<.1&&Math.abs(S.d.z+dz)<.1))return;
     const d={x:-dx,z:-dz},r={x:-d.z,z:d.x};extraLights.push({lm:trafficLight(x+dx*7.5+r.x*7,z+dz*7.5+r.z*7,Math.atan2(-d.x,-d.z)),vert})})}
+  // mission: someone waits halfway along the route
+  if(MIS&&MIS.pick){const S=seg[Math.max(0,Math.floor(seg.length/2)-1)],q=S.at(S.L*.5,7.3),m=walker();m.position.set(q.x,.25,q.z);m.rotation.y=S.face;world.add(m);S.pickMan=m;S.pickAt=q;seg.pick=S;
+    const r=new THREE.Mesh(new THREE.RingGeometry(1.1,1.4,28),new THREE.MeshBasicMaterial({color:0xf7c948,side:THREE.DoubleSide}));r.rotation.x=-Math.PI/2;const c=S.at(S.L*.5,3.2);r.position.set(c.x,.07,c.z);world.add(r)}
   // finish marker
   const F=seg[seg.length-1];const fq=F.at(F.L-4,3);const fm=new THREE.Mesh(new THREE.RingGeometry(2,2.6,32),new THREE.MeshBasicMaterial({color:0x3ccf8e,side:THREE.DoubleSide}));
   fm.rotation.x=-Math.PI/2;fm.position.set(fq.x,.07,fq.z);world.add(fm);
@@ -928,17 +957,25 @@ new ResizeObserver(resize).observe(stage);
 /* ---------- results ---------- */
 // sign mistakes → sign practice, other mistakes → rule practice
 function theoryLink(list){const q=new URLSearchParams(location.search);q.set("run",list.some(m=>["mRed","mStop","mGive","mOneWay","mRound","mSpeed"].includes(m.key))?"sign":"rule");return"?"+q.toString()}
-function finishLesson(hardFail){L.on=false;L.done=true;const ser=L.mist.filter(m=>m.serious).length,min=L.mist.length-ser;const pass=!hardFail&&ser===0&&min<=2;
+function finishLesson(hardFail){if(L.free)return endFree();L.on=false;L.done=true;const ser=L.mist.filter(m=>m.serious).length,min=L.mist.length-ser;const pass=!hardFail&&ser===0&&min<=2;
   const stars=pass?(L.mist.length===0?3:min<=1?2:1):0;let total=0;try{total=(+localStorage.getItem("dl-stars")||0)+stars;localStorage.setItem("dl-stars",total)}catch(e){}
+  if(MIS){if(stars>(PROG.stars[MIS.id]||0))PROG.stars[MIS.id]=stars}else{PROG.tests=(PROG.tests||0)+1;if(pass)PROG.passed=(PROG.passed||0)+1}saveProg();
   chime(pass?880:262,1);say(pass?(stars===3?["praise0","pass"]:["pass"]):["fail"]);
-  $("menu").innerHTML=`<h2>${pass?TI.pass:TI.fail}</h2><div class="big3">${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</div><p>${ser} ${TI.serious} · ${min} ${TI.minor}</p>
+  $("menu").innerHTML=`<h2>${MIS?(pass?TI.misDone:TI.misFail):(pass?TI.pass:TI.fail)}</h2><div class="big3">${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</div><p>${ser} ${TI.serious} · ${min} ${TI.minor}</p>
    ${L.mist.length?`<ul class="list">${L.mist.map(m=>`<li>${m.sign?signSVG(m.sign,40):""}<span><b>${m.serious?TI.serious:TI.minor}</b><br>${esc(m.txt)}<br><small>${esc(TI.why[m.key]||"")}</small></span></li>`).join("")}</ul>`:`<p>${TI.none0}</p>`}
    <p class="small">${TI.passRule}</p>
    ${L.mist.length?`<a class="tilt" style="display:block;text-align:center;text-decoration:none" href="../life-tools/${theoryLink(L.mist)}">📘 ${TI.readRule}</a>`:""}
-   <button class="btn" id="again">${TI.again}</button><button class="btn" id="nextD" style="background:#2b3d18;color:#fff">${TI.next} →</button>`;$("ov").hidden=false;
+   <button class="btn" id="again">${TI.again}</button><button class="btn" id="nextD" style="background:#2b3d18;color:#fff">${MIS?TI.home:TI.next+" →"}</button>`;$("ov").hidden=false;
   $("hStars").textContent="⭐ "+total;
-  $("again").onclick=()=>{newRoute(false);startLesson()};$("nextD").onclick=()=>{destI=(destI+1)%DESTS.length;newRoute(true);drawMenu()}}
-function startLesson(){newLesson();L.on=true;setRev(false);if(IND)setInd(IND);$("ov").hidden=true;$("mist").textContent="0";chime(660,.3);setTimeout(()=>{if(L.on&&!seg[L.k].quiet)say(seg[L.k].keys)},350)}
+  $("again").onclick=()=>{newRoute(false);startLesson()};$("nextD").onclick=()=>{if(MIS){MIS=null;newRoute(false);MENU="mis";drawMenu();return}destI=(destI+1)%TEST_DESTS;newRoute(true);drawMenu()}}
+function startFree(){MIS=null;MENU="home";newRoute(false);newLesson();L.free=true;L.dist=0;L.lim=0;L.on=true;setRev(false);if(IND)setInd(IND);$("stage").classList.add("freeM");$("ov").hidden=true;$("mist").textContent="0";$("instr").innerHTML=`<b>${esc(TI.modeFree)}</b><span>${esc(TI.freeHint)}</span>`;
+  const e=$("endB");e.textContent=TI.end;e.hidden=false}
+function endFree(){L.on=false;L.done=true;$("endB").hidden=true;$("stage").classList.remove("freeM");const km=L.dist/1000;PROG.km=+((PROG.km||0)+km).toFixed(2);saveProg();const ser=L.mist.filter(m=>m.serious).length,min=L.mist.length-ser;
+  $("menu").innerHTML=`<h2>${TI.modeFree}</h2><p>${km.toFixed(1)} ${TI.km} · ${ser} ${TI.serious} · ${min} ${TI.minor}</p>${L.mist.length?`<ul class="list">${L.mist.slice(-6).map(m=>`<li>${m.sign?signSVG(m.sign,40):""}<span>${esc(m.txt)}<br><small>${esc(TI.why[m.key]||"")}</small></span></li>`).join("")}</ul>`:""}
+   <button class="btn" id="again">${TI.again}</button><button class="btn" id="homeB" style="background:#2b3d18;color:#fff">${TI.home}</button>`;$("ov").hidden=false;$("again").onclick=startFree;$("homeB").onclick=()=>{newRoute(false);MENU="home";drawMenu()}}
+function startMission(m){MIS=m;MENU="mis";destI=m.d;newRoute(false);startLesson()}
+$("endB").addEventListener("click",e=>{e.stopPropagation();if(L&&L.free&&L.on)endFree()});
+function startLesson(){newLesson();L.on=true;L.pickS=seg.pick||null;setRev(false);if(IND)setInd(IND);$("ov").hidden=true;$("mist").textContent="0";chime(660,.3);setTimeout(()=>{if(L.on&&!seg[L.k].quiet)say(seg[L.k].keys)},350)}
 
 /* ---------- main loop ---------- */
 let last=performance.now();
@@ -958,24 +995,17 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   const kmh=Math.abs(player.v)*3.6;$("kmh").textContent=Math.round(kmh);
   const showLight=(st,lm)=>{lm.red.emissiveIntensity=(st==="red"||st==="redyellow")?3:0;lm.yel.emissiveIntensity=(st==="yellow"||st==="redyellow")?3:0;lm.grn.emissiveIntensity=st==="green"?3:0};
   seg.forEach(S=>{if(S.light)showLight(lightState(S,now),S.light)});extraLights.forEach(e=>showLight(axisState(MAIN_V,MAIN_H,e.vert,now),e.lm));stepTraffic(dt,now);
-  if(L&&L.on){const S=seg[L.k],px=player.x-S.A.x,pz=player.z-S.A.z,s=px*S.d.x+pz*S.d.z,l=px*S.r.x+pz*S.r.z;
+  if(L&&L.on&&L.free){L.dist+=Math.abs(player.v)*dt;const nv=N===0?0:Math.min(...Array.from({length:N+1},(_,i)=>Math.abs(player.x-roadPos(i)))),nh=Math.min(...Array.from({length:N+1},(_,j)=>Math.abs(player.z-roadPos(j))));
+    const iv=Math.round((player.x-roadPos(0))/CELL),ih=Math.round((player.z-roadPos(0))/CELL),lim=streetLimit(nv<nh,nv<nh?iv:ih);if(lim!==L.lim){L.lim=lim;$("limit").innerHTML=signSVG("speed"+lim,62)}
+    if(kmh>lim+4){L.overS+=dt;if(L.overS>1.5)mistake("mSpeed",false,Math.round(kmh)+" km/h")}else L.overS=0;generalRules(kmh,dt)}
+  else if(L&&L.on){const S=seg[L.k],px=player.x-S.A.x,pz=player.z-S.A.z,s=px*S.d.x+pz*S.d.z,l=px*S.r.x+pz*S.r.z;
     // speed
     if(kmh>S.lim+4){L.overS+=dt;if(L.overS>1.5)mistake("mSpeed",false,Math.round(kmh)+" km/h")}else L.overS=0;
     // indicator: on before the crossing; in a roundabout also the right one before you leave
     {const want=S.turn==="turnR"?1:S.turn==="turnL"?-1:0,dn=Math.hypot(player.x-S.B.x,player.z-S.B.z);
      if(S.ev==="round"){if(IND>0&&dn<11)L.flags.signalled=1}else if(want&&IND===want&&dn<48)L.flags.signalled=1;
      const need=(S.ev==="round"&&seg[L.k+1])||want;if(need&&s>S.L-1&&!L.flags.indDone){L.flags.indDone=1;L.flags.indCheck=1}}
-    // driving on the pavement
-    {const nearV=Math.min(...Array.from({length:N+1},(_,i)=>Math.abs(player.x-roadPos(i)))),nearH=Math.min(...Array.from({length:N+1},(_,j)=>Math.abs(player.z-roadPos(j))));
-     const bi=Math.floor((player.x-roadPos(0))/CELL),bj=Math.floor((player.z-roadPos(0))/CELL),open=(bi===PETROL[0]&&bj===PETROL[1])||(bi===CARPARK[0]&&bj===CARPARK[1]);
-     if(nearV>RD/2+.9&&nearH>RD/2+.9&&!open&&kmh>4)mistake("mWalk",true)}
-    // the wrong way down the one-way street
-    if(Math.abs(player.x-roadPos(ONEWAY_V))<6.5&&Math.cos(player.a)<-.7&&kmh>4&&Math.abs(player.z)<HALF)mistake("mOneWay",true);
-    // the wrong way round
-    ROUNDABOUTS.forEach(([i,j])=>{const rx=player.x-roadPos(i),rz=player.z-roadPos(j),r=Math.hypot(rx,rz);if(r<7&&r>2.7&&kmh>4){const vx=Math.sin(player.a),vz=-Math.cos(player.a);if((rx*vz-rz*vx)/r>.55)mistake("mRound",true)}});
-    // too close behind anyone ahead
-    {const fx=Math.sin(player.a),fz=-Math.cos(player.a);let tail=false;if(player.v>4)for(const a of agents){const dx=a.mesh.position.x-player.x,dz=a.mesh.position.z-player.z,f=dx*fx+dz*fz,l=-dx*fz+dz*fx;if(f>0&&Math.abs(l)<1.6&&Math.abs(a.a-player.a)<.5&&(f-a.len/2-2.4)/player.v<1.1){tail=true;break}}
-     if(tail){L.distT+=dt;if(L.distT>2)mistake("mDist",false)}else if(!L.lead)L.distT=0}
+    generalRules(kmh,dt);
     // giving way for real: you drive out, someone with priority had to be there first
     if(!L.flags.yieldDone&&["give","stop","none","round"].includes(S.ev)&&s>=S.stopS+.5){L.flags.yieldDone=1;const who=priorityNear(S);if(who)mistake(who.k==="tram"?"mTram":S.ev==="none"?"mRight":"mYield",true)}
     // keep right on the straight part
@@ -1007,8 +1037,10 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
       if(sameLane&&gap>0&&player.v>3&&gap/player.v<2&&gap<40){L.distT+=dt;if(L.distT>2)mistake("mDist",false)}else L.distT=0;
       if(ld.s>S.L+20){scene.remove(ld.mesh);L.lead=null}}
     // finish
+    // mission: stop by the waiting person
+    if(L.pickS===S&&!L.picked){if(Math.hypot(player.x-S.pickAt.x,player.z-S.pickAt.z)<8&&kmh<1){L.pickT=(L.pickT||0)+dt;if(L.pickT>1.2){L.picked=true;S.pickMan.visible=false;toast(TI.picked,true)}}}
     // finish: stop inside the P bay (position + straight car)
-    if(S.ev==="finish"&&s>S.L-12&&kmh<1&&!L.flags.parkChecked){L.flags.parkChecked=1;
+    if(S.ev==="finish"&&s>S.L-12&&kmh<1&&!L.flags.parkChecked){L.flags.parkChecked=1;if(MIS&&MIS.pick&&!L.picked)mistake("mPick",true);
       const inBay=Math.hypot(player.x-S.bay.x,player.z-S.bay.z)<2.2,ang=Math.abs(((player.a-Math.atan2(S.d.x,-S.d.z))+Math.PI*3)%(Math.PI*2)-Math.PI);
       if(inBay&&ang<.3)praise("okPark");else mistake("mPark",false);setTimeout(()=>finishLesson(),900)}
     // move to the next segment / wrong way
@@ -1024,7 +1056,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   cam.position.x+=(cx-cam.position.x)*Math.min(1,dt*4);cam.position.z+=(cz-cam.position.z)*Math.min(1,dt*4);cam.position.y+=(5-cam.position.y)*Math.min(1,dt*3);
   cam.lookAt(player.x+Math.sin(player.a)*9,2,player.z-Math.cos(player.a)*9);
   // direction arrow to the next crossing
-  if(L){const S=seg[L.k];const tg=S.B;$("arrow").textContent={turnR:"↱",turnL:"↰",straight:"⬆",finish:"🅿️"}[S.turn];
+  if(L&&!L.free){const S=seg[L.k];const tg=S.B;$("arrow").textContent={turnR:"↱",turnL:"↰",straight:"⬆",finish:"🅿️"}[S.turn];
     const dm=Math.max(0,Math.round(Math.hypot(tg.x-player.x,tg.z-player.z)-6));$("dist").textContent=dm+" m";
     if(L.on){const near=dm<=45;const main=near?TI[S.turn]:TI.go(Math.ceil(dm/10)*10,TI.dir[S.turn]);if(main!==L.lastMain){showInstr(main,S.hints,S.lim);if(near&&!L.flags.saidNear&&!S.quiet){L.flags.saidNear=1;say([S.turn])}}}}
   if(shake>0){shake=Math.max(0,shake-dt*2.2);cam.position.x+=(Math.random()-.5)*shake*.8;cam.position.y+=(Math.random()-.5)*shake*.5}
@@ -1032,7 +1064,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   const bd=player.mesh.userData.body;player.roll+=((-yaw*av*.006)-player.roll)*Math.min(1,dt*6);player.pitch+=((brk&&av>1?.022:gas?-.01:0)-player.pitch)*Math.min(1,dt*7);
   bd.rotation.z=damage*.004+player.roll;bd.rotation.x=player.pitch;
   player.brakeMat.color.setHex(brk?0xff2020:0x3a0606);tickInd(now,dt,yaw);
-  if(L)$("speedBox").classList.toggle("over",L.on&&kmh>seg[L.k].lim+4);
+  if(L)$("speedBox").classList.toggle("over",L.on&&kmh>(L.free?L.lim:seg[L.k].lim)+4);
   adaptQuality(dt);if((gpsF=(gpsF+1)%4)===0)drawGPS();
   renderer.render(scene,cam);requestAnimationFrame(loop)}
 let gpsF=0;
@@ -1040,7 +1072,7 @@ function drawGPS(){const c=$("gps"),g=c.getContext("2d"),W=c.width,sc=W/150,cy=W
   g.clearRect(0,0,W,W);g.save();g.translate(W/2,cy);g.rotate(-player.a);g.scale(sc,sc);g.translate(-player.x,-player.z);
   g.strokeStyle="rgba(255,255,255,.2)";g.lineWidth=RD*.7;g.beginPath();
   for(let i=0;i<=N;i++){const p=roadPos(i);g.moveTo(p,-E);g.lineTo(p,E);g.moveTo(-E,p);g.lineTo(E,p)}g.stroke();
-  if(seg.length&&L){g.strokeStyle="#f7c948";g.lineWidth=4.5;g.lineJoin=g.lineCap="round";g.beginPath();g.moveTo(player.x,player.z);
+  if(seg.length&&L&&!L.free){g.strokeStyle="#f7c948";g.lineWidth=4.5;g.lineJoin=g.lineCap="round";g.beginPath();g.moveTo(player.x,player.z);
     for(let k=L.k;k<seg.length;k++)g.lineTo(seg[k].B.x,seg[k].B.z);g.stroke();
     const F=seg[seg.length-1];g.save();g.translate(F.B.x,F.B.z);g.rotate(player.a);g.font="18px serif";g.textAlign="center";g.textBaseline="middle";g.fillText(DESTS[destI][1],0,0);g.restore()}
   g.restore();
@@ -1055,13 +1087,21 @@ function newRoute(redraw){makeRoute();build("lesson");traffic.forEach(t=>t.m.vis
 function drawMenu(){TI=TXT[LANG];document.documentElement.lang=LANG;preloadVoice();$("lB").textContent=PED[LANG][0];$("lG").textContent=PED[LANG][1];$("mistL").textContent=TI.mist;
   $("hTitle").textContent=TI.title;$("hSub").textContent=TI.sub;let total=0;try{total=+localStorage.getItem("dl-stars")||0}catch(e){}$("hStars").textContent=total?"⭐ "+total:"";
   const langs=`<p class="small">${TI.lang}</p><div class="langs" id="dLangs">${[["ti","ትግርኛ"],["am","አማርኛ"],["en","English"],["no","Norsk"]].map(([k,n])=>`<button data-l="${k}" class="${k===LANG?"on":""}">${n}</button>`).join("")}</div>`;
+  const homeBtn=`<button class="btn" id="homeB" style="background:#2b3d18;color:#fff">← ${TI.home}</button>`,bindHome=()=>{const b=$("homeB");if(b)b.onclick=()=>{MENU="home";drawMenu()}};
+  if(MENU==="home"){const tot=MISSIONS.reduce((n,m)=>n+(PROG.stars[m.id]||0),0),lock=PRO?"":"🔒";
+    $("menu").innerHTML=`<h2>${TI.title}</h2><div class="modes"><button class="modec" data-m="free"><b>🚗</b><span>${TI.modeFree}<small>${TI.modeFreeS}</small></span>${PROG.km?`<span class="st">${(+PROG.km).toFixed(1)} km</span>`:""}</button>
+      <button class="modec" data-m="mis"><b>🎯</b><span>${TI.modeMis} ${lock}<small>${TI.modeMisS}</small></span><span class="st">⭐ ${tot}/${MISSIONS.length*3}</span></button>
+      <button class="modec" data-m="test"><b>📝</b><span>${TI.modeTest} ${lock}<small>${TI.modeTestS}</small></span>${PROG.passed?`<span class="st">✓ ${PROG.passed}</span>`:""}</button></div>${langs}<button class="tilt ${TILT?"on":""}" id="tiltB">📱 ${TI.tilt}</button>`;$("ov").hidden=false;
+    $("menu").querySelector(".modes").onclick=e=>{const b=e.target.closest("[data-m]");if(!b)return;if(b.dataset.m==="free"){startFree();return}MENU=b.dataset.m;MIS=null;drawMenu()};$("tiltB").onclick=toggleTilt;bindLangs();return}
+  if(MENU==="mis"&&PRO){$("menu").innerHTML=`<h2>🎯 ${TI.modeMis}</h2><div class="modes" id="misL">${MISSIONS.map((m,i)=>`<button class="modec" data-i="${i}"><b>${m.ic}</b><span>${esc(TI[m.t])}</span><span class="st">${"⭐".repeat(PROG.stars[m.id]||0)}${"☆".repeat(3-(PROG.stars[m.id]||0))}</span></button>`).join("")}</div>${homeBtn}`;$("ov").hidden=false;
+    $("misL").onclick=e=>{const b=e.target.closest("[data-i]");if(b)startMission(MISSIONS[+b.dataset.i])};bindHome();return}
   // slow phones: give the app up to 7 s to send the unlock before showing the lock screen
   if(!PRO&&QSD.get("app")==="1"&&performance.now()<7000){$("menu").innerHTML=`<h2>${TI.title}</h2><p>…</p>`;$("ov").hidden=false;setTimeout(()=>{if(!L||!L.on)drawMenu()},7100-performance.now());return}
-  if(!PRO){$("menu").innerHTML=`<h2>🔒 ${TI.title}</h2><p>${TI.locked}</p><p class="small">${TI.lockHow}</p><button class="btn" id="back">← ${TI.backTxt}</button>`;$("ov").hidden=false;
+  if(!PRO){$("menu").innerHTML=`<h2>🔒 ${TI.title}</h2><p>${TI.locked}</p><p class="small">${TI.lockHow}</p><button class="btn" id="back">← ${TI.backTxt}</button>${homeBtn}`;$("ov").hidden=false;bindHome();
     $("back").onclick=()=>{location.href="../life-tools/"+location.search};return}
-  $("menu").innerHTML=`<h2>${TI.choose}</h2><div class="dests" id="dests">${DESTS.map(([k,ic],i)=>`<button data-i="${i}" class="${i===destI?"on":""}"><b>${ic}</b>${esc(TI.dest[k])}</button>`).join("")}</div>
+  $("menu").innerHTML=`<h2>${TI.choose}</h2><div class="dests" id="dests">${DESTS.slice(0,TEST_DESTS).map(([k,ic],i)=>`<button data-i="${i}" class="${i===destI?"on":""}"><b>${ic}</b>${esc(TI.dest[k])}</button>`).join("")}</div>
     <div class="rules" id="rules">${["speed30","speed50","lightsAhead","stop","give","crossingHere","keepRight","parking"].map(i=>signSVG(i,48)).join("")}</div>
-    <p class="small">${TI.passRule}</p>${langs}<button class="tilt ${TILT?"on":""}" id="tiltB">📱 ${TI.tilt}</button><p class="keys">${TI.tap}</p><button class="btn" id="go">${TI.start} → ${DESTS[destI][1]}</button>`;$("ov").hidden=false;
+    <p class="small">${TI.passRule}</p>${langs}<button class="tilt ${TILT?"on":""}" id="tiltB">📱 ${TI.tilt}</button><p class="keys">${TI.tap}</p><button class="btn" id="go">${TI.start} → ${DESTS[destI][1]}</button>${homeBtn}`;$("ov").hidden=false;bindHome();
   $("dests").onclick=e=>{const b=e.target.closest("[data-i]");if(!b)return;destI=+b.dataset.i;newRoute(true);drawMenu()};
   $("go").onclick=startLesson;$("tiltB").onclick=toggleTilt;bindLangs()}
 function bindLangs(){$("dLangs").onclick=e=>{const b=e.target.closest("[data-l]");if(!b)return;LANG=b.dataset.l;tiFallback=false;try{localStorage.setItem(LANG_KEY,LANG)}catch(err){}drawMenu()}}
