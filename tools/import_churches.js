@@ -1,7 +1,7 @@
 // Legger inn Habesha-kirker fra tools/churches.json i `businesses`.
 //   node tools/import_churches.js          (viser hva som skjer, lagrer ingenting)
 //   node tools/import_churches.js --write  (lagrer i Firestore)
-// Sletter aldri. Kirker som finnes fra før får bare ny beskrivelse og merking
+// Sletter aldri. Kirker som finnes fra før får bare merking, og ny beskrivelse hvis ingen eier dem
 // (churchCommunity, churchTradition); bilder, eier og vurderinger røres ikke.
 const path = require('path'), crypto = require('crypto');
 const { initializeApp, cert } = require('firebase-admin/app');
@@ -35,13 +35,13 @@ const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[^a-z0
   if (!WRITE) { console.log('\nIngenting lagret. Kjør med --write for å lagre.'); process.exit(0); }
 
   const ops = [
-    ...add.map(c => b => b.set(db.collection('businesses').doc('church_' + crypto.createHash('sha1').update(c.name + c.country + c.city).digest('hex').slice(0, 16)), {
+    ...add.map(c => b => b.set(db.collection('businesses').doc('church_' + crypto.createHash('sha1').update(c.name + c.country + c.address).digest('hex').slice(0, 16)), {
       name: c.name, category: 'Church', description: c.description, address: c.address, lat: c.lat, lng: c.lng, country: c.country,
       phone: c.phone || '', website: c.website || null, imageUrl: '', rating: 0, ratingCount: 0, isOpen: false, isPremium: false,
       pdfMenuUrl: null, openingHours: {}, galleryImages: [], promoVideoUrl: null, ownerId: '', ownerEmail: '', ownerName: '',
       status: 'approved', source: c.source, osmId: c.osmId ? c.osmId.replace('_', '/') : null, churchCommunity: c.community, churchTradition: c.tradition,
     })),
-    ...update.map(([d, c]) => b => b.update(d.ref, { description: c.description, churchCommunity: c.community, churchTradition: c.tradition })),
+    ...update.map(([d, c]) => b => b.update(d.ref, { ...(d.data().ownerId ? {} : { description: c.description }), churchCommunity: c.community, churchTradition: c.tradition })),
   ];
   for (let i = 0; i < ops.length; i += 400) {
     const batch = db.batch();
