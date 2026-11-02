@@ -328,6 +328,100 @@ function cityDetails(){
     if((i+j)%2===0){tree(cx-1,cz-14,false);tree(cx+1,cz+14,false)}}
 }
 
+/* ---------- traffic and people: everyone follows the same streets, lights and priority rules ---------- */
+const STEP=[[0,-1],[1,0],[0,1],[-1,0]];      // N E S W
+let agents=[],walkers=[],lightNodes=new Set(),extraLights=[];
+const trafficSize=MOBILE?{cars:7,taxis:2,trucks:1,buses:2,trams:2,bikes:2,walk:8}:{cars:11,taxis:3,trucks:2,buses:2,trams:2,bikes:3,walk:14};
+// one light per crossing; the two directions take turns (24 s round)
+function axisState(i,j,vertical,now){const t=(now/1000+(vertical?0:12)+i*5+j*3)%24;return t<9?"green":t<11?"yellow":t<22?"red":"redyellow"}
+const shown=new THREE.Vector3();
+function busMesh(){const g=new THREE.Group(),red=STD(0xc8341e,{roughness:.4});box(2.5,2.6,11,red,0,1.8,0,g);box(2.54,1,10.6,glassMat,0,2.3,0,g);box(2.3,.1,10.6,STD(0xeeeeee),0,3.15,0,g);box(2.3,.9,.06,glassMat,0,2.2,-5.52,g);
+  [-3.6,3.6].forEach(z=>[-1.2,1.2].forEach(x=>{const t=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.3,14),tireMat);t.rotation.z=Math.PI/2;t.position.set(x,.5,z);g.add(t)}));return g}
+function tramMesh(){const g=new THREE.Group(),blue=STD(0x1f5fbf,{roughness:.35}),white=STD(0xf1f3f5,{roughness:.4});
+  [-8.5,0,8.5].forEach(z=>{box(2.5,1.1,8,blue,0,1,z,g);box(2.5,1.1,8,white,0,1.9,z,g);box(2.54,.95,7.6,glassMat,0,2.2,z,g);box(2.3,.2,8,STD(0x3a3f46),0,3,z,g)});
+  box(2.3,.9,.06,glassMat,0,2.1,-12.53,g);box(.08,1.4,.08,STD(0x30343a),0,3.8,0,g);box(1.4,.08,.08,STD(0x30343a),0,4.5,0,g);return g}
+function truckMesh(){const g=new THREE.Group();box(2.4,2.1,2.3,STD(0x2a5bd7,{roughness:.4}),0,1.6,-3.1,g);box(2.42,.8,.06,glassMat,0,2.1,-4.28,g);box(2.5,2.9,5.6,STD(0xe6e0d0,{roughness:.8}),0,2.1,.9,g);
+  [-3,2.4].forEach(z=>[-1.1,1.1].forEach(x=>{const t=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.35,14),tireMat);t.rotation.z=Math.PI/2;t.position.set(x,.5,z);g.add(t)}));return g}
+function bikeMesh(){const g=new THREE.Group(),c=[0xc8341e,0x1f7a4a,0x23395d,0xe8b12e][Math.floor(Math.random()*4)];
+  [-.55,.55].forEach(z=>{const t=new THREE.Mesh(new THREE.TorusGeometry(.33,.04,6,16),STD(0x1b1b1b));t.rotation.y=Math.PI/2;t.position.set(0,.34,z);g.add(t)});
+  box(.05,.05,1.05,STD(0x8a9097,{metalness:.6}),0,.62,0,g);box(.34,.62,.24,STD(c),0,1.3,.1,g);box(.2,.72,.14,STD(0x22252b),0,.8,.14,g);const h=new THREE.Mesh(new THREE.SphereGeometry(.15,10,8),STD(0x6b4226));h.position.set(0,1.76,.04);g.add(h);const hl=new THREE.Mesh(new THREE.SphereGeometry(.17,10,8,0,6.3,0,1.6),STD(0xf2c230));hl.position.set(0,1.8,.04);g.add(hl);return g}
+const KIND={car:{len:4.8,w:1.9,lat:3.2,kmh:.85},taxi:{len:4.8,w:1.9,lat:3.2,kmh:.85},truck:{len:8,w:2.5,lat:3.2,kmh:.7},bus:{len:11,w:2.5,lat:3.2,kmh:.7},tram:{len:25,w:2.5,lat:3.2,kmh:.7},bike:{len:1.7,w:.6,lat:5.1,kmh:.32}};
+function laneLine(a){const[dx,dz]=STEP[a.d];return{dx,dz,rx:-dz,rz:dx}}
+function legFrom(a,along){const{dx,dz,rx,rz}=laneLine(a),x0=roadPos(a.i),z0=roadPos(a.j),n={i:a.i+dx,j:a.j+dz},lat=a.lat,x1=roadPos(n.i),z1=roadPos(n.j);
+  a.pts=[{x:x0+dx*(8.5+along)+rx*lat,z:z0+dz*(8.5+along)+rz*lat},{x:x1-dx*8.5+rx*lat,z:z1-dz*8.5+rz*lat}];a.p=0;a.u=0;a.leg="street";a.next=n;a.wait=0;a.halt=null;
+  const vertical=dx===0;a.lim=streetLimit(vertical,vertical?a.i:a.j)/3.6*KIND[a.k].kmh;if(a.k==="bike")a.lim=5.5;
+  // a bus stops once on the way along the street
+  if(a.k==="bus"&&a.j%2===(dz<0?1:0)){const m=(z0+z1)/2;a.halt={x:a.pts[0].x,z:m+(dz<0?0:10),left:6}}}
+function nextDir(a,n){const opts=[];for(const t of[0,1,3]){const d=(a.d+t)%4,ni=n.i+STEP[d][0],nj=n.j+STEP[d][1];if(ni<0||ni>N||nj<0||nj>N)continue;if(d===2&&n.i===ONEWAY_V)continue;opts.push(t===0?[d,d,d]:[d]);}
+  if(a.k==="tram"||a.k==="bus")return opts.find(o=>o[0]===a.d)?a.d:-1;const flat=opts.flat();return flat.length?flat[Math.floor(Math.random()*flat.length)]:-1}
+function crossing(a,n,dOut){const[ix,iz]=STEP[a.d],[ox,oz]=STEP[dOut],rx=-iz,rz=ix,qx=-oz,qz=ox,c={x:roadPos(n.i),z:roadPos(n.j)},lat=a.lat,E=a.pts[a.pts.length-1],X={x:c.x+ox*8.5+qx*lat,z:c.z+oz*8.5+qz*lat};
+  if(isRound(n.i,n.j)){const pts=[E];let th=Math.atan2(E.z-c.z,E.x-c.x),th2=Math.atan2(X.z-c.z,X.x-c.x);while(th2>th-.5)th2-=Math.PI*2;for(let k=1;k<10;k++){const t=th+(th2-th)*k/10;pts.push({x:c.x+Math.cos(t)*5.2,z:c.z+Math.sin(t)*5.2})}pts.push(X);return pts}
+  if(dOut===a.d)return[E,X];const px=E.x+ix*(ix*(X.x-E.x)+iz*(X.z-E.z)),pz=E.z+iz*(ix*(X.x-E.x)+iz*(X.z-E.z)),pts=[];for(let k=0;k<=8;k++){const t=k/8,u=1-t;pts.push({x:u*u*E.x+2*u*t*px+t*t*X.x,z:u*u*E.z+2*u*t*pz+t*t*X.z})}return pts}
+function makeAgent(k,mesh){const K0=KIND[k],a={k,mesh,lat:K0.lat,len:K0.len,w:K0.w,v:0,a:0,d:0,i:0,j:0,stuck:0,ignore:0,ind:null};
+  if(k!=="bike"&&k!=="tram"&&k!=="bus"){}if(mesh.userData.body===undefined)mergeStatic(mesh);scene.add(mesh);mesh.traverse(m=>{if(m.isMesh){m.castShadow=!MOBILE&&k!=="bike";m.receiveShadow=false}});agents.push(a);return a}
+function placeAgent(a,tries){for(let n=0;n<(tries||40);n++){
+    if(a.k==="tram"){a.j=TRAM_H;a.d=Math.random()<.5?1:3;a.i=a.d===1?Math.floor(Math.random()*N):1+Math.floor(Math.random()*N)}
+    else if(a.k==="bus"){a.i=MAIN_V;a.d=Math.random()<.5?0:2;a.j=a.d===2?Math.floor(Math.random()*N):1+Math.floor(Math.random()*N)}
+    else{a.i=Math.floor(Math.random()*(N+1));a.j=Math.floor(Math.random()*(N+1));a.d=Math.floor(Math.random()*4)}
+    const ni=a.i+STEP[a.d][0],nj=a.j+STEP[a.d][1];if(ni<0||ni>N||nj<0||nj>N||(a.d===2&&a.i===ONEWAY_V))continue;
+    legFrom(a,Math.random()*18);const p=a.pts[0];if(Math.hypot(p.x-player.x,p.z-player.z)<38)continue;if(agents.some(o=>o!==a&&o.pts&&Math.hypot(o.mesh.position.x-p.x,o.mesh.position.z-p.z)<(o.len+a.len)/2+6))continue;
+    a.mesh.position.set(p.x,a.k==="tram"?.05:0,p.z);return true}return false}
+function walkerAt(x,z,x2,z2,cross){const m=walker();m.position.set(x,.25,z);scene.add(m);const w={m,ax:x,az:z,bx:x2,bz:z2,t:Math.random(),dir:1,sp:(1.2+Math.random()*.5)/Math.hypot(x2-x,z2-z),cross,pause:0,onRoad:false};walkers.push(w)}
+function spawnTraffic(){agents.forEach(a=>scene.remove(a.mesh));walkers.forEach(w=>scene.remove(w.m));agents=[];walkers=[];
+  const T=trafficSize,CAR=[0xd9dde2,0x23272e,0x8b1e1e,0x9aa5ad,0xe8e2d0,0x2a5bd7,0x1f7a4a];
+  for(let n=0;n<T.cars;n++)makeAgent("car",carMesh(CAR[n%CAR.length],n%3===0));for(let n=0;n<T.taxis;n++)makeAgent("taxi",carMesh(0x111111,true));
+  for(let n=0;n<T.trucks;n++)makeAgent("truck",truckMesh());for(let n=0;n<T.buses;n++)makeAgent("bus",busMesh());for(let n=0;n<T.trams;n++)makeAgent("tram",tramMesh());for(let n=0;n<T.bikes;n++)makeAgent("bike",bikeMesh());
+  agents.slice().forEach(a=>{if(!placeAgent(a)){scene.remove(a.mesh);agents.splice(agents.indexOf(a),1)}});
+  // people: most stay on the pavement, some use the zebra crossings of the main streets
+  for(let n=0;n<T.walk;n++){const bi=Math.floor(Math.random()*N),bj=Math.floor(Math.random()*N),cx=roadPos(bi)+CELL/2,cz=roadPos(bj)+CELL/2;if(n%3===0){const v=n%2===0,i=v?MAIN_V:1+Math.floor(Math.random()*(N-1)),j=v?1+Math.floor(Math.random()*(N-1)):MAIN_H,x=roadPos(i),z=roadPos(j);
+      if(isRound(i,j)||(i===MAIN_V&&j===MAIN_H))continue;v?walkerAt(x-7,z+8.2,x+7,z+8.2,true):walkerAt(x+8.2,z-7,x+8.2,z+7,true)}
+    else{const e=BLK/2-.9,side=n%4,p=[[-e,-e+1,e,-e+1],[e-1,-e,e-1,e],[-e,e-1,e,e-1],[-e+1,-e,-e+1,e]][side];walkerAt(cx+p[0],cz+p[1],cx+p[2],cz+p[3],false)}}}
+// what is ahead of me? slow down for it
+function aheadLimit(a,tv,ax,az,fx,fz,rx,rz){const range=10+a.v*2.2+a.len/2;const room=(q,qlen,wide)=>{const dx=q.x-ax,dz=q.z-az,f=dx*fx+dz*fz,l=dx*rx+dz*rz;if(f<=0||f>range+qlen/2||Math.abs(l)>wide)return;tv=Math.min(tv,Math.max(0,(f-a.len/2-qlen/2-2.2)*.75))};
+  if(Math.hypot(player.x-ax,player.z-az)>a.len/2+2.4)room({x:player.x,z:player.z},4.8,a.k==="bike"?1.2:2.1);if(L&&L.lead)room(L.lead.mesh.position,4.8,1.9);
+  if(a.ignore<=0)for(const o of agents){if(o===a)continue;if(a.leg==="street"&&o.a===a.a&&o.lat!==a.lat)continue;room(o.mesh.position,o.len,1.75)}
+  for(const w of walkers)if(w.onRoad)room(w.m.position,.5,2.4);
+  for(const S of seg)if(S.ped&&S.pedState==="walk")room(S.ped.position,.5,2.4);return tv}
+function junctionBusy(n,me){const c={x:roadPos(n.i),z:roadPos(n.j)};const pd=Math.hypot(player.x-c.x,player.z-c.z),coming=((c.x-player.x)*Math.sin(player.a)-(c.z-player.z)*Math.cos(player.a))>0;if((pd<10&&Math.abs(player.v)>.3)||(pd<30&&coming&&player.v>2))return true;return agents.some(o=>o!==me&&o.leg==="cross"&&o.next===n)||agents.some(o=>o!==me&&o.leg==="cross"&&Math.hypot(o.mesh.position.x-c.x,o.mesh.position.z-c.z)<9)}
+function stepAgent(a,dt,now){const last=a.pts.length-1,pt=a.pts[Math.min(a.p+1,last)];
+  const seg0=a.pts[Math.min(a.p,last-1)],sx=pt.x-seg0.x,sz=pt.z-seg0.z,sl=Math.hypot(sx,sz)||1,fx=sx/sl,fz=sz/sl,pos=a.mesh.position;a.a=Math.atan2(fx,-fz);
+  if(a.ignore>0)a.ignore-=dt;let tv=a.leg==="cross"?Math.min(a.lim,a.turning?4.5:a.lim):a.lim;
+  // bus stop
+  if(a.halt){const dh=Math.hypot(pos.x-a.halt.x,pos.z-a.halt.z);if(dh<16)tv=Math.min(tv,Math.max(0,dh*.5));if(dh<1&&a.v<.3){a.halt.left-=dt;if(a.halt.left<=0)a.halt=null;tv=a.halt?0:tv}}
+  const end=a.pts[a.pts.length-1],toEnd=Math.hypot(end.x-pos.x,end.z-pos.z);
+  if(a.leg==="street"&&toEnd<Math.max(14,a.v*a.v/4+3)){const n=a.next;let go=true;
+    if(a.dOut===undefined){a.dOut=nextDir(a,n);a.turning=a.dOut>=0&&a.dOut!==a.d}
+    const vertical=STEP[a.d][0]===0;
+    if(a.dOut<0)go=false;
+    else if(lightNodes.has(n.i+","+n.j))go=axisState(n.i,n.j,vertical,now)==="green";
+    else if(a.k!=="tram"&&a.k!=="bus"){const mine=vertical?n.i===MAIN_V:n.j===MAIN_H,cross=vertical?n.j===MAIN_H:n.i===MAIN_V;
+      if(isRound(n.i,n.j)||(cross&&!mine)||(!cross&&!mine))go=!junctionBusy(n,a)||a.stuck>3.5}
+    if(!go)tv=Math.min(tv,Math.max(0,(toEnd-.8)*.7));
+    if(toEnd<.9&&go){const pts=crossing(a,n,a.dOut);a.leg="cross";a.pts=pts;a.p=0;a.stuck=0;a.ind=null;return}
+    if(toEnd<1.2&&a.dOut<0)a.wait+=dt;if(toEnd<1.2&&a.dOut<0&&(Math.hypot(player.x-pos.x,player.z-pos.z)>45||a.wait>4)){a.i=n.i;a.j=n.j;a.d=(a.d+2)%4;a.dOut=undefined;a.turning=false;legFrom(a,0);a.mesh.position.set(a.pts[0].x,pos.y,a.pts[0].z);return}}
+  tv=aheadLimit(a,tv,pos.x,pos.z,fx,fz,-fz,fx);
+  a.v+=Math.max(-7*dt,Math.min(2.6*dt,tv-a.v));if(a.v<0)a.v=0;
+  a.stuck=a.v<.2?a.stuck+dt:Math.max(0,a.stuck-dt*2);if(a.stuck>6){a.ignore=2.5;a.stuck=2}
+  let step=a.v*dt;while(step>0&&a.pts[a.p+1]){const q=a.pts[a.p+1],d=Math.hypot(q.x-pos.x,q.z-pos.z);if(d<=step){pos.x=q.x;pos.z=q.z;a.p++;step-=d}else{pos.x+=(q.x-pos.x)/d*step;pos.z+=(q.z-pos.z)/d*step;step=0}}
+  if(a.leg==="cross"&&a.p>=a.pts.length-1){const n=a.next;a.i=n.i;a.j=n.j;a.d=a.dOut;a.dOut=undefined;a.turning=false;legFrom(a,0);pos.x=a.pts[0].x;pos.z=a.pts[0].z}
+  a.mesh.rotation.y=-a.a;if(a.mesh.userData.wheels)a.mesh.userData.wheels.forEach(w=>w.children.forEach(c=>c.rotation.x+=a.v*dt/.42));
+  // you hit it
+  if(L&&L.on&&now>L.cool){const dx=player.x-pos.x,dz=player.z-pos.z,f=dx*fx+dz*fz,l=-dx*fz+dz*fx;const pf=-(dx*Math.sin(player.a)-dz*Math.cos(player.a));if(Math.abs(f)<a.len/2+2&&Math.abs(l)<a.w/2+.8&&Math.abs(player.v)>.8&&pf>-1){crashFx(Math.max(5,Math.abs(player.v)));mistake("mCrash",true);L.cool=now+1500;player.v=0}}}
+function stepTraffic(dt,now){for(const a of agents)stepAgent(a,dt,now);
+  // the person on a zebra crossing you have passed walks on to the other side
+  seg.forEach((S,k)=>{if(S.pedState!=="walk"||(L&&k===L.k))return;S.pedL-=1.5*dt;if(S.pedL<-8){S.pedState="done";return}const w=S.at(S.zs,S.pedL);S.ped.position.set(w.x,.25,w.z)});
+  for(const w of walkers){const px=w.m.position.x,pz=w.m.position.z,near=Math.hypot(px-player.x,pz-player.z);
+    if(w.cross&&w.pause>0){w.pause-=dt;continue}
+    if(w.cross&&!w.onRoad&&(w.t<=0||w.t>=1||w.t===w.startT)){const busy=Math.hypot(px-player.x,pz-player.z)<14+Math.abs(player.v)*1.5||agents.some(a=>Math.hypot(a.mesh.position.x-px,a.mesh.position.z-pz)<12+a.v);if(busy)continue}
+    w.t+=w.sp*w.dir*dt;if(w.t>=1||w.t<=0){w.t=Math.max(0,Math.min(1,w.t));w.dir*=-1;w.onRoad=false;w.pause=w.cross?2+Math.random()*5:0}else if(w.cross)w.onRoad=w.t>.06&&w.t<.94;
+    const x=w.ax+(w.bx-w.ax)*w.t,z=w.az+(w.bz-w.az)*w.t;w.m.position.x=x;w.m.position.z=z;
+    if(near<90){w.m.rotation.y=Math.atan2(w.bx-w.ax,w.bz-w.az)+(w.dir>0?0:Math.PI);const sw=Math.sin(now/170+w.ax)*.5;w.m.userData.legs[0].rotation.x=sw;w.m.userData.legs[1].rotation.x=-sw}
+    if(L&&L.on&&near<1.5&&Math.abs(player.v)>1.5&&!L.flags.hitPed){L.flags.hitPed=1;w.m.rotation.x=-Math.PI/2;w.dead=true;ouch();crashFx(Math.abs(player.v));mistake("mHitPed",true);player.v=0;setTimeout(()=>finishLesson(true),1800)}}
+  walkers=walkers.filter(w=>!w.dead)}
+// a slow phone: fewer vehicles and people, the lesson stays smooth
+function lessTraffic(){let n=0;agents.sort((a,b)=>Math.hypot(b.mesh.position.x-player.x,b.mesh.position.z-player.z)-Math.hypot(a.mesh.position.x-player.x,a.mesh.position.z-player.z));
+  while(n<3&&agents.length>4){scene.remove(agents.shift().mesh);n++}while(walkers.length>3&&n<5){scene.remove(walkers.shift().m);n++}return n>0}
+
 function build(key){
   const C=CITIES[key];
   scene=new THREE.Scene();world=new THREE.Group();scene.add(world);
@@ -663,7 +757,7 @@ let NODES=[],SEGS=[];
 function makeRoute(){
   const DIRS=[[0,-1],[1,0],[0,1],[-1,0]];let x=1+Math.floor(Math.random()*(N-1)),z=N,d=0;
   NODES=[[x,N-.3]];
-  const legs=5+Math.floor(Math.random()*3);
+  const legs=3+Math.floor(Math.random()*3);
   for(let k=0;k<legs;k++){
     // straight, right or left only: never back down the same street
     let opts=k===0?[0]:Math.random()<.25?[0,1,3]:Math.random()<.5?[1,3,0]:[3,1,0];let moved=false;
@@ -674,6 +768,8 @@ function makeRoute(){
       for(const len of toRound?[toRound]:[2+Math.floor(Math.random()*2),2,1]){const nx=x+DIRS[nd][0]*len,nz=z+DIRS[nd][1]*len;
       if(nx<0||nx>N||nz<0||nz>N)continue;d=nd;x=nx;z=nz;NODES.push([x,z]);moved=true;break}if(moved)break}
     if(!moved)break}
+  // every crossing on the way is its own stretch with its own rule (nothing happens unannounced)
+  {const all=[NODES[0]];for(let k=1;k<NODES.length;k++){const[ax,az]=NODES[k-1],[bx,bz]=NODES[k],n=Math.max(Math.abs(bx-ax),Math.round(Math.abs(bz-az)));for(let t=1;t<=n;t++)all.push(t===n?[bx,bz]:[ax+(bx-ax)*t/n,Math.round(az)+(bz-Math.round(az))*t/n])}NODES=all}
   // the car park at the end must not be inside a roundabout
   while(NODES.length>3&&isRound(...NODES[NODES.length-1]))NODES.pop();
   SEGS=[];for(let k=0;k<NODES.length-1;k++){const last=k===NODES.length-2,[ax,az]=NODES[k],[bx,bz]=NODES[k+1],az0=Math.round(az),vertical=ax===bx,ev=last?"finish":nodeEvent(bx,bz,vertical);
@@ -695,14 +791,14 @@ function setupRoute(){
   seg=[];
   for(let k=0;k<SEGS.length;k++){const A={x:roadPos(NODES[k][0]),z:roadPos(NODES[k][1])},B={x:roadPos(NODES[k+1][0]),z:roadPos(NODES[k+1][1])};
     const L=Math.hypot(B.x-A.x,B.z-A.z),d={x:(B.x-A.x)/L,z:(B.z-A.z)/L},r={x:-d.z,z:d.x};
-    const S=Object.assign({},SEGS[k],{A,B,L,d,r,face:Math.atan2(-d.x,-d.z)});
+    const S=Object.assign({},SEGS[k],{A,B,L,d,r,face:Math.atan2(-d.x,-d.z),ni:NODES[k+1][0],nj:NODES[k+1][1],vert:Math.abs(d.z)>.5});
     seg.push(S)}
   seg.forEach((S,k)=>{const n=seg[k+1];
     if(n){const cross=S.d.x*n.d.z-S.d.z*n.d.x;S.turn=Math.abs(cross)<.1?"straight":(cross>0?"turnR":"turnL")}else S.turn="finish";
     const at=(s,l)=>({x:S.A.x+S.d.x*s+S.r.x*l,z:S.A.z+S.d.z*s+S.r.z*l});
     S.at=at;S.stopS=S.L-7.5;
     // speed limit sign at the start, on the right
-    const p=at(9,7.2);placeSign("speed"+S.lim,p.x,p.z,S.face);
+    if(k===0||seg[k-1].lim!==S.lim){const p=at(9,7.2);placeSign("speed"+S.lim,p.x,p.z,S.face)}
     // stop line
     if(S.ev==="light"||S.ev==="stop"||S.ev==="give"||S.ev==="round"){const q=at(S.stopS,3);const line=new THREE.Mesh(new THREE.PlaneGeometry(6,S.ev==="give"||S.ev==="round"?.25:.5),new THREE.MeshBasicMaterial({color:0xffffff}));
       line.rotation.x=-Math.PI/2;line.rotation.z=-Math.atan2(S.d.x,-S.d.z);line.position.set(q.x,.06,q.z);world.add(line)}
@@ -713,6 +809,10 @@ function setupRoute(){
         st.rotation.x=-Math.PI/2;st.rotation.z=-Math.atan2(S.d.x,-S.d.z);st.position.set(c.x,.055,c.z);world.add(st)}
       S.ped=walker();const w=at(S.zs,8);S.ped.position.set(w.x,.25,w.z);S.pedL=8;S.pedState="wait";world.add(S.ped)}
   });
+  // lights: the main crossing always has them, on all four arms
+  lightNodes=new Set([MAIN_V+","+MAIN_H]);seg.forEach(S=>{if(S.light)lightNodes.add(S.ni+","+S.nj)});extraLights=[];
+  {const x=roadPos(MAIN_V),z=roadPos(MAIN_H);[[0,-1],[1,0],[0,1],[-1,0]].forEach(([dx,dz])=>{const vert=dx===0;if(seg.some(S=>S.light&&S.ni===MAIN_V&&S.nj===MAIN_H&&Math.abs(S.d.x+dx)<.1&&Math.abs(S.d.z+dz)<.1))return;
+    const d={x:-dx,z:-dz},r={x:-d.z,z:d.x};extraLights.push({lm:trafficLight(x+dx*7.5+r.x*7,z+dz*7.5+r.z*7,Math.atan2(-d.x,-d.z)),vert})})}
   // finish marker
   const F=seg[seg.length-1];const fq=F.at(F.L-4,3);const fm=new THREE.Mesh(new THREE.RingGeometry(2,2.6,32),new THREE.MeshBasicMaterial({color:0x3ccf8e,side:THREE.DoubleSide}));
   fm.rotation.x=-Math.PI/2;fm.position.set(fq.x,.07,fq.z);world.add(fm);
@@ -752,7 +852,7 @@ function enterSeg(k){L.k=k;L.flags={};L.overS=0;L.laneT=0;L.distT=0;const S=seg[
   // a car ahead only on streets long enough, otherwise it would appear on top of you
   const lead=S.lead&&S.L>=80;if(lead){const m=carMesh(0x9aa5ad,false);scene.add(m);L.lead={mesh:m,s:Math.min(S.L-30,32),v:0,stopT:0,braked:false}}
   const keys=[S.turn];if(S.ev!=="finish")keys.push(S.ev);if(S.zebra)keys.push("zebra");if(lead)keys.push("lead");
-  S.hints=keys.slice(1).map(k=>TI[k]).join(" · ");L.lastMain="";S.keys=keys;showInstr(TI[S.turn],S.hints,S.lim);if(L.on)say(keys)}
+  S.hints=keys.slice(1).map(k=>TI[k]).join(" · ");L.lastMain="";S.keys=keys;showInstr(TI[S.turn],S.hints,S.lim);S.quiet=S.turn==="straight"&&!keys.slice(1).some(q=>q!=="none"&&q!=="prio");if(L.on&&!S.quiet)say(keys)}
 
 function showInstr(main,sub,lim){if(L)L.lastMain=main;$("instr").innerHTML=`<b>${esc(main)}</b>${sub?`<span>${esc(sub)}</span>`:""}`;$("limit").innerHTML=signSVG("speed"+lim,62)}
 function praise(k){toast(TI[k],true,k)}
@@ -762,7 +862,7 @@ function mistake(key,serious,extra){const now=performance.now();L.rep=L.rep||{};
   if(L.flags["m_"+key]){if(now<(L.rep[key]||0))return;L.rep[key]=now+(REPEAT[key]||2500);toast((serious?"✗ ":"! ")+TI[key],false);say(key==="mSpeed"?["slow",key]:[key]);return}
   L.flags["m_"+key]=1;L.rep[key]=now+(REPEAT[key]||2500);L.mist.push({key,serious,txt:TI[key]+(extra?` (${extra})`:""),sign:{mRed:"lightRed",mStop:"stop",mZebra:"crossingHere",mGive:"give",mSpeed:"speed"+seg[L.k].lim,mLane:"keepRight",mDist:"queue",mRight:"crossroad",mWrong:"noEntry",mCrash:"danger",mHitPed:"peds",mPark:"parking"}[key]});
   toast((serious?"✗ ":"! ")+TI[key],false);$("mist").textContent=L.mist.length;say(key==="mSpeed"?["slow",key]:[key])}
-function lightState(S,now){const t=((now-(S.light.t0??0))/1000+14.5*9)%14.5;return t<3?"green":t<5?"yellow":t<13?"red":"redyellow"}
+function lightState(S,now){return axisState(S.ni,S.nj,S.vert,now)}
 
 /* ---------- sound (soft chimes; recorded Tigrinya voice lines from voice/ti/ when present) ---------- */
 let AC=null;
@@ -829,7 +929,7 @@ function finishLesson(hardFail){L.on=false;L.done=true;const ser=L.mist.filter(m
    <button class="btn" id="again">${TI.again}</button><button class="btn" id="nextD" style="background:#2b3d18;color:#fff">${TI.next} →</button>`;$("ov").hidden=false;
   $("hStars").textContent="⭐ "+total;
   $("again").onclick=()=>{newRoute(false);startLesson()};$("nextD").onclick=()=>{destI=(destI+1)%DESTS.length;newRoute(true);drawMenu()}}
-function startLesson(){newLesson();L.on=true;setRev(false);if(IND)setInd(IND);$("ov").hidden=true;$("mist").textContent="0";chime(660,.3);setTimeout(()=>{if(L.on)say(seg[L.k].keys)},350)}
+function startLesson(){newLesson();L.on=true;setRev(false);if(IND)setInd(IND);$("ov").hidden=true;$("mist").textContent="0";chime(660,.3);setTimeout(()=>{if(L.on&&!seg[L.k].quiet)say(seg[L.k].keys)},350)}
 
 /* ---------- main loop ---------- */
 let last=performance.now();
@@ -847,7 +947,8 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   const nx=player.x+Math.sin(player.a)*player.v*dt,nz=player.z-Math.cos(player.a)*player.v*dt;
   if(!blocked(nx,nz)){player.x=nx;player.z=nz}else{if(L&&L.on&&hitsBuilding(nx,nz)&&Math.abs(player.v)>2&&now>L.cool){crashFx(Math.abs(player.v));mistake("mCrash",true);L.cool=now+1000}player.v*=offMap(nx,nz)?0:-.2}
   const kmh=Math.abs(player.v)*3.6;$("kmh").textContent=Math.round(kmh);
-  seg.forEach(S=>{if(!S.light)return;const st=lightState(S,now),lm=S.light;lm.red.emissiveIntensity=(st==="red"||st==="redyellow")?3:0;lm.yel.emissiveIntensity=(st==="yellow"||st==="redyellow")?3:0;lm.grn.emissiveIntensity=st==="green"?3:0});
+  const showLight=(st,lm)=>{lm.red.emissiveIntensity=(st==="red"||st==="redyellow")?3:0;lm.yel.emissiveIntensity=(st==="yellow"||st==="redyellow")?3:0;lm.grn.emissiveIntensity=st==="green"?3:0};
+  seg.forEach(S=>{if(S.light)showLight(lightState(S,now),S.light)});extraLights.forEach(e=>showLight(axisState(MAIN_V,MAIN_H,e.vert,now),e.lm));stepTraffic(dt,now);
   if(L&&L.on){const S=seg[L.k],px=player.x-S.A.x,pz=player.z-S.A.z,s=px*S.d.x+pz*S.d.z,l=px*S.r.x+pz*S.r.z;
     // speed
     if(kmh>S.lim+4){L.overS+=dt;if(L.overS>1.5)mistake("mSpeed",false,Math.round(kmh)+" km/h")}else L.overS=0;
@@ -899,7 +1000,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   // direction arrow to the next crossing
   if(L){const S=seg[L.k];const tg=S.B;$("arrow").textContent={turnR:"↱",turnL:"↰",straight:"⬆",finish:"🅿️"}[S.turn];
     const dm=Math.max(0,Math.round(Math.hypot(tg.x-player.x,tg.z-player.z)-6));$("dist").textContent=dm+" m";
-    if(L.on){const near=dm<=45;const main=near?TI[S.turn]:TI.go(Math.ceil(dm/10)*10,TI.dir[S.turn]);if(main!==L.lastMain){showInstr(main,S.hints,S.lim);if(near&&!L.flags.saidNear){L.flags.saidNear=1;say([S.turn])}}}}
+    if(L.on){const near=dm<=45;const main=near?TI[S.turn]:TI.go(Math.ceil(dm/10)*10,TI.dir[S.turn]);if(main!==L.lastMain){showInstr(main,S.hints,S.lim);if(near&&!L.flags.saidNear&&!S.quiet){L.flags.saidNear=1;say([S.turn])}}}}
   if(shake>0){shake=Math.max(0,shake-dt*2.2);cam.position.x+=(Math.random()-.5)*shake*.8;cam.position.y+=(Math.random()-.5)*shake*.5}
   // body leans in corners and dips when braking
   const bd=player.mesh.userData.body;player.roll+=((-yaw*av*.006)-player.roll)*Math.min(1,dt*6);player.pitch+=((brk&&av>1?.022:gas?-.01:0)-player.pitch)*Math.min(1,dt*7);
@@ -921,10 +1022,10 @@ function drawGPS(){const c=$("gps"),g=c.getContext("2d"),W=c.width,sc=W/150,cy=W
   g.save();g.translate(W/2,cy);g.fillStyle="#3ccf8e";g.strokeStyle="#000";g.lineWidth=2;g.beginPath();g.moveTo(0,-14);g.lineTo(10,11);g.lineTo(0,6);g.lineTo(-10,11);g.closePath();g.fill();g.stroke();g.restore()}
 const FPS={t:0,n:0};
 function adaptQuality(dt){FPS.t+=dt;FPS.n++;if(FPS.t<2)return;const ms=FPS.t/FPS.n*1000;FPS.t=0;FPS.n=0;
-  let np=PR;if(ms>24&&PR>.6)np=Math.max(.6,PR-.2);else if(ms<15&&PR<PR_MAX)np=Math.min(PR_MAX,PR+.1);if(np!==PR){PR=np;renderer.setPixelRatio(PR);resize()}}
+  let np=PR;if(ms>24&&PR>.6)np=Math.max(.6,PR-.2);else if(ms<15&&PR<PR_MAX)np=Math.min(PR_MAX,PR+.1);if(np!==PR){PR=np;renderer.setPixelRatio(PR);resize()}else if(ms>30&&PR<=.6)lessTraffic()}
 
 /* ---------- start ---------- */
-function newRoute(redraw){makeRoute();build("lesson");traffic.forEach(t=>t.m.visible=false);ring.visible=false;setupRoute();resize();newLesson();damage=0}
+function newRoute(redraw){makeRoute();build("lesson");traffic.forEach(t=>t.m.visible=false);ring.visible=false;setupRoute();resize();newLesson();spawnTraffic();damage=0}
 function drawMenu(){TI=TXT[LANG];document.documentElement.lang=LANG;preloadVoice();$("lB").textContent=PED[LANG][0];$("lG").textContent=PED[LANG][1];$("mistL").textContent=TI.mist;
   $("hTitle").textContent=TI.title;$("hSub").textContent=TI.sub;let total=0;try{total=+localStorage.getItem("dl-stars")||0}catch(e){}$("hStars").textContent=total?"⭐ "+total:"";
   const langs=`<p class="small">${TI.lang}</p><div class="langs" id="dLangs">${[["ti","ትግርኛ"],["am","አማርኛ"],["en","English"],["no","Norsk"]].map(([k,n])=>`<button data-l="${k}" class="${k===LANG?"on":""}">${n}</button>`).join("")}</div>`;
