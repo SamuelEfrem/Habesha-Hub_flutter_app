@@ -321,10 +321,7 @@ function build(key){
       buildings.push({x:cx+ox,z:cz+oz,w:11,d:11});
     }
   }
-  // hills
-  for(let i=0;i<34;i++){const a=i/34*Math.PI*2,r=HALF+60+Math.random()*90,h=25+Math.random()*50;
-    const m=new THREE.Mesh(new THREE.IcosahedronGeometry(40+Math.random()*30,2),STD(C.snow?0xe9eef3:C.hills,{flatShading:true,roughness:1}));
-    m.scale.y=h/55;m.position.set(Math.cos(a)*r,-6,Math.sin(a)*r);world.add(m)}
+  // no hills: they reached into the outer streets
   mergeStatic(world);
   // traffic
   traffic=[];
@@ -805,8 +802,9 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;const C=CITIE
     stepAI(dt,now);if(mode==="online"){sendPos(now);stepGhosts(dt)}
     if(!R.winner){const fin=standings().filter(r=>r.t!=null).sort((a,b)=>a.t-b.t)[0];if(fin){R.winner=fin.name;
       const el=$("winBan");el.textContent=fin.me?T("youWin"):T("winsAnn",{n:fin.name});el.hidden=false;setTimeout(()=>el.hidden=true,4000);if(!fin.me){chime(660,.5,.2);say("finish")}
-      if(mode==="online")R.overAt=now+45000}}
-    if(!R.over&&(R.finished!=null||(R.overAt&&now>R.overAt))){R.over=now;G.frozen=true;ring.visible=false;$("count").hidden=true;$("wrongB").hidden=true;
+      R.overAt=now}}
+    // the first car over the line after the last lap wins: the race stops for everyone
+    if(!R.over&&R.overAt){R.over=now;G.frozen=true;ring.visible=false;$("count").hidden=true;$("wrongB").hidden=true;
       const myR=R,mine=R.finished!=null;if(!mine)setTimeout(()=>{if(R===myR)showResults()},1200);setTimeout(()=>{if(R===myR)nextRace()},11000)}
     // wrong way: you drive away from the next checkpoint
     if(!G.frozen&&R.finished==null&&!R.over){const w=nextWP(R.done);let d=Math.atan2(w.x-player.x,-(w.z-player.z))-player.a;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
