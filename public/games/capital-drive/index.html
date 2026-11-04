@@ -36,6 +36,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
 @media (hover:hover) and (pointer:fine){.speedo{bottom:14px}}
 .stage .mini{position:absolute;top:72px;right:12px;width:110px;height:110px;border-radius:12px;background:rgba(0,0,0,.35);pointer-events:none}
 @media (hover:hover) and (pointer:fine){#bN{display:none}}
+.winban.wrong{background:#c8341e;color:#fff;font-size:1.05rem;top:34%;max-width:86%;text-align:center}
 .winban{position:absolute;left:50%;top:22%;transform:translateX(-50%);background:linear-gradient(135deg,#f7c948,#e0a800);color:#2a1d00;font:800 1.6rem var(--display);padding:12px 24px;border-radius:18px;box-shadow:0 10px 40px rgba(0,0,0,.5);pointer-events:none;white-space:nowrap;animation:winpop .4s ease-out}
 @keyframes winpop{from{transform:translateX(-50%) scale(.4);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
 .count{position:absolute;inset:0;display:grid;place-items:center;font:800 5rem var(--display);color:var(--gold);text-shadow:0 4px 20px rgba(0,0,0,.7);pointer-events:none}
@@ -109,7 +110,7 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
       <span class="c"><span id="hc">–</span><div class="arrow" id="arrow">↑</div></span>
       <span id="hr">–</span>
     </div>
-    <div class="count" id="count" hidden></div><div class="winban" id="winBan" hidden></div><div class="hitflash" id="hitflash"></div><div class="tapHint" id="tapHint">⇕</div>
+    <div class="count" id="count" hidden></div><div class="winban" id="winBan" hidden></div><div class="winban wrong" id="wrongB" hidden></div><div class="hitflash" id="hitflash"></div><div class="tapHint" id="tapHint">⇕</div>
     <canvas class="mini" id="mini" width="220" height="220" aria-label="Map"></canvas>
     <div class="speedo"><b id="kmh">0</b><span>km/h</span></div>
     <div class="pedals">
@@ -227,7 +228,7 @@ function bodaMesh(){const g=new THREE.Group();
   return g}
 
 /* ---------- world ---------- */
-let scene,world,sky,sun,hemi,buildings=[],traffic=[],snow=null,ring=null,target=null,glows=[];
+let poles=[],scene,world,sky,sun,hemi,buildings=[],traffic=[],snow=null,ring=null,target=null,glows=[];
 const N=7,BLK=30,RD=12,CELL=BLK+RD,HALF=N*CELL/2;
 const roadPos=i=>-HALF+i*CELL+RD/2;
 
@@ -250,14 +251,14 @@ function glowSprite(color,size){
   const t=canvasTex(64,64,(g,w,h)=>{const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"rgba(255,255,255,1)");gr.addColorStop(.25,"rgba(255,255,255,.5)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,64,64)});
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,color,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));s.scale.set(size,size,1);return s}
 
-function tree(x,z,palm){const g=new THREE.Group();g.position.set(x,0,z);world.add(g);
+function tree(x,z,palm){poles.push({x,z,r:.5});const g=new THREE.Group();g.position.set(x,0,z);world.add(g);
   if(palm){const t=new THREE.Mesh(new THREE.CylinderGeometry(.22,.38,8,8),STD(0x8a6a44));t.position.y=4;t.castShadow=true;g.add(t);
     for(let k=0;k<7;k++){const f=box(.6,.08,4.2,STD(0x3f7f34,{side:THREE.DoubleSide}),0,8,0,g);f.geometry.translate(0,0,2);f.rotation.set(.55,k*.9,0)}}
   else{const t=new THREE.Mesh(new THREE.CylinderGeometry(.2,.32,3.2,8),STD(0x5a3e28));t.position.y=1.6;t.castShadow=true;g.add(t);
     for(let k=0;k<4;k++){const c=new THREE.Mesh(new THREE.IcosahedronGeometry(1.6+Math.random()*.8,1),STD(0x4a7a30,{flatShading:true}));
       c.position.set((Math.random()-.5)*1.6,3.6+Math.random()*1.4,(Math.random()-.5)*1.6);c.castShadow=true;g.add(c)}}}
 
-function lamp(x,z,rotY,night){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rotY;world.add(g);
+function lamp(x,z,rotY,night){poles.push({x,z,r:.35});const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rotY;world.add(g);
   const steel=STD(0x5b6066,{metalness:.7,roughness:.4});
   const p=new THREE.Mesh(new THREE.CylinderGeometry(.09,.13,7,8),steel);p.position.y=3.5;p.castShadow=true;g.add(p);
   box(.12,.12,1.8,steel,0,7,.85,g);
@@ -299,7 +300,7 @@ function build(key){
   const facs=C.bld.map(c=>facade(c,C.night));
   const roofMat=STD(C.snow?0xf4f7fa:0x6e6a64,{roughness:.9});
   const walkMat=STD(C.walk,{map:TEX.walk,roughness:.95});
-  buildings=[];glows=[];
+  buildings=[];glows=[];poles=[];
   for(let bi=0;bi<N;bi++)for(let bj=0;bj<N;bj++){
     const cx=roadPos(bi)+CELL/2,cz=roadPos(bj)+CELL/2;
     box(BLK,.25,BLK,walkMat,cx,.125,cz);
@@ -352,7 +353,7 @@ function build(key){
 const $=id=>document.getElementById(id);
 /* ================= LANGUAGE ================= */
 const I18N={
- en:{taxi:"Taxi shift",taxiSub:"Pick up and drop off passengers before time runs out",race:"Race the computer",raceSub:"2 laps through the city against 3 local drivers",
+ en:{wrongWay:"⚠️ Wrong way! Turn around and follow the arrow",taxi:"Taxi shift",taxiSub:"Pick up and drop off passengers before time runs out",race:"Race the computer",raceSub:"2 laps through the city against 3 local drivers",
   online:"Race online",onlineSub:"Random players or friends with a code",pick:"Pick up passenger",drop:"Drop off passenger",fares:"Fares",lap:"Lap",pos:"Pos",
   finished:"Finished!",go:"GO!",finish:"FINISH",win:"You win!",place:"You finished #{n}",again:"Race again",nextRace:"New race in {n}…",menu:"Menu",back:"Back",
   quick:"Quick race",quickSub:"Anyone online in {city}",create:"Create friends race",createSub:"Get a code to send on WhatsApp",join:"Join",code:"Friend's code",
@@ -361,7 +362,7 @@ const I18N={
   driveAgain:"Drive again",you:"You",connecting:"Connecting…",noConnect:"Couldn't connect. Try again in a moment.",friends:"Friends race",
   offline:"Online racing isn't available here. In the app it works for everyone who is signed in.",onlineIntro:"Race real people in {city}.",racing:"racing…",laps:"laps",
   left:"drive left",right:"drive right",horn:"Horn",sound:"Sound",record:"New record!",best:"Best"},
- ti:{taxi:"ስራሕ ታክሲ",taxiSub:"ግዜ ከይወድአ ተሳፈርቲ ኣልዕል ኣውርድ",race:"ምስ ኮምፒተር ተወዳደር",raceSub:"2 ዙር ኣብ ከተማ ምስ 3 መራሕቲ መካይን",
+ ti:{wrongWay:"⚠️ ጌጋ ኣንፈት! ተመለስ እሞ ነቲ ምልክት ተኸተል",taxi:"ስራሕ ታክሲ",taxiSub:"ግዜ ከይወድአ ተሳፈርቲ ኣልዕል ኣውርድ",race:"ምስ ኮምፒተር ተወዳደር",raceSub:"2 ዙር ኣብ ከተማ ምስ 3 መራሕቲ መካይን",
   online:"ኦንላይን ውድድር",onlineSub:"ምስ ዝኾነ ሰብ ወይ ምስ ኣዕሩኽ ብኮድ",pick:"ተሳፋሪ ኣልዕል",drop:"ተሳፋሪ ኣውርድ",fares:"ተሳፈርቲ",lap:"ዙር",pos:"ደረጃ",
   finished:"ወዲእካ!",go:"ጀምር!",finish:"መወዳእታ",win:"ተዓዊትካ!",place:"{n}ይ ወጺእካ",again:"ደጊምካ ተወዳደር",nextRace:"ሓድሽ ውድድር ኣብ {n}…",menu:"ዝርዝር",back:"ተመለስ",
   quick:"ቅልጡፍ ውድድር",quickSub:"ኣብ {city} ዘሎ ዝኾነ ሰብ",create:"ምስ ኣዕሩኽ ውድድር ፍጠር",createSub:"ብዋትስኣፕ ዝስደድ ኮድ ውሰድ",join:"ተጸንበር",code:"ኮድ ዓርኪ",
@@ -370,7 +371,7 @@ const I18N={
   driveAgain:"ደጊምካ ዘውር",you:"ንስኻ",connecting:"ይራኸብ ኣሎ…",noConnect:"ክራኸብ ኣይከኣለን። ደሓር ፈትን።",friends:"ውድድር ኣዕሩኽ",
   offline:"ኦንላይን ውድድር ኣብዚ ኣይሰርሕን። ኣብ ኣፕ ንኹሉ ዝኣተወ ሰብ ይሰርሕ።",onlineIntro:"ኣብ {city} ምስ ሓቀኛታት ሰባት ተወዳደር።",racing:"ይወዳደር…",laps:"ዙር",
   left:"ብጸጋም",right:"ብየማን",horn:"ጡሩምባ",sound:"ድምጺ",record:"ሓድሽ ሪኮርድ!",best:"ዝበለጸ"},
- am:{taxi:"የታክሲ ስራ",taxiSub:"ጊዜው ሳያልቅ ተሳፋሪዎችን ጫን አውርድ",race:"ከኮምፒውተር ጋር ተወዳደር",raceSub:"2 ዙር በከተማው ከ3 አሽከርካሪዎች ጋር",
+ am:{wrongWay:"⚠️ የተሳሳተ አቅጣጫ! ዞር በልና ቀስቱን ተከተል",taxi:"የታክሲ ስራ",taxiSub:"ጊዜው ሳያልቅ ተሳፋሪዎችን ጫን አውርድ",race:"ከኮምፒውተር ጋር ተወዳደር",raceSub:"2 ዙር በከተማው ከ3 አሽከርካሪዎች ጋር",
   online:"ኦንላይን ውድድር",onlineSub:"ከማንኛውም ሰው ወይም ከጓደኞች በኮድ",pick:"ተሳፋሪ ጫን",drop:"ተሳፋሪ አውርድ",fares:"ተሳፋሪዎች",lap:"ዙር",pos:"ደረጃ",
   finished:"ጨርሰሃል!",go:"ጀምር!",finish:"መጨረሻ",win:"አሸነፍክ!",place:"{n}ኛ ወጥተሃል",again:"እንደገና ተወዳደር",nextRace:"አዲስ ውድድር በ{n}…",menu:"ዝርዝር",back:"ተመለስ",
   quick:"ፈጣን ውድድር",quickSub:"በ{city} ያለ ማንኛውም ሰው",create:"ከጓደኞች ጋር ውድድር ፍጠር",createSub:"በዋትስአፕ የሚላክ ኮድ ውሰድ",join:"ተቀላቀል",code:"የጓደኛ ኮድ",
@@ -521,7 +522,7 @@ const player={x:0,z:0,a:0,v:0,steer:0,roll:0,pitch:0,mesh:null};
 let mode="menu";
 let G={on:false,frozen:false,score:0,time:60,pick:true};
 let R=null;
-const LAPS=2, ROUTE=[[1,1],[6,1],[6,4],[3,4],[3,6],[1,6]];
+const LAPS=2, ROUTE=[[0,0],[7,0],[7,4],[4,4],[4,7],[0,7]];
 let WP=[];
 let people=[], ais=[], ghosts={};
 
@@ -598,7 +599,7 @@ function startRace(kind,opts={}){clearRace();mode=kind==="ai"?"race":"online";
   if(kind==="ai"){const names=(lang!=="en"&&AI_NAMES_GEEZ[cityKey])||AI_NAMES[cityKey];
     names.forEach((n,i)=>{const s=gridSpot(i+1);const m=carMesh(AI_COL[i],false);scene.add(m);m.add(nameTag(n,"#"+AI_COL[i].toString(16).padStart(6,"0")));
     ais.push({name:n,mesh:m,x:s.x,z:s.z,a:s.a,v:0,done:0,maxV:24+i*1.6+Math.random()*2,lane:CITIES[cityKey].side*(1.5+i*1.2)*(i%2?1:-1)*.8,finished:null,color:AI_COL[i]})})}
-  G={on:true,frozen:true,score:0,time:0,pick:true};ring.visible=true;setRing();$("ov").hidden=true}
+  G={on:true,frozen:true,score:0,time:0,pick:true};ring.visible=true;setRing();setWrongText();$("wrongB").hidden=true;$("ov").hidden=true}
 function nextWP(done){return WP[(done+1)%WP.length]}
 function addFinish(){const w=WP[0],z=w.z+RD/2+1.5;
   const cv=document.createElement("canvas");cv.width=128;cv.height=32;const g=cv.getContext("2d");
@@ -606,12 +607,13 @@ function addFinish(){const w=WP[0],z=w.z+RD/2+1.5;
   const tex=new THREE.CanvasTexture(cv);tex.magFilter=THREE.NearestFilter;
   const strip=new THREE.Mesh(new THREE.PlaneGeometry(RD,2.2),new THREE.MeshBasicMaterial({map:tex}));strip.rotation.x=-Math.PI/2;strip.position.set(w.x,.07,z);world.add(strip);
   const postM=new THREE.MeshStandardMaterial({color:0xe74c3c,roughness:.5});
-  [-1,1].forEach(sd=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,7,10),postM);p.position.set(w.x+sd*(RD/2+.6),3.5,z);world.add(p)});
+  [-1,1].forEach(sd=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,7,10),postM);p.position.set(w.x+sd*(RD/2+.6),3.5,z);world.add(p);poles.push({x:w.x+sd*(RD/2+.6),z,r:.3})});
   const bc=document.createElement("canvas");bc.width=512;bc.height=96;const b=bc.getContext("2d");
   for(let i=0;i<32;i++){b.fillStyle=i%2?"#111":"#fff";b.fillRect(i*16,0,16,12);b.fillStyle=i%2?"#fff":"#111";b.fillRect(i*16,84,16,12)}
   b.fillStyle="#d52b1e";b.fillRect(0,12,512,72);b.fillStyle="#fff";b.font="bold 56px Arial";b.textAlign="center";b.textBaseline="middle";b.fillText("FINISH · መወዳእታ",256,50);
   const ban=new THREE.Mesh(new THREE.PlaneGeometry(RD+1.6,2.2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(bc),side:THREE.DoubleSide}));
   ban.position.set(w.x,6.4,z);world.add(ban)}
+function setWrongText(){const el=$("wrongB");if(el)el.textContent=T("wrongWay")}
 function setRing(){if(!R)return;const w=nextWP(R.done);ring.position.set(w.x,1.2,w.z)}
 function progress(done,x,z){const a=WP[done%WP.length],b=nextWP(done);const seg=Math.hypot(b.x-a.x,b.z-a.z)||1;return done+Math.max(0,1-Math.hypot(b.x-x,b.z-z)/seg)}
 const TOTAL=()=>LAPS*WP.length;
@@ -759,7 +761,9 @@ const P={};[["bL","l"],["bR","r"],["bG","g"],["bB","b"],["bN","n"]].forEach(([id
   pad.addEventListener("pointerdown",e=>{e.preventDefault();audio();id=e.pointerId;x0=e.clientX;pad.setPointerCapture(id);P.steer=0});
   pad.addEventListener("pointermove",e=>{if(e.pointerId!==id)return;const v=Math.max(-1,Math.min(1,(e.clientX-x0)/55));P.steer=v;k.style.transform=`rotate(${v*120}deg)`});
   const up=e=>{if(e.pointerId!==id)return;id=null;P.steer=null;k.style.transform=""};pad.addEventListener("pointerup",up);pad.addEventListener("pointercancel",up)})();
-function blocked(x,z){if(Math.abs(x)>HALF+5||Math.abs(z)>HALF+5)return true;return buildings.some(b=>Math.abs(x-b.x)<b.w/2+1.2&&Math.abs(z-b.z)<b.d/2+1.2)}
+const EDGE0=()=>roadPos(0)-RD/2-4,EDGE1=()=>roadPos(N)+RD/2+4;
+function blocked(x,z){if(x<EDGE0()||x>EDGE1()||z<EDGE0()||z>EDGE1())return true;
+  return buildings.some(b=>Math.abs(x-b.x)<b.w/2+1.2&&Math.abs(z-b.z)<b.d/2+1.2)||poles.some(p=>Math.hypot(x-p.x,z-p.z)<p.r+1)}
 function resize(){const r=stage.getBoundingClientRect();if(!r.width)return;renderer.setSize(r.width,r.height,false);cam.aspect=r.width/r.height;cam.updateProjectionMatrix()}
 new ResizeObserver(resize).observe(stage);
 // Tap the 3D view (not a button) → hide/show the top bar
@@ -801,9 +805,12 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;const C=CITIE
     stepAI(dt,now);if(mode==="online"){sendPos(now);stepGhosts(dt)}
     if(!R.winner){const fin=standings().filter(r=>r.t!=null).sort((a,b)=>a.t-b.t)[0];if(fin){R.winner=fin.name;
       const el=$("winBan");el.textContent=fin.me?T("youWin"):T("winsAnn",{n:fin.name});el.hidden=false;setTimeout(()=>el.hidden=true,4000);if(!fin.me){chime(660,.5,.2);say("finish")}
-      // first car over the line: the race is over for everyone
-      R.over=now;G.frozen=true;ring.visible=false;$("count").hidden=true;
-      const myR=R;setTimeout(()=>{if(R===myR)showResults()},2600);setTimeout(()=>{if(R===myR)nextRace()},11000)}}}
+      if(mode==="online")R.overAt=now+45000}}
+    if(!R.over&&(R.finished!=null||(R.overAt&&now>R.overAt))){R.over=now;G.frozen=true;ring.visible=false;$("count").hidden=true;$("wrongB").hidden=true;
+      const myR=R,mine=R.finished!=null;if(!mine)setTimeout(()=>{if(R===myR)showResults()},1200);setTimeout(()=>{if(R===myR)nextRace()},11000)}
+    // wrong way: you drive away from the next checkpoint
+    if(!G.frozen&&R.finished==null&&!R.over){const w=nextWP(R.done);let d=Math.atan2(w.x-player.x,-(w.z-player.z))-player.a;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
+      R.wrongT=Math.abs(d)>2.1&&player.v>4?(R.wrongT||0)+dt:Math.max(0,(R.wrongT||0)-dt*2);$("wrongB").hidden=R.wrongT<1.2}}
   stepPeople(dt,now);engineTick(player.steer);if((miniF=(miniF+1)%3)===0)drawMini();
   const pm=player.mesh,ud=pm.userData;pm.position.set(player.x,0,player.z);pm.rotation.y=-player.a;
   player.roll+=((-player.steer*player.v/32)*.09-player.roll)*Math.min(1,dt*5);
