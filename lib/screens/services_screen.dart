@@ -9,6 +9,7 @@ import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/app_theme.dart';
+import 'events_screens.dart';
 import 'member_screens.dart';
 import '../utils/language_notifier.dart';
 import 'payment.dart';
@@ -257,7 +258,11 @@ const kServiceCategories = [
   ServiceCategory(key: 'clothing',      emoji: '\u{1F457}', label: 'Clothing'),
   ServiceCategory(key: 'accommodation', emoji: '\u{1F3E8}', label: 'Accommodation'),
   ServiceCategory(key: 'money_transfer', emoji: '\u{1F4B8}', label: 'Send money home'),
+  ServiceCategory(key: 'music',         emoji: '\u{1F3B5}', label: 'Music & entertainment'),
 ];
+
+/// Kinds of artist in Music & entertainment
+const kMusicKinds = [('dj', 'DJ'), ('band', 'Band'), ('singer', 'Singer'), ('other', 'Other')];
 
 // ═══════════════════════════════════════════════════════════
 // SERVICES SCREEN — country grid
@@ -580,6 +585,7 @@ class ServiceProviderScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 _MediaAlbum(images: images, videos: videos, serviceId: docId),
               ],
+              if (serviceStr(data['category']) == 'music') _ArtistExtras(docId: docId, data: data),
               const SizedBox(height: 24),
               ProviderReviews(providerId: docId, data: data),
               const SizedBox(height: 24),
@@ -594,7 +600,10 @@ class ServiceProviderScreen extends StatelessWidget {
           // fixed height — goldButton contains a Center that would otherwise fill the whole screen
           child: SizedBox(
             height: 54,
-            child: goldButton(tr('Book Now'), () => Navigator.push(context, MaterialPageRoute(
+            child: serviceStr(data['category']) == 'music'
+                ? goldButton(tr('Book on WhatsApp'), () => launchUrl(Uri.parse('https://wa.me/4797374482?text=${Uri.encodeComponent('${tr('Hi, I want to book')} ${serviceStr(data['publicName'])} (Habesha Hub)')}'),
+                    mode: LaunchMode.externalApplication), icon: Icons.chat_rounded)
+                : goldButton(tr('Book Now'), () => Navigator.push(context, MaterialPageRoute(
               builder: (_) => BookServiceScreen(docId: docId, data: data, country: country))),
               icon: Icons.calendar_today_rounded),
           ),
@@ -607,6 +616,36 @@ class ServiceProviderScreen extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════
 // BOOK SERVICE SCREEN
 // ═══════════════════════════════════════════════════════════
+// Artist: kind, genre, links and upcoming events
+class _ArtistExtras extends StatelessWidget {
+  final String docId;
+  final Map<String, dynamic> data;
+  const _ArtistExtras({required this.docId, required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final kind = kMusicKinds.where((k) => k.$1 == serviceStr(data['subcategory']));
+    final links = data['links'] is Map ? Map<String, dynamic>.from(data['links']) : <String, dynamic>{};
+    final chips = [if (kind.isNotEmpty) tr(kind.first.$2), if (serviceStr(data['genre']).isNotEmpty) serviceStr(data['genre'])];
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      if (chips.isNotEmpty) Padding(
+        padding: const EdgeInsets.only(top: 14),
+        child: Wrap(spacing: 8, children: [for (final c in chips) Chip(label: Text(c), backgroundColor: kTintGreen)]),
+      ),
+      Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: Wrap(spacing: 8, runSpacing: 8, children: [
+          for (final (k, label, icon) in [('youtube', 'YouTube', Icons.play_circle_outline_rounded), ('tiktok', 'TikTok', Icons.music_note_rounded), ('instagram', 'Instagram', Icons.camera_alt_outlined)])
+            if (serviceStr(links[k]).startsWith('https://')) OutlinedButton.icon(
+              onPressed: () => launchUrl(Uri.parse(serviceStr(links[k])), mode: LaunchMode.externalApplication),
+              icon: Icon(icon, size: 18), label: Text(label)),
+        ]),
+      ),
+      ArtistEvents(artistId: docId),
+    ]);
+  }
+}
+
 class BookServiceScreen extends StatefulWidget {
   final String docId;
   final Map<String, dynamic> data;

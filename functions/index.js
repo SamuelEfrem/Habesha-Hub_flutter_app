@@ -1,6 +1,7 @@
 const { onDocumentCreated, onDocumentUpdated, onDocumentWritten } = require('firebase-functions/v2/firestore');
 const { setGlobalOptions } = require('firebase-functions/v2');
 const { onRequest, onCall, HttpsError } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret }     = require('firebase-functions/params');
 const { initializeApp }     = require('firebase-admin/app');
 
@@ -151,9 +152,10 @@ async function appContext() {
 // How the app works — so the assistant can guide people (also older people) step by step
 const APP_GUIDE = `HOW HABESHA HUB WORKS (use this to explain where things are; keep steps short and simple):
 - Top of the Home screen: the language button (EN / ትግ / አማ) and the light/dark button.
-- Home: search field, the green "near me" button (needs location), 4 round buttons: Services, Market, Send money, Games. Below: Habesha businesses near you (tap one for address, call, directions, opening hours, chat, booking).
+- Home: search field, the green "near me" button (needs location), 5 round buttons: Services, Market, Send money, Events, Learn & play (games, driving theory and Life Tools). Below: Habesha businesses near you (tap one for address, call, directions, opening hours, chat, booking).
 - Bottom menu: Home, Explore (businesses by country), Habesha AI (this chat), Hab Tok (short videos from service providers), Profile.
 - Services: choose a country, then a category (photographer, decoration & events, flight & visa, transport, clothing, accommodation, send money home), then a provider, then "Book now". Habesha Hub contacts the customer on WhatsApp and the customer gets a receipt with payment info.
+- Events: concerts, Habesha DJs, bands, church and community events. "This weekend" and "Upcoming", filter by city and category. Tap an event for date, place, map, discount code and "Buy ticket" (opens the organizer's own ticket page; Habesha Hub never sells tickets). "Interested" gives a reminder on the day. Anyone with a confirmed account can add an event with "+ Add event"; it is checked by Habesha Hub unless the organizer is verified ("Become an organizer" at the top). Artists (DJ, band, singer) are in Services > Music & entertainment.
 - Market has three tabs at the top: Listings (one item sold once), Home shops (sellers with several home-made products) and Housing (flats and rooms to rent, or people looking). The "+" button asks: Sell an item, Open your home shop or Rent out housing. The Market search finds both items and home shops.
 - Market listings: buy and sell second-hand things. Categories include Habesha clothes (zuria, habesha kemis, netela, gabi, men's suit, kids), clothes, electronics, furniture, food, books, jobs, housing, events. A listing can be For sale, Swap, For rent (price per day) or Free. Habesha clothes have size, occasion (wedding, church, holiday, graduation, mels) and condition (new, worn once, used). To sell yourself: Market, then the green "+ Sell" button. Every new listing is checked by Habesha Hub before it is shown. The seller can mark it Sold / Rented out. The share button gives a link for WhatsApp.
 - Home shops (ቤት ዕዳጋ): small sellers who sell from home (spices, injera, coffee & incense, Habesha clothes, beauty, crafts). Market > the "Home shops" tab at the top. Customers see shops near them, open a shop, see its products and prices, and press "Order on WhatsApp" or call; they pay the seller directly and the address is shared only after they agree. To open your own shop: Market > "+" > "Open your home shop" (or the green "Open your shop" button in the Home shops tab; log in first), add a photo, shop name, category, area (never a street address), WhatsApp number, pickup/delivery and products with photo and price, then "Send for approval". Habesha Hub checks every shop before it is shown. The owner can later edit it, choose "Available now" or "Order 1 day before", or pause it. Selling food regularly from home in Norway needs registration with Mattilsynet. This is different from registering a business (restaurants, shops with an address), which is under Profile > Register your business.
@@ -781,6 +783,41 @@ exports.notifyPlaceBooking = onDocumentCreated('bookings/{id}', async (event) =>
   const b = event.data?.data();
   if (!b) return;
   await pushAdmin('📅 New booking at a place', `${b.businessName || ''} · ${b.nickname || ''}${b.phone ? ' · ' + b.phone : ''}`);
+});
+
+// Events: the admin hears about every new event (published or waiting)
+exports.notifyNewEvent = onDocumentWritten('events/{id}', async (event) => {
+  const a = event.data?.after?.data(), b = event.data?.before?.data();
+  if (!a) return;
+  if (a.status === 'pending' && b?.status !== 'pending') await pushAdmin('🎵 Event to approve', `${a.title || 'Event'} · ${a.city || ''}`);
+  else if (!b && a.status === 'approved' && a.organizerId !== SAMUEL_UID) await pushAdmin('🎵 New event published', `${a.title || 'Event'} · ${a.city || ''}`);
+});
+exports.notifyOrganizerApplication = onDocumentWritten('organizerApplications/{uid}', async (event) => {
+  const a = event.data?.after?.data(), b = event.data?.before?.data();
+  if (a?.status === 'pending' && b?.status !== 'pending') await pushAdmin('✅ Organizer to verify', `${a.name || ''} · ${a.city || ''}`);
+});
+exports.countEventInterest = onDocumentWritten('events/{id}/interested/{uid}', async (event) => {
+  const add = !event.data?.before?.exists && event.data?.after?.exists, del = event.data?.before?.exists && !event.data?.after?.exists;
+  if (!add && !del) return;
+  await getFirestore().collection('events').doc(event.params.id).update({ interestedCount: FieldValue.increment(add ? 1 : -1) }).catch(() => {});
+});
+// 09:00 Oslo time: a reminder to everyone who is interested in an event today
+exports.eventReminders = onSchedule({ schedule: '0 9 * * *', timeZone: 'Europe/Oslo' }, async () => {
+  const db = getFirestore(), now = Date.now();
+  const today = await db.collection('events').where('status', '==', 'approved')
+    .where('startAt', '>=', new Date(now)).where('startAt', '<', new Date(now + 18 * 3600 * 1000)).get();
+  for (const ev of today.docs) {
+    const e = ev.data(), t = e.startAt.toDate().toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Oslo' });
+    const fans = await ev.ref.collection('interested').get();
+    for (const f of fans.docs) {
+      await sendTo(f.id, {
+        notification: { title: `🎵 ${e.title || 'Event'}`, body: `${t} · ${[e.venue, e.city].filter(Boolean).join(', ')}` },
+        data: { type: 'event', eventId: ev.id },
+        android: { priority: 'high' },
+        apns: { payload: { aps: { sound: 'default' } } },
+      });
+    }
+  }
 });
 
 exports.notifyNewClaim = onDocumentCreated('claims/{id}', async (event) => {

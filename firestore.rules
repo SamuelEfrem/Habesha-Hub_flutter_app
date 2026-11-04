@@ -91,6 +91,40 @@ service cloud.firestore {
       allow update, delete: if isAdmin() || (signedIn() && resource.data.ownerId == uid());
     }
 
+    // ── Events: only approved ones are public; verified organizers publish at once ──
+    function verifiedOrganizer() {
+      return signedIn() && get(/databases/$(database)/documents/users/$(uid())).data.get('verifiedOrganizer', false) == true;
+    }
+    function eventOk() {
+      let e = request.resource.data;
+      return e.keys().hasOnly(['title', 'artistName', 'artistId', 'category', 'startAt', 'venue', 'city', 'area', 'description',
+          'flyerUrl', 'ticketUrl', 'discountCode', 'discountText', 'discountExpiresAt', 'organizerId', 'organizerVerified',
+          'status', 'interestedCount', 'createdAt', 'updatedAt'])
+        && e.organizerId == uid() && e.title is string && e.title.size() <= 120 && e.get('description', '').size() <= 3000
+        && (e.get('ticketUrl', '') == '' || e.ticketUrl.matches('https://[^ ]+'))
+        && (e.status == 'pending' && e.organizerVerified == false
+            || e.status == 'approved' && e.organizerVerified == true && verifiedOrganizer());
+    }
+    match /events/{id} {
+      allow read: if resource.data.status == 'approved' || isAdmin() || (signedIn() && resource.data.organizerId == uid());
+      allow create: if isAdmin() || (canAct() && eventOk() && request.resource.data.interestedCount == 0);
+      allow update: if isAdmin() || (canAct() && resource.data.organizerId == uid() && resource.data.status != 'removed'
+        && eventOk() && request.resource.data.interestedCount == resource.data.interestedCount);
+      allow delete: if isAdmin() || (signedIn() && resource.data.organizerId == uid());
+      // "Interested": one per person; the count is kept by a Cloud Function
+      match /interested/{u} {
+        allow read: if signedIn() && (uid() == u || isAdmin());
+        allow create: if signedIn() && uid() == u && request.resource.data.keys().hasOnly(['at']);
+        allow delete: if signedIn() && uid() == u;
+      }
+    }
+    match /organizerApplications/{u} {
+      allow read: if isAdmin() || (signedIn() && uid() == u);
+      allow create, update: if isAdmin() || (realUser() && uid() == u && request.resource.data.status == 'pending'
+        && request.resource.data.keys().hasOnly(['name', 'city', 'link', 'contact', 'email', 'status', 'createdAt']));
+      allow delete: if isAdmin();
+    }
+
     // ── Members: private details, only the person and the admin ──
     match /members/{id} {
       allow read: if isAdmin() || (signedIn() && uid() == id);
@@ -277,9 +311,9 @@ service cloud.firestore {
       // "unlocks" is set only by the redeemCode function, never by the app
       allow read: if (signedIn() && uid() == userId) || isAdmin();
       allow create: if signedIn() && uid() == userId
-        && !request.resource.data.keys().hasAny(['unlocks', 'unlockPhone']);
-      allow update: if signedIn() && uid() == userId
-        && !changed().hasAny(['unlocks', 'unlockPhone']);
+        && !request.resource.data.keys().hasAny(['unlocks', 'unlockPhone', 'verifiedOrganizer']);
+      allow update: if isAdmin() || (signedIn() && uid() == userId
+        && !changed().hasAny(['unlocks', 'unlockPhone', 'verifiedOrganizer']));
       allow delete: if signedIn() && uid() == userId;
     }
 

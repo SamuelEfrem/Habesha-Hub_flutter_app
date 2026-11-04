@@ -19,6 +19,7 @@ import 'community_screens.dart';
 import 'map_screen.dart';
 import '../games/games_screen.dart';
 import 'send_money_screen.dart';
+import 'events_screens.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -263,6 +264,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
             SliverToBoxAdapter(child: _buildTopBar()),
             SliverToBoxAdapter(child: _buildSearchRow(t)),
             SliverToBoxAdapter(child: _buildShortcuts(t)),
+            const SliverToBoxAdapter(child: WeekendEventsCard()),
             if (_hasSearched) ...[
               SliverToBoxAdapter(child: _buildResultsHeader(t)),
               const SliverToBoxAdapter(child: SizedBox(height: 12)),
@@ -419,17 +421,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
       (Icons.work_outline_rounded, tr('Services'), kTintYellow, kInkYellow, () => push(const ServicesScreen())),
       (Icons.shopping_bag_outlined, tr('Market'), kTintBlue, kInkBlue, () => push(const MarketplaceScreen())),
       (Icons.send_outlined, tr('Send money'), kTintRed, kInkRed, () => push(const SendMoneyScreen())),
-      (Icons.sports_esports_outlined, tr('Games'), kTintGreen, kInkGreen, () => push(const GamesScreen())),
+      (Icons.event_outlined, tr('Events'), kTintGreen, kInkGreen, () => push(const EventsScreen())),
+      (Icons.sports_esports_outlined, tr('Learn & play'), kTintYellow, kInkYellow, () => push(const GamesScreen())),
     ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 18),
       child: GridView.count(
-        crossAxisCount: 4,
+        crossAxisCount: 5,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         mainAxisSpacing: 14,
-        crossAxisSpacing: 4,
-        childAspectRatio: 0.9,
+        crossAxisSpacing: 2,
+        childAspectRatio: 0.72,
         children: [
           for (final it in items)
             InkWell(
@@ -437,16 +440,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
               onTap: () { HapticFeedback.selectionClick(); it.$5(); },
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Container(
-                  width: 62, height: 62,
+                  width: 54, height: 54,
                   decoration: BoxDecoration(color: it.$3, shape: BoxShape.circle),
-                  child: Icon(it.$1, color: it.$4, size: 27),
+                  child: Icon(it.$1, color: it.$4, size: 24),
                 ),
                 const SizedBox(height: 7),
                 Text(it.$2,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontFamily: kFontBody, fontSize: 11.5, height: 1.15, fontWeight: FontWeight.w600, color: kText)),
+                    style: TextStyle(fontFamily: kFontBody, fontSize: 10.5, height: 1.15, fontWeight: FontWeight.w600, color: kText)),
               ]),
             ),
         ],

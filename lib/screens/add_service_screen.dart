@@ -134,6 +134,9 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
     if (mounted) setState(() => _uploadStatus = null);
   }
 
+  String _kind = 'dj';
+  final _genreCtrl = TextEditingController(), _ytCtrl = TextEditingController(), _ttCtrl = TextEditingController(), _igCtrl = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -157,6 +160,10 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       _category       = serviceStr(e['category']).isEmpty ? 'photographer' : serviceStr(e['category']);
       _available      = e['available'] is bool ? e['available'] as bool : true;
       _imgsCtrl.text  = serviceImages(Map<String, dynamic>.from(e)).join('\n');
+      _kind = serviceStr(e['subcategory']).isEmpty ? 'dj' : serviceStr(e['subcategory']);
+      _genreCtrl.text = serviceStr(e['genre']);
+      final l = e['links'] is Map ? e['links'] as Map : {};
+      _ytCtrl.text = serviceStr(l['youtube']); _ttCtrl.text = serviceStr(l['tiktok']); _igCtrl.text = serviceStr(l['instagram']);
     }
   }
 
@@ -192,6 +199,12 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       'sampleImages':    images,
       'sampleVideoUrls': videos,
       'updatedAt':      FieldValue.serverTimestamp(),
+      if (_category == 'music') 'subcategory': _kind,
+      if (_category == 'music') 'genre': _genreCtrl.text.trim(),
+      if (_category == 'music') 'links': {
+        for (final (k, c) in [('youtube', _ytCtrl), ('tiktok', _ttCtrl), ('instagram', _igCtrl)])
+          if (c.text.trim().startsWith('https://')) k: c.text.trim(),
+      },
     };
 
     try {
@@ -314,6 +327,19 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
         onChanged: (v) => setState(() => _category = v!),
       ),
       const SizedBox(height: 16),
+      if (_category == 'music') ...[
+        _sectionLabel('KIND OF ARTIST'),
+        _dropdown<String>(
+          value: _kind,
+          items: kMusicKinds.map((k) => DropdownMenuItem(value: k.$1, child: Text(k.$2))).toList(),
+          onChanged: (v) => setState(() => _kind = v!),
+        ),
+        const SizedBox(height: 16),
+        _sectionLabel('GENRE'), _field(_genreCtrl, hint: 'e.g. Tigrinya, Guayla, Gospel'), const SizedBox(height: 16),
+        _sectionLabel('YOUTUBE LINK'), _field(_ytCtrl, hint: 'https://'), const SizedBox(height: 16),
+        _sectionLabel('TIKTOK LINK'), _field(_ttCtrl, hint: 'https://'), const SizedBox(height: 16),
+        _sectionLabel('INSTAGRAM LINK'), _field(_igCtrl, hint: 'https://'), const SizedBox(height: 16),
+      ],
 
       // ── PUBLIC NAME ──────────────────────────────────────
       _sectionLabel('PUBLIC NAME  (no real name — keep anonymous!)'),

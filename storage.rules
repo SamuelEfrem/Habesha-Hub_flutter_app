@@ -104,6 +104,10 @@ service firebase.storage {
     }
 
     // Housing photos — each user only in their own folder
+    match /events/{userId}/{file} {
+      allow write: if signedIn() && (request.auth.uid == userId || isAdmin())
+                   && (request.resource == null || isImage(10));
+    }
     match /housing/{userId}/{file} {
       allow write: if signedIn() && (request.auth.uid == userId || isAdmin())
                    && (request.resource == null || isImage(10));
