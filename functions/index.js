@@ -23,13 +23,6 @@ exports.notifyBooking = onDocumentCreated(
     if (!data) return;
 
     const db = getFirestore();
-    const userDoc = await db.collection('users').doc(SAMUEL_UID).get();
-    const token   = userDoc.data()?.fcmToken;
-
-    if (!token) {
-      console.log('❌ Samuel has no FCM token in Firestore');
-      return;
-    }
 
     const svcName  = data.serviceName || 'Ukjent tjeneste';
     const email    = data.userEmail   || 'ukjent';
@@ -39,7 +32,6 @@ exports.notifyBooking = onDocumentCreated(
     const dateStr  = dateRaw ? new Date(dateRaw).toLocaleDateString('no-NO') : '';
 
     const message = {
-      token,
       notification: {
         title: `📅 Ny booking — ${svcName}`,
         body:  `${email}${wa ? ' • WhatsApp ' + wa : ''} • ${dateStr}${notes ? '\n' + notes : ''}`,
@@ -48,7 +40,7 @@ exports.notifyBooking = onDocumentCreated(
       apns:    { payload: { aps: { sound: 'default', badge: 1 } } },
     };
 
-    await getMessaging().send(message);
+    await sendTo(SAMUEL_UID, message);
     console.log(`✅ Varsel sendt til Samuel for booking: ${svcName}`);
   }
 );
@@ -91,17 +83,13 @@ exports.notifyCustomer = onDocumentUpdated(
     if (!kind || !after.userId) return;
 
     const db = getFirestore();
-    const userDoc = await db.collection('users').doc(after.userId).get();
-    const token = userDoc.data()?.fcmToken;
-    if (!token) { console.log(`❌ Customer ${after.userId} has no FCM token`); return; }
 
     const t = (TXT[after.lang] || TXT.English)[kind];
     const amount = after.amount ? `${after.amount} ${after.currency || ''}`.trim() : '';
     const code = after.bookingCode || event.params.bookingId;
     const msg = t(after.serviceName || 'Habesha Hub', amount, after.paymentMethod || '', after.paymentNumber || '', code);
 
-    await getMessaging().send({
-      token,
+    await sendTo(after.userId, {
       notification: msg,
       data: { type: 'booking', bookingId: event.params.bookingId },
       android: { priority: 'high' },
@@ -520,15 +508,31 @@ async function tokenOf(uid) {
   return d.data()?.fcmToken || null;
 }
 
+// Sends to every phone the person uses; a token the phone no longer has is removed.
+async function sendTo(uid, msg) {
+  if (!uid) return 0;
+  const ref = getFirestore().collection('users').doc(uid);
+  const d = (await ref.get()).data() || {};
+  const tokens = [...new Set([...(d.fcmTokens || []), d.fcmToken].filter(Boolean))];
+  if (!tokens.length) { console.log(`no push token for ${uid}`); return 0; }
+  let sent = 0;
+  for (const token of tokens) {
+    try { await getMessaging().send({ ...msg, token }); sent++; }
+    catch (e) {
+      const gone = /registration-token-not-registered|NotRegistered|invalid-registration-token|invalid-argument/.test(`${e.code} ${e.message}`);
+      console.error('push', uid, e.code || e.message);
+      if (gone) await ref.set({ fcmTokens: FieldValue.arrayRemove(token), ...(d.fcmToken === token ? { fcmToken: FieldValue.delete() } : {}) }, { merge: true }).catch(() => {});
+    }
+  }
+  return sent;
+}
+
 exports.notifyNewListing = onDocumentWritten('marketplace/{id}', async (event) => {
   const after  = event.data?.after?.data();
   const before = event.data?.before?.data();
   if (!after || after.approved !== false) return;
   if (before && before.approved === false) return;   // already waiting — don't spam
-  const token = await tokenOf(SAMUEL_UID);
-  if (!token) return;
-  await getMessaging().send({
-    token,
+  await sendTo(SAMUEL_UID, {
     notification: { title: '🛒 New listing waiting for approval', body: `${after.title || 'Listing'}${after.city ? ' • ' + after.city : ''}` },
     android: { priority: 'high' },
     apns: { payload: { aps: { sound: 'default' } } },
@@ -539,10 +543,7 @@ exports.notifyListingApproved = onDocumentUpdated('marketplace/{id}', async (eve
   const before = event.data?.before?.data();
   const after  = event.data?.after?.data();
   if (!before || !after || before.approved !== false || after.approved !== true) return;
-  const token = await tokenOf(after.userId);
-  if (!token) return;
-  await getMessaging().send({
-    token,
+  await sendTo(after.userId, {
     notification: { title: '✅ Your listing is live', body: `${after.title || 'Your listing'} is now visible in the Habesha Hub marketplace.` },
     apns: { payload: { aps: { sound: 'default' } } },
   }).catch(e => console.error('notifyListingApproved', e.message));
@@ -722,10 +723,7 @@ ${!done && phone ? `<a class="btn btn2" href="tel:${esc(phone)}">📞 Call</a>` 
 //  • notifyClaimApproved  — push to the owner when the claim is accepted
 // ═══════════════════════════════════════════════════════════
 async function pushAdmin(title, body) {
-  const token = await tokenOf(SAMUEL_UID);
-  if (!token) return;
-  await getMessaging().send({
-    token,
+  await sendTo(SAMUEL_UID, {
     notification: { title, body },
     android: { priority: 'high' },
     apns: { payload: { aps: { sound: 'default' } } },
@@ -752,14 +750,37 @@ exports.onMemberDecided = onDocumentUpdated('members/{uid}', async (event) => {
   const a = event.data?.before.data(), b = event.data?.after.data();
   if (!a || !b || a.status === b.status || b.approvedBy) return;
   if (b.status !== 'approved' && b.status !== 'rejected') return;
-  const token = await tokenOf(event.params.uid);
-  if (!token) return;
-  await getMessaging().send({
-    token,
+  await sendTo(event.params.uid, {
     notification: b.status === 'approved'
       ? { title: 'Habesha Hub', body: 'Your account is approved. You can now book and sell.' }
       : { title: 'Habesha Hub', body: 'Your account was not approved. Contact us on WhatsApp.' },
   }).catch(e => console.error('onMemberDecided', e.message));
+});
+
+// Someone registered a business (imports are already approved and stay quiet)
+exports.notifyNewBusiness = onDocumentCreated('businesses/{id}', async (event) => {
+  const b = event.data?.data();
+  if (!b || b.status !== 'pending') return;
+  await pushAdmin('🏪 New business to approve', `${b.name || 'Business'}${b.category ? ' · ' + b.category : ''}${b.address ? ' · ' + b.address : ''}`);
+});
+
+// A home shop or housing listing waits for approval (new, or sent back after an edit)
+exports.notifyNewHomeShop = onDocumentWritten('homeShops/{id}', async (event) => {
+  const a = event.data?.after?.data(), b = event.data?.before?.data();
+  if (!a || a.status !== 'pending' || b?.status === 'pending') return;
+  await pushAdmin('🏠 Home shop to approve', `${a.name || 'Home shop'}${a.area ? ' · ' + a.area : ''}`);
+});
+exports.notifyNewHousing = onDocumentWritten('housing/{id}', async (event) => {
+  const a = event.data?.after?.data(), b = event.data?.before?.data();
+  if (!a || a.status !== 'pending' || b?.status === 'pending') return;
+  await pushAdmin('🏘️ Housing listing to approve', `${a.title || 'Housing'}${a.city ? ' · ' + a.city : ''}`);
+});
+
+// Booking at a restaurant, barber or hotel: the admin hears about it too
+exports.notifyPlaceBooking = onDocumentCreated('bookings/{id}', async (event) => {
+  const b = event.data?.data();
+  if (!b) return;
+  await pushAdmin('📅 New booking at a place', `${b.businessName || ''} · ${b.nickname || ''}${b.phone ? ' · ' + b.phone : ''}`);
 });
 
 exports.notifyNewClaim = onDocumentCreated('claims/{id}', async (event) => {
@@ -781,10 +802,7 @@ exports.notifyClaimApproved = onDocumentUpdated('claims/{id}', async (event) => 
   const before = event.data?.before?.data();
   const after  = event.data?.after?.data();
   if (!before || !after || before.status === 'approved' || after.status !== 'approved') return;
-  const token = await tokenOf(after.userId);
-  if (!token) return;
-  await getMessaging().send({
-    token,
+  await sendTo(after.userId, {
     notification: { title: '✅ Your business is yours', body: `You can now edit ${after.businessName || 'your business'} — add photos, hours and your menu.` },
     apns: { payload: { aps: { sound: 'default' } } },
   }).catch(e => console.error('notifyClaimApproved', e.message));

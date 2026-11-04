@@ -42,6 +42,8 @@ class NotificationService {
 
     // Listen for token refresh
     _messaging.onTokenRefresh.listen(_updateToken);
+    // the app starts before the login is restored: save the token again when the user is known
+    FirebaseAuth.instance.authStateChanges().listen((u) { if (u != null && !u.isAnonymous) _saveToken().catchError((_) {}); });
 
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen(_showLocalNotification);
@@ -73,17 +75,15 @@ class NotificationService {
     final token = await _messaging.getToken();
     if (token == null) return;
     await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
-        {'fcmToken': token, 'updatedAt': FieldValue.serverTimestamp()},
+        {'fcmToken': token, 'fcmTokens': FieldValue.arrayUnion([token]), 'updatedAt': FieldValue.serverTimestamp()},
         SetOptions(merge: true));
   }
 
   static Future<void> _updateToken(String token) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .update({'fcmToken': token});
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
+        {'fcmToken': token, 'fcmTokens': FieldValue.arrayUnion([token])}, SetOptions(merge: true));
   }
 
   static Future<void> _showLocalNotification(RemoteMessage message) async {
