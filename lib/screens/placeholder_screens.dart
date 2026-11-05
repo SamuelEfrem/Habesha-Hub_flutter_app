@@ -470,8 +470,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String get _initial {
-    final src = _nicknameCtrl.text.trim().isNotEmpty ? _nicknameCtrl.text.trim() : (_user?.email ?? '?');
-    return src.characters.first.toUpperCase();
+    final src = _nicknameCtrl.text.trim().isNotEmpty ? _nicknameCtrl.text.trim() : (_user?.email ?? '');
+    // phone or Apple login can have no name and no email: an empty text has no first letter
+    return src.isEmpty ? '?' : src.characters.first.toUpperCase();
   }
 
   Future<void> _saveNickname() async {
