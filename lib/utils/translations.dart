@@ -786,6 +786,13 @@ class AppTranslations {
     'Finland': {'Tigrinya': 'ፊንላንድ', 'Amharic': 'ፊንላንድ'},
     'South Africa': {'Tigrinya': 'ደቡብ ኣፍሪቃ', 'Amharic': 'ደቡብ አፍሪካ'},
     'Djibouti': {'Tigrinya': 'ጅቡቲ', 'Amharic': 'ጅቡቲ'},
+    // Messages + school
+    'School': {'Tigrinya': 'ትምህርቲ', 'Amharic': 'ትምህርት'},
+    'Messages from Habesha Hub': {'Tigrinya': 'መልእኽቲ ካብ ሓበሻ ሃብ', 'Amharic': 'መልእክቶች ከሐበሻ ሀብ'},
+    'Log in to see your messages': {'Tigrinya': 'መልእኽትኻ ንምርኣይ እቶ', 'Amharic': 'መልእክቶችህን ለማየት ግባ'},
+    'Please fix before approval': {'Tigrinya': 'ቅድሚ ፍቓድ በጃኹም ኣዐርዩ', 'Amharic': 'ከማረጋገጫ በፊት እባክዎ ያስተካክሉ'},
+    'You are registered': {'Tigrinya': 'ተመዝጊብካ ኣለኻ', 'Amharic': 'ተመዝግበሃል'},
+    'Message': {'Tigrinya': 'መልእኽቲ', 'Amharic': 'መልእክት'},
   };
 
   static String get(String key) {

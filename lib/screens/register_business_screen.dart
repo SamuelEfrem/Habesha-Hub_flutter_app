@@ -83,6 +83,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
     {'name': 'Decoration', 'icon': Icons.celebration_rounded},
     {'name': 'Taxi', 'icon': Icons.local_taxi_rounded},
     {'name': 'Church', 'icon': Icons.church_rounded},
+    {'name': 'School', 'icon': Icons.school_rounded},
     {'name': 'Association', 'icon': Icons.groups_rounded},
     {'name': 'Hotel', 'icon': Icons.bed_rounded},
     {'name': 'Hotel', 'icon': Icons.bed_rounded},

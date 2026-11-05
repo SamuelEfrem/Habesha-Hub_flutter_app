@@ -52,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
 
     {'key': 'Hotel', 'emoji': '🏨'},
     {'key': 'Church', 'emoji': '⛪'},
+    {'key': 'School', 'emoji': '🎓'},
     {'key': 'Association', 'emoji': '🤝'},
     {'key': 'Other', 'emoji': '📦'},
   ];

@@ -13,6 +13,7 @@ import '../utils/translations.dart';
 import 'auth_screen.dart';
 import 'member_screens.dart';
 import 'services_screen.dart';
+import 'notices_screen.dart';
 
 // Events: concerts, DJs, church and community events.
 // The app never sells tickets: "Buy ticket" opens the organizer's own https page.
@@ -846,6 +847,8 @@ class EventsAdminTab extends StatelessWidget {
         subtitle: Text([if (t != null) '${eventDay(t)} ${eventTime(t)}', _s(e['city']), if (e['organizerVerified'] == true) '✓'].join(' · '),
             style: tsBodySm(color: kTextSub)),
         trailing: Wrap(spacing: 4, children: [
+          IconButton(tooltip: tr('Message'), icon: Icon(Icons.mark_email_unread_outlined, color: kText),
+              onPressed: () => sendNoticeDialog(context, toUid: _s(e['organizerId']), refName: _s(e['title']), refType: 'event', refId: d.id)),
           if (_s(e['status']) == 'pending') IconButton(tooltip: tr('Approve'), icon: Icon(Icons.check_circle_rounded, color: kHabGreen),
               onPressed: () => d.reference.update({'status': 'approved'})),
           IconButton(tooltip: tr('Remove'), icon: Icon(Icons.remove_circle_outline_rounded, color: kRed),

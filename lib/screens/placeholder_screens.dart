@@ -19,6 +19,7 @@ import 'admin_screen.dart';
 import 'edit_business_screen.dart';
 import '../utils/translations.dart';
 import 'payment.dart';
+import 'notices_screen.dart';
 import 'community_screens.dart';
 import 'map_screen.dart';
 
@@ -60,7 +61,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   String _category = '';
   String _query = '';
 
-  static const _categoryOrder = ['Restaurant', 'Cafe', 'Shop', 'Barber', 'Church', 'Association', 'Club', 'Clinic', 'Hotel',
+  static const _categoryOrder = ['Restaurant', 'Cafe', 'Shop', 'Barber', 'Church', 'School', 'Association', 'Club', 'Clinic', 'Hotel',
     'Photographer', 'Music', 'Decoration', 'Taxi', 'Other'];
 
   @override
@@ -685,6 +686,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 12),
                 const AdminButton(),
                 const SizedBox(height: 12),
+                if (isLoggedIn) ...[const NoticesRow(), const SizedBox(height: 12)],
                 _menuRow(Icons.menu_book_outlined, tr('How to use Habesha Hub'),
                     () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UserGuideScreen())), color: kText),
                 const SizedBox(height: 12),

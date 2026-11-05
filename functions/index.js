@@ -759,10 +759,33 @@ exports.onMemberDecided = onDocumentUpdated('members/{uid}', async (event) => {
   }).catch(e => console.error('onMemberDecided', e.message));
 });
 
+
+// A message to one person (from the admin, or "you are registered"): push to their phones
+exports.onNotice = onDocumentCreated('notices/{id}', async (event) => {
+  const n = event.data?.data();
+  if (!n?.toUid) return;
+  const fix = n.kind === 'fix';
+  await sendTo(n.toUid, {
+    notification: { title: fix ? '✏️ Please fix · በጃኹም ኣዐርዩ' : '✅ Habesha Hub', body: `${n.refName ? n.refName + ': ' : ''}${(n.body || '').slice(0, 180)}` },
+    data: { type: 'notice' },
+    android: { priority: 'high' },
+    apns: { payload: { aps: { sound: 'default' } } },
+  });
+});
+async function welcome(uid, refType, refId, name) {
+  if (!uid) return;
+  await getFirestore().collection('notices').add({
+    toUid: uid, kind: 'registered', refType, refId, refName: name || '', read: false, createdAt: FieldValue.serverTimestamp(),
+    title: 'You are registered',
+    body: `Thank you! We received "${name || ''}". Habesha Hub checks it soon, and you will get a message here when it is published or if something needs to be fixed.\n\nየቐንየልና! "${name || ''}" ተቐቢልናዮ። ሓበሻ ሃብ ቀልጢፉ ክርእዮ እዩ፡ ምስ ተዘርግሐ ወይ ዝዐሪ እንተሃልዩ ኣብዚ መልእኽቲ ክመጸካ እዩ።`,
+  });
+}
+
 // Someone registered a business (imports are already approved and stay quiet)
 exports.notifyNewBusiness = onDocumentCreated('businesses/{id}', async (event) => {
   const b = event.data?.data();
   if (!b || b.status !== 'pending') return;
+  await welcome(b.ownerId, 'business', event.params.id, b.name);
   await pushAdmin('🏪 New business to approve', `${b.name || 'Business'}${b.category ? ' · ' + b.category : ''}${b.address ? ' · ' + b.address : ''}`);
 });
 
@@ -770,11 +793,13 @@ exports.notifyNewBusiness = onDocumentCreated('businesses/{id}', async (event) =
 exports.notifyNewHomeShop = onDocumentWritten('homeShops/{id}', async (event) => {
   const a = event.data?.after?.data(), b = event.data?.before?.data();
   if (!a || a.status !== 'pending' || b?.status === 'pending') return;
+  if (!b) await welcome(a.ownerId, 'homeShop', event.params.id, a.name);
   await pushAdmin('🏠 Home shop to approve', `${a.name || 'Home shop'}${a.area ? ' · ' + a.area : ''}`);
 });
 exports.notifyNewHousing = onDocumentWritten('housing/{id}', async (event) => {
   const a = event.data?.after?.data(), b = event.data?.before?.data();
   if (!a || a.status !== 'pending' || b?.status === 'pending') return;
+  if (!b) await welcome(a.ownerId, 'housing', event.params.id, a.title);
   await pushAdmin('🏘️ Housing listing to approve', `${a.title || 'Housing'}${a.city ? ' · ' + a.city : ''}`);
 });
 
@@ -789,6 +814,7 @@ exports.notifyPlaceBooking = onDocumentCreated('bookings/{id}', async (event) =>
 exports.notifyNewEvent = onDocumentWritten('events/{id}', async (event) => {
   const a = event.data?.after?.data(), b = event.data?.before?.data();
   if (!a) return;
+  if (!b && a.status === 'pending') await welcome(a.organizerId, 'event', event.params.id, a.title);
   if (a.status === 'pending' && b?.status !== 'pending') await pushAdmin('🎵 Event to approve', `${a.title || 'Event'} · ${a.city || ''}`);
   else if (!b && a.status === 'approved' && a.organizerId !== SAMUEL_UID) await pushAdmin('🎵 New event published', `${a.title || 'Event'} · ${a.city || ''}`);
 });
@@ -824,6 +850,7 @@ exports.eventReminders = onSchedule({ schedule: '0 9 * * *', timeZone: 'Europe/O
 exports.notifyNewService = onDocumentWritten('anonymous_services/{id}', async (event) => {
   const a = event.data?.after?.data(), b = event.data?.before?.data();
   if (!a || !a.ownerId) return;
+  if (!b && a.status === 'pending') await welcome(a.ownerId, 'service', event.params.id, a.publicName);
   if (a.status === 'pending' && b?.status !== 'pending') await pushAdmin('🧰 Service to approve', `${a.publicName || ''} · ${a.city || ''} ${a.country || ''}`);
   if (b && a.status !== b.status && (a.status === 'approved' || a.status === 'rejected')) {
     await sendTo(a.ownerId, { notification: a.status === 'approved'

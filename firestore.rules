@@ -125,6 +125,14 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ── Messages from Habesha Hub to one person ──
+    match /notices/{id} {
+      allow read: if isAdmin() || (signedIn() && resource.data.toUid == uid());
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (signedIn() && resource.data.toUid == uid() && changed().hasOnly(['read']));
+      allow delete: if isAdmin() || (signedIn() && resource.data.toUid == uid());
+    }
+
     // ── Members: private details, only the person and the admin ──
     match /members/{id} {
       allow read: if isAdmin() || (signedIn() && uid() == id);

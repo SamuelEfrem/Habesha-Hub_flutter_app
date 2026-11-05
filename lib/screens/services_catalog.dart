@@ -16,6 +16,7 @@ import '../utils/translations.dart';
 import 'member_screens.dart';
 import 'provider_extras.dart';
 import 'services_screen.dart';
+import 'notices_screen.dart';
 
 // Services in every country. Main groups with sub-categories; providers in the new groups
 // register themselves (free), Habesha Hub approves, and customers contact them directly.
@@ -804,6 +805,8 @@ class ServicesApprovalTab extends StatelessWidget {
               Row(children: [
                 TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceProviderScreen(docId: d.id, data: d.data()))),
                     child: Text(tr('Open'))),
+                TextButton(onPressed: () => sendNoticeDialog(context, toUid: serviceStr(d.data()['ownerId']), refName: serviceText(d.data(), 'publicName'),
+                    refType: 'service', refId: d.id), child: Text(tr('Message'))),
                 const Spacer(),
                 TextButton(onPressed: () => d.reference.update({'status': 'rejected', 'available': false}), child: Text(tr('Reject'), style: TextStyle(color: kRed))),
                 FilledButton(style: FilledButton.styleFrom(backgroundColor: kHabGreen),

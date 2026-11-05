@@ -30,7 +30,7 @@ class _BusinessesMapScreenState extends State<BusinessesMapScreen> {
 
   static const _emoji = {
     'Restaurant': '🍽️', 'Shop': '🛍️', 'Cafe': '☕', 'Barber': '💇', 'Club': '🎵',
-    'Clinic': '🏥', 'Hotel': '🏨', 'Church': '⛪', 'Association': '🤝',
+    'Clinic': '🏥', 'Hotel': '🏨', 'Church': '⛪', 'School': '🎓', 'Association': '🤝',
   };
 
   List<Business> get _onMap =>

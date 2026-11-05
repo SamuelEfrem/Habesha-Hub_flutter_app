@@ -65,6 +65,7 @@ class _BusinessCardState extends State<BusinessCard> {
       case 'Clinic': return '\ud83c\udfe5';
       case 'Hotel': return '\ud83c\udfe8';
       case 'Church': return '⛪';
+      case 'School': return '🎓';
       case 'Association': return '🤝';
       default: return '\ud83c\udfe0';
     }

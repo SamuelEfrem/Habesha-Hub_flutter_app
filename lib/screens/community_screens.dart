@@ -270,7 +270,7 @@ class _SuggestBusinessScreenState extends State<SuggestBusinessScreen> {
   String _category = 'Restaurant';
   bool _sending = false;
 
-  static const _categories = ['Restaurant', 'Cafe', 'Shop', 'Barber', 'Church', 'Association', 'Club', 'Clinic', 'Hotel', 'Other'];
+  static const _categories = ['Restaurant', 'Cafe', 'Shop', 'Barber', 'Church', 'School', 'Association', 'Club', 'Clinic', 'Hotel', 'Other'];
 
   Future<void> _send() async {
     if (_name.text.trim().isEmpty || _address.text.trim().isEmpty ||

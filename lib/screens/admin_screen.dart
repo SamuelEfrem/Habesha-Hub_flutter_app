@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import 'member_screens.dart';
 import 'events_screens.dart';
 import 'services_catalog.dart';
+import 'notices_screen.dart';
 import 'home_shops_screen.dart';
 import 'housing_screen.dart';
 import '../models/business.dart';
@@ -548,7 +549,7 @@ class _AdminCardState extends State<_AdminCard> {
 
   static const _emoji = {
     'Restaurant': '🍽️', 'Shop': '🛍️', 'Cafe': '☕', 'Barber': '💇', 'Club': '🎵',
-    'Clinic': '🏥', 'Hotel': '🏨', 'Church': '⛪', 'Association': '🤝',
+    'Clinic': '🏥', 'Hotel': '🏨', 'Church': '⛪', 'School': '🎓', 'Association': '🤝',
   };
 
   @override
@@ -631,6 +632,9 @@ class _AdminCardState extends State<_AdminCard> {
                   _pill(Icons.check_rounded, status == 'pending' ? 'Approve' : 'Make live', kGreen, () => _updateStatus('approved')),
                 if (status != 'rejected')
                   _pill(Icons.visibility_off_rounded, 'Hide', kRed, () => _updateStatus('rejected')),
+                if (business.ownerId.isNotEmpty)
+                  _pill(Icons.mark_email_unread_outlined, 'Message', kSecondary, () => sendNoticeDialog(context,
+                      toUid: business.ownerId, refName: business.name, refType: 'business', refId: widget.docId)),
                 _pill(Icons.edit_rounded, 'Edit', kSecondary, () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => EditBusinessScreen(business: business, docId: widget.docId)))),
                 _pill(business.isPremium ? Icons.star_rounded : Icons.star_outline_rounded,
