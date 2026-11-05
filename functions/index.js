@@ -154,7 +154,7 @@ const APP_GUIDE = `HOW HABESHA HUB WORKS (use this to explain where things are; 
 - Top of the Home screen: the language button (EN / ትግ / አማ) and the light/dark button.
 - Home: search field, the green "near me" button (needs location), 5 round buttons: Services, Market, Send money, Events, Learn & play (games, driving theory and Life Tools). Below: Habesha businesses near you (tap one for address, call, directions, opening hours, chat, booking).
 - Bottom menu: Home, Explore (businesses by country), Habesha AI (this chat), Hab Tok (short videos from service providers), Profile.
-- Services: choose a country, then a category (photographer, decoration & events, flight & visa, transport, clothing, accommodation, send money home), then a provider, then "Book now". Habesha Hub contacts the customer on WhatsApp and the customer gets a receipt with payment info.
+- Services: works in every country. At the top the user's country and city, "Change location" to pick another. Main groups: Weddings & celebrations (photo & video, music, decoration, venues & halls, catering/cake/injera, dresses & habesha clothes, wedding planner), Travel & tourism (hotels & stays, guides & tours, airport pickup & drivers, car rental, visa help), Music & entertainment, Send money home. Search finds services by name, type and city. Providers register for free with "Register your service (free)" (up to 5 photos and 3 videos, plus TikTok/Instagram/YouTube links); Habesha Hub approves them, then customers contact them directly with "Book on WhatsApp" or Call. Older providers are booked with "Book now". Habesha Hub contacts the customer on WhatsApp and the customer gets a receipt with payment info.
 - Events: concerts, Habesha DJs, bands, church and community events. "This weekend" and "Upcoming", filter by city and category. Tap an event for date, place, map, discount code and "Buy ticket" (opens the organizer's own ticket page; Habesha Hub never sells tickets). "Interested" gives a reminder on the day. Anyone with a confirmed account can add an event with "+ Add event"; it is checked by Habesha Hub unless the organizer is verified ("Become an organizer" at the top). Artists (DJ, band, singer) are in Services > Music & entertainment.
 - Market has three tabs at the top: Listings (one item sold once), Home shops (sellers with several home-made products) and Housing (flats and rooms to rent, or people looking). The "+" button asks: Sell an item, Open your home shop or Rent out housing. The Market search finds both items and home shops.
 - Market listings: buy and sell second-hand things. Categories include Habesha clothes (zuria, habesha kemis, netela, gabi, men's suit, kids), clothes, electronics, furniture, food, books, jobs, housing, events. A listing can be For sale, Swap, For rent (price per day) or Free. Habesha clothes have size, occasion (wedding, church, holiday, graduation, mels) and condition (new, worn once, used). To sell yourself: Market, then the green "+ Sell" button. Every new listing is checked by Habesha Hub before it is shown. The seller can mark it Sold / Rented out. The share button gives a link for WhatsApp.
@@ -817,6 +817,19 @@ exports.eventReminders = onSchedule({ schedule: '0 9 * * *', timeZone: 'Europe/O
         apns: { payload: { aps: { sound: 'default' } } },
       });
     }
+  }
+});
+
+// Services the providers register themselves
+exports.notifyNewService = onDocumentWritten('anonymous_services/{id}', async (event) => {
+  const a = event.data?.after?.data(), b = event.data?.before?.data();
+  if (!a || !a.ownerId) return;
+  if (a.status === 'pending' && b?.status !== 'pending') await pushAdmin('🧰 Service to approve', `${a.publicName || ''} · ${a.city || ''} ${a.country || ''}`);
+  if (b && a.status !== b.status && (a.status === 'approved' || a.status === 'rejected')) {
+    await sendTo(a.ownerId, { notification: a.status === 'approved'
+      ? { title: 'Habesha Hub', body: `${a.publicName || 'Your service'} is published.` }
+      : { title: 'Habesha Hub', body: `${a.publicName || 'Your service'} was not approved. Contact us on WhatsApp.` } });
+    if (a.status === 'approved' && b.available === false) await sendNews('prov', a);
   }
 });
 

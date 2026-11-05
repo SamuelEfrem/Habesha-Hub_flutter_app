@@ -662,7 +662,7 @@ class _EventFormScreenState extends State<EventFormScreen> {
         const SizedBox(height: 16),
         _field(_title, tr('Title')),
         FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          future: _db.collection('anonymous_services').where('category', isEqualTo: 'music').get(),
+          future: _db.collection('anonymous_services').where('category', isEqualTo: 'music').where('available', isEqualTo: true).get(),
           builder: (_, snap) {
             final artists = snap.data?.docs ?? [];
             if (artists.isEmpty) return const SizedBox.shrink();

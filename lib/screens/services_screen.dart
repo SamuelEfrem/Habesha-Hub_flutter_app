@@ -10,6 +10,7 @@ import 'package:chewie/chewie.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/app_theme.dart';
 import 'events_screens.dart';
+import 'services_catalog.dart';
 import 'member_screens.dart';
 import '../utils/language_notifier.dart';
 import 'payment.dart';
@@ -172,9 +173,8 @@ class ProviderAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = serviceProfileImage(data);
-    final cat = kServiceCategories.firstWhere((c) => c.key == serviceStr(data['category']),
-        orElse: () => kServiceCategories.first);
-    final emoji = Center(child: Text(cat.emoji, style: TextStyle(fontSize: size * 0.48)));
+    final cat = kServiceCategories.where((c) => c.key == serviceStr(data['category']));
+    final emoji = Center(child: Text(cat.isNotEmpty ? cat.first.emoji : (serviceGroup(serviceGroupOf(data))?.emoji ?? '⭐'), style: TextStyle(fontSize: size * 0.48)));
     return Container(
       width: size, height: size,
       decoration: BoxDecoration(
@@ -274,7 +274,8 @@ class ServicesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: languageNotifier,
-      builder: (context, _) => _build(context),
+      // every country, main groups, self-registered providers (services_catalog.dart); _build is the old country grid
+      builder: (context, _) => const ServicesHome(),
     );
   }
 
@@ -585,7 +586,8 @@ class ServiceProviderScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 _MediaAlbum(images: images, videos: videos, serviceId: docId),
               ],
-              if (serviceStr(data['category']) == 'music') _ArtistExtras(docId: docId, data: data),
+              if (isDirectContact(data)) DirectServiceInfo(docId: docId, data: data),
+              if (serviceGroupOf(data) == 'music') _ArtistExtras(docId: docId, data: data),
               const SizedBox(height: 24),
               ProviderReviews(providerId: docId, data: data),
               const SizedBox(height: 24),
@@ -594,13 +596,13 @@ class ServiceProviderScreen extends StatelessWidget {
         ]),
       ),
       // Book button always visible at the bottom
-      bottomNavigationBar: SafeArea(
+      bottomNavigationBar: isDirectContact(data) ? directContactBar(context, data) : SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           // fixed height — goldButton contains a Center that would otherwise fill the whole screen
           child: SizedBox(
             height: 54,
-            child: serviceStr(data['category']) == 'music'
+            child: serviceGroupOf(data) == 'music'
                 ? goldButton(tr('Book on WhatsApp'), () => launchUrl(Uri.parse('https://wa.me/4797374482?text=${Uri.encodeComponent('${tr('Hi, I want to book')} ${serviceStr(data['publicName'])} (Habesha Hub)')}'),
                     mode: LaunchMode.externalApplication), icon: Icons.chat_rounded)
                 : goldButton(tr('Book Now'), () => Navigator.push(context, MaterialPageRoute(

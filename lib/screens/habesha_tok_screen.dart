@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../utils/theme_notifier.dart';
 import '../utils/language_notifier.dart';
 import 'services_screen.dart';
+import 'services_catalog.dart';
 import '../utils/translations.dart';
 
 // ═══════════════════════════════════════════════════════════
@@ -287,7 +288,8 @@ class _TokCardState extends State<_TokCard> {
   List<String> get _images => serviceImages(widget.data);
 
   ServiceCategory get _cat =>
-      kServiceCategories.firstWhere((c) => c.key == _catKey, orElse: () => kServiceCategories.first);
+      kServiceCategories.firstWhere((c) => c.key == _catKey, orElse: () => ServiceCategory(key: _catKey,
+          emoji: serviceGroup(serviceGroupOf(widget.data))?.emoji ?? '⭐', label: serviceSubLabel(widget.data)));
   ServiceCountry get _cty =>
       kServiceCountries.firstWhere((c) => c.code == _country, orElse: () => kServiceCountries.first);
 

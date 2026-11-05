@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../utils/theme_notifier.dart';
 import '../utils/language_notifier.dart';
 import 'services_screen.dart';
+import 'services_catalog.dart';
 import 'payment.dart';
 import 'provider_extras.dart';
 
@@ -199,7 +200,9 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       'sampleImages':    images,
       'sampleVideoUrls': videos,
       'updatedAt':      FieldValue.serverTimestamp(),
-      if (_category == 'music') 'subcategory': _kind,
+      'group': groupForCategory(_category).$1,
+      'subcategory': _category == 'music' ? _kind : groupForCategory(_category).$2,
+      'status': 'approved',
       if (_category == 'music') 'genre': _genreCtrl.text.trim(),
       if (_category == 'music') 'links': {
         for (final (k, c) in [('youtube', _ytCtrl), ('tiktok', _ttCtrl), ('instagram', _igCtrl)])

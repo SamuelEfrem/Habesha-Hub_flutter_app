@@ -104,6 +104,11 @@ service firebase.storage {
     }
 
     // Housing photos — each user only in their own folder
+    // services the providers add themselves: photos and short videos
+    match /services/{userId}/{file} {
+      allow write: if signedIn() && (request.auth.uid == userId || isAdmin())
+                   && (request.resource == null || (isMedia(60) && request.resource.contentType.matches('image/.*|video/.*|application/octet-stream')));
+    }
     match /events/{userId}/{file} {
       allow write: if signedIn() && (request.auth.uid == userId || isAdmin())
                    && (request.resource == null || isImage(10));
