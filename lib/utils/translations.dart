@@ -885,6 +885,12 @@ class AppTranslations {
     'You do. You buy and pay for the domain yourself, so it is always yours.': {'Tigrinya': 'ናትካ እዩ። ዶሜን ባዕልኻ ትገዝእን ትኸፍልን፡ ስለዚ ኩሉ ግዜ ናትካ እዩ።', 'Amharic': 'የእርስዎ ነው። ዶሜኑን ራስዎ ይገዙታል፣ ይከፍሉበታል፣ ስለዚህ ሁልጊዜ የእርስዎ ነው።'},
     'You get an offer and an invoice from Habesha Tech Help. Nothing is paid in the app.': {'Tigrinya': 'ካብ Habesha Tech Help ዋጋን ፋክቱራን ትረክብ። ኣብ ኣፕ ዝኽፈል የለን።', 'Amharic': 'ከHabesha Tech Help የዋጋ ቅናሽና ደረሰኝ ያገኛሉ። በመተግበሪያው ምንም አይከፈልም።'},
     'You have no requests yet': {'Tigrinya': 'ገና ሕቶ የብልካን', 'Amharic': 'እስካሁን ጥያቄ የለዎትም'},
+    // New version available
+    'New version available': {'Tigrinya': 'ሓድሽ ስሪት ኣሎ', 'Amharic': 'አዲስ ስሪት አለ'},
+    'A new version of Habesha Hub is ready with new features and fixes.': {'Tigrinya': 'ሓድሽ ስሪት ሓበሻ ሃብ ምስ ሓደስቲ ኣገልግሎታትን ምዕራያትን ተዳልዩ ኣሎ።', 'Amharic': 'አዲስ የሐበሻ ሀብ ስሪት ከአዳዲስ ባህሪያትና ማስተካከያዎች ጋር ዝግጁ ነው።'},
+    'Please update to keep using Habesha Hub.': {'Tigrinya': 'ሓበሻ ሃብ ምጥቃም ንምቕጻል በጃኹም ኣሐድሱ።', 'Amharic': 'ሐበሻ ሀብን መጠቀም ለመቀጠል እባክዎ ያዘምኑ።'},
+    'Update': {'Tigrinya': 'ኣሐድስ', 'Amharic': 'አዘምን'},
+    'Later': {'Tigrinya': 'ደሓር', 'Amharic': 'በኋላ'},
   };
 
   static String get(String key) {

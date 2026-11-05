@@ -21,6 +21,7 @@ import '../games/games_screen.dart';
 import 'send_money_screen.dart';
 import 'events_screens.dart';
 import 'cross_links.dart';
+import '../services/update_check.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -89,6 +90,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     WidgetsBinding.instance.addObserver(this);
     // Every app start: ask for location until it is on, then search
     WidgetsBinding.instance.addPostFrameCallback((_) => _searchNearby());
+    // a few seconds later: is there a newer version in the store?
+    Future.delayed(const Duration(seconds: 4), () { if (mounted) checkForUpdate(context); });
   }
 
   bool _askedThisStart = false;   // "Not now" → don't ask again until next start
