@@ -17,6 +17,7 @@ import 'member_screens.dart';
 import 'provider_extras.dart';
 import 'services_screen.dart';
 import 'notices_screen.dart';
+import 'cross_links.dart';
 
 // Services in every country. Main groups with sub-categories; providers in the new groups
 // register themselves (free), Habesha Hub approves, and customers contact them directly.
@@ -306,14 +307,14 @@ class _LocationSheetState extends State<_LocationSheet> {
 // ── One group: sub-category chips, city chips, list ──
 class ServiceGroupScreen extends StatefulWidget {
   final ServiceGroup group;
-  final String country, city;
-  const ServiceGroupScreen({super.key, required this.group, required this.country, required this.city});
+  final String country, city, initialSub;
+  const ServiceGroupScreen({super.key, required this.group, required this.country, required this.city, this.initialSub = ''});
   @override
   State<ServiceGroupScreen> createState() => _ServiceGroupScreenState();
 }
 
 class _ServiceGroupScreenState extends State<ServiceGroupScreen> {
-  String _sub = '';
+  late String _sub = widget.initialSub;
   late String _city = widget.city;
 
   @override
@@ -344,7 +345,9 @@ class _ServiceGroupScreenState extends State<ServiceGroupScreen> {
           return ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 96), children: [
             if (g.subs.isNotEmpty) SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [
               _chip(tr('All'), _sub.isEmpty, () => setState(() => _sub = '')),
-              for (final s in g.subs) _chip(tr(s.$2), _sub == s.$1, () => setState(() => _sub = _sub == s.$1 ? '' : s.$1)),
+              // opened from a link (e.g. Market): the chosen chip first, so it is visible
+              for (final s in [...g.subs.where((s) => s.$1 == widget.initialSub), ...g.subs.where((s) => s.$1 != widget.initialSub)])
+                _chip(tr(s.$2), _sub == s.$1, () => setState(() => _sub = _sub == s.$1 ? '' : s.$1)),
             ])),
             if (cities.length > 1 || _city.isNotEmpty) ...[
               const SizedBox(height: 8),
@@ -354,6 +357,12 @@ class _ServiceGroupScreenState extends State<ServiceGroupScreen> {
               ])),
             ],
             const SizedBox(height: 10),
+            if (g.key == 'weddings' && _sub == 'dresses') crossLinkCard(context, emoji: '👗',
+                text: tr('Buying, selling or renting one dress? See habesha clothes in Market'),
+                onTap: () => openMarket(context, category: 'Habesha')),
+            if (g.key == 'weddings' && _sub == 'catering') crossLinkCard(context, emoji: '🏠',
+                text: tr('Homemade injera, bread and food: see Home shops in Market'),
+                onTap: () => openMarket(context, tab: 'shops')),
             if (docs.isEmpty) Padding(
               padding: const EdgeInsets.only(top: 50),
               child: Column(children: [

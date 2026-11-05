@@ -797,6 +797,12 @@ class AppTranslations {
     'Here you get messages from Habesha Hub, for example when your business, service or event is published, or if something needs to be fixed.': {'Tigrinya': 'ኣብዚ ካብ ሓበሻ ሃብ መልእኽቲ ትቕበል፡ ንኣብነት ንግድኻ፡ ኣገልግሎትካ ወይ ኣጋጣሚኻ ምስ ተዘርግሐ፡ ወይ ዝዐሪ እንተሃልዩ።', 'Amharic': 'እዚህ ከሐበሻ ሀብ መልእክት ትቀበላለህ፣ ለምሳሌ ንግድህ፣ አገልግሎትህ ወይም ዝግጅትህ ሲታተም ወይም መስተካከል ያለበት ነገር ሲኖር።'},
     'Reply on WhatsApp': {'Tigrinya': 'ብዋትስኣፕ መልሲ ሃብ', 'Amharic': 'በዋትስአፕ መልስ ስጥ'},
     'Contact us on WhatsApp': {'Tigrinya': 'ብዋትስኣፕ ርኸቡና', 'Amharic': 'በዋትስአፕ ያግኙን'},
+    // Services <-> Market links, home search
+    'Buying, selling or renting one dress? See habesha clothes in Market': {'Tigrinya': 'ሓደ ክዳን ክትገዝእ፡ ክትሸጥ ወይ ክትካረ ትደሊ? ኣብ ዕዳጋ ሓበሻ ክዳውንቲ ርአ', 'Amharic': 'አንድ ቀሚስ መግዛት፣ መሸጥ ወይም መከራየት? በገበያ የሐበሻ ልብሶችን ይመልከቱ'},
+    'Homemade injera, bread and food: see Home shops in Market': {'Tigrinya': 'ኣብ ገዛ ዝተሰርሐ እንጀራ፡ ባኒን መግብን፦ ኣብ ዕዳጋ ቤት ዕዳጋታት ርአ', 'Amharic': 'በቤት የተሰራ እንጀራ፣ ዳቦና ምግብ፦ በገበያ የቤት ሱቆችን ይመልከቱ'},
+    'Catering and cakes for weddings and parties: see Services': {'Tigrinya': 'መግብን ኬክን ንመርዓን በዓላትን፦ ኣብ ኣገልግሎታት ርአ', 'Amharic': 'ምግብና ኬክ ለሰርግና ለበዓላት፦ በአገልግሎቶች ይመልከቱ'},
+    'Dress shops, tailors and rental for weddings: see Services': {'Tigrinya': 'ድኳናት ክዳን፡ ሰፈይትን ክራይን ንመርዓ፦ ኣብ ኣገልግሎታት ርአ', 'Amharic': 'የቀሚስ ሱቆች፣ ልብስ ሰፊዎችና ኪራይ ለሰርግ፦ በአገልግሎቶች ይመልከቱ'},
+    'Also on Habesha Hub': {'Tigrinya': 'ኣብ ሓበሻ ሃብ ውን', 'Amharic': 'በሐበሻ ሀብ ደግሞ'},
   };
 
   static String get(String key) {

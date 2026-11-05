@@ -16,6 +16,7 @@ import 'auth_screen.dart';
 import 'housing_screen.dart';
 import 'home_shops_screen.dart';
 import '../utils/translations.dart';
+import 'cross_links.dart';
 
 // ═══════════════════════════════════════════════════════════
 // MARKETPLACE SCREEN  (ListView + image gallery, no chat)
@@ -163,7 +164,9 @@ const kMarketTabs = ['listings', 'shops', 'housing'];
 class MarketplaceScreen extends StatefulWidget {
   /// 'listings', 'shops' or 'housing'; null = the tab the user had last time
   final String? initialTab;
-  const MarketplaceScreen({super.key, this.initialTab});
+  /// e.g. 'Habesha' (from Services > Weddings > Dresses)
+  final String? initialCategory;
+  const MarketplaceScreen({super.key, this.initialTab, this.initialCategory});
   @override
   State<MarketplaceScreen> createState() => _MarketplaceScreenState();
 }
@@ -200,6 +203,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialCategory != null) _selectedCategory = widget.initialCategory!;
     if (kMarketTabs.contains(widget.initialTab)) {
       _tab = widget.initialTab!;
       _saveTab(_tab);
@@ -335,6 +339,11 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           ),
           body: Column(children: [
             _tabBar(),
+            if (_tab == 'shops') Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: crossLinkCard(context, emoji: '🍽️', text: tr('Catering and cakes for weddings and parties: see Services'),
+                  onTap: () => openServiceGroup(context, 'weddings', sub: 'catering')),
+            ),
             Expanded(child: _tab == 'shops' ? const HomeShopsScreen(embedded: true)
                 : _tab == 'housing' ? const HousingScreen(embedded: true)
                 : Column(children: [
@@ -494,6 +503,11 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   }),
               ]),
             ],
+            if (_selectedCategory == _kHabesha) Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+              child: crossLinkCard(context, emoji: '💍', text: tr('Dress shops, tailors and rental for weddings: see Services'),
+                  onTap: () => openServiceGroup(context, 'weddings', sub: 'dresses')),
+            ),
             const SizedBox(height: 2),
             // ── Search: matching home shops first (a different type than items) ──
             if (_nameFilter.isNotEmpty) HomeShopSearchResults(query: _nameFilter),
@@ -1670,3 +1684,13 @@ class MarketInboxScreen extends StatelessWidget {
     );
   }
 }
+
+/// Opens one listing from outside Market (the home search)
+void openMarketListing(BuildContext context, String docId) => Navigator.push(context, MaterialPageRoute(
+    builder: (_) => _ListingDetailScreen(
+          docId: docId,
+          t: languageNotifier.t,
+          // editing and deleting happen inside Market
+          onEdit: (_, __) => Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketplaceScreen(initialTab: 'listings'))),
+          onDelete: (ctx, _) async => Navigator.push(ctx, MaterialPageRoute(builder: (_) => const MarketplaceScreen(initialTab: 'listings'))),
+        )));

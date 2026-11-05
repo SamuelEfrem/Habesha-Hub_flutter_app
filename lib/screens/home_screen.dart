@@ -20,6 +20,7 @@ import 'map_screen.dart';
 import '../games/games_screen.dart';
 import 'send_money_screen.dart';
 import 'events_screens.dart';
+import 'cross_links.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -264,6 +265,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
           slivers: [
             SliverToBoxAdapter(child: _buildTopBar()),
             SliverToBoxAdapter(child: _buildSearchRow(t)),
+            if (_searchQuery.trim().length >= 2) SliverToBoxAdapter(child: CrossSearchResults(query: _searchQuery)),
             SliverToBoxAdapter(child: _buildShortcuts(t)),
             const SliverToBoxAdapter(child: WeekendEventsCard()),
             if (_hasSearched) ...[
