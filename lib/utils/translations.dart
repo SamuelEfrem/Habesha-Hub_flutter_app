@@ -794,6 +794,9 @@ class AppTranslations {
     'You are registered': {'Tigrinya': 'ተመዝጊብካ ኣለኻ', 'Amharic': 'ተመዝግበሃል'},
     'Message': {'Tigrinya': 'መልእኽቲ', 'Amharic': 'መልእክት'},
     'Could not load messages. Try again later.': {'Tigrinya': 'መልእኽቲ ክጽዓን ኣይከኣለን። ደሓር ፈትን።', 'Amharic': 'መልእክቶችን መጫን አልተቻለም። ቆይተህ ሞክር።'},
+    'Here you get messages from Habesha Hub, for example when your business, service or event is published, or if something needs to be fixed.': {'Tigrinya': 'ኣብዚ ካብ ሓበሻ ሃብ መልእኽቲ ትቕበል፡ ንኣብነት ንግድኻ፡ ኣገልግሎትካ ወይ ኣጋጣሚኻ ምስ ተዘርግሐ፡ ወይ ዝዐሪ እንተሃልዩ።', 'Amharic': 'እዚህ ከሐበሻ ሀብ መልእክት ትቀበላለህ፣ ለምሳሌ ንግድህ፣ አገልግሎትህ ወይም ዝግጅትህ ሲታተም ወይም መስተካከል ያለበት ነገር ሲኖር።'},
+    'Reply on WhatsApp': {'Tigrinya': 'ብዋትስኣፕ መልሲ ሃብ', 'Amharic': 'በዋትስአፕ መልስ ስጥ'},
+    'Contact us on WhatsApp': {'Tigrinya': 'ብዋትስኣፕ ርኸቡና', 'Amharic': 'በዋትስአፕ ያግኙን'},
   };
 
   static String get(String key) {

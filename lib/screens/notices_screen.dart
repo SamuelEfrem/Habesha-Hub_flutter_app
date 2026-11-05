@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../utils/translations.dart';
 
@@ -72,7 +73,19 @@ class NoticesScreen extends StatelessWidget {
                     final x = a.data()['createdAt'], y = b.data()['createdAt'];
                     return x is Timestamp && y is Timestamp ? y.compareTo(x) : 0;
                   });
-                if (snap.hasData && docs.isEmpty) return Center(child: Text(tr('No messages yet'), style: tsBodySm(color: kTextSub)));
+                if (docs.isEmpty) return Center(child: Padding(
+                  padding: const EdgeInsets.all(28),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.mark_email_read_outlined, color: kHabGreen, size: 56),
+                    const SizedBox(height: 14),
+                    Text(tr('No messages yet'), style: tsTitleMd(color: kText)),
+                    const SizedBox(height: 8),
+                    Text(tr('Here you get messages from Habesha Hub, for example when your business, service or event is published, or if something needs to be fixed.'),
+                        textAlign: TextAlign.center, style: tsBodySm(color: kTextSub)),
+                    const SizedBox(height: 18),
+                    _waButton(''),
+                  ]),
+                ));
                 // opening the list marks the messages as read
                 for (final d in docs) {
                   if (d.data()['read'] == false) d.reference.update({'read': true}).catchError((_) {});
@@ -110,10 +123,20 @@ class _NoticeCard extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         SelectableText('${data['body'] ?? ''}', style: tsBodyLg(color: kText)),
+        const SizedBox(height: 8),
+        Align(alignment: Alignment.centerRight, child: _waButton('${data['refName'] ?? ''}')),
       ]),
     );
   }
 }
+
+/// Answer Habesha Hub on WhatsApp (+47 973 74 482)
+Widget _waButton(String about) => OutlinedButton.icon(
+  onPressed: () => launchUrl(Uri.parse('https://wa.me/4797374482?text=${Uri.encodeComponent(about.isEmpty ? 'Hi Habesha Hub' : 'Hi Habesha Hub, about: $about')}'),
+      mode: LaunchMode.externalApplication),
+  icon: const Icon(Icons.chat_rounded, size: 18),
+  label: Text(about.isEmpty ? tr('Contact us on WhatsApp') : tr('Reply on WhatsApp')),
+);
 
 /// Admin: write to the person who registered something, before approving it
 Future<void> sendNoticeDialog(BuildContext context, {required String toUid, required String refName, required String refType, required String refId}) async {
