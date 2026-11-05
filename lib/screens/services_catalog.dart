@@ -18,6 +18,8 @@ import 'provider_extras.dart';
 import 'services_screen.dart';
 import 'notices_screen.dart';
 import 'cross_links.dart';
+import 'hair_beauty.dart';
+import 'placeholder_screens.dart' show ExploreScreen;
 
 // Services in every country. Main groups with sub-categories; providers in the new groups
 // register themselves (free), Habesha Hub approves, and customers contact them directly.
@@ -357,6 +359,10 @@ class _ServiceGroupScreenState extends State<ServiceGroupScreen> {
               ])),
             ],
             const SizedBox(height: 10),
+            if (g.key == 'weddings' && (_sub.isEmpty || _sub == 'other' || _sub == 'dresses')) crossLinkCard(context, emoji: '💄',
+                text: tr('Makeup, braiding and henna for the wedding: see Hair & beauty'),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) =>
+                    const ExploreScreen(initialCategory: kHairCategory, initialSub: 'wedding')))),
             if (g.key == 'weddings' && _sub == 'dresses') crossLinkCard(context, emoji: '👗',
                 text: tr('Buying, selling or renting one dress? See habesha clothes in Market'),
                 onTap: () => openMarket(context, category: 'Habesha')),

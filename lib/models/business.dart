@@ -27,6 +27,12 @@ class Business {
   final String? website;
   final String country;
   final String source; // 'osm' = imported from OpenStreetMap
+  // Hair & beauty (category 'Barber'): sub-category and extras
+  final String subcategory;
+  final String forWho;
+  final String priceFrom;
+  final bool worksFromHome;
+  final bool comesToYou;
 
   Business({
     required this.id,
@@ -53,6 +59,11 @@ class Business {
     this.website,
     this.country = '',
     this.source = '',
+    this.subcategory = '',
+    this.forWho = '',
+    this.priceFrom = '',
+    this.worksFromHome = false,
+    this.comesToYou = false,
   });
 
   factory Business.fromFirestore(Map<String, dynamic> data, String id) {
@@ -78,6 +89,11 @@ class Business {
       website: data['website']?.toString(),
       country: data['country']?.toString() ?? '',
       source: data['source']?.toString() ?? '',
+      subcategory: data['subcategory']?.toString() ?? '',
+      forWho: data['forWho']?.toString() ?? '',
+      priceFrom: data['priceFrom']?.toString() ?? '',
+      worksFromHome: data['worksFromHome'] == true,
+      comesToYou: data['comesToYou'] == true,
       galleryImages: data['galleryImages'] != null
           ? List<String>.from(data['galleryImages'])
           : [],
@@ -116,6 +132,11 @@ class Business {
       'country': country,
       'galleryImages': galleryImages,
       'promoVideoUrl': promoVideoUrl,
+      'subcategory': subcategory,
+      'forWho': forWho,
+      'priceFrom': priceFrom,
+      'worksFromHome': worksFromHome,
+      'comesToYou': comesToYou,
     };
   }
 

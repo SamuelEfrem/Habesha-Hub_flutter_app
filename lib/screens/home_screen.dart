@@ -21,6 +21,7 @@ import '../games/games_screen.dart';
 import 'send_money_screen.dart';
 import 'events_screens.dart';
 import 'cross_links.dart';
+import 'hair_beauty.dart';
 import '../services/update_check.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -37,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
 
   int _currentTab = 0;
   String _selectedCategory = 'All';
+  String _hairSub = '', _hairFor = '';
   Position? _position;
   String _searchQuery = '';
   bool _hasSearched = false;
@@ -50,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     {'key': 'Cafe', 'emoji': '☕'},
     {'key': 'Club', 'emoji': '🎵'},
     {'key': 'Clinic', 'emoji': '🏥'},
-    {'key': 'Barber', 'emoji': '✂'},
+    {'key': 'Barber', 'emoji': '💇'},
 
     {'key': 'Hotel', 'emoji': '🏨'},
     {'key': 'Church', 'emoji': '⛪'},
@@ -222,11 +224,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     if (_selectedCategory != 'All') {
       list = list.where((b) => b.category == _selectedCategory).toList();
     }
+    if (_selectedCategory == kHairCategory) list = list.where((b) => hairMatches(b, _hairSub, _hairFor)).toList();
     if (_searchQuery.isNotEmpty) {
       list = list
           .where((b) =>
               b.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              b.description.toLowerCase().contains(_searchQuery.toLowerCase()))
+              b.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              b.address.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              hairSearchText(b).contains(_searchQuery.toLowerCase()))
           .toList();
     }
     return list;
@@ -275,6 +280,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
               SliverToBoxAdapter(child: _buildResultsHeader(t)),
               const SliverToBoxAdapter(child: SizedBox(height: 12)),
               SliverToBoxAdapter(child: _buildCategoryChips()),
+              if (_selectedCategory == kHairCategory) SliverToBoxAdapter(child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: HairFilterRows(sub: _hairSub, forWho: _hairFor,
+                    onSub: (v) => setState(() => _hairSub = v), onFor: (v) => setState(() => _hairFor = v)),
+              )),
               const SliverToBoxAdapter(child: SizedBox(height: 14)),
               _buildResultsSliver(t),
             ] else if (_isSearching)

@@ -20,11 +20,14 @@ import 'edit_business_screen.dart';
 import '../utils/translations.dart';
 import 'payment.dart';
 import 'notices_screen.dart';
+import 'hair_beauty.dart';
 import 'community_screens.dart';
 import 'map_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
-  const ExploreScreen({super.key});
+  /// e.g. 'Barber' + 'wedding' when opened from Weddings & celebrations (with a back button)
+  final String initialCategory, initialSub;
+  const ExploreScreen({super.key, this.initialCategory = '', this.initialSub = ''});
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();
 }
@@ -58,8 +61,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
   bool _loading = true;
   String _country = '';
   String _city = '';
-  String _category = '';
+  late String _category = widget.initialCategory;
   String _query = '';
+  late String _hairSub = widget.initialSub;
+  String _hairFor = '';
 
   static const _categoryOrder = ['Restaurant', 'Cafe', 'Shop', 'Barber', 'Church', 'School', 'Association', 'Club', 'Clinic', 'Hotel',
     'Photographer', 'Music', 'Decoration', 'Taxi', 'Other'];
@@ -92,7 +97,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   Future<void> _pickCountry(String c) async {
-    setState(() { _country = c; _city = ''; _category = ''; });
+    setState(() { _country = c; _city = ''; _category = widget.initialCategory; });
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('explore_country', c);
   }
@@ -134,11 +139,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
     var list = q.isNotEmpty && _country.isEmpty ? _all : _inCountry;
     if (_city.isNotEmpty) list = list.where((b) => _cityOf(b) == _city).toList();
     if (_category.isNotEmpty) list = list.where((b) => b.category == _category).toList();
+    if (_category == kHairCategory) list = list.where((b) => hairMatches(b, _hairSub, _hairFor)).toList();
     if (q.isNotEmpty) {
       list = list.where((b) =>
           b.name.toLowerCase().contains(q) ||
           b.address.toLowerCase().contains(q) ||
-          b.description.toLowerCase().contains(q)).toList();
+          b.description.toLowerCase().contains(q) ||
+          hairSearchText(b).contains(q)).toList();
     }
     return list;
   }
@@ -165,7 +172,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 8, 4),
               child: Row(children: [
-                Expanded(child: Text(tr('Explore'), style: tsHeadlineLg(color: kSecondary))),
+                if (Navigator.canPop(context)) IconButton(
+                  onPressed: () => Navigator.pop(context), icon: Icon(Icons.arrow_back_rounded, color: kSecondary)),
+                Expanded(child: Text(widget.initialCategory.isEmpty ? tr('Explore') : _catLabel(widget.initialCategory),
+                    style: tsHeadlineLg(color: kSecondary))),
                 IconButton(
                   tooltip: tr('Suggest a business'),
                   onPressed: () => Navigator.push(context, MaterialPageRoute(
@@ -222,6 +232,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ),
               const SizedBox(height: 12),
               _buildCategoryChips(),
+              if (_category == kHairCategory) ...[
+                const SizedBox(height: 8),
+                HairFilterRows(sub: _hairSub, forWho: _hairFor,
+                    onSub: (v) => setState(() => _hairSub = v), onFor: (v) => setState(() => _hairFor = v)),
+              ],
               const SizedBox(height: 8),
             ],
             Expanded(child: _buildBody(t)),

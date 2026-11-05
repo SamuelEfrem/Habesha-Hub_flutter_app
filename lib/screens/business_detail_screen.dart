@@ -24,6 +24,7 @@ import 'package:video_player/video_player.dart';
 import '../utils/translations.dart';
 import 'community_screens.dart';
 import 'websites_screens.dart';
+import 'hair_beauty.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final Business business;
@@ -546,6 +547,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       const SizedBox(height: 12),
       _buildAddressRow(),
       const SizedBox(height: 12),
+      if (widget.business.category == kHairCategory) ...[
+        HairInfoCard(business: widget.business),
+        const SizedBox(height: 12),
+      ],
       // Imported places nobody owns yet: let the owner take it over
       if (!_isOwner && widget.business.source == 'osm' && widget.business.ownerId.isEmpty) ...[
         ClaimBusinessCard(business: widget.business),
@@ -1329,7 +1334,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
             Icon(Icons.place_rounded, color: kSecondary, size: 22),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(address.isNotEmpty ? address : t('no_address'),
+              child: Text(address.isEmpty ? t('no_address')
+                  : widget.business.worksFromHome ? '${tr('Works from home')} · $address' : address,
                   style: tsBodyLg(color: kText).copyWith(height: 1.35)),
             ),
             if (widget.userLat != 0) ...[

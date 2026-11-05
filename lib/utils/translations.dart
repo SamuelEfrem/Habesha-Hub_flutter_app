@@ -7,6 +7,9 @@ class AppTranslations {
 
   /// Translate an English UI text to the selected language.
   /// Old Norwegian values stored in Firestore are mapped to English first.
+  /// The English text and its translations, e.g. for searching in every language
+  static List<String> allLanguages(String en) => [en, ...?_textTr[en]?.values];
+
   static String tr(String text) {
     final en = _aliases[text] ?? text;
     if (_language == 'English') return en;
@@ -22,7 +25,8 @@ class AppTranslations {
     'Stengt': 'Closed',
     'Butikk': 'Shop',
     'Kafé': 'Cafe',
-    'Frisør': 'Barber',
+    'Frisør': 'Hair & beauty',
+    'Barber': 'Hair & beauty',   // category key stays 'Barber'
     'Klinikk': 'Clinic',
     'Annet': 'Other',
     'Mandag': 'Monday',
@@ -891,6 +895,29 @@ class AppTranslations {
     'Please update to keep using Habesha Hub.': {'Tigrinya': 'ሓበሻ ሃብ ምጥቃም ንምቕጻል በጃኹም ኣሐድሱ።', 'Amharic': 'ሐበሻ ሀብን መጠቀም ለመቀጠል እባክዎ ያዘምኑ።'},
     'Update': {'Tigrinya': 'ኣሐድስ', 'Amharic': 'አዘምን'},
     'Later': {'Tigrinya': 'ደሓር', 'Amharic': 'በኋላ'},
+    // Hair & beauty (Tigrinya/Amharic: review by a native speaker)
+    'Hair & beauty': {'Tigrinya': 'ጸጉርን ጽባቐን', 'Amharic': 'ፀጉርና ውበት'},
+    'Barbershop': {'Tigrinya': 'መስተኻኸሊ ጸጉሪ (ደቂ ተባዕትዮ)', 'Amharic': 'የወንዶች ፀጉር ቤት'},
+    'Hair salon': {'Tigrinya': 'ሳሎን ጸጉሪ', 'Amharic': 'የፀጉር ሳሎን'},
+    'Braiding': {'Tigrinya': 'ሹሩባ', 'Amharic': 'ሹሩባ'},
+    'Makeup': {'Tigrinya': 'መኳኽያ', 'Amharic': 'ሜካፕ'},
+    'Nails': {'Tigrinya': 'ጽፍሪ', 'Amharic': 'ጥፍር'},
+    'Henna': {'Tigrinya': 'ሕና', 'Amharic': 'ሂና'},
+    'Other beauty': {'Tigrinya': 'ካልእ ጽባቐ', 'Amharic': 'ሌላ ውበት'},
+    'Everyone': {'Tigrinya': 'ኩሉ ሰብ', 'Amharic': 'ሁሉም'},
+    'Women': {'Tigrinya': 'ደቂ ኣንስትዮ', 'Amharic': 'ሴቶች'},
+    'Men': {'Tigrinya': 'ደቂ ተባዕትዮ', 'Amharic': 'ወንዶች'},
+    'Kids': {'Tigrinya': 'ቆልዑ', 'Amharic': 'ልጆች'},
+    'For': {'Tigrinya': 'ን', 'Amharic': 'ለ'},
+    'For weddings': {'Tigrinya': 'ንመርዓ', 'Amharic': 'ለሰርግ'},
+    'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
+    'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
+    'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},
+    'You visit the customer, e.g. for weddings': {'Tigrinya': 'ናብ ዓሚል ትኸይድ፡ ን.ኣ. ንመርዓ', 'Amharic': 'ደንበኛውን ይጎበኛሉ፣ ለምሳሌ ለሰርግ'},
+    'Price from (optional)': {'Tigrinya': 'ዋጋ ካብ (ኣማራጺ)', 'Amharic': 'ዋጋ ከ (አማራጭ)'},
+    'e.g. 300 kr': {'Tigrinya': 'ን.ኣ. 300 kr', 'Amharic': 'ለምሳሌ 300 kr'},
+    'Area and city, e.g. Grønland, Oslo': {'Tigrinya': 'ከባቢን ከተማን፡ ን.ኣ. Grønland, Oslo', 'Amharic': 'አካባቢና ከተማ፣ ለምሳሌ Grønland, Oslo'},
+    'Makeup, braiding and henna for the wedding: see Hair & beauty': {'Tigrinya': 'መኳኽያ፡ ሹሩባን ሕናን ንመርዓ፦ ኣብ ጸጉርን ጽባቐን ርአ', 'Amharic': 'ሜካፕ፣ ሹሩባና ሂና ለሰርግ፦ በፀጉርና ውበት ይመልከቱ'},
   };
 
   static String get(String key) {
@@ -1044,10 +1071,10 @@ class AppTranslations {
       'Amharic': 'ካፌ'
     },
     'barber': {
-      'Norsk': 'Frisør',
-      'Tigrinya': 'መስተኻኸሊ ጸጉሪ',
-      'English': 'Barbery',
-      'Amharic': 'ፀጉር ቤት'
+      'Norsk': 'Hår og skjønnhet',
+      'Tigrinya': 'ጸጉርን ጽባቐን',
+      'English': 'Hair & beauty',
+      'Amharic': 'ፀጉርና ውበት'
     },
     'club': {
       'Norsk': 'Club',

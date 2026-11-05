@@ -5,6 +5,7 @@ import 'package:geocoding/geocoding.dart';
 import '../models/business.dart';
 import '../theme/app_theme.dart';
 import '../utils/translations.dart';
+import 'hair_beauty.dart';
 
 class EditBusinessScreen extends StatefulWidget {
   final Business business;
@@ -32,6 +33,8 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
   late TextEditingController _websiteCtrl;
 
   late String _category;
+  late final HairInfo _hair;
+  bool _hairError = false;
   late double? _lat;
   late double? _lng;
   late List<Map<String, String>> _hours;
@@ -45,7 +48,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
     {'name': 'Restaurant', 'icon': Icons.restaurant_rounded},
     {'name': 'Shop', 'icon': Icons.shopping_bag_rounded},
     {'name': 'Cafe', 'icon': Icons.local_cafe_rounded},
-    {'name': 'Barber', 'icon': Icons.content_cut_rounded},
+    {'name': 'Barber', 'icon': Icons.face_retouching_natural_rounded},
     {'name': 'Club', 'icon': Icons.music_note_rounded},
     {'name': 'Clinic', 'icon': Icons.local_hospital_rounded},
     {'name': 'Church', 'icon': Icons.church_rounded},
@@ -65,6 +68,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
     _imgCtrl = TextEditingController(text: b.imageUrl);
     _websiteCtrl = TextEditingController(text: b.website ?? '');
     _category = b.category;
+    _hair = HairInfo.of(b);
     _lat = b.lat != 0 ? b.lat : null;
     _lng = b.lng != 0 ? b.lng : null;
 
@@ -150,6 +154,10 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_category == kHairCategory && _hair.sub.isEmpty) {
+      setState(() => _hairError = true);
+      return;
+    }
     setState(() => _saving = true);
     try {
       if (_lat == null && _addrCtrl.text.isNotEmpty) {
@@ -169,8 +177,9 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
         'address': _addrCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
         'imageUrl': _imgCtrl.text.trim(),
-        'lat': _lat,
-        'lng': _lng,
+        'lat': _category == kHairCategory && _hair.fromHome ? roughCoord(_lat!) : _lat,
+        'lng': _category == kHairCategory && _hair.fromHome ? roughCoord(_lng!) : _lng,
+        if (_category == kHairCategory) ..._hair.toMap(),
         'openingHours': _buildOpeningHours(),
         'website': _websiteCtrl.text.trim(),
         'updatedAt': FieldValue.serverTimestamp(),
@@ -333,6 +342,8 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                         );
                       }).toList(),
                     ),
+                    if (_category == kHairCategory)
+                      HairBeautyFields(info: _hair, showError: _hairError, onChanged: () => setState(() => _hairError = false)),
                     const SizedBox(height: 16),
 
                     // ── Description ─────────────────────────

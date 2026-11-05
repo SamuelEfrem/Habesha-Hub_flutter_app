@@ -10,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import '../theme/app_theme.dart';
 import 'auth_screen.dart';
 import '../utils/translations.dart';
+import 'hair_beauty.dart';
 
 class RegisterBusinessScreen extends StatefulWidget {
   const RegisterBusinessScreen({super.key});
@@ -33,6 +34,8 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
   final _websiteCtrl = TextEditingController();
 
   String _category = 'Restaurant';
+  final _hair = HairInfo();
+  bool _hairError = false;
   String _country = '';
   File? _selectedImage;
   String _uploadedImageUrl = '';
@@ -75,7 +78,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
     {'name': 'Restaurant', 'icon': Icons.restaurant_rounded},
     {'name': 'Shop', 'icon': Icons.shopping_bag_rounded},
     {'name': 'Cafe', 'icon': Icons.local_cafe_rounded},
-    {'name': 'Barber', 'icon': Icons.content_cut_rounded},
+    {'name': 'Barber', 'icon': Icons.face_retouching_natural_rounded},
     {'name': 'Club', 'icon': Icons.music_note_rounded},
     {'name': 'Clinic', 'icon': Icons.local_hospital_rounded},
     {'name': 'Photographer', 'icon': Icons.camera_alt_rounded},
@@ -130,6 +133,10 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
   Future<void> _next() async {
     // Only the fields of the visible step exist, so check them before moving on
     if (!_formKey.currentState!.validate()) return;
+    if (_step == 0 && _category == kHairCategory && _hair.sub.isEmpty) {
+      setState(() => _hairError = true);
+      return;
+    }
     if (_step == 1 && _addrCtrl.text.trim().isNotEmpty && _lat == null) {
       // Auto-geocode before proceeding
       await _geocodeAddress();
@@ -267,8 +274,10 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         'address': _addrCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
         'imageUrl': _uploadedImageUrl,
-        'lat': _lat,
-        'lng': _lng,
+        // works from home: only an approximate spot, never the home itself
+        'lat': _category == kHairCategory && _hair.fromHome ? roughCoord(_lat!) : _lat,
+        'lng': _category == kHairCategory && _hair.fromHome ? roughCoord(_lng!) : _lng,
+        if (_category == kHairCategory) ..._hair.toMap(),
         'rating': 0.0,
         'isOpen': false,
         'isPremium': false,
@@ -505,6 +514,8 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
             );
           }).toList(),
         ),
+        if (_category == kHairCategory)
+          HairBeautyFields(info: _hair, showError: _hairError, onChanged: () => setState(() => _hairError = false)),
       ],
     );
   }
@@ -570,7 +581,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                   }
                 },
                 decoration: InputDecoration(
-                  hintText: tr('Street 15, 0190 Oslo'),
+                  hintText: _category == kHairCategory && _hair.fromHome ? tr('Area and city, e.g. Grønland, Oslo') : tr('Street 15, 0190 Oslo'),
                   prefixIcon:
                       Icon(Icons.location_on_rounded, color: kSecondary),
                 ),
