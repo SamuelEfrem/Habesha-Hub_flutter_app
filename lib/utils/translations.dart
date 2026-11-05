@@ -793,6 +793,7 @@ class AppTranslations {
     'Please fix before approval': {'Tigrinya': 'ቅድሚ ፍቓድ በጃኹም ኣዐርዩ', 'Amharic': 'ከማረጋገጫ በፊት እባክዎ ያስተካክሉ'},
     'You are registered': {'Tigrinya': 'ተመዝጊብካ ኣለኻ', 'Amharic': 'ተመዝግበሃል'},
     'Message': {'Tigrinya': 'መልእኽቲ', 'Amharic': 'መልእክት'},
+    'Could not load messages. Try again later.': {'Tigrinya': 'መልእኽቲ ክጽዓን ኣይከኣለን። ደሓር ፈትን።', 'Amharic': 'መልእክቶችን መጫን አልተቻለም። ቆይተህ ሞክር።'},
   };
 
   static String get(String key) {

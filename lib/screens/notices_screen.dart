@@ -65,6 +65,8 @@ class NoticesScreen extends StatelessWidget {
           : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: _notices.where('toUid', isEqualTo: u.uid).limit(100).snapshots(),
               builder: (_, snap) {
+                if (snap.hasError) return Center(child: Text(tr('Could not load messages. Try again later.'), style: tsBodySm(color: kTextSub)));
+                if (!snap.hasData) return Center(child: CircularProgressIndicator(color: kHabGreen, strokeWidth: 2));
                 final docs = (snap.data?.docs ?? []).toList()
                   ..sort((a, b) {
                     final x = a.data()['createdAt'], y = b.data()['createdAt'];

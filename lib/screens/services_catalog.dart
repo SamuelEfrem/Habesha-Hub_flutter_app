@@ -249,6 +249,10 @@ class _LocationSheet extends StatefulWidget {
 class _LocationSheetState extends State<_LocationSheet> {
   late String _country = widget.country;
   String _q = '';
+  final _search = TextEditingController();
+
+  @override
+  void dispose() { _search.dispose(); super.dispose(); }
   List<String>? _cities;
 
   @override
@@ -279,7 +283,7 @@ class _LocationSheetState extends State<_LocationSheet> {
                   for (final c in _cities!) Padding(padding: const EdgeInsets.only(right: 8), child: ActionChip(label: Text(c), onPressed: () => Navigator.pop(context, (_country, c)))),
                 ])),
           const SizedBox(height: 14),
-          TextField(onChanged: (v) => setState(() => _q = v), decoration: InputDecoration(prefixIcon: const Icon(Icons.search_rounded), hintText: tr('Search country'))),
+          TextField(controller: _search, onChanged: (v) => setState(() => _q = v), decoration: InputDecoration(prefixIcon: const Icon(Icons.search_rounded), hintText: tr('Search country'))),
           const SizedBox(height: 6),
           Expanded(child: ListView.builder(
             itemCount: list.length,
@@ -289,7 +293,7 @@ class _LocationSheetState extends State<_LocationSheet> {
                 leading: Text(countryFlag(c.$1), style: const TextStyle(fontSize: 24)),
                 title: Text(tr(c.$2), style: tsBodyLg(color: kText)),
                 trailing: c.$1 == _country ? Icon(Icons.check_rounded, color: kHabGreen) : null,
-                onTap: () { setState(() { _country = c.$1; _q = ''; }); _loadCities(c.$1); },
+                onTap: () { _search.clear(); FocusScope.of(context).unfocus(); setState(() { _country = c.$1; _q = ''; }); _loadCities(c.$1); },
               );
             },
           )),
