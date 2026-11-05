@@ -14,6 +14,7 @@ class AppTranslations {
   }
 
   static const Map<String, String> _aliases = {
+    'School': 'School / course',   // category key stays 'School'
     'Man - Fre': 'Mon - Fri',
     'Man-Fre': 'Mon - Fri',
     'Lørdag': 'Saturday',
@@ -787,7 +788,7 @@ class AppTranslations {
     'South Africa': {'Tigrinya': 'ደቡብ ኣፍሪቃ', 'Amharic': 'ደቡብ አፍሪካ'},
     'Djibouti': {'Tigrinya': 'ጅቡቲ', 'Amharic': 'ጅቡቲ'},
     // Messages + school
-    'School': {'Tigrinya': 'ትምህርቲ', 'Amharic': 'ትምህርት'},
+    'School / course': {'Tigrinya': 'ትምህርቲ / ኮርስ', 'Amharic': 'ትምህርት / ኮርስ'},
     'Messages from Habesha Hub': {'Tigrinya': 'መልእኽቲ ካብ ሓበሻ ሃብ', 'Amharic': 'መልእክቶች ከሐበሻ ሀብ'},
     'Log in to see your messages': {'Tigrinya': 'መልእኽትኻ ንምርኣይ እቶ', 'Amharic': 'መልእክቶችህን ለማየት ግባ'},
     'Please fix before approval': {'Tigrinya': 'ቅድሚ ፍቓድ በጃኹም ኣዐርዩ', 'Amharic': 'ከማረጋገጫ በፊት እባክዎ ያስተካክሉ'},

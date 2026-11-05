@@ -323,7 +323,7 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                                           sel ? kSecondary : kTextSub,
                                       size: 16),
                                   const SizedBox(width: 8),
-                                  Text(cat['name'] as String,
+                                  Text(tr(cat['name'] as String),
                                       style: tsLabel(
                                           color: sel
                                               ? kSecondary
