@@ -11,6 +11,7 @@ import 'member_screens.dart';
 import 'events_screens.dart';
 import 'services_catalog.dart';
 import 'notices_screen.dart';
+import 'websites_screens.dart';
 import 'home_shops_screen.dart';
 import 'housing_screen.dart';
 import '../models/business.dart';
@@ -124,6 +125,7 @@ class _AdminScreenState extends State<AdminScreen>
     (Icons.verified_user_outlined, 'Members'),
     (Icons.event_rounded, 'Events'),
     (Icons.add_business_outlined, 'New services'),
+    (Icons.language_rounded, 'Websites'),
   ];
 
   @override
@@ -246,6 +248,8 @@ class _AdminScreenState extends State<AdminScreen>
             const EventsAdminTab(),
             // ─ services the providers registered themselves ─
             const ServicesApprovalTab(),
+            // ─ website requests (Habesha Tech Help) ─
+            const WebsiteRequestsAdminTab(),
           ],
         ),
       ),

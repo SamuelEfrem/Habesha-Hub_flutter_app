@@ -1,4 +1,4 @@
-const { onDocumentCreated, onDocumentUpdated, onDocumentWritten } = require('firebase-functions/v2/firestore');
+const { onDocumentCreated, onDocumentUpdated, onDocumentWritten, onDocumentDeleted } = require('firebase-functions/v2/firestore');
 const { setGlobalOptions } = require('firebase-functions/v2');
 const { onRequest, onCall, HttpsError } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
@@ -1030,4 +1030,17 @@ exports.verifyPurchase = onCall({ maxInstances: 5 }, async (req) => {
     tx.set(db.collection('users').doc(uid), { unlocks: { [productId]: true } }, { merge: true });
   });
   return { product: productId };
+});
+
+// ═══════════════════════════════════════════════════════════
+// Websites for businesses (Habesha Tech Help)
+// ═══════════════════════════════════════════════════════════
+exports.notifyWebsiteRequest = onDocumentCreated('websiteRequests/{id}', async (event) => {
+  const r = event.data?.data();
+  if (!r) return;
+  await pushAdmin('🌐 New website request', `${r.businessName || ''} · ${r.package || ''} · ${r.city || ''}`.slice(0, 180));
+});
+// the person deleted their request: remove the admin's notes too
+exports.cleanWebsiteRequest = onDocumentDeleted('websiteRequests/{id}', async (event) => {
+  await getFirestore().collection('websiteRequestNotes').doc(event.params.id).delete().catch(() => {});
 });

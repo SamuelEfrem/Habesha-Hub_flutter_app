@@ -125,6 +125,36 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ── Website requests (Habesha Tech Help): the person sees and deletes their own, only the admin sees all ──
+    function webReqOk(d) {
+      return d.keys().hasOnly(['uid', 'businessId', 'businessName', 'contactName', 'phone', 'email', 'city', 'country',
+                               'package', 'hasDomain', 'domain', 'languages', 'description', 'contactTime', 'consent',
+                               'status', 'createdAt'])
+        && d.uid == uid() && d.status == 'new' && d.consent == true
+        && d.businessName is string && d.businessName.size() > 0 && d.businessName.size() <= 120
+        && d.contactName is string && d.contactName.size() > 0 && d.contactName.size() <= 120
+        && d.phone is string && d.phone.size() >= 8 && d.phone.size() <= 20
+        && d.email is string && d.email.size() <= 120
+        && d.city is string && d.city.size() <= 120 && d.country is string && d.country.size() <= 120
+        && d.package is string && d.package.size() <= 30
+        && d.hasDomain is bool && d.domain is string && d.domain.size() <= 120
+        && d.languages is list && d.languages.size() <= 6
+        && d.description is string && d.description.size() <= 1000
+        && d.contactTime is string && d.contactTime.size() <= 120
+        && d.businessId is string && d.businessId.size() <= 60
+        && d.createdAt == request.time;
+    }
+    match /websiteRequests/{id} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == uid());
+      allow create: if realUser() && webReqOk(request.resource.data);
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (signedIn() && resource.data.uid == uid());
+    }
+    // the admin's own notes about a request
+    match /websiteRequestNotes/{id} {
+      allow read, write: if isAdmin();
+    }
+
     // ── Messages from Habesha Hub to one person ──
     match /notices/{id} {
       allow read: if isAdmin() || (signedIn() && resource.data.toUid == uid());

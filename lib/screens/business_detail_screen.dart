@@ -23,6 +23,7 @@ import '../utils/share_helper.dart';
 import 'package:video_player/video_player.dart';
 import '../utils/translations.dart';
 import 'community_screens.dart';
+import 'websites_screens.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final Business business;
@@ -552,6 +553,14 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       ],
       if (_isOwner) ...[
         _buildOwnerControls(),
+        const SizedBox(height: 12),
+      ],
+      if (widget.business.id == kTechHelpBusinessId) ...[
+        const WebsitesOfferCard(),
+        const SizedBox(height: 12),
+      ],
+      if (NoWebsiteCard.shouldShow(widget.business)) ...[
+        NoWebsiteCard(business: widget.business),
         const SizedBox(height: 12),
       ],
       if (widget.business.openingHours.isNotEmpty || _isOwner) ...[
