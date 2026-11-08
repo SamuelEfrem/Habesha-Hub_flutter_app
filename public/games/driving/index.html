@@ -229,7 +229,9 @@ function bodaMesh(){const g=new THREE.Group();
 
 /* ---------- world ---------- */
 let solids=[],SHOPSPOTS=[],PUMPS=[],LOT=null,scene,world,sky,sun,hemi,buildings=[],traffic=[],snow=null,ring=null,target=null,glows=[];
-const N=7,BLK=30,RD=12,CELL=BLK+RD,HALF=N*CELL/2;
+const N=7,BLK=60,RD=12,CELL=BLK+RD,HALF=N*CELL/2;
+// building spots in a block: 3 along each side (corners 14 m from the crossing), the middle is a small park
+const OFF=BLK/2-8,BPOS=[];for(const a of[-OFF,0,OFF])for(const b of[-OFF,0,OFF])if(a||b)BPOS.push([a,b]);
 const roadPos=i=>-HALF+i*CELL+RD/2;
 
 function landmark(kind){const g=new THREE.Group();world.add(g);
@@ -282,7 +284,7 @@ function shopMat(k){shopMats=shopMats||{};if(shopMats[k])return shopMats[k];cons
   g.fillStyle=c;g.fillRect(0,0,512,64);g.fillStyle="#fff";g.font="700 42px Arial,Helvetica,sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText(n,256,34);
   const t=new THREE.CanvasTexture(cv);t.encoding=THREE.sRGBEncoding;return shopMats[k]=new THREE.MeshBasicMaterial({map:t})}
 // shop sign + awning on the two street sides of a building
-function shopFront(x,z,ox,oz){[[Math.sign(ox),0],[0,Math.sign(oz)]].forEach(([sx,sz])=>{if(Math.random()>.6)return;
+function shopFront(x,z,ox,oz){[[Math.sign(ox),0],[0,Math.sign(oz)]].filter(([a,b])=>a||b).forEach(([sx,sz])=>{if(Math.random()>.6)return;
   const k=Math.floor(Math.random()*SHOPS.length),m=new THREE.Mesh(new THREE.PlaneGeometry(9.4,1.15),shopMat(k));
   m.position.set(x+sx*5.56,3.7,z+sz*5.56);m.rotation.y=sx?(sx>0?Math.PI/2:-Math.PI/2):(sz>0?0:Math.PI);world.add(m);
   box(sx?1.2:9.4,.12,sx?9.4:1.2,STD(0xe8e2d6),x+sx*6.1,3,z+sz*6.1);
@@ -314,7 +316,7 @@ function petrolStation(cx,cz){const steel=STD(0xd8dde2,{metalness:.4,roughness:.
 function carPark(cx,cz){box(BLK-1,.04,BLK-1,STD(0x47494d,{roughness:.95}),cx,.27,cz);const line=new THREE.MeshBasicMaterial({color:0xffffff});
   [-1,1].forEach(side=>{for(let n=-4;n<=4;n++){const l=new THREE.Mesh(new THREE.PlaneGeometry(.14,6),line);l.rotation.x=-Math.PI/2;l.position.set(cx+n*3,.3,cz+side*9.5);world.add(l)}
     for(let n=-4;n<4;n++){if((n+side*3+9)%3===0)continue;const c=carMesh([0xd9dde2,0x23272e,0x8b1e1e,0x9aa5ad,0x2a5bd7][(n+9)%5],false);c.position.set(cx+n*3+1.5,.27,cz+side*9.5);c.rotation.y=side>0?0:Math.PI;world.add(c);buildings.push({x:cx+n*3+1.5,z:cz+side*9.5,w:1.8,d:4.4})}});
-  placeSign("parking",cx-13,cz-13,Math.PI*.75,3)}
+  placeSign("parking",cx-(BLK/2-2),cz-(BLK/2-2),Math.PI*.75,3)}
 function specialBlock(bi,bj,cx,cz){if(bi===PETROL[0]&&bj===PETROL[1]){petrolStation(cx,cz);return true}if(bi===CARPARK[0]&&bj===CARPARK[1]){carPark(cx,cz);return true}return false}
 function roundabout(x,z){const curb=new THREE.Mesh(new THREE.CylinderGeometry(2.3,2.45,.3,28),STD(0xc9c6bf,{roughness:.9}));curb.position.set(x,.17,z);curb.receiveShadow=true;world.add(curb);
   const grass=new THREE.Mesh(new THREE.CylinderGeometry(2.1,2.1,.1,28),STD(0x5f8a3f,{roughness:1}));grass.position.set(x,.34,z);world.add(grass);tree(x,z,false);
@@ -354,7 +356,8 @@ function cityDetails(){
 /* ---------- traffic and people: everyone follows the same streets, lights and priority rules ---------- */
 const STEP=[[0,-1],[1,0],[0,1],[-1,0]];      // N E S W
 let agents=[],walkers=[],lightNodes=new Set(),extraLights=[];
-const trafficSize=MOBILE?{cars:7,taxis:2,trucks:1,buses:2,trams:2,bikes:2,walk:8}:{cars:11,taxis:3,trucks:2,buses:2,trams:2,bikes:3,walk:14};
+// the city is bigger now (60 m blocks): a bit more traffic so the streets do not look empty
+const trafficSize=MOBILE?{cars:10,taxis:3,trucks:1,buses:2,trams:2,bikes:3,walk:12}:{cars:15,taxis:4,trucks:2,buses:2,trams:2,bikes:3,walk:14};
 // one light per crossing; the two directions take turns (24 s round)
 function axisState(i,j,vertical,now){const t=(now/1000+(vertical?0:12)+i*5+j*3)%24;return t<9?"green":t<11?"yellow":t<22?"red":"redyellow"}
 const shown=new THREE.Vector3();
@@ -508,7 +511,10 @@ function build(key){
     [[-1,-1],[1,1]].forEach(([sx,sz])=>lamp(cx+sx*(BLK/2-.6),cz+sz*(BLK/2-.6),sx>0?Math.PI*.75:-Math.PI*.25,C.night));
     if(bi===3&&bj===3){landmark(C.landmark).position.set(cx,.25,cz);buildings.push({x:cx,z:cz,w:BLK-2,d:BLK-2});continue}
     if(key==="lesson"&&specialBlock(bi,bj,cx,cz))continue;
-    for(const[ox,oz]of[[-7,-7],[7,-7],[-7,7],[7,7]]){
+    // a small park in the middle of the block
+    {const gm=new THREE.Mesh(new THREE.BoxGeometry(BLK-30,.3,BLK-30),STD(C.snow?0xeef2f5:0x5f8a3f,{roughness:1}));gm.position.set(cx,.3,cz);gm.receiveShadow=true;world.add(gm);
+     if(!C.snow&&Math.random()<.7)tree(cx+(Math.random()-.5)*8,cz+(Math.random()-.5)*8,C.palms)}
+    for(const[ox,oz]of BPOS){
       if(key==="lesson"&&LOT&&LOT.bi===bi&&LOT.bj===bj&&LOT.ox===ox&&LOT.oz===oz)continue;
       if(Math.random()<C.trees){tree(cx+ox,cz+oz,C.palms);continue}
       const h=Math.round((C.hmin+Math.random()*(C.hmax-C.hmin)*(Math.random()<.15?1.6:1))/3)*3;
@@ -810,9 +816,10 @@ window.habeshaUnlock=k=>{if(k==="theory_pro"&&!PRO){PRO=true;if(!L||!L.on)drawMe
 let NODES=[],SEGS=[];
 function makeRoute(){for(let n=0;n<40;n++){makeRoute1();if(LOT)return}}
 // the quadrant on the right side just before the last crossing becomes the car park
+const nq=v=>Math.abs(v)<OFF/2?0:(v>0?OFF:-OFF);
 function planLot(){LOT=null;const[ax,az]=NODES[NODES.length-2],[bx,bz]=NODES[NODES.length-1],A={x:roadPos(ax),z:roadPos(az)},B={x:roadPos(bx),z:roadPos(bz)},Ln=Math.hypot(B.x-A.x,B.z-A.z);if(Ln<40)return;
   const d={x:(B.x-A.x)/Ln,z:(B.z-A.z)/Ln},r={x:-d.z,z:d.x},at=(sv,l)=>({x:B.x-d.x*sv+r.x*l,z:B.z-d.z*sv+r.z*l});
-  const quad=q=>{const bi=Math.floor((q.x-roadPos(0))/CELL),bj=Math.floor((q.z-roadPos(0))/CELL);if(bi<0||bj<0||bi>=N||bj>=N)return null;const cx=roadPos(bi)+CELL/2,cz=roadPos(bj)+CELL/2;return{bi,bj,ox:q.x>cx?7:-7,oz:q.z>cz?7:-7,cx,cz}};
+  const quad=q=>{const bi=Math.floor((q.x-roadPos(0))/CELL),bj=Math.floor((q.z-roadPos(0))/CELL);if(bi<0||bj<0||bi>=N||bj>=N)return null;const cx=roadPos(bi)+CELL/2,cz=roadPos(bj)+CELL/2;return{bi,bj,ox:nq(q.x-cx),oz:nq(q.z-cz),cx,cz}};
   const c=at(14,14),Q=quad(c),Q2=quad(at(28,14));if(!Q||!Q2)return;
   if((Q.bi===3&&Q.bj===3)||(Q.bi===PETROL[0]&&Q.bj===PETROL[1])||(Q.bi===CARPARK[0]&&Q.bj===CARPARK[1]))return;
   const X=Q.cx+Q.ox,Z=Q.cz+Q.oz,ext=3;LOT={bi:Q.bi,bj:Q.bj,ox:Q.ox,oz:Q.oz,x:X-r.x*ext/2,z:Z-r.z*ext/2,hx:5.5+(Math.abs(r.x)>.5?ext/2:0),hz:5.5+(Math.abs(r.z)>.5?ext/2:0),
@@ -820,7 +827,8 @@ function planLot(){LOT=null;const[ax,az]=NODES[NODES.length-2],[bx,bz]=NODES[NOD
 function makeRoute1(){
   const DIRS=[[0,-1],[1,0],[0,1],[-1,0]];let x=1+Math.floor(Math.random()*(N-1)),z=N,d=0;
   NODES=[[x,N-.3]];
-  const legs=5+Math.floor(Math.random()*3);
+  // driving test: a longer drive; missions stay short trips
+  const legs=MIS?4+Math.floor(Math.random()*2):7+Math.floor(Math.random()*3);
   for(let k=0;k<legs;k++){
     // straight, right or left only: never back down the same street
     let opts=k===0?[0]:Math.random()<.25?[0,1,3]:Math.random()<.5?[1,3,0]:[3,1,0];let moved=false;
