@@ -165,9 +165,9 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="bar"><button class="back" data-back>←</button><h2 data-t="genna"></h2></div>
       <div class="game">
-        <p class="about" data-t="gennaAbout"></p>
         <div class="score"><span><span data-t="you"></span> <span id="gnY">0</span></span><span><span data-t="computer"></span> <span id="gnC">0</span></span></div>
         <div class="gwrap"><canvas id="gc" width="360" height="520" aria-label="Genna field"></canvas><button class="btn gstart" id="gnStart" data-t="start"></button></div>
+        <p class="about" data-t="gennaAbout"></p>
       </div>
     </div>
   </section>
@@ -268,7 +268,12 @@ function renderHome(){
 let cur=null;
 function show(id){["home","board","genna","hinq"].forEach(s=>$(s).hidden=s!==id);window.scrollTo(0,0)}
 $("homeGrid").onclick=e=>{const b=e.target.closest("[data-g]");if(!b)return;cur=b.dataset.g;
-  if(GAMES[cur]){show("board");const m=GAMES_META.find(x=>x.id===cur);$("bTitle").textContent=T(m.id);showModes()}else show(cur)};
+  if(GAMES[cur]){show("board");const m=GAMES_META.find(x=>x.id===cur);$("bTitle").textContent=T(m.id);showModes()}else{show(cur);if(cur==="genna")gnFit()}};
+// Genna: the whole field with both goals must fit on the screen, on every phone
+function gnFit(){if($("genna").hidden)return;const wrap=gc.parentElement;gc.style.width="";gc.style.height="";
+  const top=gc.getBoundingClientRect().top+window.scrollY,maxH=window.innerHeight-top-14,maxW=wrap.clientWidth;
+  const h=Math.max(240,Math.min(maxH,maxW*520/360));gc.style.height=h+"px";gc.style.width=(h*360/520)+"px"}
+window.addEventListener("resize",()=>gnFit());
 document.querySelectorAll("[data-back]").forEach(b=>b.onclick=()=>{leaveMatch();cur=null;show("home");GN.on=false});
 
 /* ================= NETWORK (Claude room capability or the app's Firebase) ================= */
