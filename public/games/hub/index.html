@@ -214,7 +214,7 @@ const TX={
  fidel:["Fidel for kids","ፊደል ንቖልዑ","ፊደል ለልጆች"],tagFidel:["kids learn to read","ቈልዑ ንባብ ይመሃሩ","ልጆች ማንበብ ይማራሉ"],dama:["Dama","ዳማ","ዳማ"],genna:["Genna","ገና","ገና"],hinq:["Riddles","ሕንቅልሕንቅሊተይ","እንቆቅልሽ"],
  tagDrive:["Practical driving test · traffic rules · voice","ፈተና ምዝዋር · ሕግታት ትራፊክ · ድምጺ መምህር","የመንጃ ተግባር ፈተና · የትራፊክ ሕግ · የአስተማሪ ድምፅ"],
  keberoAbout:["Tap the drum when the ring closes on it, like at a wedding.","ከም ኣብ መርዓ፡ ቀለበት ምስ በጽሐ ከበሮ ውቕዕ።","እንደ ሰርግ፣ ቀለበቱ ሲደርስ ከበሮውን ምታ።"],
- ruleDama:["Simple rules: pieces move forward diagonally, jump to capture, and become king at the far side. Pieces capture only forwards, also several in a row. Only a king moves backwards. A king captures only kings, a normal piece only normal pieces. If you can capture, you must. Rules differ between villages.","ቀሊል ሕጊ፦ ጠጠራት ብሰያፍ ንቕድሚት ይኸዱ፡ ብምዝላል ይበልዑ፡ መወዳእታ ምስ በጽሑ ንጉስ ይኾኑ። ንቕድሚት ጥራይ ይበልዑ፡ ብተኸታታሊ እውን። ንድሕሪት ዝኸይድ ንጉስ ጥራይ እዩ። ክትበልዕ እንተ ኽኢልካ ግድን ክትበልዕ ኣለካ። ንጉስ ንንጉስ ጥራይ ይበልዕ፡ ተራ ጠጠር ንተራ ጠጠር ጥራይ።","ቀላል ህግ፦ ጠጠሮች በሰያፍ ወደ ፊት ይሄዳሉ፣ በመዝለል ይበላሉ፣ መጨረሻ ሲደርሱ ንጉሥ ይሆናሉ። ወደ ፊት ብቻ ይበላሉ፣ በተከታታይም። ወደ ኋላ የሚሄደው ንጉሥ ብቻ ነው። መብላት ከቻልክ ግዴታ መብላት አለብህ። ንጉሥ የሚበላው ንጉሥን ብቻ ነው፣ ተራ ጠጠር ተራ ጠጠርን ብቻ።"],
+ ruleDama:["Simple rules: pieces move forward diagonally, jump to capture, and become king at the far side. Pieces capture only forwards, also several in a row. Only a king moves backwards. A king captures forwards and backwards, both kings and normal pieces. A normal piece captures only normal pieces. If you can capture, you must. Rules differ between villages.","ቀሊል ሕጊ፦ ጠጠራት ብሰያፍ ንቕድሚት ይኸዱ፡ ብምዝላል ይበልዑ፡ መወዳእታ ምስ በጽሑ ንጉስ ይኾኑ። ንቕድሚት ጥራይ ይበልዑ፡ ብተኸታታሊ እውን። ንድሕሪት ዝኸይድ ንጉስ ጥራይ እዩ። ክትበልዕ እንተ ኽኢልካ ግድን ክትበልዕ ኣለካ። ንጉስ ንቕድሚትን ንድሕሪትን ይበልዕ፡ ንጉስን ተራ ጠጠርን። ተራ ጠጠር ንተራ ጠጠር ጥራይ ይበልዕ።","ቀላል ህግ፦ ጠጠሮች በሰያፍ ወደ ፊት ይሄዳሉ፣ በመዝለል ይበላሉ፣ መጨረሻ ሲደርሱ ንጉሥ ይሆናሉ። ወደ ፊት ብቻ ይበላሉ፣ በተከታታይም። ወደ ኋላ የሚሄደው ንጉሥ ብቻ ነው። መብላት ከቻልክ ግዴታ መብላት አለብህ። ንጉሥ ወደ ፊትም ወደ ኋላም ይበላል፣ ንጉሥንም ተራ ጠጠርንም። ተራ ጠጠር የሚበላው ተራ ጠጠርን ብቻ ነው።"],
 };
 const LI={en:0,ti:1,am:2};
 let lang=(QS.get("lang")||"").slice(0,2);
@@ -327,11 +327,11 @@ const DAMA={rule:"ruleDama",
  init(first){const b=Array(64).fill("");for(let i=0;i<64;i++){const r=i>>3,c=i&7;if((r+c)%2===1){if(r<2)b[i]="b";else if(r>5)b[i]="a"}}DSEL=-1;DAMA._lk=undefined;damaTing.n=24;return{b,turn:first||0,chain:-1,winner:null,last:null}},
  own(p){return p?(p.toLowerCase()==="a"?0:1):-1},
  moves(st,i,onlyJ){const p=st.b[i];if(!p)return[];const o=DAMA.own(p),king=p!==p.toLowerCase(),r=i>>3,c=i&7;
-  // a man moves and captures only forward; only a king goes backwards. A king captures only kings, a man only men
+  // a man moves and captures only forward; only a king goes backwards. A king captures everything in every direction, a man only men
   const fwd=o===0?-1:1,dirs=[[1,1],[1,-1],[-1,1],[-1,-1]];const out=[];
   dirs.forEach(([dr,dc])=>{const step=king||dr===fwd;const r1=r+dr,c1=c+dc,r2=r+2*dr,c2=c+2*dc,in1=r1>=0&&r1<8&&c1>=0&&c1<8,in2=r2>=0&&r2<8&&c2>=0&&c2<8;
    if(step&&in1&&!st.b[r1*8+c1]&&!onlyJ)out.push({from:i,to:r1*8+c1});
-   const vic=in1?st.b[r1*8+c1]:"";if(step&&in1&&in2&&vic&&DAMA.own(vic)!==o&&(king?vic!==vic.toLowerCase():vic===vic.toLowerCase())&&!st.b[r2*8+c2])out.push({from:i,to:r2*8+c2,cap:r1*8+c1})});return out},
+   const vic=in1?st.b[r1*8+c1]:"";if(step&&in1&&in2&&vic&&DAMA.own(vic)!==o&&(king||vic===vic.toLowerCase())&&!st.b[r2*8+c2])out.push({from:i,to:r2*8+c2,cap:r1*8+c1})});return out},
  all(st,seat){if(st.chain>=0)return DAMA.moves(st,st.chain,true);const ms=[];for(let i=0;i<64;i++)if(DAMA.own(st.b[i])===seat)ms.push(...DAMA.moves(st,i,false));
   // if a capture is possible you must capture (you choose which one)
   const caps=ms.filter(m=>m.cap!=null);return caps.length?caps:ms},

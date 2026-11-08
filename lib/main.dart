@@ -33,7 +33,19 @@ void main() async {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     // Crash reports (not while developing on the PC)
     await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    FlutterError.onError = (details) {
+      // A picture that could not load (no or weak internet) is not a crash: the app shows a
+      // placeholder and keeps running. Report it as non-fatal so the real crashes stand out.
+      final e = '${details.exception.runtimeType} ${details.exception}';
+      final network = details.library == 'image resource service' ||
+          RegExp(r'ClientException|SocketException|HttpException|HandshakeException|Failed host lookup|Connection (closed|reset|refused)')
+              .hasMatch(e);
+      if (network) {
+        FirebaseCrashlytics.instance.recordFlutterError(details);
+      } else {
+        FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+      }
+    };
     PlatformDispatcher.instance.onError = (error, stack) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;

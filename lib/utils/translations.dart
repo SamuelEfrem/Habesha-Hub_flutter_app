@@ -567,6 +567,8 @@ class AppTranslations {
     'Press Games on the home screen.': {'Tigrinya': 'ኣብ ቀንዲ ገጽ ጸወታታት ጠውቕ።', 'Amharic': 'በዋናው ገጽ ጨዋታዎችን ይጫኑ።'},
     'Habesha Games: Dama, Genna, racing and riddles – against the phone, a friend or online.': {'Tigrinya': 'ጸወታታት ሓበሻ፦ ዳማ፡ ገና፡ ውድድር መኪናን ሕንቅልሕንቅሊተይን – ምስ ተሌፎን፡ ምስ ዓርኪ ወይ ኦንላይን።', 'Amharic': 'የሐበሻ ጨዋታዎች፦ ዳማ፣ ገና፣ የመኪና ውድድርና እንቆቅልሽ – ከስልክ፣ ከጓደኛ ወይም በኦንላይን።'},
     'Life Tools: driving theory class B in Tigrinya. 20 questions are free.': {'Tigrinya': 'ሓገዝ ሂወት፦ ቲዮሪ መንጃ ክፍሊ B ብትግርኛ። 20 ሕቶታት ብነጻ እዮም።', 'Amharic': 'የሕይወት መሳሪያዎች፦ የመንጃ ቲዎሪ ክፍል B በትግርኛ። 20 ጥያቄዎች በነጻ ናቸው።'},
+    'Life Tools: driving theory class B in Tigrinya. All 500 questions and the exam are free.': {'Tigrinya': 'ሓገዝ ሂወት፦ ቲዮሪ መንጃ ፍቓድ ክፍሊ B ብትግርኛ። ኩሎም 500 ሕቶታትን ፈተናን ብነጻ እዮም።', 'Amharic': 'የሕይወት መሳሪያዎች፦ የመንጃ ፈቃድ ክፍል B ቲዎሪ በትግርኛ። ሁሉም 500 ጥያቄዎችና ፈተናው ነጻ ናቸው።'},
+    'The practical driving test in 3D is opened with a code. The code works for your phone number after an SMS check.': {'Tigrinya': 'ፈተና ምዝዋር ብ3D ብኮድ ይኽፈት። እቲ ኮድ ድሕሪ ናይ SMS ምርግጋጽ ንቑጽሪ ተሌፎንካ ይሰርሕ።', 'Amharic': 'የ3D ተግባራዊ የመንዳት ፈተና በኮድ ይከፈታል። ኮዱ ከSMS ማረጋገጫ በኋላ ለስልክ ቁጥርዎ ይሰራል።'},
     'The full course is opened with a code you get on WhatsApp. The code works for your phone number after an SMS check.': {'Tigrinya': 'ምሉእ ኮርስ ብዋትስኣፕ ብእትረኽቦ ኮድ ይኽፈት። እቲ ኮድ ድሕሪ ናይ SMS ምርግጋጽ ንቑጽሪ ተሌፎንካ ይሰርሕ።', 'Amharic': 'ሙሉው ኮርስ በዋትስአፕ በሚያገኙት ኮድ ይከፈታል። ኮዱ ከSMS ማረጋገጫ በኋላ ለስልክ ቁጥርዎ ይሰራል።'},
     'Press Send money and choose the country.': {'Tigrinya': 'ገንዘብ ስደድ ጠውቕ እሞ ሃገር ምረጽ።', 'Amharic': 'ገንዘብ ይላኩ የሚለውን ይጫኑና ሀገር ይምረጡ።'},
     'You see trusted partners. You send the money in their app or office.': {'Tigrinya': 'እሙናት መሻርኽቲ ትርኢ። ገንዘብ ብኣፖም ወይ ብቤት ጽሕፈቶም ትሰድድ።', 'Amharic': 'የታመኑ አጋሮችን ያያሉ። ገንዘቡን በአፓቸው ወይም በቢሯቸው ይልካሉ።'},

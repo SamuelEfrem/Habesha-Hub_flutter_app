@@ -23,6 +23,7 @@ import 'events_screens.dart';
 import 'cross_links.dart';
 import 'hair_beauty.dart';
 import '../services/update_check.dart';
+import '../services/review_prompt.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -94,6 +95,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     WidgetsBinding.instance.addPostFrameCallback((_) => _searchNearby());
     // a few seconds later: is there a newer version in the store?
     Future.delayed(const Duration(seconds: 4), () { if (mounted) checkForUpdate(context); });
+    // later in the visit: maybe ask regular users for a store rating
+    Future.delayed(const Duration(seconds: 40), () { if (mounted) maybeAskForReview(); });
   }
 
   bool _askedThisStart = false;   // "Not now" → don't ask again until next start

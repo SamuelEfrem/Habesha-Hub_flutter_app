@@ -69,8 +69,8 @@ class UserGuideScreen extends StatelessWidget {
         (Icons.sports_esports_outlined, 'Games and driving theory', () => kTintGreen, () => kInkGreen, [
           'Press Games on the home screen.',
           'Habesha Games: Dama, Genna, racing and riddles – against the phone, a friend or online.',
-          'Life Tools: driving theory class B in Tigrinya. 20 questions are free.',
-          'The full course is opened with a code you get on WhatsApp. The code works for your phone number after an SMS check.',
+          'Life Tools: driving theory class B in Tigrinya. All 500 questions and the exam are free.',
+          'The practical driving test in 3D is opened with a code. The code works for your phone number after an SMS check.',
         ]),
         (Icons.send_outlined, 'Send money home', () => kTintRed, () => kInkRed, [
           'Press Send money and choose the country.',

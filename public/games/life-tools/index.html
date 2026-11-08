@@ -111,6 +111,7 @@ h2{font-size:1.15rem;margin:0}
 .guides .body p{margin:6px 0}
 .guides a.link{display:inline-block;margin-top:6px;font-weight:800;color:var(--accent);text-decoration:none}
 .qopts{display:grid;gap:8px;margin:12px 0}.qo{text-align:left;padding:12px 14px;border-radius:14px;border:2px solid transparent;background:rgba(255,255,255,.08);color:inherit;font:inherit;cursor:pointer}.qo.ok{border-color:#4FC48A;background:rgba(79,196,138,.18)}.qo.no{border-color:#F27A63;background:rgba(242,122,99,.15)}
+.ctry{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 4px}.ctry button{flex:1;min-width:0;padding:9px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}.ctry button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}.ctry.sm button{padding:6px 8px;font-size:.92em}.ctry:not(.sm){display:grid;grid-template-columns:1fr 1fr}.ctry button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:14px}
 </style>
 
 <style>
@@ -449,7 +450,7 @@ drawNew();
    The app also passes products the user already owns in the URL: ?pro=theory_pro,lang_pro */
 const PRICE={theory_pro:"49 kr",lang_pro:"49 kr"};
 const ownedFromUrl=(QS.get("pro")||"").split(",").map(s=>s.trim()).filter(Boolean);
-function isPro(k){if(ownedFromUrl.includes(k))return true;if(k==="theory_pro")return false;try{return localStorage.getItem("pro_"+k)==="1"}catch(e){return false}}
+function isPro(k){if(k==="lang_pro")return true;/* free since 2026-11 */if(ownedFromUrl.includes(k))return true;if(k==="theory_pro")return false;try{return localStorage.getItem("pro_"+k)==="1"}catch(e){return false}}
 window.habeshaUnlock=function(k){if(k!=="theory_pro"){try{localStorage.setItem("pro_"+k,"1")}catch(e){}}if(!ownedFromUrl.includes(k))ownedFromUrl.push(k);closeUnlock();drawTheoryHome();drawLang()};
 function buyOld(k,msgEl){
   if(window.HabeshaApp&&typeof HabeshaApp.postMessage==="function"){HabeshaApp.postMessage(JSON.stringify({type:"buy",product:k}));return}
@@ -463,7 +464,7 @@ function buy(k){openUnlock(k)}
 function openUnlock(k){closeUnlock();const d=document.createElement("div");d.id="unlockBox";
   d.innerHTML=`<div class="ub-in"><button class="ub-x" aria-label="close">✕</button>
    <h3>🔒 ኮድ የድልየካ · You need a code</h3>
-   <p class="muted">ኮድ ንምርካብ ብ WhatsApp (+47 973 74 482) "help" ጽሓፍልና።<br>To get a code, write "help" on WhatsApp (+47 973 74 482).</p>
+   <p class="muted">ኮድ ንምርካብ ብ WhatsApp "help" ጽሓፍልና ወይ ናብ support@habesha-hub.no ኢመይል ስደዱ።<br>To get a code, write "help" on WhatsApp or send an email to support@habesha-hub.no.</p>
    <a class="btn wa" id="ubWa" href="${waUrl(k)}" target="_blank" rel="noopener">💬 WhatsApp</a>
    <input id="ubCode" maxlength="24" placeholder="ኮድ · Code (e.g. HH7K!3P#9@)" autocomplete="one-time-code" autocapitalize="characters">
    <button class="btn" id="ubGo">ክፈት · Unlock</button>
@@ -481,36 +482,73 @@ window.habeshaRedeemResult=function(r){const m=$("ubMsg"),g=$("ubGo");if(g)g.dis
 window.habeshaAddQuestions=function(list){if(!Array.isArray(list))return;
   const have=new Set(ALLQ.map(x=>x.q));
   list.forEach(x=>{if(x&&x.q&&!have.has(x.q)){ALLQ.push({q:x.q,o:x.o,c:x.c,ex:x.ex,cat:"rule",free:true});have.add(x.q)}});
-  if(!ownedFromUrl.includes("theory_pro"))ownedFromUrl.push("theory_pro");closeUnlock();if(!run)drawTheoryHome()};
+  if(!run)drawTheoryHome()};
+// All theory is free (2026-11): the extra questions come from a file next to this page
+fetch("theory_more.json").then(r=>r.ok?r.json():[]).then(l=>window.habeshaAddQuestions(l)).catch(()=>{});
 
 /* ---------- Theory test (Tigrinya only) ---------- */
 const RULES=[...Q,...Q2].map(x=>({q:x[0],o:x[1],c:x[2],ex:x[3],cat:"rule"}));
 const SIGNQ=buildSignQuestions();
 const ALLQ=[...RULES,...SIGNQ];
-RULES.forEach(x=>x.free=true);SIGNQ.filter((x,i)=>i%7===0).slice(0,20).forEach(x=>x.free=true);
+RULES.forEach(x=>x.free=true);SIGNQ.forEach(x=>x.free=true);
 const FREE_N=ALLQ.filter(x=>x.free).length;
 const PRO_TOTAL=PRO_RULES+SIGNQ.filter(x=>!x.free).length;
 let run=null;
-function pool(cat){const pro=isPro("theory_pro");return ALLQ.map((q,i)=>i).filter(i=>(pro||ALLQ[i].free)&&(!cat||ALLQ[i].cat===cat))}
-const examN=()=>isPro("theory_pro")?45:20, examMaxWrong=()=>isPro("theory_pro")?7:3;
+/* Country (Norway / Sweden) and question language for Sweden (ti / am / en) */
+const lsGet=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}}, lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+let CTRY=lsGet("th_ctry","no"), QL=lsGet("th_lang","ti"), RAW={}, SEQ=[];
+/* Countries besides Norway: questions in theory_<code>.json (en / ti / am) */
+const CTRIES={se:{f:"🇸🇪",n:"Sverige",exam:30,wrong:6,auth:"Transportstyrelsen / Trafikverket",
+   t:{ti:"ቲዮሪ መንጃ ፍቓድ ሽወደን (B)",am:"የስዊድን መንጃ ፈቃድ ቲዎሪ (B)",en:"Swedish driving theory (B)"}},
+ de:{f:"🇩🇪",n:"Deutschland",exam:30,wrong:5,auth:"StVO / TÜV / DEKRA",
+   t:{ti:"ቲዮሪ መንጃ ፍቓድ ጀርመን (B)",am:"የጀርመን መንጃ ፈቃድ ቲዎሪ (B)",en:"German driving theory (B)"}},
+ uk:{f:"🇬🇧",n:"UK",exam:35,wrong:5,auth:"The Highway Code / DVSA",
+   t:{ti:"ቲዮሪ መንጃ ፍቓድ ብሪጣንያ (B)",am:"የእንግሊዝ መንጃ ፈቃድ ቲዎሪ (B)",en:"UK driving theory (car)"}}};
+if(CTRY!=="no"&&!CTRIES[CTRY])CTRY="no";
+function buildSE(){const R=RAW[CTRY];if(!R){SEQ=[];return}SEQ=R.map(x=>{const o=Array.isArray(x.o)?x.o:(x.o[QL]||x.o.en);
+  // shuffle the options so the right answer is not always in the same place
+  const ord=o.map((_,i)=>i);for(let i=ord.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ord[i],ord[j]]=[ord[j],ord[i]]}
+  return {q:x.q[QL]||x.q.en,o:ord.map(i=>o[i]),c:ord.indexOf(x.c),ex:x.ex[QL]||x.ex.en,cat:"rule",free:true}})}
+function loadSE(){const k=CTRY;if(RAW[k]){buildSE();return}fetch("theory_"+k+".json").then(r=>r.ok?r.json():[]).then(l=>{RAW[k]=l;if(CTRY===k){buildSE();if(!run)drawTheoryHome()}}).catch(()=>{})}
+const CQ=()=>CTRY!=="no"?SEQ:ALLQ;
+const TL_={
+ ti:{qn:"ሕቶ {i} ካብ {n}",exam:"ፈተና",right:"ቅኑዕ",ok:"ቅኑዕ! ",no:"ጌጋ። ",quit:"ደው ኣብል",next:"ቀጻሊ",pass:"ሓሊፍካ! 🎉",fail:"ኣይሓለፍካን",wrong:"ጌጋ",allowed:"ክሳብ {n} ይፍቀድ",wrongs:"ዝተጋገኻዮም",good:"ጽቡቕ! ድሉው ኢኻ 🎉",more:"ዝያዳ ተለማመድ፡ ክትሓልፍ ኢኻ!",back:"ተመለስ"},
+ am:{qn:"ጥያቄ {i} ከ{n}",exam:"ፈተና",right:"ትክክል",ok:"ትክክል! ",no:"ስህተት። ",quit:"አቁም",next:"ቀጣይ",pass:"አልፈዋል! 🎉",fail:"አላለፉም",wrong:"ስህተት",allowed:"እስከ {n} ይፈቀዳል",wrongs:"የተሳሳቱት",good:"ጥሩ! ዝግጁ ነዎት 🎉",more:"ተጨማሪ ይለማመዱ፣ ያልፋሉ!",back:"ተመለስ"},
+ en:{qn:"Question {i} of {n}",exam:"Exam",right:"correct",ok:"Correct! ",no:"Wrong. ",quit:"Stop",next:"Next",pass:"You passed! 🎉",fail:"Not passed",wrong:"wrong",allowed:"up to {n} allowed",wrongs:"Your mistakes",good:"Great! You are ready 🎉",more:"Practise more, you will pass!",back:"Back"}};
+const TL=(k,v)=>{let t=(TL_[CTRY!=="no"?QL:"ti"]||TL_.ti)[k];for(const x in v||{})t=t.replace("{"+x+"}",v[x]);return t};
+const ctryBar=()=>`<div class="ctry">${[["no","🇳🇴 Norge"],...Object.entries(CTRIES).map(([k,c])=>[k,c.f+" "+c.n])].map(([k,n])=>`<button data-ctry="${k}" aria-pressed="${CTRY===k}">${n}</button>`).join("")}</div>`;
+function drawSEHome(){$("qhead").hidden=true;$("qprog").hidden=true;loadSE();const C=CTRIES[CTRY];
+ const H={ti:{t:C.t.ti,n:"{n} ሕቶታት ብነጻ ✓",pr:"📘 ልምምድ ሕግታት",prs:"መልሲ ብቐጥታ ትርኢ",ex:"📝 ፈተና",exs:"{n} ሕቶታት፡ ክሳብ {w} ጌጋ ትሓልፍ",load:"ይጽዓን ኣሎ…",note:"ብወግዓዊ ሕግታት ትራፊክ ዝተዳለወ ልምምድ እዩ። ምስኡ ወግዓዊ ትሕዝቶ ("+C.auth+") እውን ኣንብብ።"},
+  am:{t:C.t.am,n:"{n} ጥያቄዎች በነጻ ✓",pr:"📘 የህግ ልምምድ",prs:"መልሱን ወዲያው ያያሉ",ex:"📝 ፈተና",exs:"{n} ጥያቄዎች፣ እስከ {w} ስህተት ያልፋሉ",load:"በመጫን ላይ…",note:"በኦፊሴላዊ የትራፊክ ህጎች ላይ የተመሰረተ ልምምድ ነው። ኦፊሴላዊውን ትምህርት ("+C.auth+") ያንብቡ።"},
+  en:{t:C.t.en,n:"{n} questions, free ✓",pr:"📘 Practise the rules",prs:"See the answer straight away",ex:"📝 Exam",exs:"{n} questions, pass with up to {w} mistakes",load:"Loading…",note:"Practice based on the official traffic rules. Also study the official material ("+C.auth+")."}}[QL]||{};
+ const langs=`<div class="ctry sm">${[["ti","ትግርኛ"],["am","አማርኛ"],["en","English"]].map(([k,n])=>`<button data-ql="${k}" aria-pressed="${QL===k}">${n}</button>`).join("")}</div>`;
+ $("qbody").innerHTML=ctryBar()+langs+`<h3 style="margin:6px 0 0">${C.f} ${H.t}</h3>`+(SEQ.length?`<p class="muted">${H.n.replace("{n}",SEQ.length)}</p>
+   <button class="btn" data-run="rule" style="text-align:left">${H.pr}<small>${SEQ.length} · ${H.prs}</small></button>
+   <button class="btn" data-run="exam" style="text-align:left">${H.ex}<small>${H.exs.replace("{n}",examN()).replace("{w}",examMaxWrong())}</small></button>
+   <p class="muted">${H.note}</p>`:`<p class="muted">${H.load}</p>`)}
+function pool(cat){const pro=isPro("theory_pro"),L=CQ();return L.map((q,i)=>i).filter(i=>(pro||L[i].free)&&(!cat||L[i].cat===cat))}
+const examN=()=>CTRY!=="no"?Math.min(CTRIES[CTRY].exam,SEQ.length):45, examMaxWrong=()=>CTRY!=="no"?CTRIES[CTRY].wrong:7;
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function drawTheoryHome(){if(run)return;const pro=isPro("theory_pro");
+function drawTheoryHome(){if(run)return;if(CTRY!=="no"){drawSEHome();return}const pro=isPro("theory_pro");
   $("qhead").hidden=true;$("qprog").hidden=true;
   const nr=pool("rule").length,ns=pool("sign").length;
-  $("qbody").innerHTML=`<p class="muted">${pro?`ኩሎም ${ALLQ.length} ሕቶታት ክፉታት እዮም ✓`:`${FREE_N} ናጻ ሕቶታት · ${PRO_TOTAL} ተወሳኺ ብኮድ`}</p>
+  $("qbody").innerHTML=ctryBar()+`<p class="muted">ኩሎም ${ALLQ.length} ሕቶታት ብነጻ ✓</p>
    <div class="signrow">${["give","stop","prio","speed50","noEntry","deer"].map(id=>signSVG(id,44)).join("")}</div>
    <button class="btn" data-run="rule" style="text-align:left">📘 ልምምድ ሕግታት<small>${nr} ሕቶታት፡ መልሲ ብቐጥታ ትርኢ</small></button>
    <button class="btn" data-run="sign" style="text-align:left">🚸 ልምምድ ምልክታት<small>${ns} ሕቶታት ብስእሊ ምልክታት</small></button>
    <button class="btn" data-run="exam" style="text-align:left">📝 ፈተና ከም ናይ ሓቂ<small>${examN()} ሕቶታት፡ ክሳብ ${examMaxWrong()} ጌጋ ትሓልፍ፡ ውጽኢት ኣብ መወዳእታ</small></button>
    <button class="btn ghost" data-run="gallery">📖 ኩሎም ምልክታት ተማሃር (${SIGNS.length})</button>
    ${pro?"":`<a class="btn" href="../driving/${location.search}" style="text-align:left;text-decoration:none;background:#1f7a4a">🚗 ናጻ ምዝዋር<small>ንኹሉ ብነጻ፡ ኣብ ዝደለኻዮ ዘውር</small></a>`}
-   ${pro?`<div class="probox"><b>✓ ምሉእ ኮርስ ክፉት እዩ</b><a class="btn" href="../driving/${location.search}" style="text-align:left;text-decoration:none;background:#1f7a4a">🚦 ፈተና ምዝዋር ብመኪና<small>ምስ መምህር ብድምጺ፡ GPS፡ ሕግታት ትራፊክ፡ ፓርክ</small></a></div>`
-    :`<div class="lock"><div><b>🔒 ምሉእ ኮርስ</b><ul class="locklist"><li>📘 ${PRO_TOTAL} ተወሳኺ ሕቶታት: ምልክታት፡ መብራህቲ፡ መስመራት ጽርግያ፡ ቀዳማይ ረድኤት፡ ኣውቶስትራዳ</li><li>🚦 ፈተና ምዝዋር ብመኪና ምስ መምህር ብድምጺ</li></ul></div><button class="btn" data-buy="theory_pro">🔓 ክፈት ብኮድ</button></div><p class="muted" id="buyMsg"></p>`}`}
+   ${pro?`<div class="probox"><b>✓ ፈተና ምዝዋር ክፉት እዩ</b><a class="btn" href="../driving/${location.search}" style="text-align:left;text-decoration:none;background:#1f7a4a">🚦 ፈተና ምዝዋር ብመኪና<small>ምስ መምህር ብድምጺ፡ GPS፡ ሕግታት ትራፊክ፡ ፓርክ</small></a></div>`
+    :`<div class="lock"><div><b>🔒 ፈተና ምዝዋር ብመኪና</b><ul class="locklist"><li>🚦 ምስ መምህር ብድምጺ፡ GPS፡ ሕግታት ትራፊክን ፓርክን</li></ul></div><button class="btn" data-buy="theory_pro">🔓 ክፈት ብኮድ</button></div><p class="muted" id="buyMsg"></p>`}`}
 // the driving test links straight to the right practice
+if(["sign","rule"].includes(QS.get("run"))){CTRY="no"}
 if(["sign","rule"].includes(QS.get("run")))setTimeout(()=>startRun(QS.get("run")),300);
 $("qbody").addEventListener("click",e=>{
   const r=e.target.closest("[data-run]");if(r){r.dataset.run==="gallery"?gallery():startRun(r.dataset.run);return}
-  const b=e.target.closest("[data-buy]");if(b){buy(b.dataset.buy,$("buyMsg"));return}});
+  const b=e.target.closest("[data-buy]");if(b){buy(b.dataset.buy,$("buyMsg"));return}
+  const c=e.target.closest("[data-ctry]");if(c){CTRY=c.dataset.ctry;lsSet("th_ctry",CTRY);buildSE();drawTheoryHome();return}
+  const l=e.target.closest("[data-ql]");if(l){QL=l.dataset.ql;lsSet("th_lang",QL);buildSE();drawTheoryHome();return}});
 function gallery(){run={mode:"gallery"};$("qhead").hidden=true;$("qprog").hidden=true;
   const groups=[["warn","ምልክታት ሓደጋ"],["prio","ምልክታት ቅድሚ"],["speed","ፍጥነት"],["prohib","ምልክታት ክልከላ"],["mand","ምልክታት ግዴታ"],["info","ምልክታት ሓበሬታ"],["light","መብራህቲ ትራፊክ"],["mark","መስመራት ጽርግያ"]];
   $("qbody").innerHTML=`<button class="btn ghost" id="gBack">← ተመለስ</button>`+groups.map(([g,n])=>`<h3 style="margin:6px 0 0">${n}</h3><div class="gallery">${SIGNS.filter(s=>s[4]===g).map(s=>`<div class="gitem">${signSVG(s[0],72)}<span>${esc(s[3])}</span></div>`).join("")}</div>`).join("");
@@ -520,26 +558,26 @@ const optHTML=(o,i)=>typeof o==="object"?`<button data-i="${i}" class="sopt">${s
 function showQ(){const n=run.order.length;
   if(run.i>=n){finish();return}
   $("qhead").hidden=false;$("qprog").hidden=false;
-  const q=ALLQ[run.order[run.i]];run.answered=false;const signOpts=typeof q.o[0]==="object";
-  $("qn").textContent=`ሕቶ ${run.i+1} ካብ ${n}`;$("qs").textContent=run.mode==="exam"?"ፈተና":`${run.score} ቅኑዕ`;
+  const q=CQ()[run.order[run.i]];run.answered=false;const signOpts=typeof q.o[0]==="object";
+  $("qn").textContent=TL("qn",{i:run.i+1,n});$("qs").textContent=run.mode==="exam"?TL("exam"):`${run.score} ${TL("right")}`;
   $("qp").style.width=(run.i/n*100)+"%";
   $("qbody").innerHTML=`${q.img?`<div class="qimg">${signSVG(q.img,130)}</div>`:""}<p class="q">${esc(q.q)}</p><div class="opts ${signOpts?"sgrid":""}" id="opts">${q.o.map(optHTML).join("")}</div>
-    <p class="explain" id="ex" hidden></p><div class="row2"><button class="btn ghost" id="quit">ደው ኣብል</button><button class="btn" id="next" hidden>ቀጻሊ</button></div>`;
+    <p class="explain" id="ex" hidden></p><div class="row2"><button class="btn ghost" id="quit">${TL("quit")}</button><button class="btn" id="next" hidden>${TL("next")}</button></div>`;
   $("opts").onclick=e=>{const b=e.target.closest("button");if(!b||run.answered)return;run.answered=true;const i=+b.dataset.i,ok=i===q.c;
     if(ok)run.score++;else run.wrong++;run.answers.push({q:run.order[run.i],i});
     if(run.mode!=="exam"){[...$("opts").children].forEach((x,k)=>x.classList.add(k===q.c?"ok":k===i?"no":"dim"));
-      $("ex").textContent=(ok?"ቅኑዕ! ":"ጌጋ። ")+q.ex;$("ex").hidden=false;$("qs").textContent=`${run.score} ቅኑዕ`;$("next").hidden=false}
+      $("ex").textContent=(ok?TL("ok"):TL("no"))+q.ex;$("ex").hidden=false;$("qs").textContent=`${run.score} ${TL("right")}`;$("next").hidden=false}
     else{b.classList.add("picked");setTimeout(()=>{run.i++;showQ()},250)}};
   $("next").onclick=()=>{run.i++;showQ()};
   $("quit").onclick=()=>{run=null;drawTheoryHome()}}
 function finish(){const n=run.order.length;$("qp").style.width="100%";$("qs").textContent="";$("qn").textContent="";
   let html;
   if(run.mode==="exam"){const pass=run.wrong<=examMaxWrong();
-    const wrongList=run.answers.filter(a=>a.i!==ALLQ[a.q].c).map(a=>{const q=ALLQ[a.q],right=q.o[q.c];
+    const wrongList=run.answers.filter(a=>a.i!==CQ()[a.q].c).map(a=>{const q=CQ()[a.q],right=q.o[q.c];
       return `<li>${q.img?signSVG(q.img,48):""}<b>${esc(q.q)}</b><br><span class="muted">✓ ${typeof right==="object"?signSVG(right.s,40):esc(right)} ${esc(q.ex)}</span></li>`}).join("");
-    html=`<div class="result"><b>${run.score}/${n}</b><p class="q">${pass?"ሓሊፍካ! 🎉":"ኣይሓለፍካን"} · ${run.wrong} ጌጋ (ክሳብ 7 ይፍቀድ)</p></div>${wrongList?`<h3 style="margin:0">ዝተጋገኻዮም</h3><ul class="wrongs">${wrongList}</ul>`:""}`}
-  else{html=`<div class="result"><b>${run.score}/${n}</b><p class="q">${run.score>=n*0.85?"ጽቡቕ! ድሉው ኢኻ 🎉":"ዝያዳ ተለማመድ፡ ክትሓልፍ ኢኻ!"}</p></div>`}
-  $("qbody").innerHTML=html+`<button class="btn" id="home2">ተመለስ</button>`;$("home2").onclick=()=>{run=null;drawTheoryHome()}}
+    html=`<div class="result"><b>${run.score}/${n}</b><p class="q">${pass?TL("pass"):TL("fail")} · ${run.wrong} ${TL("wrong")} (${TL("allowed",{n:examMaxWrong()})})</p></div>${wrongList?`<h3 style="margin:0">${TL("wrongs")}</h3><ul class="wrongs">${wrongList}</ul>`:""}`}
+  else{html=`<div class="result"><b>${run.score}/${n}</b><p class="q">${run.score>=n*0.85?TL("good"):TL("more")}</p></div>`}
+  $("qbody").innerHTML=html+`<button class="btn" id="home2">${TL("back")}</button>`;$("home2").onclick=()=>{run=null;drawTheoryHome()}}
 drawTheoryHome();
 
 /* ---------- Language learning ---------- */

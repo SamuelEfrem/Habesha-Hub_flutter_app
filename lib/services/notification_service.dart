@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -37,8 +38,12 @@ class NotificationService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
-    // Save FCM token to Firestore
-    await _saveToken();
+    // Save FCM token to Firestore. On iPhone this can fail in the first seconds (no APNs token
+    // yet); don't let that stop the rest of the setup, try again shortly.
+    // Runs in the background: on iPhone it may wait for the APNs token, the app must not wait.
+    _saveToken().catchError((_) {
+      Future.delayed(const Duration(seconds: 15), () => _saveToken().catchError((_) {}));
+    });
 
     // Listen for token refresh
     _messaging.onTokenRefresh.listen(_updateToken);
@@ -57,23 +62,57 @@ class NotificationService {
   static String? _currentTopic;
 
   /// Subscribe to the news topic for [language] and unsubscribe from the others.
-  static Future<void> syncNewsTopic(String language) async {
+  static Future<void> syncNewsTopic(String language, {int attempt = 0}) async {
     final topic = _topics[language] ?? 'news_en';
     if (topic == _currentTopic) return;
     try {
+      // iPhone: topics only work once Apple has given the app its push token (APNs),
+      // which can take a few seconds after start. Wait for it instead of failing silently.
+      if (Platform.isIOS) {
+        String? apns;
+        for (var i = 0; i < 10 && apns == null; i++) {
+          apns = await _messaging.getAPNSToken();
+          if (apns == null) await Future.delayed(const Duration(seconds: 2));
+        }
+        if (apns == null) throw StateError('no APNs token yet');
+      }
       for (final t in _topics.values) {
         if (t != topic) await _messaging.unsubscribeFromTopic(t);
       }
       await _messaging.subscribeToTopic(topic);
       _currentTopic = topic;
-    } catch (_) {}
+    } catch (_) {
+      // try again later (no internet, or no APNs token yet), a few times
+      if (attempt < 5) {
+        Future.delayed(Duration(minutes: 1 + attempt * 2),
+            () => syncNewsTopic(language, attempt: attempt + 1));
+      }
+    }
   }
 
   static Future<void> _saveToken() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+    // iPhone/iPad: getToken fails until Apple has given the push token (APNs); wait for it
+    if (Platform.isIOS) {
+      String? apns;
+      for (var i = 0; i < 10 && apns == null; i++) {
+        apns = await _messaging.getAPNSToken();
+        if (apns == null) await Future.delayed(const Duration(seconds: 2));
+      }
+      if (apns == null) {
+        // so admin can see why an iPhone gets no push (no personal data, only the state)
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
+            {'pushStatus': 'ios: no APNs token'}, SetOptions(merge: true));
+        return;
+      }
+    }
     final token = await _messaging.getToken();
     if (token == null) return;
+    final settings = await _messaging.getNotificationSettings();
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
+        {'pushStatus': '${Platform.isIOS ? 'ios' : 'android'}: ok, ${settings.authorizationStatus.name}'},
+        SetOptions(merge: true));
     await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
         {'fcmToken': token, 'fcmTokens': FieldValue.arrayUnion([token]), 'updatedAt': FieldValue.serverTimestamp()},
         SetOptions(merge: true));

@@ -1,0 +1,1300 @@
+[
+{
+"c": 2,
+"o": [
+"30 km/h",
+"40 km/h",
+"50 km/h",
+"60 km/h"
+],
+"q": {
+"en": "In Germany, what is the speed limit for cars inside a town (innerorts) when there is no sign?",
+"ti": "ኣብ ጀርመን ኣብ ውሽጢ ከተማ (innerorts) ምልክት እንተዘየለ ዝለዓለ ፍጥነት መኪና ክንደይ እዩ?",
+"am": "በጀርመን በከተማ ውስጥ (innerorts) ምልክት ከሌለ የመኪና ከፍተኛ ፍጥነት ስንት ነው?"
+},
+"ex": {
+"en": "Inside towns the limit is 50 km/h unless signs show otherwise.",
+"ti": "ኣብ ውሽጢ ከተማ 50 km/h እዩ፡ ምልክት ካልእ እንተዘየርኣየ።",
+"am": "በከተማ ውስጥ 50 km/h ነው፣ ምልክት ሌላ ካላሳየ።"
+}
+},
+{
+"c": 2,
+"o": [
+"70 km/h",
+"80 km/h",
+"100 km/h",
+"120 km/h"
+],
+"q": {
+"en": "What is the speed limit for cars outside towns (außerorts) on normal roads?",
+"ti": "ካብ ከተማ ወጻኢ (außerorts) ኣብ ልሙድ ጽርግያ ዝለዓለ ፍጥነት መኪና ክንደይ እዩ?",
+"am": "ከከተማ ውጭ (außerorts) በተለመደ መንገድ የመኪና ከፍተኛ ፍጥነት ስንት ነው?"
+},
+"ex": {
+"en": "Outside towns cars may drive at most 100 km/h on normal roads.",
+"ti": "ካብ ከተማ ወጻኢ ኣብ ልሙድ ጽርግያ መኪና ክሳብ 100 km/h።",
+"am": "ከከተማ ውጭ በተለመደ መንገድ መኪና እስከ 100 km/h።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"120 km/h is the strict limit",
+"There is no general limit, but 130 km/h is recommended",
+"100 km/h",
+"150 km/h"
+],
+"ti": [
+"120 km/h ጽኑዕ ደረት እዩ",
+"ሓፈሻዊ ደረት የለን፡ ግን 130 km/h ይምከር",
+"100 km/h",
+"150 km/h"
+],
+"am": [
+"120 km/h ጥብቅ ገደብ ነው",
+"አጠቃላይ ገደብ የለም፣ ግን 130 km/h ይመከራል",
+"100 km/h",
+"150 km/h"
+]
+},
+"q": {
+"en": "What is the rule for speed on the German Autobahn?",
+"ti": "ኣብ ጀርመን ኣውቶባን ሕጊ ፍጥነት እንታይ እዩ?",
+"am": "በጀርመን አውቶባን የፍጥነት ህጉ ምንድን ነው?"
+},
+"ex": {
+"en": "Where no sign shows a limit, there is no general limit, but the recommended speed (Richtgeschwindigkeit) is 130 km/h.",
+"ti": "ምልክት ደረት ኣብ ዘይብሉ፡ ሓፈሻዊ ደረት የለን፡ ግን ዝምከር ፍጥነት (Richtgeschwindigkeit) 130 km/h እዩ።",
+"am": "ገደብ ምልክት በሌለበት አጠቃላይ ገደብ የለም፣ ግን የሚመከረው ፍጥነት (Richtgeschwindigkeit) 130 km/h ነው።"
+}
+},
+{
+"c": 1,
+"o": [
+"60 km/h",
+"80 km/h",
+"100 km/h",
+"120 km/h"
+],
+"q": {
+"en": "How fast may a car with a trailer normally drive at most on the Autobahn?",
+"ti": "መኪና ምስ ተጎታቲት ኣብ ኣውቶባን ብልሙድ ብዝለዓለ ክንደይ ክትጎዓዝ ትኽእል?",
+"am": "መኪና ከተጎታች ጋር በአውቶባን በተለምዶ ቢበዛ ስንት መሄድ ይችላል?"
+},
+"ex": {
+"en": "80 km/h. With a special approval (Tempo 100) some combinations may drive 100 km/h.",
+"ti": "80 km/h። ብፍሉይ ፍቓድ (Tempo 100) ገሊኦም 100 km/h ይኽእሉ።",
+"am": "80 km/h። በልዩ ፈቃድ (Tempo 100) አንዳንዶቹ 100 km/h ይችላሉ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"40 km/h",
+"60 km/h",
+"80 km/h",
+"There is no rule"
+],
+"ti": [
+"40 km/h",
+"60 km/h",
+"80 km/h",
+"ሕጊ የለን"
+],
+"am": [
+"40 km/h",
+"60 km/h",
+"80 km/h",
+"ህግ የለም"
+]
+},
+"q": {
+"en": "Only vehicles that can drive faster than … may use the Autobahn.",
+"ti": "ካብ … ንላዕሊ ክጎዓዙ ዝኽእሉ ተሽከርካሪታት ጥራይ ኣብ ኣውቶባን ይፍቀዱ።",
+"am": "ከ… በላይ መሄድ የሚችሉ ተሽከርካሪዎች ብቻ አውቶባንን መጠቀም ይችላሉ።"
+},
+"ex": {
+"en": "The vehicle must be able to drive faster than 60 km/h.",
+"ti": "እቲ ተሽከርካሪ ካብ 60 km/h ንላዕሊ ክጎዓዝ ክኽእል ኣለዎ።",
+"am": "ተሽከርካሪው ከ60 km/h በላይ መሄድ መቻል አለበት።"
+}
+},
+{
+"c": 2,
+"o": [
+"0.0 ‰",
+"0.3 ‰",
+"0.5 ‰",
+"0.8 ‰"
+],
+"q": {
+"en": "For an experienced driver over 21, from what alcohol level is it always an offence?",
+"ti": "ልምዲ ዘለዎ ዘዋሪ ልዕሊ 21 ዓመት፡ ካብ ክንደይ ደረጃ ኣልኮል ኩሉ ግዜ ገበን ይኸውን?",
+"am": "ልምድ ያለው ከ21 በላይ የሆነ አሽከርካሪ ከስንት የአልኮል መጠን ጀምሮ ሁልጊዜ ጥፋት ይሆናል?"
+},
+"ex": {
+"en": "From 0.5 ‰ it is always an offence. From 0.3 ‰ it is already punishable if you drive unsafely.",
+"ti": "ካብ 0.5 ‰ ኩሉ ግዜ ገበን እዩ። ካብ 0.3 ‰ ብዘይ ጥንቃቐ እንተዘዊርካ እውን ይቕጻዕ።",
+"am": "ከ0.5 ‰ ሁልጊዜ ጥፋት ነው። ከ0.3 ‰ ጀምሮ ያለ ጥንቃቄ ከነዱም ያስቀጣል።"
+}
+},
+{
+"c": 0,
+"o": [
+"0.0 ‰",
+"0.2 ‰",
+"0.3 ‰",
+"0.5 ‰"
+],
+"q": {
+"en": "What alcohol limit applies to new drivers in the probation period and drivers under 21?",
+"ti": "ንሓደስቲ ዘወርቲ ኣብ ግዜ ፈተና (Probezeit) ከምኡ እውን ትሕቲ 21 ዓመት ዘለዉ ደረት ኣልኮል ክንደይ እዩ?",
+"am": "በሙከራ ጊዜ (Probezeit) ላሉ አዲስ አሽከርካሪዎችና ከ21 በታች ለሆኑ የአልኮል ገደቡ ስንት ነው?"
+},
+"ex": {
+"en": "For them alcohol is completely forbidden: 0.0 ‰.",
+"ti": "ንዓታቶም ኣልኮል ፈጺሙ ክልኩል እዩ፦ 0.0 ‰።",
+"am": "ለእነሱ አልኮል ሙሉ በሙሉ የተከለከለ ነው፦ 0.0 ‰።"
+}
+},
+{
+"c": 2,
+"o": {
+"en": [
+"6 months",
+"1 year",
+"2 years",
+"5 years"
+],
+"ti": [
+"6 ወርሒ",
+"1 ዓመት",
+"2 ዓመት",
+"5 ዓመት"
+],
+"am": [
+"6 ወር",
+"1 ዓመት",
+"2 ዓመት",
+"5 ዓመት"
+]
+},
+"q": {
+"en": "How long is the probation period (Probezeit) for a new licence in Germany?",
+"ti": "ኣብ ጀርመን ንሓድሽ መንጃ ፍቓድ ግዜ ፈተና (Probezeit) ክንደይ እዩ?",
+"am": "በጀርመን ለአዲስ ፈቃድ የሙከራ ጊዜ (Probezeit) ስንት ነው?"
+},
+"ex": {
+"en": "2 years. Serious offences make it 4 years and can mean an extra course.",
+"ti": "2 ዓመት። ከቢድ ጌጋ ናብ 4 ዓመት የናውሖ፡ ተወሳኺ ኮርስ ክሓትት ይኽእል።",
+"am": "2 ዓመት። ከባድ ጥፋት ወደ 4 ዓመት ያራዝመዋል፣ ተጨማሪ ኮርስም ሊያስፈልግ ይችላል።"
+}
+},
+{
+"c": 1,
+"o": [
+"16",
+"17",
+"18",
+"21"
+],
+"q": {
+"en": "From what age can you drive a car with a companion (Begleitetes Fahren, BF17)?",
+"ti": "ካብ ክንደይ ዕድመ ምስ መሰነይታ (Begleitetes Fahren, BF17) መኪና ክትዝውር ትኽእል?",
+"am": "ከስንት ዓመት ጀምሮ ከአጃቢ ጋር (Begleitetes Fahren, BF17) መኪና መንዳት ይችላሉ?"
+},
+"ex": {
+"en": "From 17 with a named companion. From 18 you may drive alone.",
+"ti": "ካብ 17 ምስ ዝተሰመየ መሰነይታ። ካብ 18 በይንኻ።",
+"am": "ከ17 ጀምሮ ከተሰየመ አጃቢ ጋር። ከ18 ጀምሮ ብቻዎን።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"The car from the left",
+"The car from the right",
+"The bigger vehicle",
+"The faster car"
+],
+"ti": [
+"እታ ካብ ጸጋም እትመጽእ",
+"እታ ካብ የማን እትመጽእ",
+"እቲ ዝዓበየ ተሽከርካሪ",
+"እታ ዝቐልጠፈት"
+],
+"am": [
+"ከግራ የሚመጣው",
+"ከቀኝ የሚመጣው",
+"ትልቁ ተሽከርካሪ",
+"ፈጣኑ መኪና"
+]
+},
+"q": {
+"en": "At an intersection without signs or lights, who goes first?",
+"ti": "ኣብ መስቀላ መገዲ ብዘይ ምልክት ወይ መብራህቲ መን ይቕድም?",
+"am": "ምልክት ወይም መብራት በሌለው መስቀለኛ መንገድ ማን ይቀድማል?"
+},
+"ex": {
+"en": "Rechts vor links: traffic from the right goes first.",
+"ti": "Rechts vor links፦ ካብ የማን ዝመጽእ ይቕድም።",
+"am": "Rechts vor links፦ ከቀኝ የሚመጣ ይቀድማል።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Drive on, you have priority",
+"Let pedestrians who want to cross go first",
+"Use the horn",
+"Only stop for children"
+],
+"ti": [
+"ቀጽል፡ ቅድሚ ናትካ",
+"ክሰግሩ ዝደልዩ ተጓዓዝቲ ብእግሪ ቅድሚ ሃብ",
+"ጡሩምባ ተጠቐም",
+"ንቆልዑ ጥራይ ደው በል"
+],
+"am": [
+"ይቀጥሉ፣ ቅድሚያ የእርስዎ",
+"ሊሻገሩ ለሚፈልጉ እግረኞች ቅድሚያ ይስጡ",
+"ጡሩምባ ይጠቀሙ",
+"ለልጆች ብቻ ይቁሙ"
+]
+},
+"q": {
+"en": "What must you do at a zebra crossing (Fußgängerüberweg)?",
+"ti": "ኣብ መሳገሪ ተጓዓዝቲ ብእግሪ (Zebrastreifen) እንታይ ክትገብር ኣለካ?",
+"am": "በእግረኛ መሻገሪያ (Zebrastreifen) ምን ማድረግ አለብዎት?"
+},
+"ex": {
+"en": "Let pedestrians who clearly want to cross go first. Approach slowly and do not overtake there.",
+"ti": "ክሰግሩ ዝደልዩ ቅድሚ ሃብ። ቀስ ኢልካ ቅረብ ኣብኡ ኣይትሕለፍ።",
+"am": "ሊሻገሩ ለሚፈልጉ ቅድሚያ ይስጡ። ቀስ ብለው ይቅረቡ እዚያ አይቅደሙ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"On the hard shoulder",
+"Between the far-left lane and the lane next to it",
+"In the middle of all lanes always",
+"No corridor is needed"
+],
+"ti": [
+"ኣብ ጎኒ ጽርግያ (Standstreifen)",
+"ኣብ መንጎ እቲ ጸጋማይ መስመርን እቲ ጥቓኡ ዘሎን",
+"ኩሉ ግዜ ኣብ ማእከል ኩሎም መስመራት",
+"ኮሪደር ኣየድልን"
+],
+"am": [
+"በመንገድ ዳር (Standstreifen)",
+"በግራው መስመርና ከጎኑ ባለው መስመር መካከል",
+"ሁልጊዜ በሁሉም መስመሮች መሃል",
+"ኮሪደር አያስፈልግም"
+]
+},
+"q": {
+"en": "Traffic on the Autobahn slows down to a queue. Where do you form the emergency corridor (Rettungsgasse)?",
+"ti": "ኣብ ኣውቶባን ትራፊክ ይዝሕል ሰልፊ ይኸውን። መንገዲ ሓደጋ (Rettungsgasse) ኣበይ ትገብሮ?",
+"am": "በአውቶባን ትራፊክ ቀንሶ ሰልፍ ይሆናል። የአደጋ መተላለፊያ (Rettungsgasse) የት ያደርጋሉ?"
+},
+"ex": {
+"en": "As soon as traffic slows down: the left lane moves left, all other lanes move right.",
+"ti": "ትራፊክ ክዝሕል ከሎ፦ ጸጋማይ መስመር ናብ ጸጋም፡ ኩሎም ካልኦት ናብ የማን።",
+"am": "ትራፊክ ሲቀንስ፦ የግራው መስመር ወደ ግራ፣ ሌሎቹ ሁሉ ወደ ቀኝ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"From 1 November to 31 March, always",
+"When there is snow, ice, slush or frost on the road",
+"Only in the mountains",
+"Never"
+],
+"ti": [
+"ካብ 1 ሕዳር ክሳብ 31 መጋቢት ኩሉ ግዜ",
+"በረድ፡ ጅላ፡ ጭቃ በረድ ወይ ዝሑል ኣብ ጽርግያ ምስ ዝህሉ",
+"ኣብ ጎቦታት ጥራይ",
+"ፈጺሙ"
+],
+"am": [
+"ከኅዳር 1 እስከ መጋቢት 31 ሁልጊዜ",
+"በመንገድ ላይ በረዶ፣ ግግር፣ የበረዶ ጭቃ ወይም ውርጭ ሲኖር",
+"በተራሮች ብቻ",
+"በጭራሽ"
+]
+},
+"q": {
+"en": "When must you have winter tyres in Germany?",
+"ti": "ኣብ ጀርመን መዓስ ጎማ ክረምቲ ግድን እዩ?",
+"am": "በጀርመን መቼ የክረምት ጎማ ግዴታ ነው?"
+},
+"ex": {
+"en": "There is no fixed date: in winter road conditions winter tyres are required. A rule of thumb is 'O bis O' (October to Easter).",
+"ti": "ዝተወሰነ ዕለት የለን፦ ኣብ ክረምታዊ ኩነታት ግድን እዩ። ልሙድ ምኽሪ 'O bis O' (ጥቅምቲ ክሳብ ፋሲካ)።",
+"am": "የተወሰነ ቀን የለም፦ በክረምት ሁኔታ ግዴታ ነው። የተለመደ ምክር 'O bis O' (ከጥቅምት እስከ ፋሲካ)።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Always at night",
+"Only when fog limits visibility to under 50 m",
+"When it rains",
+"In tunnels"
+],
+"ti": [
+"ኩሉ ግዜ ብለይቲ",
+"ግመ ምርኣይ ትሕቲ 50 ሜትሮ ምስ ዝገብሮ ጥራይ",
+"ዝናብ ምስ ዝዘንብ",
+"ኣብ ቱነል"
+],
+"am": [
+"ሁልጊዜ በሌሊት",
+"ጭጋግ እይታን ከ50 ሜትር በታች ሲያደርግ ብቻ",
+"ሲዘንብ",
+"በዋሻ ውስጥ"
+]
+},
+"q": {
+"en": "When may you switch on the rear fog light (Nebelschlussleuchte)?",
+"ti": "ድሕሪት መብራህቲ ግመ (Nebelschlussleuchte) መዓስ ከተብርሆ ትኽእል?",
+"am": "የኋላ የጭጋግ መብራት (Nebelschlussleuchte) መቼ ማብራት ይችላሉ?"
+},
+"ex": {
+"en": "Only when fog reduces visibility to under 50 m. Then you may drive at most 50 km/h.",
+"ti": "ግመ ምርኣይ ትሕቲ 50 ሜትሮ ምስ ዝገብሮ ጥራይ። ሽዑ ክሳብ 50 km/h ጥራይ።",
+"am": "ጭጋግ እይታን ከ50 ሜትር በታች ሲያደርግ ብቻ። ያኔ እስከ 50 km/h ብቻ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Always on the left lane",
+"As far right as possible (Rechtsfahrgebot)",
+"In the middle lane",
+"Wherever you like"
+],
+"ti": [
+"ኩሉ ግዜ ኣብ ጸጋማይ መስመር",
+"ብዝተኻእለ ናብ የማን (Rechtsfahrgebot)",
+"ኣብ ማእከላይ መስመር",
+"ኣብ ዝደለኻዮ"
+],
+"am": [
+"ሁልጊዜ በግራ መስመር",
+"በተቻለ መጠን በቀኝ (Rechtsfahrgebot)",
+"በመሃል መስመር",
+"በፈለጉት"
+]
+},
+"q": {
+"en": "Which lane should you normally use on the Autobahn?",
+"ti": "ኣብ ኣውቶባን ብልሙድ ኣየናይ መስመር ክትጥቀም ይግባእ?",
+"am": "በአውቶባን በተለምዶ የትኛውን መስመር መጠቀም አለብዎት?"
+},
+"ex": {
+"en": "Drive as far right as possible. The left lanes are for overtaking.",
+"ti": "ብዝተኻእለ ናብ የማን ዘውር። ጸጋማይ መስመራት ንምሕላፍ እዮም።",
+"am": "በተቻለ መጠን በቀኝ ይንዱ። የግራ መስመሮች ለመቅደም ናቸው።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Yes, if the left lane is slow",
+"No, overtaking on the right is forbidden",
+"Yes, always",
+"Only at night"
+],
+"ti": [
+"እወ፡ ጸጋማይ መስመር ዝሑል እንተኾይኑ",
+"ኣይፋል፡ ብየማን ምሕላፍ ክልኩል እዩ",
+"እወ፡ ኩሉ ግዜ",
+"ብለይቲ ጥራይ"
+],
+"am": [
+"አዎ፣ የግራው መስመር ቀርፋፋ ከሆነ",
+"አይ፣ በቀኝ መቅደም የተከለከለ ነው",
+"አዎ፣ ሁልጊዜ",
+"በሌሊት ብቻ"
+]
+},
+"q": {
+"en": "May you overtake on the right on the Autobahn?",
+"ti": "ኣብ ኣውቶባን ብየማን ክትሓልፍ ይፍቀድ ድዩ?",
+"am": "በአውቶባን በቀኝ መቅደም ይፈቀዳል?"
+},
+"ex": {
+"en": "No. Overtaking on the right is forbidden. Only in slow queues may the right lane be a bit faster.",
+"ti": "ኣይፋል። ብየማን ምሕላፍ ክልኩል እዩ። ኣብ ዝሑል ሰልፊ ጥራይ የማናይ መስመር ቁሩብ ክቐልጥፍ ይኽእል።",
+"am": "አይ። በቀኝ መቅደም የተከለከለ ነው። በቀርፋፋ ሰልፍ ብቻ የቀኝ መስመር ትንሽ ሊፈጥን ይችላል።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Merge as early as possible",
+"Drive to the end of the lane and take turns (zipper)",
+"Stop and wait",
+"The left lane always goes first"
+],
+"ti": [
+"ብዝተኻእለ ቀልጢፍካ ተሓወስ",
+"ክሳብ መወዳእታ መስመር ኪድ ብተራ ተሓወስ (ዚፕ)",
+"ደው ኢልካ ተጸበ",
+"ጸጋማይ ኩሉ ግዜ ይቕድም"
+],
+"am": [
+"በተቻለ ፍጥነት ይቀላቀሉ",
+"እስከ መስመሩ መጨረሻ ሄደው በተራ ይቀላቀሉ (ዚፕ)",
+"ቆመው ይጠብቁ",
+"የግራው ሁልጊዜ ይቀድማል"
+]
+},
+"q": {
+"en": "A lane ends and traffic is slow. What is the rule (Reißverschlussverfahren)?",
+"ti": "ሓደ መስመር ይውዳእ ትራፊክ ዝሑል እዩ። ሕጊ (Reißverschlussverfahren) እንታይ እዩ?",
+"am": "አንድ መስመር ያልቃል ትራፊኩም ቀርፋፋ ነው። ህጉ (Reißverschlussverfahren) ምንድን ነው?"
+},
+"ex": {
+"en": "Use both lanes to the end, then merge one by one directly before the narrowing.",
+"ti": "ክልቲኦም መስመራት ክሳብ መወዳእታ ተጠቐም፡ ድሕሪኡ ቅድሚ ምጽባብ ሓደ ብሓደ ተሓወስ።",
+"am": "ሁለቱንም መስመሮች እስከ መጨረሻ ይጠቀሙ፣ ከዚያ ከመጥበቡ በፊት አንድ በአንድ ይቀላቀሉ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"You have priority",
+"Give way to cyclists and pedestrians going straight",
+"Use the horn",
+"Only trucks must give way"
+],
+"ti": [
+"ቅድሚ ናትካ",
+"ንብሽክለታን ተጓዓዝቲ ብእግርን ቅድሚ ሃብ",
+"ጡሩምባ ተጠቐም",
+"ዓበይቲ መካይን ጥራይ ቅድሚ ይህባ"
+],
+"am": [
+"ቅድሚያ የእርስዎ",
+"ለብስክሌተኞችና እግረኞች ቅድሚያ ይስጡ",
+"ጡሩምባ ይጠቀሙ",
+"የጭነት መኪኖች ብቻ ቅድሚያ ይሰጣሉ"
+]
+},
+"q": {
+"en": "You turn right. A cyclist next to you goes straight on. Who goes first?",
+"ti": "ናብ የማን ትጥውይ። ብሽክለታ ጥቓኻ ብቐጥታ ይኸይድ። መን ይቕድም?",
+"am": "ወደ ቀኝ ይታጠፋሉ። ብስክሌተኛ ከጎንዎ ቀጥ ብሎ ይሄዳል። ማን ይቀድማል?"
+},
+"ex": {
+"en": "When turning you must give way to cyclists and pedestrians going straight. Look over your shoulder.",
+"ti": "ክትጥውይ ከለኻ ንብቐጥታ ዝኸዱ ቅድሚ ሃብ። ብመንኩብካ ጠምት።",
+"am": "ሲታጠፉ ቀጥ ብለው ለሚሄዱ ቅድሚያ ይስጡ። በትከሻዎ ላይ ይመልከቱ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Pass at normal speed",
+"Pass only at walking speed (Schrittgeschwindigkeit)",
+"Use the horn and pass",
+"Overtake quickly"
+],
+"ti": [
+"ብልሙድ ፍጥነት ሕለፍ",
+"ብፍጥነት ምኻድ ብእግሪ ጥራይ ሕለፍ (Schrittgeschwindigkeit)",
+"ጡሩምባ ነፊሕካ ሕለፍ",
+"ቀልጢፍካ ሕለፍ"
+],
+"am": [
+"በተለመደ ፍጥነት ይለፉ",
+"በእግር ፍጥነት ብቻ ይለፉ (Schrittgeschwindigkeit)",
+"ጡሩምባ ነፍተው ይለፉ",
+"ፍጥን ብለው ይቅደሙ"
+]
+},
+"q": {
+"en": "A bus stands at a stop with hazard lights on. How do you pass it?",
+"ti": "ኣውቶቡስ ኣብ መዕረፊ ብመብራህቲ ሓደጋ ደው ኢላ ኣላ። ከመይ ትሓልፋ?",
+"am": "አውቶቡስ በማቆሚያ የአደጋ መብራቱን አብርቶ ቆሟል። እንዴት ያልፉታል?"
+},
+"ex": {
+"en": "Only at walking speed, so that you can stop at once if a child runs out.",
+"ti": "ብፍጥነት ምኻድ ብእግሪ ጥራይ፡ ቆልዓ እንተጎየየ ብቕጽበት ደው ክትብል።",
+"am": "በእግር ፍጥነት ብቻ፣ ልጅ ቢሮጥ ወዲያው መቆም እንዲችሉ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"At normal speed",
+"At walking speed",
+"At 30 km/h",
+"At 50 km/h"
+],
+"ti": [
+"ብልሙድ ፍጥነት",
+"ብፍጥነት ምኻድ ብእግሪ",
+"ብ30 km/h",
+"ብ50 km/h"
+],
+"am": [
+"በተለመደ ፍጥነት",
+"በእግር ፍጥነት",
+"በ30 km/h",
+"በ50 km/h"
+]
+},
+"q": {
+"en": "How fast may you drive in a traffic-calmed area (verkehrsberuhigter Bereich, 'play street')?",
+"ti": "ኣብ ቦታ ዝሑል ትራፊክ (verkehrsberuhigter Bereich) ክንደይ ክትቐልጥፍ ትኽእል?",
+"am": "የትራፊክ ፍጥነት በተገደበበት ቦታ (verkehrsberuhigter Bereich) ስንት መሄድ ይችላሉ?"
+},
+"ex": {
+"en": "Only walking speed. Children may play on the street there.",
+"ti": "ፍጥነት ምኻድ ብእግሪ ጥራይ። ኣብኡ ቆልዑ ኣብ ጽርግያ ክጻወቱ ይኽእሉ።",
+"am": "የእግር ፍጥነት ብቻ። እዚያ ልጆች በመንገድ ላይ ሊጫወቱ ይችላሉ።"
+}
+},
+{
+"c": 0,
+"o": {
+"en": [
+"A priority road (Vorfahrtstraße)",
+"End of priority road",
+"Danger",
+"Parking"
+],
+"ti": [
+"መገዲ ቅድሚ (Vorfahrtstraße)",
+"መወዳእታ መገዲ ቅድሚ",
+"ሓደጋ",
+"መዕረፊ"
+],
+"am": [
+"የቅድሚያ መንገድ (Vorfahrtstraße)",
+"የቅድሚያ መንገድ መጨረሻ",
+"አደጋ",
+"ማቆሚያ"
+]
+},
+"q": {
+"en": "What does a yellow diamond sign with a white border mean?",
+"ti": "ብጫ ዳይመንድ ምልክት ምስ ጻዕዳ ደረት እንታይ ማለት እዩ?",
+"am": "ነጭ ጠርዝ ያለው ቢጫ አልማዝ ምልክት ምን ማለት ነው?"
+},
+"ex": {
+"en": "You are on a priority road: traffic from side roads must give way.",
+"ti": "ኣብ መገዲ ቅድሚ ኣለኻ፦ ካብ ጎኒ ዝመጹ ቅድሚ ክህቡ ኣለዎም።",
+"am": "በቅድሚያ መንገድ ላይ ነዎት፦ ከጎን የሚመጡ ቅድሚያ መስጠት አለባቸው።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Yellow triangle",
+"White triangle with a red border",
+"Blue circle",
+"Green rectangle"
+],
+"ti": [
+"ብጫ ሰለስተ መኣዝን",
+"ጻዕዳ ሰለስተ መኣዝን ምስ ቀይሕ ደረት",
+"ሰማያዊ ክቢ",
+"ቀጠልያ ርብዒ"
+],
+"am": [
+"ቢጫ ሦስት ማዕዘን",
+"ቀይ ጠርዝ ያለው ነጭ ሦስት ማዕዘን",
+"ሰማያዊ ክብ",
+"አረንጓዴ አራት ማዕዘን"
+]
+},
+"q": {
+"en": "What do warning signs look like in Germany?",
+"ti": "ኣብ ጀርመን ምልክታት ሓደጋ ከመይ ይመስሉ?",
+"am": "በጀርመን የማስጠንቀቂያ ምልክቶች ምን ይመስላሉ?"
+},
+"ex": {
+"en": "German warning signs are white triangles with a red border.",
+"ti": "ምልክታት ሓደጋ ጀርመን ጻዕዳ ሰለስተ መኣዝን ምስ ቀይሕ ደረት እዮም።",
+"am": "የጀርመን የማስጠንቀቂያ ምልክቶች ቀይ ጠርዝ ያላቸው ነጭ ሦስት ማዕዘኖች ናቸው።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"You may turn right without stopping",
+"After stopping, you may turn right carefully if it is safe",
+"It means the road is closed",
+"Only buses may turn"
+],
+"ti": [
+"ደው ከይበልካ ናብ የማን ክትጥውይ ትኽእል",
+"ድሕሪ ደው ምባል፡ ውሑስ እንተኾይኑ ብጥንቃቐ ናብ የማን ክትጥውይ ትኽእል",
+"መገዲ ዕጹው እዩ ማለት እዩ",
+"ኣውቶቡሳት ጥራይ"
+],
+"am": [
+"ሳይቆሙ ወደ ቀኝ መታጠፍ ይችላሉ",
+"ከቆሙ በኋላ፣ ደህንነቱ ከተጠበቀ በጥንቃቄ ወደ ቀኝ መታጠፍ ይችላሉ",
+"መንገዱ ዝግ ነው ማለት ነው",
+"አውቶቡሶች ብቻ"
+]
+},
+"q": {
+"en": "The light is red, but there is a small green arrow sign (Grünpfeil) to the right. What does it mean?",
+"ti": "መብራህቲ ቀይሕ እዩ፡ ግን ንእሽቶ ቀጠልያ ምልክት ፍላጻ (Grünpfeil) ናብ የማን ኣሎ። እንታይ ማለት እዩ?",
+"am": "መብራቱ ቀይ ነው፣ ግን ትንሽ አረንጓዴ ቀስት ምልክት (Grünpfeil) ወደ ቀኝ አለ። ምን ማለት ነው?"
+},
+"ex": {
+"en": "You must first stop completely, then you may turn right if no one is put in danger.",
+"ti": "ቅድም ምሉእ ደው በል፡ ድሕሪኡ ንሓደ እውን ከይኣደግካ ናብ የማን ጥወ።",
+"am": "መጀመሪያ ሙሉ በሙሉ ይቁሙ፣ ከዚያ ማንንም ሳያስፈሩ ወደ ቀኝ ይታጠፉ።"
+}
+},
+{
+"c": 1,
+"o": [
+"3 m",
+"5 m",
+"10 m",
+"15 m"
+],
+"q": {
+"en": "You may not park closer than … to an intersection or before a zebra crossing.",
+"ti": "ካብ መስቀላ መገዲ ወይ ቅድሚ መሳገሪ ኣብ ውሽጢ … ክተዕርፍ ኣይፍቀድን።",
+"am": "ከመስቀለኛ መንገድ ወይም ከመሻገሪያ በፊት በ… ውስጥ ማቆም አይፈቀድም።"
+},
+"ex": {
+"en": "No parking within 5 m of an intersection or before a zebra crossing.",
+"ti": "ኣብ ውሽጢ 5 ሜትሮ ካብ መስቀላ መገዲ ወይ ቅድሚ መሳገሪ ምዕራፍ ክልኩል እዩ።",
+"am": "ከመስቀለኛ መንገድ ወይም ከመሻገሪያ በፊት በ5 ሜትር ውስጥ ማቆም የተከለከለ ነው።"
+}
+},
+{
+"c": 2,
+"o": [
+"5 m",
+"10 m",
+"15 m",
+"30 m"
+],
+"q": {
+"en": "How far before and after a bus stop sign may you not park?",
+"ti": "ቅድሚን ድሕሪን ምልክት መዕረፊ ኣውቶቡስ ኣብ ውሽጢ ክንደይ ክተዕርፍ ኣይፍቀድን?",
+"am": "ከአውቶቡስ ማቆሚያ ምልክት በፊትና በኋላ በምን ያህል ውስጥ ማቆም አይፈቀድም?"
+},
+"ex": {
+"en": "No parking within 15 m before and after a bus stop sign.",
+"ti": "ቅድሚን ድሕሪን ምልክት መዕረፊ ኣውቶቡስ ኣብ ውሽጢ 15 ሜትሮ ክልኩል እዩ።",
+"am": "ከአውቶቡስ ማቆሚያ ምልክት በፊትና በኋላ በ15 ሜትር ውስጥ የተከለከለ ነው።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Children under 6",
+"Children under 12 who are shorter than 150 cm",
+"All children under 16",
+"No rule"
+],
+"ti": [
+"ቆልዑ ትሕቲ 6 ዓመት",
+"ቆልዑ ትሕቲ 12 ዓመት ቁመቶም ትሕቲ 150 ሴ.ሜ",
+"ኩሎም ቆልዑ ትሕቲ 16",
+"ሕጊ የለን"
+],
+"am": [
+"ከ6 ዓመት በታች ልጆች",
+"ከ12 ዓመት በታች ቁመታቸው ከ150 ሴ.ሜ በታች",
+"ከ16 በታች ሁሉም ልጆች",
+"ህግ የለም"
+]
+},
+"q": {
+"en": "Which children must use a child seat in Germany?",
+"ti": "ኣብ ጀርመን ኣየኖት ቆልዑ መንበር ቆልዑ ክጥቀሙ ኣለዎም?",
+"am": "በጀርመን የትኞቹ ልጆች የልጆች መቀመጫ መጠቀም አለባቸው?"
+},
+"ex": {
+"en": "Children under 12 years and under 150 cm need a suitable child seat.",
+"ti": "ቆልዑ ትሕቲ 12 ዓመትን ትሕቲ 150 ሴ.ሜን ዝሰማማዕ መንበር ቆልዑ የድልዮም።",
+"am": "ከ12 ዓመትና ከ150 ሴ.ሜ በታች ያሉ ልጆች ተስማሚ መቀመጫ ያስፈልጋቸዋል።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Only a spare tyre",
+"A first-aid kit, a warning triangle and a high-visibility vest",
+"Only a fire extinguisher",
+"Nothing"
+],
+"ti": [
+"ተወሳኺ ጎማ ጥራይ",
+"ሳንዱቕ ቀዳማይ ረድኤት፡ ሰለስተ መኣዝን መጠንቀቕታን ኣንጸባራቒ ጅለን",
+"መጥፍኢ ሓዊ ጥራይ",
+"ዋላ ሓንቲ"
+],
+"am": [
+"ተጨማሪ ጎማ ብቻ",
+"የመጀመሪያ እርዳታ ሳጥን፣ የማስጠንቀቂያ ሦስት ማዕዘንና አንጸባራቂ ልብስ",
+"የእሳት ማጥፊያ ብቻ",
+"ምንም"
+]
+},
+"q": {
+"en": "What must every car in Germany carry?",
+"ti": "ኣብ ጀርመን ኩላ መኪና እንታይ ክትሕዝ ኣለዋ?",
+"am": "በጀርመን እያንዳንዱ መኪና ምን መያዝ አለበት?"
+},
+"ex": {
+"en": "First-aid kit (Verbandkasten), warning triangle and at least one high-visibility vest.",
+"ti": "ሳንዱቕ ቀዳማይ ረድኤት (Verbandkasten)፡ ሰለስተ መኣዝን መጠንቀቕታን ብውሑዱ ሓደ ኣንጸባራቒ ጅለን።",
+"am": "የመጀመሪያ እርዳታ ሳጥን (Verbandkasten)፣ የማስጠንቀቂያ ሦስት ማዕዘንና ቢያንስ አንድ አንጸባራቂ ልብስ።"
+}
+},
+{
+"c": 2,
+"o": [
+"10 m",
+"50 m",
+"100 m",
+"300 m"
+],
+"q": {
+"en": "Your car breaks down on a country road (Landstraße). About how far behind it do you place the warning triangle?",
+"ti": "መኪናኻ ኣብ ናይ ገጠር ጽርግያ (Landstraße) ተበላሽያ። ሰለስተ መኣዝን ኣስታት ክንደይ ድሕሪኣ ተቐምጦ?",
+"am": "መኪናዎ በገጠር መንገድ (Landstraße) ተበላሸ። የማስጠንቀቂያ ሦስት ማዕዘኑን ከኋላው በግምት ምን ያህል ያስቀምጣሉ?"
+},
+"ex": {
+"en": "About 100 m on country roads, about 50 m in towns and 150–400 m on the Autobahn.",
+"ti": "ኣብ ገጠር ኣስታት 100 ሜ፡ ኣብ ከተማ ኣስታት 50 ሜ፡ ኣብ ኣውቶባን 150–400 ሜ።",
+"am": "በገጠር ወደ 100 ሜ፣ በከተማ ወደ 50 ሜ፣ በአውቶባን 150–400 ሜ።"
+}
+},
+{
+"c": 1,
+"o": [
+"110",
+"112",
+"113",
+"911"
+],
+"q": {
+"en": "Which number do you call for an ambulance or the fire brigade in Germany?",
+"ti": "ኣብ ጀርመን ንኣምቡላንስ ወይ ሓዊ ናብ ኣየናይ ቁጽሪ ትድውል?",
+"am": "በጀርመን ለአምቡላንስ ወይም ለእሳት አደጋ ወደ የትኛው ቁጥር ይደውላሉ?"
+},
+"ex": {
+"en": "112 for ambulance and fire. 110 is the police.",
+"ti": "112 ንኣምቡላንስን ሓዊን። 110 ፖሊስ እዩ።",
+"am": "112 ለአምቡላንስና ለእሳት። 110 ፖሊስ ነው።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Drive on to find help",
+"Secure the place, call 112 and give first aid",
+"Move everyone at once",
+"Take photos first"
+],
+"ti": [
+"ሓገዝ ክትደሊ ቀጽል",
+"ቦታ ውሑስ ግበር፡ 112 ደውል፡ ቀዳማይ ረድኤት ሃብ",
+"ንኹሉ ብቕጽበት ኣግዕዝ",
+"ቅድም ስእሊ ውሰድ"
+],
+"am": [
+"እርዳታ ለመፈለግ ይቀጥሉ",
+"ቦታውን ያስጠብቁ፣ 112 ይደውሉ፣ የመጀመሪያ እርዳታ ይስጡ",
+"ሁሉንም ወዲያው ያንቀሳቅሱ",
+"መጀመሪያ ፎቶ ያንሱ"
+]
+},
+"q": {
+"en": "You come to an accident with injured people. What is right?",
+"ti": "ናብ ሓደጋ ምስ ዝተጎድኡ ትበጽሕ። እቲ ቅኑዕ እንታይ እዩ?",
+"am": "ተጎጂዎች ወዳሉበት አደጋ ይደርሳሉ። ትክክለኛው ምንድን ነው?"
+},
+"ex": {
+"en": "In Germany everyone must help (failing to help is a crime). Secure, call 112, give first aid.",
+"ti": "ኣብ ጀርመን ኩሉ ሰብ ክሕግዝ ግድን እዩ (ዘይምሕጋዝ ገበን እዩ)። ውሑስ ግበር፡ 112 ደውል፡ ሓግዝ።",
+"am": "በጀርመን ሁሉም መርዳት ግዴታ ነው (አለመርዳት ወንጀል ነው)። ያስጠብቁ፣ 112 ይደውሉ፣ ይርዱ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"You may hold it at low speed",
+"It is forbidden to hold it while driving – hands-free is allowed",
+"Allowed for short calls",
+"Allowed on the Autobahn"
+],
+"ti": [
+"ብትሑት ፍጥነት ክትሕዞ ትኽእል",
+"ክትዝውር ከለኻ ብኢድ ምሓዝ ክልኩል – hands-free ይፍቀድ",
+"ንሓጺር ደወል ይፍቀድ",
+"ኣብ ኣውቶባን ይፍቀድ"
+],
+"am": [
+"በዝቅተኛ ፍጥነት መያዝ ይችላሉ",
+"ሲያሽከረክሩ በእጅ መያዝ የተከለከለ – hands-free ይፈቀዳል",
+"ለአጭር ጥሪ ይፈቀዳል",
+"በአውቶባን ይፈቀዳል"
+]
+},
+"q": {
+"en": "What is the rule for mobile phones while driving in Germany?",
+"ti": "ኣብ ጀርመን ክትዝውር ከለኻ ሕጊ ሞባይል እንታይ እዩ?",
+"am": "በጀርመን ሲያሽከረክሩ የሞባይል ህጉ ምንድን ነው?"
+},
+"ex": {
+"en": "You may not hold or operate the phone while driving. Fines and points in Flensburg follow.",
+"ti": "ክትዝውር ከለኻ ሞባይል ክትሕዝ ወይ ከተስርሕ ኣይፍቀድን። መቕጻዕትን ነጥቢ ኣብ Flensburgን ይስዕብ።",
+"am": "ሲያሽከረክሩ ስልኩን መያዝ ወይም መጠቀም አይፈቀድም። ቅጣትና በFlensburg ነጥብ ይከተላል።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Any sticker",
+"A green environmental sticker (grüne Plakette)",
+"No sticker",
+"Only a parking ticket"
+],
+"ti": [
+"ዝኾነ ስቲከር",
+"ቀጠልያ ስቲከር ከባቢ (grüne Plakette)",
+"ስቲከር ኣየድልን",
+"ቲኬት መዕረፊ ጥራይ"
+],
+"am": [
+"ማንኛውም ተለጣፊ",
+"አረንጓዴ የአካባቢ ተለጣፊ (grüne Plakette)",
+"ተለጣፊ አያስፈልግም",
+"የማቆሚያ ቲኬት ብቻ"
+]
+},
+"q": {
+"en": "What does a car need to drive into an environmental zone (Umweltzone)?",
+"ti": "መኪና ናብ ዞባ ከባቢ (Umweltzone) ንምእታው እንታይ የድልያ?",
+"am": "መኪና ወደ የአካባቢ ዞን (Umweltzone) ለመግባት ምን ያስፈልገዋል?"
+},
+"ex": {
+"en": "In environmental zones you need the green sticker on the windscreen.",
+"ti": "ኣብ ዞባ ከባቢ ኣብ መስኮት ቀጠልያ ስቲከር የድሊ።",
+"am": "በአካባቢ ዞን በመስኮቱ ላይ አረንጓዴ ተለጣፊ ያስፈልጋል።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"1 second",
+"'Half the speedometer' in metres (e.g. 50 m at 100 km/h)",
+"10 m always",
+"No rule"
+],
+"ti": [
+"1 ካልኢት",
+"'ፍርቂ ስፒዶሜትር' ብሜትሮ (ን.ኣ. ብ100 km/h 50 ሜ)",
+"ኩሉ ግዜ 10 ሜ",
+"ሕጊ የለን"
+],
+"am": [
+"1 ሰከንድ",
+"'የፍጥነት መለኪያው ግማሽ' በሜትር (ለምሳሌ በ100 km/h 50 ሜ)",
+"ሁልጊዜ 10 ሜ",
+"ህግ የለም"
+]
+},
+"q": {
+"en": "What is the rule of thumb for safe distance outside towns in Germany?",
+"ti": "ኣብ ጀርመን ካብ ከተማ ወጻኢ ንውሑስ ርሕቀት ልሙድ ሕጊ እንታይ እዩ?",
+"am": "በጀርመን ከከተማ ውጭ ለደህንነቱ የተጠበቀ ርቀት የተለመደው ህግ ምንድን ነው?"
+},
+"ex": {
+"en": "'Halber Tacho': the distance in metres should be at least half your speed in km/h.",
+"ti": "'Halber Tacho'፦ ርሕቀት ብሜትሮ ብውሑዱ ፍርቂ ፍጥነትካ ክኸውን ኣለዎ።",
+"am": "'Halber Tacho'፦ ርቀቱ በሜትር ቢያንስ የፍጥነትዎ ግማሽ መሆን አለበት።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Speed up",
+"Stop if you can do so safely",
+"Same as green",
+"Only for buses"
+],
+"ti": [
+"ፍጥነት ወስኽ",
+"ብሰላም ክትክእል እንተኾንካ ደው በል",
+"ከም ቀጠልያ",
+"ንኣውቶቡስ ጥራይ"
+],
+"am": [
+"ፍጥነት ይጨምሩ",
+"በሰላም ከቻሉ ይቁሙ",
+"እንደ አረንጓዴ",
+"ለአውቶቡስ ብቻ"
+]
+},
+"q": {
+"en": "The traffic light turns yellow. What do you do?",
+"ti": "መብራህቲ ትራፊክ ብጫ ይኸውን። እንታይ ትገብር?",
+"am": "የትራፊክ መብራቱ ቢጫ ይሆናል። ምን ያደርጋሉ?"
+},
+"ex": {
+"en": "Yellow means: wait for the next signal. Stop unless you are too close to stop safely.",
+"ti": "ብጫ ማለት፦ ንዝቕጽል ተጸበ። ደው ምባል ሓደገኛ እንተዘይኮይኑ ደው በል።",
+"am": "ቢጫ ማለት፦ ቀጣዩን ይጠብቁ። መቆም አደገኛ ካልሆነ ይቁሙ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Drive in anyway",
+"Do not enter if you might get stuck",
+"Use the horn",
+"Drive on the pavement"
+],
+"ti": [
+"ብዘየገድስ ኣቱ",
+"ክትጸግዕ እንተኽኢልካ ኣይትእቶ",
+"ጡሩምባ ተጠቐም",
+"ብመገዲ እግሪ ኪድ"
+],
+"am": [
+"ቢሆንም ይግቡ",
+"ሊቆሙ ከቻሉ አይግቡ",
+"ጡሩምባ ይጠቀሙ",
+"በእግረኛ መንገድ ይሂዱ"
+]
+},
+"q": {
+"en": "The light is green, but the intersection is full. What do you do?",
+"ti": "መብራህቲ ቀጠልያ እዩ ግን መስቀላ መገዲ መሊኡ። እንታይ ትገብር?",
+"am": "መብራቱ አረንጓዴ ነው ግን መስቀለኛ መንገዱ ሞልቷል። ምን ያደርጋሉ?"
+},
+"ex": {
+"en": "Never drive into an intersection if you would have to stop inside it.",
+"ti": "ኣብ ውሽጡ ደው ክትብል እንተድኣ ኮይንካ ፈጺምካ ናብ መስቀላ መገዲ ኣይትእቶ።",
+"am": "በውስጡ መቆም ካለብዎት በጭራሽ ወደ መስቀለኛ መንገድ አይግቡ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Speed up",
+"Make room safely and let it pass",
+"Stop in the middle of the road",
+"Ignore it"
+],
+"ti": [
+"ፍጥነት ወስኽ",
+"ብሰላም ቦታ ሃብ ክሓልፍ ሕደጎ",
+"ኣብ ማእከል ጽርግያ ደው በል",
+"ሸለል በሎ"
+],
+"am": [
+"ፍጥነት ይጨምሩ",
+"በሰላም ቦታ ሰጥተው ያሳልፉት",
+"በመንገድ መሃል ይቁሙ",
+"ችላ ይበሉ"
+]
+},
+"q": {
+"en": "A vehicle with blue lights and siren comes behind you. What do you do?",
+"ti": "ተሽከርካሪ ብሰማያዊ መብራህትን ድምጺ ሓደጋን ድሕሬኻ ትመጽእ። እንታይ ትገብር?",
+"am": "ሰማያዊ መብራትና ሳይረን ያለው ተሽከርካሪ ከኋላዎ ይመጣል። ምን ያደርጋሉ?"
+},
+"ex": {
+"en": "Blue light and siren together: make way immediately, but safely.",
+"ti": "ሰማያዊ መብራህትን ድምጽን ብሓንሳብ፦ ብቕጽበት ግን ብሰላም መገዲ ሃብ።",
+"am": "ሰማያዊ መብራትና ሳይረን አብረው፦ ወዲያው ግን በሰላም መንገድ ይስጡ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Brake hard",
+"Release the gas and keep the wheel straight",
+"Accelerate",
+"Turn sharply"
+],
+"ti": [
+"ብሓይሊ ቁረጽ",
+"ጋዝ ሕደግ መሪሕ ብቐጥታ ሓዝ",
+"ፍጥነት ወስኽ",
+"ብትሪ ጠውይ"
+],
+"am": [
+"በኃይል ፍሬን ይያዙ",
+"ጋዙን ይልቀቁ መሪውን ቀጥ ይያዙ",
+"ፍጥነት ይጨምሩ",
+"በኃይል ያዙሩ"
+]
+},
+"q": {
+"en": "Your car starts aquaplaning. What do you do?",
+"ti": "መኪናኻ ኣብ ልዕሊ ማይ ክትሽሕትት ትጅምር (Aquaplaning)። እንታይ ትገብር?",
+"am": "መኪናዎ በውሃ ላይ መንሸራተት ይጀምራል (Aquaplaning)። ምን ያደርጋሉ?"
+},
+"ex": {
+"en": "Clutch in or release the gas, keep the wheel straight until the tyres grip again.",
+"ti": "ጋዝ ሕደግ፡ ጎማታት ክሳብ ዝሕዙ መሪሕ ብቐጥታ ሓዝ።",
+"am": "ጋዙን ይልቀቁ፣ ጎማዎቹ እስኪይዙ መሪውን ቀጥ ይያዙ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"It doubles",
+"About four times longer",
+"Stays the same",
+"Is halved"
+],
+"ti": [
+"ክልተ ዕጽፊ",
+"ኣስታት ኣርባዕተ ዕጽፊ",
+"ከምቲ ዝነበሮ",
+"ፍርቂ"
+],
+"am": [
+"እጥፍ",
+"ወደ አራት እጥፍ",
+"እንደነበረ",
+"ግማሽ"
+]
+},
+"q": {
+"en": "What happens to the braking distance if you double your speed?",
+"ti": "ፍጥነትካ ክልተ ዕጽፊ እንተገበርካ ርሕቀት ምቁራጽ እንታይ ይኸውን?",
+"am": "ፍጥነትዎን እጥፍ ካደረጉ የፍሬን ርቀቱ ምን ይሆናል?"
+},
+"ex": {
+"en": "The braking distance grows with the square of the speed.",
+"ti": "ርሕቀት ምቁራጽ ብትርብዒት ፍጥነት ይውስኽ።",
+"am": "የፍሬን ርቀት በፍጥነቱ ካሬ ያድጋል።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Only on the motorway",
+"Always, in all seats",
+"Only in front",
+"Only for children"
+],
+"ti": [
+"ኣብ ኣውቶባን ጥራይ",
+"ኩሉ ግዜ ኣብ ኩሉ መናብር",
+"ኣብ ቅድሚት ጥራይ",
+"ንቆልዑ ጥራይ"
+],
+"am": [
+"በአውቶባን ብቻ",
+"ሁልጊዜ በሁሉም ወንበሮች",
+"በፊት ብቻ",
+"ለልጆች ብቻ"
+]
+},
+"q": {
+"en": "When must you wear a seat belt?",
+"ti": "መዓስ ቀበቶ ድሕነት ክትጥቀም ኣለካ?",
+"am": "መቼ የደህንነት ቀበቶ ማድረግ አለብዎት?"
+},
+"ex": {
+"en": "Always, in every seat that has a belt.",
+"ti": "ኩሉ ግዜ ኣብ ኩሉ ቀበቶ ዘለዎ መንበር።",
+"am": "ሁልጊዜ ቀበቶ ባለው በሁሉም ወንበር።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Open the window and continue",
+"Take a break in a safe place",
+"Drive faster",
+"Turn up the music"
+],
+"ti": [
+"መስኮት ከፊትካ ቀጽል",
+"ኣብ ውሑስ ቦታ ዕረፍቲ ውሰድ",
+"ፍጥነት ወስኽ",
+"ሙዚቃ ኣዕቢ"
+],
+"am": [
+"መስኮቱን ከፍተው ይቀጥሉ",
+"ደህንነቱ በተጠበቀ ቦታ እረፍት ይውሰዱ",
+"ፍጥነት ይጨምሩ",
+"ሙዚቃውን ከፍ ያድርጉ"
+]
+},
+"q": {
+"en": "You feel very tired while driving. What is right?",
+"ti": "ክትዝውር ከለኻ ብጣዕሚ ይደኽመካ። እቲ ቅኑዕ እንታይ እዩ?",
+"am": "ሲያሽከረክሩ በጣም ይደክምዎታል። ትክክለኛው ምንድን ነው?"
+},
+"ex": {
+"en": "Only a break or a short sleep helps. A break every 2 hours on long trips is a good rule.",
+"ti": "ዕረፍቲ ወይ ሓጺር ድቃስ ጥራይ ይሕግዝ። ኣብ ነዊሕ ጉዕዞ ኣብ ነፍሲ ወከፍ 2 ሰዓት ዕረፍቲ ጽቡቕ እዩ።",
+"am": "እረፍት ወይም አጭር እንቅልፍ ብቻ ይረዳል። በረጅም ጉዞ በየ2 ሰዓቱ እረፍት ጥሩ ነው።"
+}
+},
+{
+"c": 2,
+"o": [
+"16",
+"17",
+"18",
+"21"
+],
+"q": {
+"en": "From what age may you drive a car alone with licence B in Germany?",
+"ti": "ኣብ ጀርመን ብመንጃ ፍቓድ B ካብ ክንደይ ዕድመ በይንኻ ክትዝውር ትኽእል?",
+"am": "በጀርመን በB ፈቃድ ከስንት ዓመት ጀምሮ ብቻዎን መንዳት ይችላሉ?"
+},
+"ex": {
+"en": "From 18. With BF17 you may drive from 17, but only with a companion.",
+"ti": "ካብ 18። ብBF17 ካብ 17 ምስ መሰነይታ ጥራይ።",
+"am": "ከ18። በBF17 ከ17 ጀምሮ ከአጃቢ ጋር ብቻ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Keep high beam",
+"Switch to low beam in time",
+"Flash the lights",
+"Turn all lights off"
+],
+"ti": [
+"ልዑል መብራህቲ ሓዝ",
+"ብግዜኡ ናብ ትሑት ቀይር",
+"መብራህቲ ኣብልጭልጭ",
+"ኩሉ ኣጥፍእ"
+],
+"am": [
+"ከፍተኛ መብራት ይያዙ",
+"በጊዜ ወደ ዝቅተኛ ይቀይሩ",
+"ብልጭ ያድርጉ",
+"ሁሉንም ያጥፉ"
+]
+},
+"q": {
+"en": "You drive with high beam at night and see oncoming traffic. What do you do?",
+"ti": "ብለይቲ ብልዑል መብራህቲ ትዝውር ካብ ቅድሚት ትራፊክ ይመጽእ። እንታይ ትገብር?",
+"am": "በሌሊት በከፍተኛ መብራት እየነዱ ከፊት ትራፊክ ይመጣል። ምን ያደርጋሉ?"
+},
+"ex": {
+"en": "Switch to low beam in time so you do not dazzle others.",
+"ti": "ንኻልኦት ከይተዕውር ብግዜኡ ናብ ትሑት መብራህቲ ቀይር።",
+"am": "ሌሎችን እንዳያሳውሩ በጊዜ ወደ ዝቅተኛ መብራት ይቀይሩ።"
+}
+},
+{
+"c": 0,
+"o": {
+"en": [
+"Stop completely at the line and give way",
+"Slow down only",
+"Stop only if cars come",
+"Use the horn"
+],
+"ti": [
+"ኣብ መስመር ምሉእ ደው በል ቅድሚ ሃብ",
+"ፍጥነት ጥራይ ኣጉድል",
+"መካይን እንተመጻ ጥራይ",
+"ጡሩምባ"
+],
+"am": [
+"መስመሩ ላይ ሙሉ በሙሉ ቆመው ቅድሚያ ይስጡ",
+"ፍጥነት ብቻ ይቀንሱ",
+"መኪና ሲመጣ ብቻ",
+"ጡሩምባ"
+]
+},
+"q": {
+"en": "What must you do at a STOP sign?",
+"ti": "ኣብ ምልክት STOP እንታይ ክትገብር ኣለካ?",
+"am": "በSTOP ምልክት ምን ማድረግ አለብዎት?"
+},
+"ex": {
+"en": "Always stop completely, then give way to all traffic on the crossing road.",
+"ti": "ኩሉ ግዜ ምሉእ ደው በል፡ ድሕሪኡ ንኹሉ ትራፊክ ቅድሚ ሃብ።",
+"am": "ሁልጊዜ ሙሉ በሙሉ ይቁሙ፣ ከዚያ ለሁሉም ትራፊክ ቅድሚያ ይስጡ።"
+}
+},
+{
+"c": 1,
+"o": {
+"en": [
+"Traffic entering has priority",
+"Traffic in the roundabout has priority (when signs show give way)",
+"The bigger vehicle",
+"Right before left always"
+],
+"ti": [
+"ዝኣቱ ቅድሚ ኣለዎ",
+"ኣብ ውሽጢ ዙርያ ዘሎ ቅድሚ ኣለዎ (ምልክት ቅድሚ ሃብ ምስ ዝህሉ)",
+"እቲ ዝዓበየ",
+"ኩሉ ግዜ የማን ቅድሚ ጸጋም"
+],
+"am": [
+"የሚገባው ቅድሚያ አለው",
+"በአደባባዩ ውስጥ ያለ ቅድሚያ አለው (ቅድሚያ ስጥ ምልክት ሲኖር)",
+"ትልቁ",
+"ሁልጊዜ ቀኝ ከግራ በፊት"
+]
+},
+"q": {
+"en": "Who has priority at a roundabout with the roundabout sign and give-way sign?",
+"ti": "ኣብ ዙርያ ምስ ምልክት ዙርያን ቅድሚ ሃብን መን ቅድሚ ኣለዎ?",
+"am": "የአደባባይና ቅድሚያ ስጥ ምልክት ባለው አደባባይ ማን ቅድሚያ አለው?"
+},
+"ex": {
+"en": "Traffic in the roundabout. Indicate only when you leave, not when you enter.",
+"ti": "ኣብ ውሽጢ ዘሎ። ክትወጽእ ጥራይ ኣመልክት፡ ክትኣቱ ኣይኮነን።",
+"am": "በውስጡ ያለው። ሲወጡ ብቻ ምልክት ይስጡ፣ ሲገቡ አይደለም።"
+}
+}
+]

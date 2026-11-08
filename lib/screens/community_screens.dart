@@ -588,7 +588,7 @@ class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
   String _product = 'theory_pro';
   bool _busy = false;
 
-  static const _products = {'theory_pro': '🚗 Driving theory (450)', 'lang_pro': '🗣️ Languages'};
+  static const _products = {'theory_pro': '🚦 Driving test 3D', 'lang_pro': '🗣️ Languages'};
   // No 0/O or 1/I so codes are easy to read out
   static const _chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   static const _special = '!#@\$%&?+';   // no * _ ~ (WhatsApp formatting)
@@ -635,7 +635,7 @@ class _UnlockCodesAdminTabState extends State<UnlockCodesAdminTab> {
   }
 
   void _sendOnWhatsApp(String code, String phone, String product) {
-    final what = product == 'theory_pro' ? '450 extra driving theory questions' : 'the extra language topics';
+    final what = product == 'theory_pro' ? 'the practical driving test in 3D' : 'the extra language topics';
     final msg = 'Habesha Hub 🔓\nYour code: $code\n\nOpen Games & Tools → Life Tools → "Unlock" and type the code. '
         'It works for one person only.\nThis unlocks $what.\n\n'
         'ኮድካ: $code — ኣብ Games & Tools → Life Tools → "ክፈት ብኮድ" ኣእትዎ።';
