@@ -13,7 +13,7 @@
 eritrean,ethiopian,tigrinya,amharic,injera,salon,church,orthodox,driving theory,eritrea,ethiopia
 
 **Promotional text (max 170):**
-New: free driving theory for Norway, Sweden, Germany and the UK in Tigrinya, Amharic and English. Plus events, hair & beauty and services in 60+ countries.
+New: free driving theory for 6 countries in Tigrinya, Amharic and English. Plus events, hair & beauty and services in 60+ countries.
 
 ## Full description (both stores)
 Your Habesha world in one app – in English, ትግርኛ and አማርኛ. 100% free.
@@ -33,8 +33,8 @@ Barbers, hair salons, braiding, makeup, nails and henna – for women, men and k
 🎉 EVENTS
 Concerts, parties and church events near you. Tap “Interested” and get a reminder.
 
-🚗 FREE DRIVING THEORY – NORWAY, SWEDEN, GERMANY, UK
-All 500 questions for the Norwegian class B licence in Tigrinya, plus practice and exams for Sweden, Germany and the UK in Tigrinya, Amharic and English – all free. A 3D driving test with a Tigrinya-speaking instructor is also available.
+🚗 FREE DRIVING THEORY – NORWAY, SWEDEN, GERMANY, NETHERLANDS, FRANCE, UK
+All 500 questions for the Norwegian class B licence in Tigrinya, plus practice and exams for Sweden, Germany, the Netherlands, France and the UK in Tigrinya, Amharic and English – all free. A 3D driving test with a Tigrinya-speaking instructor is also available.
 
 🛍️ MARKETPLACE
 Buy and sell in your community, home shops with injera and food, rooms to rent.
