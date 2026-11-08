@@ -81,8 +81,8 @@ class _GamesScreenState extends State<GamesScreen> {
           _BigCard(
             icon: Icons.sports_esports_outlined,
             title: 'Habesha Games · ጸወታታት',
-            subtitle: tr('Racing 3D, Dama, Genna and riddles. Play the computer, a friend or anyone online.'),
-            tags: const ['Racing 3D', 'Dama', 'Genna', 'ሕንቅልሕንቅሊተይ'],
+            subtitle: tr('Racing 3D, Dama, Domino, Genna and riddles. Play the computer, a friend or anyone online.'),
+            tags: const ['Racing 3D', 'Dama', 'Domino', 'Genna', 'ሕንቅልሕንቅሊተይ'],
             tint: kTintGreen, ink: kInkGreen,
             onTap: () => _open('Habesha Games', 'hub'),
           ),

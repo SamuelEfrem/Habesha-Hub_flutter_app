@@ -182,6 +182,7 @@ class AppTranslations {
     'Choose language': {'Tigrinya': 'ቋንቋ ምረጽ', 'Amharic': 'ቋንቋ ይምረጡ'},
     'Games & Tools': {'Tigrinya': 'ጸወታታትን መሳርሒታትን', 'Amharic': 'ጨዋታዎች እና መሳሪያዎች'},
     'Dama, racing, driving theory & test & more': {'Tigrinya': 'ዳማ፡ ውድድር መኪና፡ ቲዮሪን ፈተና ምዝዋርን ካልእን', 'Amharic': 'ዳማ፣ የመኪና ውድድር፣ የመንጃ ቲዎሪና ፈተና እና ሌሎች'},
+    'Racing 3D, Dama, Domino, Genna and riddles. Play the computer, a friend or anyone online.': {'Tigrinya': 'ውድድር መኪና 3D፡ ዳማ፡ ዱሙና፡ ገና፡ ሕንቅልሕንቅሊተይን። ምስ ኮምፒተር፡ ምስ ዓርኪ ወይ ኣብ መስመር ምስ ዝኾነ ሰብ ተጻወት።', 'Amharic': 'የመኪና ውድድር 3D፣ ዳማ፣ ዶሚኖ፣ ገና እና እንቆቅልሽ። ከኮምፒውተር፣ ከጓደኛ ወይም በኦንላይን ከማንም ጋር ይጫወቱ።'},
     'Racing 3D, Dama, Genna and riddles. Play the computer, a friend or anyone online.': {'Tigrinya': 'ውድድር መኪና 3D፡ ዳማ፡ ገና፡ ሕንቅሕንቅሊተይን። ምስ ኮምፒተር፡ ምስ ዓርኪ ወይ ኣብ መስመር ምስ ዝኾነ ሰብ ተጻወት።', 'Amharic': 'የመኪና ውድድር 3D፣ ዳማ፣ ገና እና እንቆቅልሽ። ከኮምፒውተር፣ ከጓደኛ ወይም በመስመር ላይ ከማንም ጋር ይጫወቱ።'},
     "500 driving theory questions and a practical driving test with a voice instructor (Tigrinya), languages, newcomer guides and the Ge'ez calendar.": {'Tigrinya': '500 ሕቶታት ቲዮሪ መንጃ ፍቓድን ፈተና ምዝዋር ብመኪና ምስ መምህር ብድምጺን (ትግርኛ)፡ ቋንቋታት፡ መምርሒ ሓደስቲ መጻእትን ዓውደ ኣዋርሕ ግእዝን።', 'Amharic': '500 የመንጃ ቲዎሪ ጥያቄዎችና በድምፅ አስተማሪ የመንጃ ተግባር ፈተና (ትግርኛ)፣ ቋንቋዎች፣ ለአዲስ መጤዎች መመሪያ እና የግዕዝ ቀን መቁጠሪያ።'},
     'Restore purchases': {'Tigrinya': 'ዝተዓደገ መልስ', 'Amharic': 'ግዢዎችን መልስ'},

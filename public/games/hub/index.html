@@ -69,6 +69,24 @@ canvas{display:block;width:100%;max-width:100%;border-radius:14px;background:var
   #genna .about{display:none}
   .bar{position:sticky;top:0}
 }
+/* Domino */
+.dom{display:flex;flex-direction:column;gap:10px}
+.dinfo{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.9rem;opacity:.9}
+.dline{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center;padding:12px 8px;background:#1f5135;border:4px solid #5a3b22;border-radius:12px;min-height:96px}
+.tile{display:inline-flex;background:var(--cream);border:1px solid #b9a77f;border-radius:6px;box-shadow:0 2px 0 rgba(0,0,0,.35);flex:none}
+.tile .h{width:24px;height:24px;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:3px;box-sizing:border-box}
+.tile .h+.h{border-left:1px solid #b9a77f}
+.tile.v{flex-direction:column}.tile.v .h+.h{border-left:0;border-top:1px solid #b9a77f}
+.tile i{width:4px;height:4px;border-radius:50%;background:#1b1b1b;place-self:center}
+.tile.end{outline:2px dashed var(--gold);outline-offset:2px}
+.dhand{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:70px}
+.dhand .tile .h{width:30px;height:30px;padding:4px}.dhand .tile i{width:5px;height:5px}
+.dhand .tile.ok{outline:3px solid var(--green);cursor:pointer}
+.dhand .tile.no{opacity:.45}
+.dhand .tile.sel{outline:3px solid var(--gold);transform:translateY(-4px)}
+.dbacks{display:flex;gap:3px;justify-content:center;flex-wrap:wrap}
+.dbacks span{width:12px;height:22px;border-radius:3px;background:#6b4a2c;border:1px solid #3d2715}
+.card .ic .tile{vertical-align:middle;margin:-6px 0}.card .ic .tile .h{width:15px;height:15px;padding:2px}.card .ic .tile i{width:3px;height:3px}.dends{display:flex;gap:8px}.dends .btn{flex:1;text-align:center}
 /* Dama */
 .dama{display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;max-width:100%;border-radius:10px;overflow:hidden;border:4px solid #5a3b22}
 .dama div{display:grid;place-items:center;min-width:0}
@@ -211,7 +229,13 @@ const TX={
  correct:["Correct! 🎉","ቅኑዕ! 🎉","ትክክል! 🎉"],gaveTown:["You gave {t}. The answer: {a}.","{t} ሂብካ። መልሱ፦ {a}።","{t} ሰጠህ። መልሱ፦ {a}።"],
  notQuite:["Not quite. The answer: {a}.","ኣይኮነን። መልሱ፦ {a}።","አይደለም። መልሱ፦ {a}።"],whichTown:["Which town will you give?","ኣየናይ ዓዲ ክትህብ ኢኻ?","የትኛውን አገር ትሰጣለህ?"],
  title:["Habesha Games","ጸወታታት ሓበሻ","የሐበሻ ጨዋታዎች"],race:["Capital Racing 3D","ውድድር መኪና 3D","የመኪና ውድድር 3D"],drive:["Driving test","ፈተና ምዝዋር","የመንጃ ፈተና"],
- fidel:["Fidel for kids","ፊደል ንቖልዑ","ፊደል ለልጆች"],tagFidel:["kids learn to read","ቈልዑ ንባብ ይመሃሩ","ልጆች ማንበብ ይማራሉ"],dama:["Dama","ዳማ","ዳማ"],genna:["Genna","ገና","ገና"],hinq:["Riddles","ሕንቅልሕንቅሊተይ","እንቆቅልሽ"],
+ fidel:["Fidel for kids","ፊደል ንቖልዑ","ፊደል ለልጆች"],tagFidel:["kids learn to read","ቈልዑ ንባብ ይመሃሩ","ልጆች ማንበብ ይማራሉ"],dama:["Dama","ዳማ","ዳማ"],domino:["Domino","ዱሙና","ዶሚኖ"],
+ ruleDomino:["Simple rules: each player gets 7 tiles. Take turns to put down a tile whose number matches one end of the line. If no tile fits, take one from the pile; if the pile is empty, pass. The first to play all their tiles wins. If nobody can play, the player with the fewest points in hand wins.","ቀሊል ሕጊ፦ ነፍሲ ወከፍ ተጻዋታይ 7 ይወስድ። ብተራ ቁጽሩ ምስ ሓደ ጫፍ መስመር ዝሰማማዕ ኣቐምጥ። ዝሰማማዕ እንተዘየሎካ ካብ ክምር ሓንቲ ውሰድ፡ ክምር እንተወዲኡ ሕለፍ። እቲ ቀዲሙ ኩሉ ዝወድአ ይዕወት። ሓደ እውን ክጻወት እንተዘይክኢሉ፡ እቲ ኣብ ኢዱ ውሑድ ነጥቢ ዘለዎ ይዕወት።","ቀላል ህግ፦ እያንዳንዱ ተጫዋች 7 ይወስዳል። በተራ ቁጥሩ ከመስመሩ አንድ ጫፍ ጋር የሚገጥም አስቀምጥ። የሚገጥም ከሌለህ ከክምሩ አንድ ውሰድ፣ ክምሩ ካለቀ እለፍ። መጀመሪያ ሁሉንም የጨረሰ ያሸንፋል። ማንም መጫወት ካልቻለ በእጁ ትንሽ ነጥብ ያለው ያሸንፋል።"],
+ dMustDraw:["No tile fits – take one from the pile","ዝሰማማዕ የለን – ካብ ክምር ሓንቲ ውሰድ","የሚገጥም የለም – ከክምሩ አንድ ውሰድ"],
+ dMustPass:["No tile fits and the pile is empty – pass","ዝሰማማዕ የለን ክምርውን ወዲኡ – ሕለፍ","የሚገጥም የለም ክምሩም አልቋል – እለፍ"],
+ dDraw:["Take a tile ({n} left)","ሓንቲ ውሰድ ({n} ተሪፉ)","አንድ ውሰድ ({n} ቀርቷል)"],dPass:["Pass","ሕለፍ","እለፍ"],
+ dPile:["Pile: {n}","ክምር: {n}","ክምር: {n}"],dEnd:["Which end?","ኣየናይ ጫፍ?","የትኛው ጫፍ?"],dLeft:["◀ Left","◀ ጸጋም","◀ ግራ"],dRight:["Right ▶","የማን ▶","ቀኝ ▶"],
+ dBlocked:["Blocked – fewest points: {a} vs {b}","ተዓጽዩ – ውሑድ ነጥቢ፦ {a} ምስ {b}","ተዘግቷል – ትንሽ ነጥብ፦ {a} ከ {b}"],dStart:["Put down any tile to start","ንምጅማር ዝኾነ ኣቐምጥ","ለመጀመር ማንኛውንም አስቀምጥ"],genna:["Genna","ገና","ገና"],hinq:["Riddles","ሕንቅልሕንቅሊተይ","እንቆቅልሽ"],
  tagDrive:["Practical driving test · traffic rules · voice","ፈተና ምዝዋር · ሕግታት ትራፊክ · ድምጺ መምህር","የመንጃ ተግባር ፈተና · የትራፊክ ሕግ · የአስተማሪ ድምፅ"],
  keberoAbout:["Tap the drum when the ring closes on it, like at a wedding.","ከም ኣብ መርዓ፡ ቀለበት ምስ በጽሐ ከበሮ ውቕዕ።","እንደ ሰርግ፣ ቀለበቱ ሲደርስ ከበሮውን ምታ።"],
  ruleDama:["Simple rules: pieces move forward diagonally, jump to capture, and become king at the far side. Pieces capture only forwards, also several in a row. Only a king moves backwards. A king captures forwards and backwards, both kings and normal pieces. A normal piece captures only normal pieces. If you can capture, you must. Rules differ between villages.","ቀሊል ሕጊ፦ ጠጠራት ብሰያፍ ንቕድሚት ይኸዱ፡ ብምዝላል ይበልዑ፡ መወዳእታ ምስ በጽሑ ንጉስ ይኾኑ። ንቕድሚት ጥራይ ይበልዑ፡ ብተኸታታሊ እውን። ንድሕሪት ዝኸይድ ንጉስ ጥራይ እዩ። ክትበልዕ እንተ ኽኢልካ ግድን ክትበልዕ ኣለካ። ንጉስ ንቕድሚትን ንድሕሪትን ይበልዕ፡ ንጉስን ተራ ጠጠርን። ተራ ጠጠር ንተራ ጠጠር ጥራይ ይበልዕ።","ቀላል ህግ፦ ጠጠሮች በሰያፍ ወደ ፊት ይሄዳሉ፣ በመዝለል ይበላሉ፣ መጨረሻ ሲደርሱ ንጉሥ ይሆናሉ። ወደ ፊት ብቻ ይበላሉ፣ በተከታታይም። ወደ ኋላ የሚሄደው ንጉሥ ብቻ ነው። መብላት ከቻልክ ግዴታ መብላት አለብህ። ንጉሥ ወደ ፊትም ወደ ኋላም ይበላል፣ ንጉሥንም ተራ ጠጠርንም። ተራ ጠጠር የሚበላው ተራ ጠጠርን ብቻ ነው።"],
@@ -228,7 +252,7 @@ $("langs").onclick=e=>{const b=e.target.closest("button[data-l]");if(!b)return;l
 
 /* ================= HOME ================= */
 const GAMES_META=[
- {id:"dama",ic:"⚫",n:"Dama",gz:"ዳማ",kind:"board"},
+ {id:"dama",ic:"⚫",n:"Dama",gz:"ዳማ",kind:"board"},{id:"domino",ic:"<span class=\"tile v\"><span class=\"h\"><i style=\"visibility:visible\"></i><i style=\"visibility:hidden\"></i><i style=\"visibility:visible\"></i><i style=\"visibility:visible\"></i><i style=\"visibility:hidden\"></i><i style=\"visibility:visible\"></i><i style=\"visibility:visible\"></i><i style=\"visibility:hidden\"></i><i style=\"visibility:visible\"></i></span><span class=\"h\"><i style=\"visibility:visible\"></i><i style=\"visibility:hidden\"></i><i style=\"visibility:hidden\"></i><i style=\"visibility:hidden\"></i><i style=\"visibility:visible\"></i><i style=\"visibility:hidden\"></i><i style=\"visibility:hidden\"></i><i style=\"visibility:hidden\"></i><i style=\"visibility:visible\"></i></span></span>",n:"Domino",gz:"ዱሙና",kind:"board"},
  {id:"genna",ic:"🏑",n:"Genna",gz:"ገና",kind:"solo"},{id:"hinq",ic:"❓",n:"Riddles",gz:"ሕንቅልሕንቅሊተይ",kind:"solo"}
 ];
 const IN_APP=QS.get("app")==="1"||!!window.HabeshaNet;
@@ -354,7 +378,63 @@ const DAMA={rule:"ruleDama",
    if(DSEL>=0&&targets.includes(i)){const from=DSEL;DSEL=-1;v.move({from,to:i})}}}
 };
 
-const GAMES={dama:DAMA};
+/* ================= DOMINO (ዱሙና) =================
+   Double-six set, 2 players, 7 tiles each, the rest is the pile.
+   Match an end of the line; if nothing fits, draw; if the pile is empty, pass.
+   Empty hand wins. If both pass in a row (blocked), the fewest pips in hand wins. */
+let DOSEL=-1;
+const DOMI={rule:"ruleDomino",aiDelay:800,
+ init(first){const t=[];for(let a=0;a<=6;a++)for(let b=a;b<=6;b++)t.push([a,b]);
+  for(let i=t.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[t[i],t[j]]=[t[j],t[i]]}
+  DOSEL=-1;return{hands:[t.slice(0,7),t.slice(7,14)],pile:t.slice(14),line:[],turn:first||0,winner:null,passes:0,blocked:null}},
+ pips(h){return h.reduce((n,t)=>n+t[0]+t[1],0)},
+ ends(st){return st.line.length?[st.line[0][0],st.line[st.line.length-1][1]]:null},
+ plays(st,seat){const e=DOMI.ends(st),out=[];st.hands[seat].forEach((t,i)=>{
+   if(!e){out.push({k:"play",i,side:"R"});return}
+   if(t[0]===e[0]||t[1]===e[0])out.push({k:"play",i,side:"L"});
+   if((t[0]===e[1]||t[1]===e[1])&&!(e[0]===e[1]&&out.some(m=>m.i===i)))out.push({k:"play",i,side:"R"})});return out},
+ all(st,seat){const p=DOMI.plays(st,seat);if(p.length)return p;return st.pile.length?[{k:"draw"}]:[{k:"pass"}]},
+ apply(st,mv,seat){if(st.winner!=null||st.turn!==seat)return st;
+  const ok=DOMI.all(st,seat).find(x=>x.k===mv.k&&(x.k!=="play"||(x.i===mv.i&&x.side===mv.side)));if(!ok)return st;
+  if(mv.k==="draw"){st.hands[seat].push(st.pile.pop());return st}
+  if(mv.k==="pass"){st.passes++;if(st.passes>=2){const a=DOMI.pips(st.hands[0]),b=DOMI.pips(st.hands[1]);st.blocked=[a,b];st.winner=a===b?-1:(a<b?0:1)}else st.turn=1-seat;return st}
+  const t=st.hands[seat].splice(mv.i,1)[0],e=DOMI.ends(st);
+  if(!e)st.line.push(t);
+  else if(mv.side==="L")st.line.unshift(t[1]===e[0]?[t[0],t[1]]:[t[1],t[0]]);
+  else st.line.push(t[0]===e[1]?[t[0],t[1]]:[t[1],t[0]]);
+  st.passes=0;if(!st.hands[seat].length)st.winner=seat;else st.turn=1-seat;return st},
+ ai(st,seat){const ms=DOMI.all(st,seat);if(ms[0].k!=="play")return ms[0];
+  // heaviest tile first (doubles a bit more), so the computer is not left with big points
+  const w=m=>{const t=st.hands[seat][m.i];return t[0]+t[1]+(t[0]===t[1]?3:0)+Math.random()};return ms.reduce((a,b)=>w(b)>w(a)?b:a)},
+ score(st){return[`▭${st.hands[0].length}`,`▭${st.hands[1].length}`]},
+ hint(st,me){if(st.turn!==me)return null;const ms=DOMI.all(st,me);if(ms[0].k==="draw")return T("dMustDraw");if(ms[0].k==="pass")return T("dMustPass");if(!st.line.length)return T("dStart");return null},
+ tile(t,cls,attr){const P={0:[],1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+  const half=n=>`<span class="h">${[...Array(9).keys()].map(k=>`<i style="visibility:${P[n].includes(k)?"visible":"hidden"}"></i>`).join("")}</span>`;
+  return `<span class="tile ${cls||""}" ${attr||""}>${half(t[0])}${half(t[1])}</span>`},
+ render(el,st,v){const me=v.seat,op=1-me,ps=v.mine?DOMI.plays(st,me):[];
+  if(!v.mine)DOSEL=-1;
+  const line=st.line.map((t,i)=>DOMI.tile(t,(t[0]===t[1]?"v":"")+((i===0||i===st.line.length-1)&&st.line.length>1?" end":""))).join("");
+  const opts=DOSEL>=0?ps.filter(m=>m.i===DOSEL):[];
+  const hand=st.hands[me].map((t,i)=>{const can=ps.some(m=>m.i===i);return DOMI.tile(t,"v "+(DOSEL===i?"sel":can?"ok":v.mine?"no":""),`data-i="${i}"`)}).join("");
+  const others=st.hands[op].map(()=>"<span></span>").join("");
+  const all=v.mine?DOMI.all(st,me):[];
+  const extra=all.length&&all[0].k==="draw"?`<button class="btn" data-dk="draw" style="text-align:center">🂠 ${esc(T("dDraw",{n:st.pile.length}))}</button>`
+   :all.length&&all[0].k==="pass"?`<button class="btn ghost" data-dk="pass" style="text-align:center">${esc(T("dPass"))}</button>`
+   :opts.length>1?`<p class="msg" style="margin:0;text-align:center">${esc(T("dEnd"))}</p><div class="dends"><button class="btn" data-side="L">${esc(T("dLeft"))}</button><button class="btn" data-side="R">${esc(T("dRight"))}</button></div>`:"";
+  const blk=st.blocked?`<p class="msg" style="margin:0;text-align:center">${esc(T("dBlocked",{a:st.blocked[me],b:st.blocked[op]}))}</p>`:"";
+  el.innerHTML=`<div class="dom" id="dom"><div class="dbacks">${others}</div>
+   <div class="dline">${line||`<span style="opacity:.7">${esc(T("dStart"))}</span>`}</div>
+   <div class="dinfo"><span>🂠 ${esc(T("dPile",{n:st.pile.length}))}</span></div>${blk}
+   <div class="dhand">${hand}</div>${extra}</div>`;
+  $("dom").onclick=e=>{if(!v.mine)return;
+   const k=e.target.closest("[data-dk]");if(k){DOSEL=-1;v.move({k:k.dataset.dk});return}
+   const sd=e.target.closest("[data-side]");if(sd&&DOSEL>=0){const i=DOSEL;DOSEL=-1;v.move({k:"play",i,side:sd.dataset.side});return}
+   const t=e.target.closest("[data-i]");if(!t)return;const i=+t.dataset.i,mine=ps.filter(m=>m.i===i);
+   if(!mine.length)return;if(mine.length===1){DOSEL=-1;v.move(mine[0]);return}
+   DOSEL=DOSEL===i?-1:i;redraw()}}
+};
+
+const GAMES={dama:DAMA,domino:DOMI};
 
 /* ================= GENNA ================= */
 const gc=$("gc"),g=gc.getContext("2d"),W=360,H=520,GW=120;
