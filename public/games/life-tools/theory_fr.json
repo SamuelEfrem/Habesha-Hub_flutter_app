@@ -10,12 +10,14 @@
 "q": {
 "en": "In France, what is the speed limit in a town (agglomération) when there is no sign?",
 "ti": "ኣብ ፈረንሳ ኣብ ውሽጢ ከተማ (agglomération) ምልክት እንተዘየለ ደረት ፍጥነት ክንደይ እዩ?",
-"am": "በፈረንሳይ በከተማ ውስጥ (agglomération) ምልክት ከሌለ የፍጥነት ገደቡ ስንት ነው?"
+"am": "በፈረንሳይ በከተማ ውስጥ (agglomération) ምልክት ከሌለ የፍጥነት ገደቡ ስንት ነው?",
+"fr": "En France, quelle est la vitesse maximale en agglomération sans panneau ?"
 },
 "ex": {
 "en": "50 km/h in towns. Many cities have 30 km/h zones.",
 "ti": "ኣብ ከተማ 50 km/h። ብዙሓት ከተማታት 30 km/h ዞባታት ኣለዎም።",
-"am": "በከተማ 50 km/h። ብዙ ከተሞች 30 km/h ዞኖች አሏቸው።"
+"am": "በከተማ 50 km/h። ብዙ ከተሞች 30 km/h ዞኖች አሏቸው።",
+"fr": "50 km/h en agglomération. Beaucoup de villes ont des zones à 30 km/h."
 }
 },
 {
@@ -29,12 +31,14 @@
 "q": {
 "en": "What is the usual speed limit on a two-way road outside towns without a central barrier?",
 "ti": "ካብ ከተማ ወጻኢ ኣብ ክልተ ኣንፈት ዘለዎ ጽርግያ ብዘይ ማእከላይ ሓጹር ልሙድ ደረት ፍጥነት ክንደይ እዩ?",
-"am": "ከከተማ ውጭ መሃል መከፋፈያ በሌለው ባለሁለት አቅጣጫ መንገድ የተለመደው ገደብ ስንት ነው?"
+"am": "ከከተማ ውጭ መሃል መከፋፈያ በሌለው ባለሁለት አቅጣጫ መንገድ የተለመደው ገደብ ስንት ነው?",
+"fr": "Quelle est la vitesse habituelle sur une route à double sens hors agglomération sans séparateur central ?"
 },
 "ex": {
 "en": "80 km/h on most such roads since 2018. Some departments have put some roads back to 90 km/h – follow the signs.",
 "ti": "ካብ 2018 ኣብ መብዛሕትኦም 80 km/h። ገለ ዞባታት ገለ ጽርግያታት ናብ 90 km/h መሊሶም – ምልክት ስዓብ።",
-"am": "ከ2018 ጀምሮ በአብዛኛው 80 km/h። አንዳንድ ክፍለ ግዛቶች አንዳንድ መንገዶችን ወደ 90 km/h መልሰዋል – ምልክቱን ይከተሉ።"
+"am": "ከ2018 ጀምሮ በአብዛኛው 80 km/h። አንዳንድ ክፍለ ግዛቶች አንዳንድ መንገዶችን ወደ 90 km/h መልሰዋል – ምልክቱን ይከተሉ።",
+"fr": "80 km/h sur la plupart de ces routes depuis 2018. Certains départements sont revenus à 90 km/h sur certaines routes – suivez les panneaux."
 }
 },
 {
@@ -48,12 +52,14 @@
 "q": {
 "en": "What is the speed limit on a French motorway (autoroute) in dry weather?",
 "ti": "ኣብ ኣውቶስትራዳ ፈረንሳ (autoroute) ብደረቕ ኩነታት ደረት ፍጥነት ክንደይ እዩ?",
-"am": "በፈረንሳይ አውራ ጎዳና (autoroute) በደረቅ የአየር ሁኔታ የፍጥነት ገደቡ ስንት ነው?"
+"am": "በፈረንሳይ አውራ ጎዳና (autoroute) በደረቅ የአየር ሁኔታ የፍጥነት ገደቡ ስንት ነው?",
+"fr": "Quelle est la vitesse maximale sur autoroute par temps sec ?"
 },
 "ex": {
 "en": "130 km/h in dry weather, 110 km/h when it rains.",
 "ti": "ብደረቕ 130 km/h፡ ብዝናብ 110 km/h።",
-"am": "በደረቅ 130 km/h፣ ሲዘንብ 110 km/h።"
+"am": "በደረቅ 130 km/h፣ ሲዘንብ 110 km/h።",
+"fr": "130 km/h par temps sec, 110 km/h sous la pluie."
 }
 },
 {
@@ -67,12 +73,14 @@
 "q": {
 "en": "It is raining. What is the speed limit on the autoroute now?",
 "ti": "ዝናብ ይዘንብ ኣሎ። ሕጂ ኣብ autoroute ደረት ፍጥነት ክንደይ እዩ?",
-"am": "እየዘነበ ነው። አሁን በautoroute የፍጥነት ገደቡ ስንት ነው?"
+"am": "እየዘነበ ነው። አሁን በautoroute የፍጥነት ገደቡ ስንት ነው?",
+"fr": "Il pleut. Quelle est maintenant la vitesse maximale sur autoroute ?"
 },
 "ex": {
 "en": "In rain the limits go down: 130 → 110, 110 → 100, 80 → 70 km/h.",
 "ti": "ብዝናብ ደረታት ይወርዱ፦ 130 → 110፡ 110 → 100፡ 80 → 70 km/h።",
-"am": "በዝናብ ገደቦቹ ይወርዳሉ፦ 130 → 110፣ 110 → 100፣ 80 → 70 km/h።"
+"am": "በዝናብ ገደቦቹ ይወርዳሉ፦ 130 → 110፣ 110 → 100፣ 80 → 70 km/h።",
+"fr": "Par temps de pluie, les limites baissent : 130 → 110, 110 → 100, 80 → 70 km/h."
 }
 },
 {
@@ -86,12 +94,14 @@
 "q": {
 "en": "A new driver with a probationary licence (permis probatoire) may drive at most … on the autoroute.",
 "ti": "ሓድሽ ዘዋሪ ምስ ናይ ፈተና መንጃ ፍቓድ (permis probatoire) ኣብ autoroute ብዝለዓለ … ክጎዓዝ ይኽእል።",
-"am": "የሙከራ ፈቃድ (permis probatoire) ያለው አዲስ አሽከርካሪ በautoroute ቢበዛ … መሄድ ይችላል።"
+"am": "የሙከራ ፈቃድ (permis probatoire) ያለው አዲስ አሽከርካሪ በautoroute ቢበዛ … መሄድ ይችላል።",
+"fr": "Un jeune conducteur en permis probatoire peut rouler au maximum à … sur autoroute."
 },
 "ex": {
 "en": "New drivers: 110 km/h on autoroutes and 100 km/h on roads normally limited to 110.",
 "ti": "ሓደስቲ ዘወርቲ፦ 110 km/h ኣብ autoroute፡ 100 km/h ኣብቶም ብልሙድ 110 ዝኾኑ።",
-"am": "አዲስ አሽከርካሪዎች፦ በautoroute 110 km/h፣ በተለምዶ 110 በሆኑት 100 km/h።"
+"am": "አዲስ አሽከርካሪዎች፦ በautoroute 110 km/h፣ በተለምዶ 110 በሆኑት 100 km/h።",
+"fr": "Jeunes conducteurs : 110 km/h sur autoroute et 100 km/h sur les routes normalement limitées à 110."
 }
 },
 {
@@ -105,12 +115,14 @@
 "q": {
 "en": "Fog limits visibility to under 50 m. What is the maximum speed on any road?",
 "ti": "ግመ ምርኣይ ትሕቲ 50 ሜ ይገብሮ። ኣብ ዝኾነ ጽርግያ ዝለዓለ ፍጥነት ክንደይ እዩ?",
-"am": "ጭጋግ እይታን ከ50 ሜ በታች ያደርገዋል። በማንኛውም መንገድ ከፍተኛው ፍጥነት ስንት ነው?"
+"am": "ጭጋግ እይታን ከ50 ሜ በታች ያደርገዋል። በማንኛውም መንገድ ከፍተኛው ፍጥነት ስንት ነው?",
+"fr": "Le brouillard réduit la visibilité à moins de 50 m. Quelle est la vitesse maximale sur toutes les routes ?"
 },
 "ex": {
 "en": "With visibility under 50 m the limit is 50 km/h everywhere, even on the autoroute.",
 "ti": "ምርኣይ ትሕቲ 50 ሜ ምስ ዝኸውን ኣብ ኩሉ ቦታ 50 km/h፡ ኣብ autoroute እውን።",
-"am": "እይታ ከ50 ሜ በታች ሲሆን በሁሉም ቦታ 50 km/h፣ በautoroute እንኳን።"
+"am": "እይታ ከ50 ሜ በታች ሲሆን በሁሉም ቦታ 50 km/h፣ በautoroute እንኳን።",
+"fr": "Avec une visibilité inférieure à 50 m, la limite est de 50 km/h partout, même sur autoroute."
 }
 },
 {
@@ -133,17 +145,25 @@
 "ከቀኝ (priorité à droite)",
 "ትልቁ",
 "የመጀመሪያው"
+],
+"fr": [
+"La voiture venant de gauche",
+"La voiture venant de droite (priorité à droite)",
+"Le véhicule le plus gros",
+"Le premier arrivé"
 ]
 },
 "q": {
 "en": "At an intersection without signs, who has priority in France?",
 "ti": "ኣብ ፈረንሳ ብዘይ ምልክት ኣብ መስቀላ መገዲ መን ቅድሚ ኣለዎ?",
-"am": "በፈረንሳይ ምልክት በሌለው መስቀለኛ መንገድ ማን ቅድሚያ አለው?"
+"am": "በፈረንሳይ ምልክት በሌለው መስቀለኛ መንገድ ማን ቅድሚያ አለው?",
+"fr": "À une intersection sans panneau, qui a la priorité en France ?"
 },
 "ex": {
 "en": "Priorité à droite: give way to traffic coming from your right.",
 "ti": "Priorité à droite፦ ካብ የማንካ ንዝመጽእ ቅድሚ ሃብ።",
-"am": "Priorité à droite፦ ከቀኝዎ ለሚመጣ ቅድሚያ ይስጡ።"
+"am": "Priorité à droite፦ ከቀኝዎ ለሚመጣ ቅድሚያ ይስጡ።",
+"fr": "Priorité à droite : cédez le passage aux véhicules venant de votre droite."
 }
 },
 {
@@ -166,17 +186,25 @@
 "በውስጡ ያለ (የ'Cédez le passage' ምልክት ሲኖር)",
 "ትልቁ",
 "ማንም"
+],
+"fr": [
+"Ceux qui entrent",
+"Ceux déjà dans le giratoire (avec le panneau « Cédez le passage »)",
+"Le véhicule le plus gros",
+"Personne"
 ]
 },
 "q": {
 "en": "Who has priority at a normal French roundabout (carrefour à sens giratoire)?",
 "ti": "ኣብ ልሙድ ዙርያ ፈረንሳ መን ቅድሚ ኣለዎ?",
-"am": "በተለመደ የፈረንሳይ አደባባይ ማን ቅድሚያ አለው?"
+"am": "በተለመደ የፈረንሳይ አደባባይ ማን ቅድሚያ አለው?",
+"fr": "Qui a la priorité dans un carrefour à sens giratoire normal ?"
 },
 "ex": {
 "en": "With the 'Cédez le passage' sign you give way when entering; traffic in the roundabout goes first.",
 "ti": "ምስ ምልክት 'Cédez le passage' ክትኣቱ ቅድሚ ትህብ፡ ኣብ ውሽጢ ዘሎ ይቕድም።",
-"am": "በ'Cédez le passage' ምልክት ሲገቡ ቅድሚያ ይሰጣሉ፣ በውስጡ ያለው ይቀድማል።"
+"am": "በ'Cédez le passage' ምልክት ሲገቡ ቅድሚያ ይሰጣሉ፣ በውስጡ ያለው ይቀድማል።",
+"fr": "Avec le panneau « Cédez le passage », vous cédez en entrant ; ceux déjà dans le giratoire passent d'abord."
 }
 },
 {
@@ -199,17 +227,25 @@
 "ለሚሻገሩ ወይም በግልጽ ሊሻገሩ ለሚፈልጉ ቅድሚያ ይስጡ",
 "ጡሩምባ",
 "ለልጆች ብቻ"
+],
+"fr": [
+"Continuer",
+"Laisser passer les piétons qui traversent ou veulent clairement traverser",
+"Klaxonner",
+"S'arrêter seulement pour les enfants"
 ]
 },
 "q": {
 "en": "What must you do at a pedestrian crossing (passage piéton)?",
 "ti": "ኣብ መሳገሪ ተጓዓዝቲ ብእግሪ (passage piéton) እንታይ ክትገብር ኣለካ?",
-"am": "በእግረኛ መሻገሪያ (passage piéton) ምን ማድረግ አለብዎት?"
+"am": "በእግረኛ መሻገሪያ (passage piéton) ምን ማድረግ አለብዎት?",
+"fr": "Que devez-vous faire à un passage piéton ?"
 },
 "ex": {
 "en": "Give way to pedestrians crossing or clearly about to cross. Not doing so costs 6 points.",
 "ti": "ንዝሰግሩ ወይ ክሰግሩ ዝቀራረቡ ቅድሚ ሃብ። ዘይምሃብ 6 ነጥቢ የኽስር።",
-"am": "ለሚሻገሩ ወይም ሊሻገሩ ላሉ ቅድሚያ ይስጡ። አለመስጠት 6 ነጥብ ያስከፍላል።"
+"am": "ለሚሻገሩ ወይም ሊሻገሩ ላሉ ቅድሚያ ይስጡ። አለመስጠት 6 ነጥብ ያስከፍላል።",
+"fr": "Cédez le passage aux piétons qui traversent ou s'apprêtent à traverser. Sinon : 6 points."
 }
 },
 {
@@ -223,12 +259,14 @@
 "q": {
 "en": "What is the blood alcohol limit for experienced drivers in France?",
 "ti": "ኣብ ፈረንሳ ንልምዲ ዘለዎም ዘወርቲ ደረት ኣልኮል ኣብ ደም ክንደይ እዩ?",
-"am": "በፈረንሳይ ልምድ ላላቸው አሽከርካሪዎች በደም የአልኮል ገደቡ ስንት ነው?"
+"am": "በፈረንሳይ ልምድ ላላቸው አሽከርካሪዎች በደም የአልኮል ገደቡ ስንት ነው?",
+"fr": "Quel est le taux d'alcool maximal dans le sang pour un conducteur confirmé ?"
 },
 "ex": {
 "en": "0.5 g per litre of blood. For drivers with a probationary licence it is 0.2 g/l.",
 "ti": "0.5 g ኣብ ሊትሮ ደም። ንናይ ፈተና መንጃ ፍቓድ 0.2 g/l።",
-"am": "0.5 g በሊትር ደም። ለሙከራ ፈቃድ 0.2 g/l።"
+"am": "0.5 g በሊትር ደም። ለሙከራ ፈቃድ 0.2 g/l።",
+"fr": "0,5 g par litre de sang. En permis probatoire, c'est 0,2 g/l."
 }
 },
 {
@@ -242,12 +280,14 @@
 "q": {
 "en": "How many points does a full French licence have?",
 "ti": "ምሉእ መንጃ ፍቓድ ፈረንሳ ክንደይ ነጥቢ ኣለዎ?",
-"am": "ሙሉ የፈረንሳይ ፈቃድ ስንት ነጥብ አለው?"
+"am": "ሙሉ የፈረንሳይ ፈቃድ ስንት ነጥብ አለው?",
+"fr": "Combien de points a un permis français complet ?"
 },
 "ex": {
 "en": "12 points. Offences remove points – at 0 the licence is no longer valid.",
 "ti": "12 ነጥቢ። ጌጋታት ነጥቢ የጉድሉ – 0 ምስ በጽሐ መንጃ ፍቓድ ኣይሰርሕን።",
-"am": "12 ነጥብ። ጥፋቶች ነጥብ ይቀንሳሉ – 0 ሲደርስ ፈቃዱ አይሰራም።"
+"am": "12 ነጥብ። ጥፋቶች ነጥብ ይቀንሳሉ – 0 ሲደርስ ፈቃዱ አይሰራም።",
+"fr": "12 points. Les infractions retirent des points – à 0, le permis n'est plus valable."
 }
 },
 {
@@ -261,12 +301,14 @@
 "q": {
 "en": "How many points does a new driver start with (permis probatoire)?",
 "ti": "ሓድሽ ዘዋሪ (permis probatoire) ብክንደይ ነጥቢ ይጅምር?",
-"am": "አዲስ አሽከርካሪ (permis probatoire) በስንት ነጥብ ይጀምራል?"
+"am": "አዲስ አሽከርካሪ (permis probatoire) በስንት ነጥብ ይጀምራል?",
+"fr": "Avec combien de points commence un jeune conducteur (permis probatoire) ?"
 },
 "ex": {
 "en": "6 points. Without offences it rises to 12 after 3 years (2 years after accompanied driving).",
 "ti": "6 ነጥቢ። ብዘይ ጌጋ ድሕሪ 3 ዓመት 12 ይበጽሕ (ድሕሪ ምስ መሰነይታ ምዝዋር 2 ዓመት)።",
-"am": "6 ነጥብ። ያለ ጥፋት ከ3 ዓመት በኋላ 12 ይደርሳል (ከአጃቢ ጋር መንዳት በኋላ 2 ዓመት)።"
+"am": "6 ነጥብ። ያለ ጥፋት ከ3 ዓመት በኋላ 12 ይደርሳል (ከአጃቢ ጋር መንዳት በኋላ 2 ዓመት)።",
+"fr": "6 points. Sans infraction, il passe à 12 après 3 ans (2 ans après la conduite accompagnée)."
 }
 },
 {
@@ -280,12 +322,14 @@
 "q": {
 "en": "Since 2024, from what age can you pass the car licence (permis B) in France?",
 "ti": "ካብ 2024 ጀሚሩ ኣብ ፈረንሳ ካብ ክንደይ ዕድመ መንጃ ፍቓድ B ክትወስድ ትኽእል?",
-"am": "ከ2024 ጀምሮ በፈረንሳይ ከስንት ዓመት ጀምሮ B ፈቃድ ማግኘት ይችላሉ?"
+"am": "ከ2024 ጀምሮ በፈረንሳይ ከስንት ዓመት ጀምሮ B ፈቃድ ማግኘት ይችላሉ?",
+"fr": "Depuis 2024, à partir de quel âge peut-on passer le permis B en France ?"
 },
 "ex": {
 "en": "From 17. Accompanied driving (conduite accompagnée) can start at 15.",
 "ti": "ካብ 17። ምስ መሰነይታ ምዝዋር (conduite accompagnée) ካብ 15 ይጅመር።",
-"am": "ከ17። ከአጃቢ ጋር መንዳት (conduite accompagnée) ከ15 ይጀምራል።"
+"am": "ከ17። ከአጃቢ ጋር መንዳት (conduite accompagnée) ከ15 ይጀምራል።",
+"fr": "Dès 17 ans. La conduite accompagnée peut commencer à 15 ans."
 }
 },
 {
@@ -308,17 +352,25 @@
 "hands-free ከጆሮ ማዳመጫ ጋር ይፈቀዳል",
 "ስልክ መያዝና ማንኛውም የጆሮ ማዳመጫ መጠቀም የተከለከለ ነው",
 "ጥሪ ብቻ የተከለከለ"
+],
+"fr": [
+"Seulement un support",
+"Le kit mains libres avec oreillette est autorisé",
+"Il est interdit de tenir le téléphone ET de porter une oreillette ou un casque",
+"Seuls les appels sont interdits"
 ]
 },
 "q": {
 "en": "What is special about the French phone rule while driving?",
 "ti": "ሕጊ ፈረንሳ ብዛዕባ ሞባይል ክትዝውር ከለኻ እንታይ ፍሉይ ኣለዎ?",
-"am": "የፈረንሳይ የስልክ ህግ ሲያሽከረክሩ ልዩ የሆነው ምንድን ነው?"
+"am": "የፈረንሳይ የስልክ ህግ ሲያሽከረክሩ ልዩ የሆነው ምንድን ነው?",
+"fr": "Qu'est-ce qui est particulier dans la règle française sur le téléphone au volant ?"
 },
 "ex": {
 "en": "You may not hold a phone, and you may not wear earphones or a headset at all. Only built-in car systems are allowed.",
 "ti": "ሞባይል ክትሕዝ ኣይፍቀድን፡ ኣብ እዝኒ ዝእቶ ወይ headset እውን ኣይፍቀድን። ናይ መኪና ስርዓት ጥራይ ይፍቀድ።",
-"am": "ስልክ መያዝ አይፈቀድም፣ የጆሮ ማዳመጫ ወይም headset ማድረግም አይፈቀድም። የመኪናው ስርዓት ብቻ ይፈቀዳል።"
+"am": "ስልክ መያዝ አይፈቀድም፣ የጆሮ ማዳመጫ ወይም headset ማድረግም አይፈቀድም። የመኪናው ስርዓት ብቻ ይፈቀዳል።",
+"fr": "Vous ne pouvez pas tenir le téléphone ni porter d'oreillettes ou de casque. Seuls les systèmes intégrés à la voiture sont autorisés."
 }
 },
 {
@@ -341,17 +393,25 @@
 "አንጸባራቂ ልብስና የማስጠንቀቂያ ሦስት ማዕዘን",
 "የእሳት ማጥፊያ",
 "ምንም"
+],
+"fr": [
+"Seulement une roue de secours",
+"Un gilet jaune et un triangle de présignalisation",
+"Un extincteur",
+"Rien"
 ]
 },
 "q": {
 "en": "What must every car in France carry?",
 "ti": "ኣብ ፈረንሳ ኩላ መኪና እንታይ ክትሕዝ ኣለዋ?",
-"am": "በፈረንሳይ እያንዳንዱ መኪና ምን መያዝ አለበት?"
+"am": "በፈረንሳይ እያንዳንዱ መኪና ምን መያዝ አለበት?",
+"fr": "Que doit avoir chaque voiture en France ?"
 },
 "ex": {
 "en": "A high-visibility vest (gilet jaune), within reach of the driver, and a warning triangle.",
 "ti": "ኣንጸባራቒ ጅለ (gilet jaune) ኣብ ጥቓ ዘዋሪ፡ ከምኡ እውን ሰለስተ መኣዝን መጠንቀቕታ።",
-"am": "አንጸባራቂ ልብስ (gilet jaune) በአሽከርካሪው አቅራቢያ፣ እና የማስጠንቀቂያ ሦስት ማዕዘን።"
+"am": "አንጸባራቂ ልብስ (gilet jaune) በአሽከርካሪው አቅራቢያ፣ እና የማስጠንቀቂያ ሦስት ማዕዘን።",
+"fr": "Un gilet de haute visibilité (gilet jaune), à portée du conducteur, et un triangle."
 }
 },
 {
@@ -374,17 +434,25 @@
 "ከ10 በታች ልጆች (በተለምዶ በኋላ በተስማሚ መቀመጫ)",
 "ከ16 በታች ሁሉም",
 "ህግ የለም"
+],
+"fr": [
+"Les moins de 5 ans",
+"Les moins de 10 ans (normalement à l'arrière, dans un siège adapté)",
+"Tous les moins de 16 ans",
+"Aucune règle"
 ]
 },
 "q": {
 "en": "Which children must use a child restraint in France?",
 "ti": "ኣብ ፈረንሳ ኣየኖት ቆልዑ መንበር ቆልዑ ክጥቀሙ ኣለዎም?",
-"am": "በፈረንሳይ የትኞቹ ልጆች የልጆች መቀመጫ መጠቀም አለባቸው?"
+"am": "በፈረንሳይ የትኞቹ ልጆች የልጆች መቀመጫ መጠቀም አለባቸው?",
+"fr": "Quels enfants doivent utiliser un dispositif de retenue en France ?"
 },
 "ex": {
 "en": "Children under 10 must use a suitable child seat, and normally may not sit in the front.",
 "ti": "ቆልዑ ትሕቲ 10 ዝሰማማዕ መንበር ክጥቀሙ ኣለዎም፡ ብልሙድ ኣብ ቅድሚት ኣይቕመጡን።",
-"am": "ከ10 በታች ልጆች ተስማሚ መቀመጫ መጠቀም አለባቸው፣ በተለምዶ ፊት አይቀመጡም።"
+"am": "ከ10 በታች ልጆች ተስማሚ መቀመጫ መጠቀም አለባቸው፣ በተለምዶ ፊት አይቀመጡም።",
+"fr": "Les enfants de moins de 10 ans doivent utiliser un siège adapté et ne peuvent normalement pas être à l'avant."
 }
 },
 {
@@ -407,17 +475,25 @@
 "መኪናው ምን ያህል ንጹህ እንደሆነ የሚያሳይ Crit'Air ተለጣፊ",
 "ተለጣፊ አያስፈልግም",
 "የክፍያ መንገድ ባጅ"
+],
+"fr": [
+"N'importe quel autocollant",
+"Une vignette Crit'Air qui montre si la voiture pollue",
+"Aucun autocollant",
+"Un badge de péage"
 ]
 },
 "q": {
 "en": "What do you need to drive in a low-emission zone (ZFE) in French cities?",
 "ti": "ኣብ ከተማታት ፈረንሳ ኣብ ዞባ ትሑት ብከላ (ZFE) ንምዝዋር እንታይ የድልየካ?",
-"am": "በፈረንሳይ ከተሞች ዝቅተኛ ልቀት ዞን (ZFE) ለመንዳት ምን ያስፈልግዎታል?"
+"am": "በፈረንሳይ ከተሞች ዝቅተኛ ልቀት ዞን (ZFE) ለመንዳት ምን ያስፈልግዎታል?",
+"fr": "De quoi avez-vous besoin pour rouler dans une zone à faibles émissions (ZFE) ?"
 },
 "ex": {
 "en": "A Crit'Air sticker. Some zones do not allow the most polluting cars.",
 "ti": "ስቲከር Crit'Air። ገለ ዞባታት ነተን ብዙሕ ዘብክላ መካይን ኣይፈቕዱን።",
-"am": "Crit'Air ተለጣፊ። አንዳንድ ዞኖች በጣም የሚበክሉ መኪኖችን አይፈቅዱም።"
+"am": "Crit'Air ተለጣፊ። አንዳንድ ዞኖች በጣም የሚበክሉ መኪኖችን አይፈቅዱም።",
+"fr": "Une vignette Crit'Air. Certaines zones interdisent les voitures les plus polluantes."
 }
 },
 {
@@ -440,17 +516,25 @@
 "ከኅዳር 1 እስከ መጋቢት 31 በተራራማ አካባቢዎች፦ የክረምት ጎማ ወይም ሰንሰለት",
 "በጭራሽ",
 "በፓሪስ ብቻ"
+],
+"fr": [
+"Toujours, toute l'année",
+"Du 1er novembre au 31 mars en zone de montagne : pneus hiver ou chaînes dans la voiture",
+"Jamais",
+"Seulement à Paris"
 ]
 },
 "q": {
 "en": "What does the 'Loi Montagne' (mountain law) require in winter?",
 "ti": "'Loi Montagne' (ሕጊ ጎቦ) ኣብ ክረምቲ እንታይ ይሓትት?",
-"am": "'Loi Montagne' (የተራራ ህግ) በክረምት ምን ይጠይቃል?"
+"am": "'Loi Montagne' (የተራራ ህግ) በክረምት ምን ይጠይቃል?",
+"fr": "Qu'impose la « loi Montagne » en hiver ?"
 },
 "ex": {
 "en": "In listed mountain areas from 1 November to 31 March you need winter tyres, or chains/socks in the car.",
 "ti": "ኣብ ዝተዘርዘሩ ከባቢታት ጎቦ ካብ 1 ሕዳር ክሳብ 31 መጋቢት ጎማ ክረምቲ ወይ ሰንሰለት ኣብ መኪና።",
-"am": "በተዘረዘሩ ተራራማ አካባቢዎች ከኅዳር 1 እስከ መጋቢት 31 የክረምት ጎማ ወይም ሰንሰለት በመኪናው።"
+"am": "በተዘረዘሩ ተራራማ አካባቢዎች ከኅዳር 1 እስከ መጋቢት 31 የክረምት ጎማ ወይም ሰንሰለት በመኪናው።",
+"fr": "Dans les zones de montagne listées, du 1er novembre au 31 mars : pneus hiver, ou chaînes/chaussettes dans la voiture."
 }
 },
 {
@@ -473,17 +557,25 @@
 "2 መስመሮች (2 ሰከንድ)",
 "5 መስመሮች",
 "ህግ የለም"
+],
+"fr": [
+"1 trait",
+"2 traits (2 secondes)",
+"5 traits",
+"Aucune règle"
 ]
 },
 "q": {
 "en": "On the autoroute there are white marks at the edge: '1 trait danger, 2 traits sécurité'. What distance do you keep?",
 "ti": "ኣብ autoroute ኣብ ደረት ጻዕዳ ምልክታት ኣለዉ፦ '1 trait danger, 2 traits sécurité'። ክንደይ ርሕቀት ትሕሉ?",
-"am": "በautoroute ዳር ነጭ ምልክቶች አሉ፦ '1 trait danger, 2 traits sécurité'። ምን ያህል ርቀት ይጠብቃሉ?"
+"am": "በautoroute ዳር ነጭ ምልክቶች አሉ፦ '1 trait danger, 2 traits sécurité'። ምን ያህል ርቀት ይጠብቃሉ?",
+"fr": "Sur autoroute, il y a des marques blanches au bord : « 1 trait danger, 2 traits sécurité ». Quelle distance gardez-vous ?"
 },
 "ex": {
 "en": "Keep at least 2 marks (about 2 seconds) behind the car in front.",
 "ti": "ብውሑዱ 2 ምልክታት (ኣስታት 2 ካልኢት) ድሕሪ እታ ቅድሜኻ።",
-"am": "ከፊትዎ ካለው ቢያንስ 2 ምልክቶች (ወደ 2 ሰከንድ)።"
+"am": "ከፊትዎ ካለው ቢያንስ 2 ምልክቶች (ወደ 2 ሰከንድ)።",
+"fr": "Gardez au moins 2 traits (environ 2 secondes) derrière la voiture devant vous."
 }
 },
 {
@@ -506,17 +598,25 @@
 "የተከለከለ – በመኪና መያዙም ጭምር",
 "በautoroute ይፈቀዳል",
 "ለቱሪስት ይፈቀዳል"
+],
+"fr": [
+"Autorisés",
+"Interdits – même en avoir un dans la voiture",
+"Autorisés sur autoroute",
+"Autorisés pour les touristes"
 ]
 },
 "q": {
 "en": "Are radar detectors allowed in France?",
 "ti": "ኣብ ፈረንሳ መለለዪ ራዳር (radar detector) ይፍቀድ ድዩ?",
-"am": "በፈረንሳይ የራዳር መለያ (radar detector) ይፈቀዳል?"
+"am": "በፈረንሳይ የራዳር መለያ (radar detector) ይፈቀዳል?",
+"fr": "Les détecteurs de radar sont-ils autorisés en France ?"
 },
 "ex": {
 "en": "No. Radar detectors are forbidden; carrying one means a fine, points and losing the device.",
 "ti": "ኣይፋል። ክልኩል እዩ፦ መቕጻዕቲ፡ ነጥብን ምውሳድ መሳርሒን ይስዕብ።",
-"am": "አይ። የተከለከለ ነው፦ ቅጣት፣ ነጥብና መሣሪያውን መወረስ ይከተላል።"
+"am": "አይ። የተከለከለ ነው፦ ቅጣት፣ ነጥብና መሣሪያውን መወረስ ይከተላል።",
+"fr": "Non. Les détecteurs de radar sont interdits : amende, points et confiscation."
 }
 },
 {
@@ -530,12 +630,14 @@
 "q": {
 "en": "Which number works for every emergency in France (and the whole EU)?",
 "ti": "ኣብ ፈረንሳ (ከምኡ እውን ኩሉ ኤውሮጳ) ንኹሉ ህጹጽ ዝሰርሕ ቁጽሪ ኣየናይ እዩ?",
-"am": "በፈረንሳይ (እና በመላው አውሮፓ) ለሁሉም ድንገተኛ የሚሰራው ቁጥር የትኛው ነው?"
+"am": "በፈረንሳይ (እና በመላው አውሮፓ) ለሁሉም ድንገተኛ የሚሰራው ቁጥር የትኛው ነው?",
+"fr": "Quel numéro fonctionne pour toutes les urgences en France (et dans toute l'UE) ?"
 },
 "ex": {
 "en": "112 always works. In France 15 is ambulance (SAMU), 17 police and 18 fire.",
 "ti": "112 ኩሉ ግዜ ይሰርሕ። ኣብ ፈረንሳ 15 ኣምቡላንስ፡ 17 ፖሊስ፡ 18 ሓዊ።",
-"am": "112 ሁልጊዜ ይሰራል። በፈረንሳይ 15 አምቡላንስ፣ 17 ፖሊስ፣ 18 እሳት።"
+"am": "112 ሁልጊዜ ይሰራል። በፈረንሳይ 15 አምቡላንስ፣ 17 ፖሊስ፣ 18 እሳት።",
+"fr": "Le 112 fonctionne toujours. En France : 15 SAMU, 17 police, 18 pompiers."
 }
 },
 {
@@ -558,17 +660,25 @@
 "ይጠብቁ፣ ያሳውቁ (112)፣ ይርዱ – 'protéger, alerter, secourir'",
 "ሁሉንም ያንቀሳቅሱ",
 "መጀመሪያ ፎቶ"
+],
+"fr": [
+"Continuer pour chercher de l'aide",
+"Protéger, alerter (112) et secourir",
+"Déplacer tout le monde tout de suite",
+"Prendre d'abord des photos"
 ]
 },
 "q": {
 "en": "You come to an accident with injured people. What is the right order?",
 "ti": "ናብ ሓደጋ ምስ ዝተጎድኡ ትበጽሕ። ቅኑዕ መስርሕ እንታይ እዩ?",
-"am": "ተጎጂዎች ወዳሉበት አደጋ ይደርሳሉ። ትክክለኛው ቅደም ተከተል ምንድን ነው?"
+"am": "ተጎጂዎች ወዳሉበት አደጋ ይደርሳሉ። ትክክለኛው ቅደም ተከተል ምንድን ነው?",
+"fr": "Vous arrivez sur un accident avec des blessés. Quel est le bon ordre ?"
 },
 "ex": {
 "en": "Protéger (protect), alerter (call), secourir (help). In France not helping is a crime.",
 "ti": "Protéger (ሓሉ)፡ alerter (ደውል)፡ secourir (ሓግዝ)። ኣብ ፈረንሳ ዘይምሕጋዝ ገበን እዩ።",
-"am": "Protéger (ይጠብቁ)፣ alerter (ይደውሉ)፣ secourir (ይርዱ)። በፈረንሳይ አለመርዳት ወንጀል ነው።"
+"am": "Protéger (ይጠብቁ)፣ alerter (ይደውሉ)፣ secourir (ይርዱ)። በፈረንሳይ አለመርዳት ወንጀል ነው።",
+"fr": "Protéger, alerter, secourir. En France, la non-assistance est un délit."
 }
 },
 {
@@ -591,17 +701,25 @@
 "ፍጥነት ብቻ",
 "መኪና ሲመጣ ብቻ",
 "ጡሩምባ"
+],
+"fr": [
+"S'arrêter complètement à la ligne et céder le passage",
+"Seulement ralentir",
+"S'arrêter seulement si des voitures arrivent",
+"Klaxonner"
 ]
 },
 "q": {
 "en": "What must you do at a STOP sign?",
 "ti": "ኣብ ምልክት STOP እንታይ ክትገብር ኣለካ?",
-"am": "በSTOP ምልክት ምን ማድረግ አለብዎት?"
+"am": "በSTOP ምልክት ምን ማድረግ አለብዎት?",
+"fr": "Que devez-vous faire à un panneau STOP ?"
 },
 "ex": {
 "en": "Stop completely for at least a moment at the line, then give way. Not stopping costs 4 points.",
 "ti": "ኣብ መስመር ምሉእ ደው በል፡ ድሕሪኡ ቅድሚ ሃብ። ዘይምቁም 4 ነጥቢ የኽስር።",
-"am": "መስመሩ ላይ ሙሉ በሙሉ ይቁሙ፣ ከዚያ ቅድሚያ ይስጡ። አለመቆም 4 ነጥብ ያስከፍላል።"
+"am": "መስመሩ ላይ ሙሉ በሙሉ ይቁሙ፣ ከዚያ ቅድሚያ ይስጡ። አለመቆም 4 ነጥብ ያስከፍላል።",
+"fr": "Arrêt complet à la ligne, puis cédez le passage. Ne pas s'arrêter coûte 4 points."
 }
 },
 {
@@ -624,17 +742,25 @@
 "ቀይ ጠርዝ ያለው ነጭ ሦስት ማዕዘን",
 "ሰማያዊ ክብ",
 "አረንጓዴ አራት ማዕዘን"
+],
+"fr": [
+"Triangle jaune",
+"Triangle blanc bordé de rouge",
+"Cercle bleu",
+"Rectangle vert"
 ]
 },
 "q": {
 "en": "What do danger warning signs look like in France?",
 "ti": "ኣብ ፈረንሳ ምልክታት ሓደጋ ከመይ ይመስሉ?",
-"am": "በፈረንሳይ የአደጋ ምልክቶች ምን ይመስላሉ?"
+"am": "በፈረንሳይ የአደጋ ምልክቶች ምን ይመስላሉ?",
+"fr": "À quoi ressemblent les panneaux de danger en France ?"
 },
 "ex": {
 "en": "White triangles with a red border (yellow ones are used at road works).",
 "ti": "ጻዕዳ ሰለስተ መኣዝን ምስ ቀይሕ ደረት (ብጫ ኣብ ስራሕ ጽርግያ)።",
-"am": "ቀይ ጠርዝ ያላቸው ነጭ ሦስት ማዕዘኖች (ቢጫ በመንገድ ሥራ)።"
+"am": "ቀይ ጠርዝ ያላቸው ነጭ ሦስት ማዕዘኖች (ቢጫ በመንገድ ሥራ)።",
+"fr": "Des triangles blancs bordés de rouge (les jaunes servent aux travaux)."
 }
 },
 {
@@ -657,17 +783,25 @@
 "የቅድሚያ መጨረሻ",
 "አደጋ",
 "ማቆሚያ"
+],
+"fr": [
+"Route prioritaire",
+"Fin de priorité",
+"Danger",
+"Stationnement"
 ]
 },
 "q": {
 "en": "What does a yellow diamond sign with a white border mean?",
 "ti": "ብጫ ዳይመንድ ምልክት ምስ ጻዕዳ ደረት እንታይ ማለት እዩ?",
-"am": "ነጭ ጠርዝ ያለው ቢጫ አልማዝ ምልክት ምን ማለት ነው?"
+"am": "ነጭ ጠርዝ ያለው ቢጫ አልማዝ ምልክት ምን ማለት ነው?",
+"fr": "Que signifie un panneau losange jaune bordé de blanc ?"
 },
 "ex": {
 "en": "A priority road (route à caractère prioritaire): side roads must give way to you.",
 "ti": "መገዲ ቅድሚ፦ ካብ ጎኒ ዝመጹ ቅድሚ ክህቡኻ ኣለዎም።",
-"am": "የቅድሚያ መንገድ፦ ከጎን የሚመጡ ቅድሚያ መስጠት አለባቸው።"
+"am": "የቅድሚያ መንገድ፦ ከጎን የሚመጡ ቅድሚያ መስጠት አለባቸው።",
+"fr": "Route à caractère prioritaire : les routes latérales doivent vous céder le passage."
 }
 },
 {
@@ -690,17 +824,25 @@
 "በሰላም ከቻሉ ይቁሙ",
 "እንደ አረንጓዴ",
 "ለአውቶቡስ"
+],
+"fr": [
+"Accélérer",
+"S'arrêter si on peut le faire sans danger",
+"Comme le vert",
+"Seulement pour les bus"
 ]
 },
 "q": {
 "en": "The traffic light turns steady yellow (orange). What do you do?",
 "ti": "መብራህቲ ትራፊክ ብጫ (orange) ይኸውን። እንታይ ትገብር?",
-"am": "የትራፊክ መብራቱ ቢጫ (orange) ይሆናል። ምን ያደርጋሉ?"
+"am": "የትራፊክ መብራቱ ቢጫ (orange) ይሆናል። ምን ያደርጋሉ?",
+"fr": "Le feu passe à l'orange fixe. Que faites-vous ?"
 },
 "ex": {
 "en": "Steady orange means stop, unless stopping would be dangerous.",
 "ti": "ብጫ ደው በል ማለት እዩ፡ ደው ምባል ሓደገኛ እንተዘይኮይኑ።",
-"am": "ቢጫ ቁም ማለት ነው፣ መቆም አደገኛ ካልሆነ።"
+"am": "ቢጫ ቁም ማለት ነው፣ መቆም አደገኛ ካልሆነ።",
+"fr": "L'orange fixe signifie l'arrêt, sauf si s'arrêter serait dangereux."
 }
 },
 {
@@ -723,17 +865,25 @@
 "በጥንቃቄ ይሂዱ – ምልክቶችን ወይም የቅድሚያ ህግን ይከተሉ",
 "እንደ አረንጓዴ",
 "መግባት የተከለከለ"
+],
+"fr": [
+"S'arrêter",
+"Passer avec prudence – le carrefour n'est pas réglé par le feu ; suivez panneaux ou priorités",
+"Comme le vert",
+"Sens interdit"
 ]
 },
 "q": {
 "en": "What does a flashing yellow (orange) light mean?",
 "ti": "ዝብልጭልጭ ብጫ መብራህቲ እንታይ ማለት እዩ?",
-"am": "ብልጭ ብልጭ የሚል ቢጫ መብራት ምን ማለት ነው?"
+"am": "ብልጭ ብልጭ የሚል ቢጫ መብራት ምን ማለት ነው?",
+"fr": "Que signifie un feu orange clignotant ?"
 },
 "ex": {
 "en": "Take extra care; the light does not give you priority.",
 "ti": "ብፍሉይ ተጠንቀቕ፡ እቲ መብራህቲ ቅድሚ ኣይህበካን።",
-"am": "በተለየ ይጠንቀቁ፣ መብራቱ ቅድሚያ አይሰጥዎትም።"
+"am": "በተለየ ይጠንቀቁ፣ መብራቱ ቅድሚያ አይሰጥዎትም።",
+"fr": "Redoublez de prudence ; le feu ne vous donne pas la priorité."
 }
 },
 {
@@ -756,17 +906,25 @@
 "ሊዘጉት ከቻሉ አይግቡ",
 "ጡሩምባ",
 "በእግረኛ መንገድ"
+],
+"fr": [
+"S'engager quand même",
+"Ne pas s'engager si vous risquez de le bloquer",
+"Klaxonner",
+"Rouler sur le trottoir"
 ]
 },
 "q": {
 "en": "The light is green but the intersection is full. What do you do?",
 "ti": "መብራህቲ ቀጠልያ እዩ ግን መስቀላ መሊኡ። እንታይ ትገብር?",
-"am": "መብራቱ አረንጓዴ ነው ግን መስቀለኛ መንገዱ ሞልቷል። ምን ያደርጋሉ?"
+"am": "መብራቱ አረንጓዴ ነው ግን መስቀለኛ መንገዱ ሞልቷል። ምን ያደርጋሉ?",
+"fr": "Le feu est vert mais le carrefour est encombré. Que faites-vous ?"
 },
 "ex": {
 "en": "Never block an intersection ('ne pas s'engager').",
 "ti": "መስቀላ ፈጺምካ ኣይትዓጹ።",
-"am": "መስቀለኛ መንገድን በጭራሽ አይዝጉ።"
+"am": "መስቀለኛ መንገድን በጭራሽ አይዝጉ።",
+"fr": "Ne bloquez jamais un carrefour (« ne pas s'engager »)."
 }
 },
 {
@@ -789,17 +947,25 @@
 "በሰላም መንገድ ይስጡ",
 "መሃል ይቁሙ",
 "ችላ ይበሉ"
+],
+"fr": [
+"Accélérer",
+"Lui laisser le passage sans danger",
+"S'arrêter au milieu",
+"L'ignorer"
 ]
 },
 "q": {
 "en": "An emergency vehicle with blue lights and siren comes behind you. What do you do?",
 "ti": "ተሽከርካሪ ሓደጋ ብሰማያዊ መብራህትን ድምጽን ድሕሬኻ ትመጽእ። እንታይ ትገብር?",
-"am": "ሰማያዊ መብራትና ሳይረን ያለው የድንገተኛ ተሽከርካሪ ከኋላዎ ይመጣል። ምን ያደርጋሉ?"
+"am": "ሰማያዊ መብራትና ሳይረን ያለው የድንገተኛ ተሽከርካሪ ከኋላዎ ይመጣል። ምን ያደርጋሉ?",
+"fr": "Un véhicule d'urgence avec gyrophare bleu et sirène arrive derrière vous. Que faites-vous ?"
 },
 "ex": {
 "en": "Make way for it, safely.",
 "ti": "ብሰላም መገዲ ሃብ።",
-"am": "በሰላም መንገድ ይስጡ።"
+"am": "በሰላም መንገድ ይስጡ።",
+"fr": "Laissez-lui le passage, en sécurité."
 }
 },
 {
@@ -822,17 +988,25 @@
 "ወደ አራት እጥፍ",
 "እንደነበረ",
 "ግማሽ"
+],
+"fr": [
+"Elle double",
+"Environ quatre fois plus longue",
+"Elle ne change pas",
+"Elle est divisée par deux"
 ]
 },
 "q": {
 "en": "What happens to the braking distance if you double your speed?",
 "ti": "ፍጥነትካ ክልተ ዕጽፊ እንተገበርካ ርሕቀት ምቁራጽ እንታይ ይኸውን?",
-"am": "ፍጥነትዎን እጥፍ ካደረጉ የፍሬን ርቀቱ ምን ይሆናል?"
+"am": "ፍጥነትዎን እጥፍ ካደረጉ የፍሬን ርቀቱ ምን ይሆናል?",
+"fr": "Que devient la distance de freinage si vous doublez votre vitesse ?"
 },
 "ex": {
 "en": "Braking distance grows with the square of the speed.",
 "ti": "ርሕቀት ምቁራጽ ብትርብዒት ፍጥነት ይውስኽ።",
-"am": "የፍሬን ርቀት በፍጥነቱ ካሬ ያድጋል።"
+"am": "የፍሬን ርቀት በፍጥነቱ ካሬ ያድጋል።",
+"fr": "La distance de freinage augmente avec le carré de la vitesse."
 }
 },
 {
@@ -855,17 +1029,25 @@
 "ሁልጊዜ በሁሉም ወንበሮች",
 "ፊት ብቻ",
 "ለልጆች ብቻ"
+],
+"fr": [
+"Seulement sur autoroute",
+"Toujours, à toutes les places",
+"Seulement à l'avant",
+"Seulement les enfants"
 ]
 },
 "q": {
 "en": "When must you wear a seat belt?",
 "ti": "መዓስ ቀበቶ ድሕነት ክትገብር ኣለካ?",
-"am": "መቼ የደህንነት ቀበቶ ማድረግ አለብዎት?"
+"am": "መቼ የደህንነት ቀበቶ ማድረግ አለብዎት?",
+"fr": "Quand devez-vous porter la ceinture ?"
 },
 "ex": {
 "en": "Always, front and back. Not wearing it costs 3 points.",
 "ti": "ኩሉ ግዜ ቅድሚትን ድሕሪትን። ዘይምግባሩ 3 ነጥቢ የኽስር።",
-"am": "ሁልጊዜ ፊትና ኋላ። አለማድረግ 3 ነጥብ ያስከፍላል።"
+"am": "ሁልጊዜ ፊትና ኋላ። አለማድረግ 3 ነጥብ ያስከፍላል።",
+"fr": "Toujours, à l'avant et à l'arrière. Ne pas la porter coûte 3 points."
 }
 },
 {
@@ -888,17 +1070,25 @@
 "ቆመው ያርፉ – በየ2 ሰዓቱ እረፍት",
 "ፍጥነት ይጨምሩ",
 "ሙዚቃ ከፍ ያድርጉ"
+],
+"fr": [
+"Ouvrir la fenêtre et continuer",
+"S'arrêter et se reposer – une pause toutes les 2 heures",
+"Rouler plus vite",
+"Monter la musique"
 ]
 },
 "q": {
 "en": "You feel tired on a long trip. What is advised in France?",
 "ti": "ኣብ ነዊሕ ጉዕዞ ይደኽመካ። ኣብ ፈረንሳ እንታይ ይምከር?",
-"am": "በረጅም ጉዞ ይደክምዎታል። በፈረንሳይ ምን ይመከራል?"
+"am": "በረጅም ጉዞ ይደክምዎታል። በፈረንሳይ ምን ይመከራል?",
+"fr": "Vous êtes fatigué sur un long trajet. Que conseille-t-on en France ?"
 },
 "ex": {
 "en": "Stop every 2 hours. The autoroute has rest areas (aires) for this.",
 "ti": "ኣብ ነፍሲ ወከፍ 2 ሰዓት ደው በል። ኣብ autoroute ቦታታት ዕረፍቲ (aires) ኣለዉ።",
-"am": "በየ2 ሰዓቱ ይቁሙ። በautoroute የእረፍት ቦታዎች (aires) አሉ።"
+"am": "በየ2 ሰዓቱ ይቁሙ። በautoroute የእረፍት ቦታዎች (aires) አሉ።",
+"fr": "Arrêtez-vous toutes les 2 heures. L'autoroute a des aires pour cela."
 }
 },
 {
@@ -921,17 +1111,25 @@
 "በጊዜ ወደ ዝቅተኛ ይቀይሩ",
 "ብልጭ ያድርጉ",
 "ያጥፉ"
+],
+"fr": [
+"Garder les feux de route",
+"Passer en feux de croisement à temps",
+"Faire des appels de phares",
+"Tout éteindre"
 ]
 },
 "q": {
 "en": "You drive with high beam at night and see oncoming traffic. What do you do?",
 "ti": "ብለይቲ ብልዑል መብራህቲ ትዝውር ካብ ቅድሚት ትራፊክ ይመጽእ። እንታይ ትገብር?",
-"am": "በሌሊት በከፍተኛ መብራት እየነዱ ከፊት ትራፊክ ይመጣል። ምን ያደርጋሉ?"
+"am": "በሌሊት በከፍተኛ መብራት እየነዱ ከፊት ትራፊክ ይመጣል። ምን ያደርጋሉ?",
+"fr": "Vous roulez en feux de route la nuit et voyez une voiture en face. Que faites-vous ?"
 },
 "ex": {
 "en": "Switch to low beam so you do not dazzle others.",
 "ti": "ንኻልኦት ከይተዕውር ናብ ትሑት ቀይር።",
-"am": "ሌሎችን እንዳያሳውሩ ወደ ዝቅተኛ ይቀይሩ።"
+"am": "ሌሎችን እንዳያሳውሩ ወደ ዝቅተኛ ይቀይሩ።",
+"fr": "Passez en feux de croisement pour ne pas éblouir les autres."
 }
 },
 {
@@ -954,17 +1152,25 @@
 "በቀኝ፣ ግራውን ለመቅደም ብቻ",
 "መሃል",
 "በማንኛውም"
+],
+"fr": [
+"Toujours à gauche",
+"Rester à droite ; voies de gauche seulement pour dépasser",
+"Au milieu",
+"N'importe où"
 ]
 },
 "q": {
 "en": "Which lane should you normally use on the autoroute?",
 "ti": "ኣብ autoroute ብልሙድ ኣየናይ መስመር ክትጥቀም ይግባእ?",
-"am": "በautoroute በተለምዶ የትኛውን መስመር መጠቀም አለብዎት?"
+"am": "በautoroute በተለምዶ የትኛውን መስመር መጠቀም አለብዎት?",
+"fr": "Quelle voie utilisez-vous normalement sur autoroute ?"
 },
 "ex": {
 "en": "Keep to the right. Overtaking on the right is forbidden.",
 "ti": "ብየማን ዘውር። ብየማን ምሕላፍ ክልኩል እዩ።",
-"am": "በቀኝ ይንዱ። በቀኝ መቅደም የተከለከለ ነው።"
+"am": "በቀኝ ይንዱ። በቀኝ መቅደም የተከለከለ ነው።",
+"fr": "Restez à droite. Dépasser par la droite est interdit."
 }
 },
 {
@@ -978,12 +1184,14 @@
 "q": {
 "en": "The French theory test (code de la route) has 40 questions. How many must you get right?",
 "ti": "ፈተና ቲዮሪ ፈረንሳ (code de la route) 40 ሕቶታት ኣለዎ። ክንደይ ቅኑዕ ክትምልስ ኣለካ?",
-"am": "የፈረንሳይ የቲዎሪ ፈተና (code de la route) 40 ጥያቄዎች አሉት። ስንቱን በትክክል መመለስ አለብዎት?"
+"am": "የፈረንሳይ የቲዎሪ ፈተና (code de la route) 40 ጥያቄዎች አሉት። ስንቱን በትክክል መመለስ አለብዎት?",
+"fr": "L'examen du code de la route a 40 questions. Combien de bonnes réponses faut-il ?"
 },
 "ex": {
 "en": "At least 35 of 40.",
 "ti": "ብውሑዱ 35 ካብ 40።",
-"am": "ቢያንስ 35 ከ40።"
+"am": "ቢያንስ 35 ከ40።",
+"fr": "Au moins 35 sur 40."
 }
 },
 {
@@ -1006,17 +1214,25 @@
 "2 ዓመት",
 "3 ዓመት",
 "5 ዓመት"
+],
+"fr": [
+"1 an",
+"2 ans",
+"3 ans",
+"5 ans"
 ]
 },
 "q": {
 "en": "How long is the probation period for a new licence (without accompanied driving)?",
 "ti": "ንሓድሽ መንጃ ፍቓድ (ብዘይ ምስ መሰነይታ ምዝዋር) ግዜ ፈተና ክንደይ እዩ?",
-"am": "ለአዲስ ፈቃድ (ያለ አጃቢ መንዳት) የሙከራ ጊዜው ስንት ነው?"
+"am": "ለአዲስ ፈቃድ (ያለ አጃቢ መንዳት) የሙከራ ጊዜው ስንት ነው?",
+"fr": "Combien dure la période probatoire d'un nouveau permis (sans conduite accompagnée) ?"
 },
 "ex": {
 "en": "3 years, or 2 years after accompanied driving (conduite accompagnée).",
 "ti": "3 ዓመት፡ ወይ ድሕሪ ምስ መሰነይታ ምዝዋር 2 ዓመት።",
-"am": "3 ዓመት፣ ወይም ከአጃቢ ጋር መንዳት በኋላ 2 ዓመት።"
+"am": "3 ዓመት፣ ወይም ከአጃቢ ጋር መንዳት በኋላ 2 ዓመት።",
+"fr": "3 ans, ou 2 ans après la conduite accompagnée."
 }
 },
 {
@@ -1039,17 +1255,25 @@
 "የመንገድ ክፍያ (péage)፦ በክፍያ ቦታ ወይም በባጅ",
 "ሁልጊዜ ነጻ",
 "የጭነት መኪኖች ብቻ"
+],
+"fr": [
+"Plus tard par courrier",
+"Au péage : aux guichets ou avec un badge",
+"C'est toujours gratuit",
+"Seuls les camions paient"
 ]
 },
 "q": {
 "en": "Most French autoroutes are not free. How do you pay?",
 "ti": "መብዛሕትኦም autoroute ፈረንሳ ነጻ ኣይኮኑን። ከመይ ትኸፍል?",
-"am": "አብዛኞቹ የፈረንሳይ autoroute ነጻ አይደሉም። እንዴት ይከፍላሉ?"
+"am": "አብዛኞቹ የፈረንሳይ autoroute ነጻ አይደሉም። እንዴት ይከፍላሉ?",
+"fr": "La plupart des autoroutes françaises sont payantes. Comment payez-vous ?"
 },
 "ex": {
 "en": "At the toll (péage) with card, cash or a télépéage badge. Some new ones are free-flow and paid online.",
 "ti": "ኣብ péage ብካርድ፡ ገንዘብ ወይ ባጅ télépéage። ገለ ሓደስቲ ብኢንተርነት ይኽፈሉ።",
-"am": "በpéage በካርድ፣ በጥሬ ገንዘብ ወይም በtélépéage ባጅ። አንዳንድ አዲሶቹ በኢንተርኔት ይከፈላሉ።"
+"am": "በpéage በካርድ፣ በጥሬ ገንዘብ ወይም በtélépéage ባጅ። አንዳንድ አዲሶቹ በኢንተርኔት ይከፈላሉ።",
+"fr": "Au péage par carte, espèces ou badge télépéage. Certaines nouvelles autoroutes sont en flux libre et se paient en ligne."
 }
 },
 {
@@ -1072,17 +1296,25 @@
 "ቀጥ ለሚሄዱ ብስክሌተኞችና እግረኞች ቅድሚያ ይስጡ",
 "ጡሩምባ",
 "ይቁሙ"
+],
+"fr": [
+"Vous avez la priorité",
+"Cédez aux cyclistes et piétons qui vont tout droit",
+"Klaxonner",
+"Ils doivent s'arrêter"
 ]
 },
 "q": {
 "en": "You turn right. A cyclist next to you goes straight on. Who goes first?",
 "ti": "ናብ የማን ትጥውይ። ብሽክለታ ጥቓኻ ብቐጥታ ይኸይድ። መን ይቕድም?",
-"am": "ወደ ቀኝ ይታጠፋሉ። ብስክሌተኛ ከጎንዎ ቀጥ ይሄዳል። ማን ይቀድማል?"
+"am": "ወደ ቀኝ ይታጠፋሉ። ብስክሌተኛ ከጎንዎ ቀጥ ይሄዳል። ማን ይቀድማል?",
+"fr": "Vous tournez à droite. Un cycliste à côté de vous va tout droit. Qui passe en premier ?"
 },
 "ex": {
 "en": "The cyclist. When turning, give way to those going straight and check your blind spot.",
 "ti": "እቲ ብሽክለታ። ክትጥውይ ከለኻ ንብቐጥታ ዝኸዱ ቅድሚ ሃብ ዘይርአ ቦታ ርአ።",
-"am": "ብስክሌተኛው። ሲታጠፉ ቀጥ ለሚሄዱ ቅድሚያ ይስጡ የማይታይ ቦታን ይመልከቱ።"
+"am": "ብስክሌተኛው። ሲታጠፉ ቀጥ ለሚሄዱ ቅድሚያ ይስጡ የማይታይ ቦታን ይመልከቱ።",
+"fr": "Le cycliste. En tournant, cédez à ceux qui vont tout droit et vérifiez l'angle mort."
 }
 },
 {
@@ -1105,17 +1337,25 @@
 "1 ሜ በከተማ፣ 1.5 ሜ ከከተማ ውጭ",
 "በጣም ቅርብ ይቻላል",
 "ህግ የለም"
+],
+"fr": [
+"0,5 m",
+"1 m en agglomération, 1,5 m hors agglomération",
+"Très près, c'est bon",
+"Aucune règle"
 ]
 },
 "q": {
 "en": "How much side space must you leave when overtaking a cyclist in France?",
 "ti": "ኣብ ፈረንሳ ብሽክለታ ክትሓልፍ ከለኻ ክንደይ ቦታ ብጎኒ ክትሓድግ ኣለካ?",
-"am": "በፈረንሳይ ብስክሌተኛን ሲቀድሙ ከጎን ምን ያህል ቦታ መተው አለብዎት?"
+"am": "በፈረንሳይ ብስክሌተኛን ሲቀድሙ ከጎን ምን ያህል ቦታ መተው አለብዎት?",
+"fr": "Quelle distance latérale devez-vous laisser en dépassant un cycliste en France ?"
 },
 "ex": {
 "en": "At least 1 m in towns and 1.5 m outside towns.",
 "ti": "ብውሑዱ 1 ሜ ኣብ ከተማ፡ 1.5 ሜ ካብ ከተማ ወጻኢ።",
-"am": "ቢያንስ 1 ሜ በከተማ፣ 1.5 ሜ ከከተማ ውጭ።"
+"am": "ቢያንስ 1 ሜ በከተማ፣ 1.5 ሜ ከከተማ ውጭ።",
+"fr": "Au moins 1 m en agglomération et 1,5 m hors agglomération."
 }
 }
 ]

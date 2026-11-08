@@ -10,12 +10,14 @@
 "q": {
 "en": "In the Netherlands, what is the speed limit inside a built-up area when there is no sign?",
 "ti": "ኣብ ሆላንድ ኣብ ውሽጢ ከተማ ምልክት እንተዘየለ ደረት ፍጥነት ክንደይ እዩ?",
-"am": "በኔዘርላንድስ በከተማ ውስጥ ምልክት ከሌለ የፍጥነት ገደቡ ስንት ነው?"
+"am": "በኔዘርላንድስ በከተማ ውስጥ ምልክት ከሌለ የፍጥነት ገደቡ ስንት ነው?",
+"nl": "Wat is de maximumsnelheid binnen de bebouwde kom als er geen bord staat?"
 },
 "ex": {
 "en": "50 km/h, but many streets are 30 km/h zones – watch the signs.",
 "ti": "50 km/h፡ ግን ብዙሓት ጎደናታት 30 km/h እዮም – ምልክታት ርአ።",
-"am": "50 km/h፣ ግን ብዙ መንገዶች 30 km/h ዞኖች ናቸው – ምልክቶችን ይመልከቱ።"
+"am": "50 km/h፣ ግን ብዙ መንገዶች 30 km/h ዞኖች ናቸው – ምልክቶችን ይመልከቱ።",
+"nl": "50 km/h, maar veel straten zijn 30 km/h-zones – let op de borden."
 }
 },
 {
@@ -29,12 +31,14 @@
 "q": {
 "en": "What is the speed limit outside built-up areas on normal roads?",
 "ti": "ካብ ከተማ ወጻኢ ኣብ ልሙድ ጽርግያ ደረት ፍጥነት ክንደይ እዩ?",
-"am": "ከከተማ ውጭ በተለመደ መንገድ የፍጥነት ገደቡ ስንት ነው?"
+"am": "ከከተማ ውጭ በተለመደ መንገድ የፍጥነት ገደቡ ስንት ነው?",
+"nl": "Wat is de maximumsnelheid buiten de bebouwde kom op gewone wegen?"
 },
 "ex": {
 "en": "80 km/h outside built-up areas, unless signs show otherwise.",
 "ti": "ካብ ከተማ ወጻኢ 80 km/h፡ ምልክት ካልእ እንተዘይበለ።",
-"am": "ከከተማ ውጭ 80 km/h፣ ምልክት ሌላ ካላለ።"
+"am": "ከከተማ ውጭ 80 km/h፣ ምልክት ሌላ ካላለ።",
+"nl": "80 km/h buiten de bebouwde kom, tenzij borden iets anders aangeven."
 }
 },
 {
@@ -57,17 +61,25 @@
 "100 km/h ከ6:00 እስከ 19:00 – በሌሊት ምልክት ባለበት ብቻ ከፍ ያለ",
 "120 km/h",
 "ገደብ የለም"
+],
+"nl": [
+"De hele dag 130 km/h",
+"100 km/h tussen 6:00 en 19:00 – 's avonds alleen hoger waar dat aangegeven is",
+"120 km/h",
+"Geen limiet"
 ]
 },
 "q": {
 "en": "What is the speed limit on Dutch motorways (autosnelweg) during the day?",
 "ti": "ኣብ ኣውቶስትራዳ ሆላንድ (autosnelweg) ብመዓልቲ ደረት ፍጥነት ክንደይ እዩ?",
-"am": "በኔዘርላንድስ አውራ ጎዳና (autosnelweg) በቀን የፍጥነት ገደቡ ስንት ነው?"
+"am": "በኔዘርላንድስ አውራ ጎዳና (autosnelweg) በቀን የፍጥነት ገደቡ ስንት ነው?",
+"nl": "Wat is overdag de maximumsnelheid op Nederlandse autosnelwegen?"
 },
 "ex": {
 "en": "Since 2020 the maximum is 100 km/h from 6:00 to 19:00. At night some motorways allow up to 130 km/h when signed.",
 "ti": "ካብ 2020 ጀሚሩ ካብ 6:00 ክሳብ 19:00 ብዝለዓለ 100 km/h። ብለይቲ ገሊኦም ክሳብ 130 km/h ምልክት ምስ ዝህሉ።",
-"am": "ከ2020 ጀምሮ ከ6:00 እስከ 19:00 ቢበዛ 100 km/h። በሌሊት አንዳንዶቹ ምልክት ሲኖር እስከ 130 km/h።"
+"am": "ከ2020 ጀምሮ ከ6:00 እስከ 19:00 ቢበዛ 100 km/h። በሌሊት አንዳንዶቹ ምልክት ሲኖር እስከ 130 km/h።",
+"nl": "Sinds 2020 is het maximum 100 km/h van 6:00 tot 19:00. 's Avonds mag op sommige snelwegen tot 130 km/h als dat aangegeven is."
 }
 },
 {
@@ -81,12 +93,14 @@
 "q": {
 "en": "How fast may a car with a trailer drive at most on a Dutch motorway?",
 "ti": "መኪና ምስ ተጎታቲት ኣብ ኣውቶስትራዳ ሆላንድ ብዝለዓለ ክንደይ ክትጎዓዝ ትኽእል?",
-"am": "መኪና ከተጎታች ጋር በኔዘርላንድስ አውራ ጎዳና ቢበዛ ስንት መሄድ ይችላል?"
+"am": "መኪና ከተጎታች ጋር በኔዘርላንድስ አውራ ጎዳና ቢበዛ ስንት መሄድ ይችላል?",
+"nl": "Hoe hard mag een auto met aanhanger maximaal op de snelweg?"
 },
 "ex": {
 "en": "90 km/h on motorways (and 80 km/h on other roads outside towns).",
 "ti": "90 km/h ኣብ ኣውቶስትራዳ (80 km/h ኣብ ካልእ ጽርግያ ካብ ከተማ ወጻኢ)።",
-"am": "90 km/h በአውራ ጎዳና (ከከተማ ውጭ በሌላ መንገድ 80 km/h)።"
+"am": "90 km/h በአውራ ጎዳና (ከከተማ ውጭ በሌላ መንገድ 80 km/h)።",
+"nl": "90 km/h op de autosnelweg (en 80 km/h op andere wegen buiten de bebouwde kom)."
 }
 },
 {
@@ -109,17 +123,25 @@
 "ከቀኝ የሚመጣ ሁሉም ትራፊክ – ብስክሌተኞችም",
 "ከግራ የሚመጡ መኪኖች ብቻ",
 "ትልቁ"
+],
+"nl": [
+"Alleen auto's van rechts",
+"Al het verkeer van rechts – ook fietsers",
+"Alleen auto's van links",
+"Het grootste voertuig"
 ]
 },
 "q": {
 "en": "At an equal intersection without signs in the Netherlands, who has priority?",
 "ti": "ኣብ ሆላንድ ብዘይ ምልክት ኣብ ማዕረ መስቀላ መገዲ መን ቅድሚ ኣለዎ?",
-"am": "በኔዘርላንድስ ምልክት በሌለው እኩል መስቀለኛ መንገድ ማን ቅድሚያ አለው?"
+"am": "በኔዘርላንድስ ምልክት በሌለው እኩል መስቀለኛ መንገድ ማን ቅድሚያ አለው?",
+"nl": "Wie heeft voorrang op een gelijkwaardige kruising zonder borden?"
 },
 "ex": {
 "en": "Traffic from the right has priority – including cyclists and moped riders.",
 "ti": "ካብ የማን ዝመጽእ ቅድሚ ኣለዎ – ብሽክለታን ሞፔድን እውን።",
-"am": "ከቀኝ የሚመጣ ቅድሚያ አለው – ብስክሌትና ሞፔድም ጭምር።"
+"am": "ከቀኝ የሚመጣ ቅድሚያ አለው – ብስክሌትና ሞፔድም ጭምር።",
+"nl": "Verkeer van rechts heeft voorrang – ook fietsers en bromfietsers."
 }
 },
 {
@@ -142,17 +164,25 @@
 "ቅድሚያ የእርስዎ ነው",
 "ማቆሚያ",
 "የፍጥነት መቀነሻ ብቻ"
+],
+"nl": [
+"Voorrang verlenen",
+"U heeft voorrang",
+"Parkeren",
+"Alleen een verkeersdrempel"
 ]
 },
 "q": {
 "en": "What do white triangles painted across the road ('shark's teeth') mean?",
 "ti": "ኣብ ጽርግያ ዝተሳእሉ ጻዕዳ ሰለስተ መኣዝናት ('ኣስናን ሻርክ') እንታይ ማለት እዩ?",
-"am": "በመንገዱ ላይ የተሳሉ ነጭ ሦስት ማዕዘኖች ('የሻርክ ጥርሶች') ምን ማለት ናቸው?"
+"am": "በመንገዱ ላይ የተሳሉ ነጭ ሦስት ማዕዘኖች ('የሻርክ ጥርሶች') ምን ማለት ናቸው?",
+"nl": "Wat betekenen witte driehoeken op de weg (haaientanden)?"
 },
 "ex": {
 "en": "Haaientanden mean you must give way to traffic on the road you are entering.",
 "ti": "Haaientanden ኣብቲ እትኣትዎ መገዲ ንዘሎ ቅድሚ ሃብ ማለት እዩ።",
-"am": "Haaientanden በሚገቡበት መንገድ ላለው ቅድሚያ ይስጡ ማለት ነው።"
+"am": "Haaientanden በሚገቡበት መንገድ ላለው ቅድሚያ ይስጡ ማለት ነው።",
+"nl": "Haaientanden betekenen dat u voorrang moet geven aan verkeer op de weg die u oprijdt."
 }
 },
 {
@@ -175,17 +205,25 @@
 "ትራሙ ቅድሚያ አለው",
 "መጀመሪያ የመጣው",
 "አውቶቡስ ብቻ"
+],
+"nl": [
+"Auto's hebben voorrang",
+"De tram heeft voorrang",
+"Wie het eerst komt",
+"Alleen bussen"
 ]
 },
 "q": {
 "en": "At an equal intersection, a tram comes from the left. Who goes first?",
 "ti": "ኣብ ማዕረ መስቀላ መገዲ ትራም ካብ ጸጋም ይመጽእ። መን ይቕድም?",
-"am": "በእኩል መስቀለኛ መንገድ ትራም ከግራ ይመጣል። ማን ይቀድማል?"
+"am": "በእኩል መስቀለኛ መንገድ ትራም ከግራ ይመጣል። ማን ይቀድማል?",
+"nl": "Op een gelijkwaardige kruising komt een tram van links. Wie gaat eerst?"
 },
 "ex": {
 "en": "In the Netherlands trams have priority at equal intersections, even from the left.",
 "ti": "ኣብ ሆላንድ ትራም ኣብ ማዕረ መስቀላ ቅድሚ ኣለዎ፡ ካብ ጸጋም እንተመጸ እውን።",
-"am": "በኔዘርላንድስ ትራም በእኩል መስቀለኛ መንገድ ቅድሚያ አለው፣ ከግራ ቢመጣም።"
+"am": "በኔዘርላንድስ ትራም በእኩል መስቀለኛ መንገድ ቅድሚያ አለው፣ ከግራ ቢመጣም።",
+"nl": "In Nederland heeft de tram voorrang op gelijkwaardige kruisingen, ook van links."
 }
 },
 {
@@ -208,17 +246,25 @@
 "በመሻገሪያ ላሉ ወይም ሊሻገሩ ላሉ ቅድሚያ ይስጡ",
 "ጡሩምባ",
 "በሌሊት ብቻ"
+],
+"nl": [
+"Doorrijden, u heeft voorrang",
+"Voetgangers die oversteken of willen oversteken voor laten gaan",
+"Toeteren",
+"Alleen 's nachts stoppen"
 ]
 },
 "q": {
 "en": "What must you do at a zebra crossing (zebrapad)?",
 "ti": "ኣብ መሳገሪ ተጓዓዝቲ ብእግሪ (zebrapad) እንታይ ክትገብር ኣለካ?",
-"am": "በእግረኛ መሻገሪያ (zebrapad) ምን ማድረግ አለብዎት?"
+"am": "በእግረኛ መሻገሪያ (zebrapad) ምን ማድረግ አለብዎት?",
+"nl": "Wat moet u doen bij een zebrapad?"
 },
 "ex": {
 "en": "Give priority to pedestrians who are on or about to step onto the crossing.",
 "ti": "ኣብ መሳገሪ ንዘለዉ ወይ ክኣትዉ ዝቀራረቡ ቅድሚ ሃብ።",
-"am": "በመሻገሪያው ላሉ ወይም ሊገቡ ላሉ ቅድሚያ ይስጡ።"
+"am": "በመሻገሪያው ላሉ ወይም ሊገቡ ላሉ ቅድሚያ ይስጡ።",
+"nl": "Geef voorrang aan voetgangers die op of bij het zebrapad staan om over te steken."
 }
 },
 {
@@ -241,17 +287,25 @@
 "የእግር ፍጥነት (stapvoets፣ ወደ 15 km/h)",
 "30 km/h",
 "50 km/h"
+],
+"nl": [
+"Normale snelheid",
+"Stapvoets (ongeveer 15 km/h)",
+"30 km/h",
+"50 km/h"
 ]
 },
 "q": {
 "en": "How fast may you drive in a residential 'woonerf' (erf)?",
 "ti": "ኣብ ናይ መንበሪ ቦታ 'woonerf' (erf) ክንደይ ክትቐልጥፍ ትኽእል?",
-"am": "በመኖሪያ 'woonerf' (erf) ስንት መሄድ ይችላሉ?"
+"am": "በመኖሪያ 'woonerf' (erf) ስንት መሄድ ይችላሉ?",
+"nl": "Hoe hard mag u rijden in een woonerf (erf)?"
 },
 "ex": {
 "en": "Only at walking pace. Children may play in the street.",
 "ti": "ብፍጥነት ምኻድ ብእግሪ ጥራይ። ቆልዑ ኣብ ጎደና ክጻወቱ ይኽእሉ።",
-"am": "በእግር ፍጥነት ብቻ። ልጆች በመንገድ ሊጫወቱ ይችላሉ።"
+"am": "በእግር ፍጥነት ብቻ። ልጆች በመንገድ ሊጫወቱ ይችላሉ።",
+"nl": "Alleen stapvoets. Kinderen mogen op straat spelen."
 }
 },
 {
@@ -274,17 +328,25 @@
 "መኪኖች 'እንግዶች' ናቸው፦ ቢበዛ 30 km/h፣ ብስክሌተኞችን አይቅደሙ",
 "መኪኖች የተከለከሉ",
 "ታክሲ ብቻ"
+],
+"nl": [
+"Auto's hebben voorrang en mogen 50",
+"Auto's zijn te gast: maximaal 30 km/h en fietsers niet opjagen",
+"Auto's zijn verboden",
+"Alleen taxi's"
 ]
 },
 "q": {
 "en": "What does a 'fietsstraat' (bicycle street, 'auto te gast') mean for cars?",
 "ti": "'fietsstraat' ('auto te gast') ንመካይን እንታይ ማለት እዩ?",
-"am": "'fietsstraat' ('auto te gast') ለመኪኖች ምን ማለት ነው?"
+"am": "'fietsstraat' ('auto te gast') ለመኪኖች ምን ማለት ነው?",
+"nl": "Wat betekent een fietsstraat („auto te gast“) voor auto's?"
 },
 "ex": {
 "en": "The street is mainly for bikes: cars are guests, drive slowly (max 30) and do not push cyclists.",
 "ti": "እቲ ጎደና ንብሽክለታ እዩ፦ መኪና ጋሻ እያ፡ ቀስ ኢልካ (ብዝለዓለ 30) ዘውር።",
-"am": "መንገዱ በዋናነት ለብስክሌት ነው፦ መኪና እንግዳ ነው፣ ቀስ ብለው (ቢበዛ 30) ይንዱ።"
+"am": "መንገዱ በዋናነት ለብስክሌት ነው፦ መኪና እንግዳ ነው፣ ቀስ ብለው (ቢበዛ 30) ይንዱ።",
+"nl": "De straat is vooral voor fietsers: auto's zijn te gast, rijd langzaam (max 30) en dring fietsers niet op."
 }
 },
 {
@@ -298,12 +360,14 @@
 "q": {
 "en": "What is the alcohol limit for experienced drivers in the Netherlands?",
 "ti": "ኣብ ሆላንድ ንልምዲ ዘለዎም ዘወርቲ ደረት ኣልኮል ክንደይ እዩ?",
-"am": "በኔዘርላንድስ ልምድ ላላቸው አሽከርካሪዎች የአልኮል ገደቡ ስንት ነው?"
+"am": "በኔዘርላንድስ ልምድ ላላቸው አሽከርካሪዎች የአልኮል ገደቡ ስንት ነው?",
+"nl": "Wat is de alcohollimiet voor ervaren bestuurders in Nederland?"
 },
 "ex": {
 "en": "0.5 ‰. For new drivers in their first 5 years it is 0.2 ‰.",
 "ti": "0.5 ‰። ንሓደስቲ ዘወርቲ ኣብ ቀዳሞት 5 ዓመታት 0.2 ‰።",
-"am": "0.5 ‰። ለአዲስ አሽከርካሪዎች በመጀመሪያዎቹ 5 ዓመታት 0.2 ‰።"
+"am": "0.5 ‰። ለአዲስ አሽከርካሪዎች በመጀመሪያዎቹ 5 ዓመታት 0.2 ‰።",
+"nl": "0,5 ‰. Voor beginners in de eerste 5 jaar is het 0,2 ‰."
 }
 },
 {
@@ -326,17 +390,25 @@
 "2 ዓመት",
 "3 ዓመት",
 "5 ዓመት"
+],
+"nl": [
+"1 jaar",
+"2 jaar",
+"3 jaar",
+"5 jaar"
 ]
 },
 "q": {
 "en": "How long are you a 'beginner' (beginnersrijbewijs) after getting your licence?",
 "ti": "መንጃ ፍቓድ ድሕሪ ምርካብካ ክንደይ ግዜ 'ጀማሪ' (beginnersrijbewijs) ትኸውን?",
-"am": "ፈቃድ ካገኙ በኋላ ለምን ያህል ጊዜ 'ጀማሪ' (beginnersrijbewijs) ይሆናሉ?"
+"am": "ፈቃድ ካገኙ በኋላ ለምን ያህል ጊዜ 'ጀማሪ' (beginnersrijbewijs) ይሆናሉ?",
+"nl": "Hoe lang bent u beginner (beginnersrijbewijs) na het halen van uw rijbewijs?"
 },
 "ex": {
 "en": "5 years (7 if you started at 17 with 2toDrive). Stricter alcohol and points rules apply.",
 "ti": "5 ዓመት (ብ2toDrive ካብ 17 እንተጀሚርካ 7)። ዝያዳ ጽኑዕ ሕግታት ኣልኮልን ነጥብን።",
-"am": "5 ዓመት (በ2toDrive ከ17 ከጀመሩ 7)። ጥብቅ የአልኮልና የነጥብ ህጎች።"
+"am": "5 ዓመት (በ2toDrive ከ17 ከጀመሩ 7)። ጥብቅ የአልኮልና የነጥብ ህጎች።",
+"nl": "5 jaar (7 als u met 2toDrive op 17 begon). Er gelden strengere regels voor alcohol en punten."
 }
 },
 {
@@ -350,12 +422,14 @@
 "q": {
 "en": "From what age may you drive a car with a coach (2toDrive) in the Netherlands?",
 "ti": "ኣብ ሆላንድ ካብ ክንደይ ዕድመ ምስ መሰነይታ (2toDrive) መኪና ክትዝውር ትኽእል?",
-"am": "በኔዘርላንድስ ከስንት ዓመት ጀምሮ ከአሰልጣኝ ጋር (2toDrive) መኪና መንዳት ይችላሉ?"
+"am": "በኔዘርላንድስ ከስንት ዓመት ጀምሮ ከአሰልጣኝ ጋር (2toDrive) መኪና መንዳት ይችላሉ?",
+"nl": "Vanaf welke leeftijd mag u met een coach rijden (2toDrive)?"
 },
 "ex": {
 "en": "From 17 with a registered coach until you turn 18.",
 "ti": "ካብ 17 ምስ ዝተመዝገበ መሰነይታ ክሳብ 18 ትመልእ።",
-"am": "ከ17 ጀምሮ ከተመዘገበ አሰልጣኝ ጋር 18 እስኪሞሉ።"
+"am": "ከ17 ጀምሮ ከተመዘገበ አሰልጣኝ ጋር 18 እስኪሞሉ።",
+"nl": "Vanaf 17 met een geregistreerde coach, tot u 18 wordt."
 }
 },
 {
@@ -378,17 +452,25 @@
 "ሲያሽከረክሩ በእጅ መያዝ የተከለከለ – በብስክሌትም",
 "ለአጭር ጥሪ ይፈቀዳል",
 "በአውራ ጎዳና ይፈቀዳል"
+],
+"nl": [
+"Toegestaan bij lage snelheid",
+"Verboden om vast te houden tijdens het rijden – ook op de fiets",
+"Toegestaan voor korte gesprekken",
+"Toegestaan op de snelweg"
 ]
 },
 "q": {
 "en": "What is the Dutch rule for holding a mobile phone?",
 "ti": "ሕጊ ሆላንድ ብዛዕባ ሞባይል ብኢድ ምሓዝ እንታይ እዩ?",
-"am": "የኔዘርላንድስ ህግ ስልክ በእጅ ስለመያዝ ምንድን ነው?"
+"am": "የኔዘርላንድስ ህግ ስልክ በእጅ ስለመያዝ ምንድን ነው?",
+"nl": "Wat is de Nederlandse regel voor de mobiele telefoon?"
 },
 "ex": {
 "en": "You may not hold a phone while driving a car – and since 2019 also not while cycling.",
 "ti": "መኪና ክትዝውር ከለኻ ሞባይል ክትሕዝ ኣይፍቀድን – ካብ 2019 ብሽክለታ ክትዝውር ከለኻ እውን።",
-"am": "መኪና ሲነዱ ስልክ መያዝ አይፈቀድም – ከ2019 ጀምሮ ብስክሌት ሲነዱም።"
+"am": "መኪና ሲነዱ ስልክ መያዝ አይፈቀድም – ከ2019 ጀምሮ ብስክሌት ሲነዱም።",
+"nl": "U mag geen telefoon vasthouden tijdens het autorijden – en sinds 2019 ook niet tijdens het fietsen."
 }
 },
 {
@@ -411,17 +493,25 @@
 "ቁመታቸው ከ1.35 ሜ በታች ልጆች",
 "ከ16 በታች ሁሉም",
 "ህግ የለም"
+],
+"nl": [
+"Kinderen onder 5",
+"Kinderen kleiner dan 1,35 m",
+"Alle kinderen onder 16",
+"Geen regel"
 ]
 },
 "q": {
 "en": "Which children must use a child seat in the Netherlands?",
 "ti": "ኣብ ሆላንድ ኣየኖት ቆልዑ መንበር ቆልዑ ክጥቀሙ ኣለዎም?",
-"am": "በኔዘርላንድስ የትኞቹ ልጆች የልጆች መቀመጫ መጠቀም አለባቸው?"
+"am": "በኔዘርላንድስ የትኞቹ ልጆች የልጆች መቀመጫ መጠቀም አለባቸው?",
+"nl": "Welke kinderen moeten een kinderzitje gebruiken in Nederland?"
 },
 "ex": {
 "en": "Children shorter than 1.35 m must use a suitable child seat.",
 "ti": "ቆልዑ ቁመቶም ትሕቲ 1.35 ሜ ዝሰማማዕ መንበር ክጥቀሙ ኣለዎም።",
-"am": "ቁመታቸው ከ1.35 ሜ በታች ልጆች ተስማሚ መቀመጫ መጠቀም አለባቸው።"
+"am": "ቁመታቸው ከ1.35 ሜ በታች ልጆች ተስማሚ መቀመጫ መጠቀም አለባቸው።",
+"nl": "Kinderen kleiner dan 1,35 m moeten een passend kinderzitje gebruiken."
 }
 },
 {
@@ -444,17 +534,25 @@
 "መስመሩ ዝግ ነው – አይጠቀሙበት",
 "የጭነት መኪና መስመር",
 "ወደ 50 ይቀንሱ"
+],
+"nl": [
+"Een snelheidslimiet",
+"De rijstrook is dicht – niet gebruiken",
+"Strook voor vrachtwagens",
+"Afremmen naar 50"
 ]
 },
 "q": {
 "en": "A red cross is shown above a motorway lane. What does it mean?",
 "ti": "ኣብ ልዕሊ መስመር ኣውቶስትራዳ ቀይሕ መስቀል ይርአ። እንታይ ማለት እዩ?",
-"am": "በአውራ ጎዳና መስመር ላይ ቀይ መስቀል ይታያል። ምን ማለት ነው?"
+"am": "በአውራ ጎዳና መስመር ላይ ቀይ መስቀል ይታያል። ምን ማለት ነው?",
+"nl": "Boven een rijstrook op de snelweg staat een rood kruis. Wat betekent dat?"
 },
 "ex": {
 "en": "A red cross closes the lane. Driving on it is dangerous and fined.",
 "ti": "ቀይሕ መስቀል ነቲ መስመር ይዓጽዎ። ኣብኡ ምዝዋር ሓደገኛ እዩ ይቕጻዕ።",
-"am": "ቀይ መስቀል መስመሩን ይዘጋል። በእሱ መንዳት አደገኛ ነው ያስቀጣል።"
+"am": "ቀይ መስቀል መስመሩን ይዘጋል። በእሱ መንዳት አደገኛ ነው ያስቀጣል።",
+"nl": "Een rood kruis sluit de rijstrook af. Erop rijden is gevaarlijk en wordt beboet."
 }
 },
 {
@@ -477,17 +575,25 @@
 "የmatrix ምልክቶች በላዩ ፍጥነት ሲያሳዩ ብቻ",
 "ቅዳሜና እሁድ",
 "በጭራሽ"
+],
+"nl": [
+"Die is altijd open",
+"Alleen als de matrixborden er een snelheid boven tonen",
+"In het weekend",
+"Nooit"
 ]
 },
 "q": {
 "en": "When may you drive on a rush-hour lane (spitsstrook)?",
 "ti": "ኣብ መስመር ሰዓት ጸቕጢ (spitsstrook) መዓስ ክትዝውር ትኽእል?",
-"am": "በመጨናነቂያ ሰዓት መስመር (spitsstrook) መቼ መንዳት ይችላሉ?"
+"am": "በመጨናነቂያ ሰዓት መስመር (spitsstrook) መቼ መንዳት ይችላሉ?",
+"nl": "Wanneer mag u op een spitsstrook rijden?"
 },
 "ex": {
 "en": "Only when it is opened – the signs above show a speed and no red cross.",
 "ti": "ክፉት ምስ ኮነ ጥራይ – ምልክታት ፍጥነት የርእዩ ቀይሕ መስቀል የለን።",
-"am": "ሲከፈት ብቻ – ምልክቶቹ ፍጥነት ያሳያሉ ቀይ መስቀል የለም።"
+"am": "ሲከፈት ብቻ – ምልክቶቹ ፍጥነት ያሳያሉ ቀይ መስቀል የለም።",
+"nl": "Alleen als hij open is – de borden erboven tonen een snelheid en geen rood kruis."
 }
 },
 {
@@ -501,12 +607,14 @@
 "q": {
 "en": "Only vehicles that can drive faster than … may use a Dutch motorway.",
 "ti": "ካብ … ንላዕሊ ክጎዓዙ ዝኽእሉ ተሽከርካሪታት ጥራይ ኣብ ኣውቶስትራዳ ሆላንድ ይፍቀዱ።",
-"am": "ከ… በላይ መሄድ የሚችሉ ተሽከርካሪዎች ብቻ የኔዘርላንድስ አውራ ጎዳና ይጠቀማሉ።"
+"am": "ከ… በላይ መሄድ የሚችሉ ተሽከርካሪዎች ብቻ የኔዘርላንድስ አውራ ጎዳና ይጠቀማሉ።",
+"nl": "Alleen voertuigen die harder dan … kunnen rijden, mogen de autosnelweg op."
 },
 "ex": {
 "en": "The vehicle must be able and allowed to drive faster than 60 km/h.",
 "ti": "እቲ ተሽከርካሪ ካብ 60 km/h ንላዕሊ ክጎዓዝ ክኽእል ኣለዎ።",
-"am": "ተሽከርካሪው ከ60 km/h በላይ መሄድ መቻል አለበት።"
+"am": "ተሽከርካሪው ከ60 km/h በላይ መሄድ መቻል አለበት።",
+"nl": "Het voertuig moet harder dan 60 km/h kunnen en mogen rijden."
 }
 },
 {
@@ -529,17 +637,25 @@
 "በተቻለ መጠን በቀኝ",
 "መሃል",
 "በማንኛውም"
+],
+"nl": [
+"Altijd links",
+"Zo veel mogelijk rechts",
+"In het midden",
+"Maakt niet uit"
 ]
 },
 "q": {
 "en": "Which lane should you normally drive in?",
 "ti": "ብልሙድ ኣብ ኣየናይ መስመር ክትዝውር ይግባእ?",
-"am": "በተለምዶ በየትኛው መስመር መንዳት አለብዎት?"
+"am": "በተለምዶ በየትኛው መስመር መንዳት አለብዎት?",
+"nl": "Op welke rijstrook rijdt u normaal?"
 },
 "ex": {
 "en": "Keep right. Use the left lanes to overtake, then go back to the right.",
 "ti": "ብየማን ዘውር። ንምሕላፍ ጸጋም ተጠቐም፡ ድሕሪኡ ናብ የማን ተመለስ።",
-"am": "በቀኝ ይንዱ። ለመቅደም ግራውን ይጠቀሙ፣ ከዚያ ወደ ቀኝ ይመለሱ።"
+"am": "በቀኝ ይንዱ። ለመቅደም ግራውን ይጠቀሙ፣ ከዚያ ወደ ቀኝ ይመለሱ።",
+"nl": "Rijd rechts. Gebruik links om in te halen en ga daarna terug naar rechts."
 }
 },
 {
@@ -562,17 +678,25 @@
 "አይ፣ በግራ ይቅደሙ – በቀኝ በሰልፍ ወይም ለትራም ብቻ",
 "በአውራ ጎዳና ሁልጊዜ",
 "በሌሊት"
+],
+"nl": [
+"Ja, als rechts vrij is",
+"Nee, links inhalen – rechts alleen in files of bij trams",
+"Altijd op de snelweg",
+"Alleen 's nachts"
 ]
 },
 "q": {
 "en": "May you overtake on the right?",
 "ti": "ብየማን ክትሓልፍ ይፍቀድ ድዩ?",
-"am": "በቀኝ መቅደም ይፈቀዳል?"
+"am": "በቀኝ መቅደም ይፈቀዳል?",
+"nl": "Mag u rechts inhalen?"
 },
 "ex": {
 "en": "Normally you overtake on the left. Overtaking a tram on the right is normal, and in slow queues the right lane may be faster.",
 "ti": "ብልሙድ ብጸጋም ትሓልፍ። ትራም ብየማን ይሕለፍ፡ ኣብ ዝሑል ሰልፊ የማን ክቐልጥፍ ይኽእል።",
-"am": "በተለምዶ በግራ ይቀድማሉ። ትራምን በቀኝ መቅደም የተለመደ ነው፣ በቀርፋፋ ሰልፍ ቀኙ ሊፈጥን ይችላል።"
+"am": "በተለምዶ በግራ ይቀድማሉ። ትራምን በቀኝ መቅደም የተለመደ ነው፣ በቀርፋፋ ሰልፍ ቀኙ ሊፈጥን ይችላል።",
+"nl": "Normaal haalt u links in. Een tram haalt u rechts in, en in langzame files kan rechts sneller gaan."
 }
 },
 {
@@ -586,12 +710,14 @@
 "q": {
 "en": "You may not park closer than … to an intersection or before a zebra crossing.",
 "ti": "ካብ መስቀላ መገዲ ወይ ቅድሚ መሳገሪ ኣብ ውሽጢ … ክተዕርፍ ኣይፍቀድን።",
-"am": "ከመስቀለኛ መንገድ ወይም ከመሻገሪያ በፊት በ… ውስጥ ማቆም አይፈቀድም።"
+"am": "ከመስቀለኛ መንገድ ወይም ከመሻገሪያ በፊት በ… ውስጥ ማቆም አይፈቀድም።",
+"nl": "U mag niet dichter dan … bij een kruising of voor een zebrapad parkeren."
 },
 "ex": {
 "en": "No parking within 5 metres of an intersection or before a zebra crossing.",
 "ti": "ኣብ ውሽጢ 5 ሜትሮ ክልኩል እዩ።",
-"am": "በ5 ሜትር ውስጥ የተከለከለ ነው።"
+"am": "በ5 ሜትር ውስጥ የተከለከለ ነው።",
+"nl": "Niet parkeren binnen 5 meter van een kruising of voor een zebrapad."
 }
 },
 {
@@ -614,17 +740,25 @@
 "የማቆሚያ ዲስክ (parkeerschijf) ያስፈልጋል፣ በምልክቱ ላይ ላለው ጊዜ",
 "ለነዋሪዎች ብቻ",
 "ለአውቶቡስ"
+],
+"nl": [
+"De hele dag gratis parkeren",
+"Een parkeerschijf; u mag parkeren voor de aangegeven tijd",
+"Alleen voor bewoners",
+"Alleen voor bussen"
 ]
 },
 "q": {
 "en": "What do you need in a blue zone (blauwe zone)?",
 "ti": "ኣብ ሰማያዊ ዞባ (blauwe zone) እንታይ የድልየካ?",
-"am": "በሰማያዊ ዞን (blauwe zone) ምን ያስፈልግዎታል?"
+"am": "በሰማያዊ ዞን (blauwe zone) ምን ያስፈልግዎታል?",
+"nl": "Wat heeft u nodig in een blauwe zone?"
 },
 "ex": {
 "en": "Set your arrival time on a parking disc behind the windscreen.",
 "ti": "ሰዓት ምብጻሕካ ኣብ ዲስክ ኣቐሚጥካ ኣብ መስኮት ኣንብሮ።",
-"am": "የደረሱበትን ሰዓት በዲስኩ ላይ አስቀምጠው ከመስኮቱ ጀርባ ያድርጉት።"
+"am": "የደረሱበትን ሰዓት በዲስኩ ላይ አስቀምጠው ከመስኮቱ ጀርባ ያድርጉት።",
+"nl": "Zet uw aankomsttijd op een parkeerschijf achter de voorruit."
 }
 },
 {
@@ -638,12 +772,14 @@
 "q": {
 "en": "Your car breaks down where it is a danger. How far behind it should the warning triangle be at least?",
 "ti": "መኪናኻ ኣብ ሓደገኛ ቦታ ተበላሽያ። ሰለስተ መኣዝን ብውሑዱ ክንደይ ድሕሪኣ ክኸውን ኣለዎ?",
-"am": "መኪናዎ በአደገኛ ቦታ ተበላሸ። የማስጠንቀቂያ ሦስት ማዕዘኑ ቢያንስ ከኋላው ምን ያህል መሆን አለበት?"
+"am": "መኪናዎ በአደገኛ ቦታ ተበላሸ። የማስጠንቀቂያ ሦስት ማዕዘኑ ቢያንስ ከኋላው ምን ያህል መሆን አለበት?",
+"nl": "Uw auto staat stil op een gevaarlijke plek. Hoe ver erachter moet de gevarendriehoek minstens staan?"
 },
 "ex": {
 "en": "At least 30 m behind the car (more on fast roads). On a motorway, first get behind the barrier.",
 "ti": "ብውሑዱ 30 ሜ ድሕሪ መኪና (ኣብ ቅልጡፍ ጽርግያ ዝያዳ)። ኣብ ኣውቶስትራዳ ቅድም ድሕሪ ሓጹር ኪድ።",
-"am": "ቢያንስ 30 ሜ ከመኪናው ኋላ (በፈጣን መንገድ የበለጠ)። በአውራ ጎዳና መጀመሪያ ከአጥሩ ጀርባ ይሂዱ።"
+"am": "ቢያንስ 30 ሜ ከመኪናው ኋላ (በፈጣን መንገድ የበለጠ)። በአውራ ጎዳና መጀመሪያ ከአጥሩ ጀርባ ይሂዱ።",
+"nl": "Minstens 30 m achter de auto (meer op snelle wegen). Op de snelweg eerst achter de vangrail gaan staan."
 }
 },
 {
@@ -666,17 +802,25 @@
 "ጭጋግ እይታን ከ50 ሜ በታች ሲያደርግ ብቻ",
 "ሲዘንብ",
 "በዋሻ"
+],
+"nl": [
+"Altijd 's nachts",
+"Alleen als mist het zicht onder 50 m brengt",
+"Als het regent",
+"In tunnels"
 ]
 },
 "q": {
 "en": "When may you use the rear fog light?",
 "ti": "ድሕሪት መብራህቲ ግመ መዓስ ክትጥቀም ትኽእል?",
-"am": "የኋላ የጭጋግ መብራት መቼ መጠቀም ይችላሉ?"
+"am": "የኋላ የጭጋግ መብራት መቼ መጠቀም ይችላሉ?",
+"nl": "Wanneer mag u het mistachterlicht gebruiken?"
 },
 "ex": {
 "en": "Only in fog or snowfall when visibility is under 50 m.",
 "ti": "ብግመ ወይ በረድ ምርኣይ ትሕቲ 50 ሜ ምስ ዝኸውን ጥራይ።",
-"am": "በጭጋግ ወይም በረዶ እይታ ከ50 ሜ በታች ሲሆን ብቻ።"
+"am": "በጭጋግ ወይም በረዶ እይታ ከ50 ሜ በታች ሲሆን ብቻ።",
+"nl": "Alleen bij mist of sneeuwval als het zicht minder dan 50 m is."
 }
 },
 {
@@ -690,12 +834,14 @@
 "q": {
 "en": "Which number do you call in an emergency in the Netherlands?",
 "ti": "ኣብ ሆላንድ ኣብ ህጹጽ ናብ ኣየናይ ቁጽሪ ትድውል?",
-"am": "በኔዘርላንድስ በድንገተኛ ጊዜ ወደ የትኛው ቁጥር ይደውላሉ?"
+"am": "በኔዘርላንድስ በድንገተኛ ጊዜ ወደ የትኛው ቁጥር ይደውላሉ?",
+"nl": "Welk nummer belt u bij nood in Nederland?"
 },
 "ex": {
 "en": "112 for police, ambulance and fire.",
 "ti": "112 ንፖሊስ፡ ኣምቡላንስን ሓዊን።",
-"am": "112 ለፖሊስ፣ አምቡላንስና እሳት።"
+"am": "112 ለፖሊስ፣ አምቡላንስና እሳት።",
+"nl": "112 voor politie, ambulance en brandweer."
 }
 },
 {
@@ -718,17 +864,25 @@
 "አይ፣ ግን በክረምት ጠቃሚ ነው (በአንዳንድ አገሮች ግዴታ)",
 "በሰሜን ብቻ",
 "ሁልጊዜ"
+],
+"nl": [
+"Ja, vanaf 1 november",
+"Nee, maar ze zijn verstandig in de winter (verplicht in sommige landen waar u heen rijdt)",
+"Alleen in het noorden",
+"Altijd"
 ]
 },
 "q": {
 "en": "Are winter tyres compulsory in the Netherlands?",
 "ti": "ኣብ ሆላንድ ጎማ ክረምቲ ግድን ድዩ?",
-"am": "በኔዘርላንድስ የክረምት ጎማ ግዴታ ነው?"
+"am": "በኔዘርላንድስ የክረምት ጎማ ግዴታ ነው?",
+"nl": "Zijn winterbanden verplicht in Nederland?"
 },
 "ex": {
 "en": "No, but in Germany and other neighbour countries they are required in winter conditions.",
 "ti": "ኣይፋል፡ ግን ኣብ ጀርመንን ካልኦት ጎረባብቲ ሃገራትን ኣብ ክረምታዊ ኩነታት ግድን እዩ።",
-"am": "አይ፣ ግን በጀርመንና በሌሎች ጎረቤት አገሮች በክረምት ሁኔታ ግዴታ ነው።"
+"am": "አይ፣ ግን በጀርመንና በሌሎች ጎረቤት አገሮች በክረምት ሁኔታ ግዴታ ነው።",
+"nl": "Nee, maar in Duitsland en andere buurlanden zijn ze verplicht bij winterse omstandigheden."
 }
 },
 {
@@ -751,17 +905,25 @@
 "ቀጥ ለሚሄዱ ብስክሌተኞች ቅድሚያ ይስጡ – መስታወትና የማይታይ ቦታ ይመልከቱ",
 "ጡሩምባ",
 "ብስክሌተኞች ይቁሙ"
+],
+"nl": [
+"U heeft voorrang",
+"Voorrang geven aan fietsers die rechtdoor gaan – kijk in spiegel en dode hoek",
+"Toeteren",
+"Fietsers moeten stoppen"
 ]
 },
 "q": {
 "en": "You turn right across a bike path. A cyclist goes straight on. What do you do?",
 "ti": "ናብ የማን ትጥውይ መንገዲ ብሽክለታ ትሰግር። ብሽክለታ ብቐጥታ ይኸይድ። እንታይ ትገብር?",
-"am": "ወደ ቀኝ ታጥፈው የብስክሌት መንገድ ያቋርጣሉ። ብስክሌተኛ ቀጥ ይሄዳል። ምን ያደርጋሉ?"
+"am": "ወደ ቀኝ ታጥፈው የብስክሌት መንገድ ያቋርጣሉ። ብስክሌተኛ ቀጥ ይሄዳል። ምን ያደርጋሉ?",
+"nl": "U slaat rechtsaf over een fietspad. Een fietser gaat rechtdoor. Wat doet u?"
 },
 "ex": {
 "en": "Cyclists going straight on have priority. In the Netherlands there are many – always check the blind spot.",
 "ti": "ብቐጥታ ዝኸዱ ብሽክለታ ቅድሚ ኣለዎም። ኣብ ሆላንድ ብዙሓት እዮም – ኩሉ ግዜ ዘይርአ ቦታ ርአ።",
-"am": "ቀጥ የሚሄዱ ብስክሌተኞች ቅድሚያ አላቸው። በኔዘርላንድስ ብዙ ናቸው – ሁልጊዜ የማይታይ ቦታን ይመልከቱ።"
+"am": "ቀጥ የሚሄዱ ብስክሌተኞች ቅድሚያ አላቸው። በኔዘርላንድስ ብዙ ናቸው – ሁልጊዜ የማይታይ ቦታን ይመልከቱ።",
+"nl": "Fietsers die rechtdoor gaan hebben voorrang. In Nederland zijn er veel – kijk altijd in de dode hoek."
 }
 },
 {
@@ -784,17 +946,25 @@
 "በሰላም ቦታ ሰጥተው ያሳልፉ",
 "መሃል ይቁሙ",
 "ችላ ይበሉ"
+],
+"nl": [
+"Gas geven",
+"Veilig ruimte maken en laten passeren",
+"Midden op de weg stoppen",
+"Negeren"
 ]
 },
 "q": {
 "en": "An ambulance with blue lights and siren comes behind you. What do you do?",
 "ti": "ኣምቡላንስ ብሰማያዊ መብራህትን ድምጽን ድሕሬኻ ትመጽእ። እንታይ ትገብር?",
-"am": "ሰማያዊ መብራትና ሳይረን ያለው አምቡላንስ ከኋላዎ ይመጣል። ምን ያደርጋሉ?"
+"am": "ሰማያዊ መብራትና ሳይረን ያለው አምቡላንስ ከኋላዎ ይመጣል። ምን ያደርጋሉ?",
+"nl": "Een ambulance met zwaailicht en sirene komt achter u. Wat doet u?"
 },
 "ex": {
 "en": "Give way to emergency vehicles, without creating new danger.",
 "ti": "ንተሽከርካሪታት ሓደጋ መገዲ ሃብ፡ ሓድሽ ሓደጋ ከይፈጠርካ።",
-"am": "ለድንገተኛ ተሽከርካሪዎች መንገድ ይስጡ፣ አዲስ አደጋ ሳይፈጥሩ።"
+"am": "ለድንገተኛ ተሽከርካሪዎች መንገድ ይስጡ፣ አዲስ አደጋ ሳይፈጥሩ።",
+"nl": "Geef voorrang aan hulpdiensten, zonder nieuw gevaar te maken."
 }
 },
 {
@@ -817,17 +987,25 @@
 "በሰላም ከቻሉ ይቁሙ",
 "እንደ አረንጓዴ",
 "ለአውቶቡስ"
+],
+"nl": [
+"Gas geven",
+"Stoppen als dat veilig kan",
+"Hetzelfde als groen",
+"Alleen voor bussen"
 ]
 },
 "q": {
 "en": "The traffic light turns yellow. What do you do?",
 "ti": "መብራህቲ ትራፊክ ብጫ ይኸውን። እንታይ ትገብር?",
-"am": "የትራፊክ መብራቱ ቢጫ ይሆናል። ምን ያደርጋሉ?"
+"am": "የትራፊክ መብራቱ ቢጫ ይሆናል። ምን ያደርጋሉ?",
+"nl": "Het verkeerslicht springt op geel. Wat doet u?"
 },
 "ex": {
 "en": "Stop, unless you are so close that stopping would be dangerous.",
 "ti": "ደው በል፡ ደው ምባል ሓደገኛ እንተዘይኮይኑ።",
-"am": "ይቁሙ፣ መቆም አደገኛ ካልሆነ።"
+"am": "ይቁሙ፣ መቆም አደገኛ ካልሆነ።",
+"nl": "Stop, tenzij u zo dichtbij bent dat stoppen gevaarlijk zou zijn."
 }
 },
 {
@@ -850,17 +1028,25 @@
 "ሊቆሙ ከቻሉ አይግቡ",
 "ጡሩምባ",
 "በብስክሌት መንገድ"
+],
+"nl": [
+"Toch oprijden",
+"Niet oprijden als u vast kunt komen te staan",
+"Toeteren",
+"Over het fietspad rijden"
 ]
 },
 "q": {
 "en": "The light is green but the intersection is full. What do you do?",
 "ti": "መብራህቲ ቀጠልያ እዩ ግን መስቀላ መሊኡ። እንታይ ትገብር?",
-"am": "መብራቱ አረንጓዴ ነው ግን መስቀለኛ መንገዱ ሞልቷል። ምን ያደርጋሉ?"
+"am": "መብራቱ አረንጓዴ ነው ግን መስቀለኛ መንገዱ ሞልቷል። ምን ያደርጋሉ?",
+"nl": "Het licht is groen maar de kruising staat vol. Wat doet u?"
 },
 "ex": {
 "en": "Never block an intersection. Wait until you can drive all the way through.",
 "ti": "መስቀላ ፈጺምካ ኣይትዓጹ። ክትሰግር ክሳብ ትኽእል ተጸበ።",
-"am": "መስቀለኛ መንገድን በጭራሽ አይዝጉ። ማለፍ እስኪችሉ ይጠብቁ።"
+"am": "መስቀለኛ መንገድን በጭራሽ አይዝጉ። ማለፍ እስኪችሉ ይጠብቁ።",
+"nl": "Blokkeer nooit een kruising. Wacht tot u helemaal kunt doorrijden."
 }
 },
 {
@@ -883,17 +1069,25 @@
 "ወደ አራት እጥፍ",
 "እንደነበረ",
 "ግማሽ"
+],
+"nl": [
+"Hij verdubbelt",
+"Ongeveer vier keer zo lang",
+"Hij blijft gelijk",
+"Hij halveert"
 ]
 },
 "q": {
 "en": "What happens to the braking distance if you double your speed?",
 "ti": "ፍጥነትካ ክልተ ዕጽፊ እንተገበርካ ርሕቀት ምቁራጽ እንታይ ይኸውን?",
-"am": "ፍጥነትዎን እጥፍ ካደረጉ የፍሬን ርቀቱ ምን ይሆናል?"
+"am": "ፍጥነትዎን እጥፍ ካደረጉ የፍሬን ርቀቱ ምን ይሆናል?",
+"nl": "Wat gebeurt er met de remweg als u twee keer zo hard rijdt?"
 },
 "ex": {
 "en": "Braking distance grows with the square of the speed.",
 "ti": "ርሕቀት ምቁራጽ ብትርብዒት ፍጥነት ይውስኽ።",
-"am": "የፍሬን ርቀት በፍጥነቱ ካሬ ያድጋል።"
+"am": "የፍሬን ርቀት በፍጥነቱ ካሬ ያድጋል።",
+"nl": "De remweg groeit met het kwadraat van de snelheid."
 }
 },
 {
@@ -916,17 +1110,25 @@
 "ቢያንስ 2 ሰከንድ",
 "10 ሜ",
 "ህግ የለም"
+],
+"nl": [
+"1 seconde",
+"Minstens 2 seconden",
+"10 m",
+"Geen regel"
 ]
 },
 "q": {
 "en": "What following distance is advised in normal conditions?",
 "ti": "ኣብ ልሙድ ኩነታት ክንደይ ርሕቀት ይምከር?",
-"am": "በተለመደ ሁኔታ ምን ያህል ርቀት ይመከራል?"
+"am": "በተለመደ ሁኔታ ምን ያህል ርቀት ይመከራል?",
+"nl": "Welke volgafstand wordt aangeraden bij normaal weer?"
 },
 "ex": {
 "en": "At least 2 seconds, more in rain or darkness.",
 "ti": "ብውሑዱ 2 ካልኢት፡ ብዝናብ ወይ ጸልማት ዝያዳ።",
-"am": "ቢያንስ 2 ሰከንድ፣ በዝናብ ወይም በጨለማ የበለጠ።"
+"am": "ቢያንስ 2 ሰከንድ፣ በዝናብ ወይም በጨለማ የበለጠ።",
+"nl": "Minstens 2 seconden, meer bij regen of in het donker."
 }
 },
 {
@@ -949,17 +1151,25 @@
 "ሁልጊዜ በሁሉም ወንበሮች",
 "ፊት ብቻ",
 "ለልጆች ብቻ"
+],
+"nl": [
+"Alleen op de snelweg",
+"Altijd, op alle plaatsen",
+"Alleen voorin",
+"Alleen kinderen"
 ]
 },
 "q": {
 "en": "When must you wear a seat belt?",
 "ti": "መዓስ ቀበቶ ድሕነት ክትገብር ኣለካ?",
-"am": "መቼ የደህንነት ቀበቶ ማድረግ አለብዎት?"
+"am": "መቼ የደህንነት ቀበቶ ማድረግ አለብዎት?",
+"nl": "Wanneer moet u de gordel dragen?"
 },
 "ex": {
 "en": "Always, in every seat that has a belt.",
 "ti": "ኩሉ ግዜ ኣብ ኩሉ ቀበቶ ዘለዎ መንበር።",
-"am": "ሁልጊዜ ቀበቶ ባለው በሁሉም ወንበር።"
+"am": "ሁልጊዜ ቀበቶ ባለው በሁሉም ወንበር።",
+"nl": "Altijd, op elke plaats met een gordel."
 }
 },
 {
@@ -982,17 +1192,25 @@
 "ደህንነቱ በተጠበቀ ቦታ ቆመው ያርፉ",
 "ፍጥነት ይጨምሩ",
 "ሙዚቃ ከፍ ያድርጉ"
+],
+"nl": [
+"Raam open en doorrijden",
+"Op een veilige plek stoppen en rusten",
+"Harder rijden",
+"Muziek harder zetten"
 ]
 },
 "q": {
 "en": "You feel very tired while driving. What is right?",
 "ti": "ክትዝውር ከለኻ ብጣዕሚ ይደኽመካ። እቲ ቅኑዕ እንታይ እዩ?",
-"am": "ሲያሽከረክሩ በጣም ይደክምዎታል። ትክክለኛው ምንድን ነው?"
+"am": "ሲያሽከረክሩ በጣም ይደክምዎታል። ትክክለኛው ምንድን ነው?",
+"nl": "U bent erg moe tijdens het rijden. Wat is juist?"
 },
 "ex": {
 "en": "Only rest or sleep helps against tiredness.",
 "ti": "ዕረፍቲ ወይ ድቃስ ጥራይ ይሕግዝ።",
-"am": "እረፍት ወይም እንቅልፍ ብቻ ይረዳል።"
+"am": "እረፍት ወይም እንቅልፍ ብቻ ይረዳል።",
+"nl": "Alleen rust of slaap helpt tegen vermoeidheid."
 }
 },
 {
@@ -1015,17 +1233,25 @@
 "በጊዜ ወደ ዝቅተኛ ይቀይሩ",
 "ብልጭ ያድርጉ",
 "ያጥፉ"
+],
+"nl": [
+"Grootlicht aanhouden",
+"Op tijd dimmen",
+"Lichtsignalen geven",
+"Alles uitzetten"
 ]
 },
 "q": {
 "en": "You drive with high beam at night and see oncoming traffic. What do you do?",
 "ti": "ብለይቲ ብልዑል መብራህቲ ትዝውር ካብ ቅድሚት ትራፊክ ይመጽእ። እንታይ ትገብር?",
-"am": "በሌሊት በከፍተኛ መብራት እየነዱ ከፊት ትራፊክ ይመጣል። ምን ያደርጋሉ?"
+"am": "በሌሊት በከፍተኛ መብራት እየነዱ ከፊት ትራፊክ ይመጣል። ምን ያደርጋሉ?",
+"nl": "U rijdt 's nachts met grootlicht en ziet tegenliggers. Wat doet u?"
 },
 "ex": {
 "en": "Switch to low beam so you do not dazzle others.",
 "ti": "ንኻልኦት ከይተዕውር ናብ ትሑት ቀይር።",
-"am": "ሌሎችን እንዳያሳውሩ ወደ ዝቅተኛ ይቀይሩ።"
+"am": "ሌሎችን እንዳያሳውሩ ወደ ዝቅተኛ ይቀይሩ።",
+"nl": "Dim op tijd, zodat u anderen niet verblindt."
 }
 },
 {
@@ -1048,17 +1274,25 @@
 "ፍጥነት ብቻ ይቀንሱ",
 "መኪና ሲመጣ ብቻ",
 "ጡሩምባ"
+],
+"nl": [
+"Volledig stoppen bij de streep en voorrang geven",
+"Alleen afremmen",
+"Alleen stoppen als er auto's komen",
+"Toeteren"
 ]
 },
 "q": {
 "en": "What must you do at a STOP sign?",
 "ti": "ኣብ ምልክት STOP እንታይ ክትገብር ኣለካ?",
-"am": "በSTOP ምልክት ምን ማድረግ አለብዎት?"
+"am": "በSTOP ምልክት ምን ማድረግ አለብዎት?",
+"nl": "Wat moet u doen bij een STOP-bord?"
 },
 "ex": {
 "en": "Always stop completely, then give way to all traffic on the crossing road.",
 "ti": "ኩሉ ግዜ ምሉእ ደው በል፡ ድሕሪኡ ቅድሚ ሃብ።",
-"am": "ሁልጊዜ ሙሉ በሙሉ ይቁሙ፣ ከዚያ ቅድሚያ ይስጡ።"
+"am": "ሁልጊዜ ሙሉ በሙሉ ይቁሙ፣ ከዚያ ቅድሚያ ይስጡ።",
+"nl": "Altijd volledig stoppen en dan voorrang geven aan al het kruisende verkeer."
 }
 },
 {
@@ -1081,17 +1315,25 @@
 "ቦታውን ያስጠብቁ፣ 112 ይደውሉ፣ ይርዱ",
 "ሁሉንም ወዲያው ያንቀሳቅሱ",
 "መጀመሪያ ፎቶ"
+],
+"nl": [
+"Doorrijden om hulp te halen",
+"De plek veilig maken, 112 bellen en de gewonden helpen",
+"Iedereen meteen verplaatsen",
+"Eerst foto's maken"
 ]
 },
 "q": {
 "en": "You come to an accident with injured people. What is right?",
 "ti": "ናብ ሓደጋ ምስ ዝተጎድኡ ትበጽሕ። እቲ ቅኑዕ እንታይ እዩ?",
-"am": "ተጎጂዎች ወዳሉበት አደጋ ይደርሳሉ። ትክክለኛው ምንድን ነው?"
+"am": "ተጎጂዎች ወዳሉበት አደጋ ይደርሳሉ። ትክክለኛው ምንድን ነው?",
+"nl": "U komt bij een ongeluk met gewonden. Wat is juist?"
 },
 "ex": {
 "en": "Make the place safe, call 112, then give first aid.",
 "ti": "ቦታ ውሑስ ግበር፡ 112 ደውል፡ ቀዳማይ ረድኤት ሃብ።",
-"am": "ቦታውን ያስጠብቁ፣ 112 ይደውሉ፣ የመጀመሪያ እርዳታ ይስጡ።"
+"am": "ቦታውን ያስጠብቁ፣ 112 ይደውሉ፣ የመጀመሪያ እርዳታ ይስጡ።",
+"nl": "Maak de plek veilig, bel 112 en geef dan eerste hulp."
 }
 },
 {
@@ -1105,12 +1347,14 @@
 "q": {
 "en": "From what age may you drive a car alone in the Netherlands?",
 "ti": "ኣብ ሆላንድ ካብ ክንደይ ዕድመ በይንኻ መኪና ክትዝውር ትኽእል?",
-"am": "በኔዘርላንድስ ከስንት ዓመት ጀምሮ ብቻዎን መኪና መንዳት ይችላሉ?"
+"am": "በኔዘርላንድስ ከስንት ዓመት ጀምሮ ብቻዎን መኪና መንዳት ይችላሉ?",
+"nl": "Vanaf welke leeftijd mag u in Nederland alleen autorijden?"
 },
 "ex": {
 "en": "From 18. With 2toDrive you may drive from 17, but only with your coach.",
 "ti": "ካብ 18። ብ2toDrive ካብ 17 ምስ መሰነይታ ጥራይ።",
-"am": "ከ18። በ2toDrive ከ17 ከአሰልጣኝ ጋር ብቻ።"
+"am": "ከ18። በ2toDrive ከ17 ከአሰልጣኝ ጋር ብቻ።",
+"nl": "Vanaf 18. Met 2toDrive mag u vanaf 17, maar alleen met uw coach."
 }
 }
 ]

@@ -509,6 +509,11 @@ const CTRIES={se:{f:"🇸🇪",n:"Sverige",exam:30,wrong:6,auth:"Transportstyrel
  uk:{f:"🇬🇧",n:"UK",exam:35,wrong:5,auth:"The Highway Code / DVSA",
    t:{ti:"ቲዮሪ መንጃ ፍቓድ ብሪጣንያ (B)",am:"የእንግሊዝ መንጃ ፈቃድ ቲዎሪ (B)",en:"UK driving theory (car)"}}};
 if(CTRY!=="no"&&!CTRIES[CTRY])CTRY="no";
+const LOCAL={no:"no",se:"sv",de:"de",nl:"nl",fr:"fr",uk:"en"};
+const LNAME={no:"Norsk",sv:"Svenska",de:"Deutsch",nl:"Nederlands",fr:"Français",en:"English",ti:"ትግርኛ",am:"አማርኛ"};
+const LANGS=c=>[...new Set([LOCAL[c],"ti","am","en"])];
+function fixLang(){if(!LANGS(CTRY).includes(QL)){QL=LOCAL[CTRY];lsSet("th_lang",QL)}}
+fixLang();
 function buildSE(){const R=RAW[CTRY];if(!R){SEQ=[];return}SEQ=R.map(x=>{const o=Array.isArray(x.o)?x.o:(x.o[QL]||x.o.en);
   // shuffle the options so the right answer is not always in the same place
   const ord=o.map((_,i)=>i);for(let i=ord.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ord[i],ord[j]]=[ord[j],ord[i]]}
@@ -519,8 +524,8 @@ let NOTR=null,NOQC=null;
 function loadNOTR(){if(NOTR||QL==="ti")return;fetch("theory_no_i18n.json").then(r=>r.ok?r.json():null).then(j=>{if(!j)return;NOTR=j;NOQC=null;if(!run)drawTheoryHome()}).catch(()=>{})}
 // a Tigrinya sign text in the chosen language (also "A፡ B።" made of two known parts)
 function trTi(t){const D=NOTR&&NOTR[QL]&&NOTR[QL].ti;if(!D||typeof t!=="string")return t;if(D[t])return D[t];
-  const m=t.match(/^«(.+)» ዝብል ምልክት ኣየናይ እዩ\?$/);if(m)return QL==="en"?`Which sign means «${trTi(m[1])}»?`:`«${trTi(m[1])}» የሚለው ምልክት የትኛው ነው?`;
-  const u=t.replace(/።$/,"");let i=u.indexOf("፡ ");while(i>0){const a=u.slice(0,i),b=u.slice(i+2);if(D[a]&&D[b])return QL==="en"?`${D[a]}: ${D[b]}.`:`${D[a]}፦ ${D[b]}።`;i=u.indexOf("፡ ",i+1)}return t}
+  const m=t.match(/^«(.+)» ዝብል ምልክት ኣየናይ እዩ\?$/);if(m)return QL==="am"?`«${trTi(m[1])}» የሚለው ምልክት የትኛው ነው?`:QL==="no"?`Hvilket skilt betyr «${trTi(m[1])}»?`:`Which sign means «${trTi(m[1])}»?`;
+  const u=t.replace(/።$/,"");let i=u.indexOf("፡ ");while(i>0){const a=u.slice(0,i),b=u.slice(i+2);if(D[a]&&D[b])return QL==="am"?`${D[a]}፦ ${D[b]}።`:`${D[a]}: ${D[b]}.`;i=u.indexOf("፡ ",i+1)}return t}
 function NOQ(){if(NOQC&&NOQC.l===QL&&NOQC.n===ALLQ.length)return NOQC.q;const L=NOTR[QL];
   const q=ALLQ.map(x=>{const t=x.ri!=null?L.rules[x.ri]:x.mi!=null?L.more[x.mi]:null;
     if(t)return Object.assign({},x,{q:t[0],o:t[1],ex:t[2]});
@@ -528,18 +533,27 @@ function NOQ(){if(NOQC&&NOQC.l===QL&&NOQC.n===ALLQ.length)return NOQC.q;const L=
   NOQC={l:QL,n:ALLQ.length,q};return q}
 const CQ=()=>CTRY!=="no"?SEQ:(QL!=="ti"&&NOTR&&NOTR[QL]?NOQ():ALLQ);
 const NUI=(k,ti,v)=>{let t=(QL!=="ti"&&NOTR&&NOTR[QL]&&NOTR[QL].ui[k])||ti;for(const x in v||{})t=t.split("{"+x+"}").join(v[x]);return t};
-const langBar=()=>`<div class="ctry sm">${[["ti","ትግርኛ"],["am","አማርኛ"],["en","English"]].map(([k,n])=>`<button data-ql="${k}" aria-pressed="${QL===k}">${n}</button>`).join("")}</div>`;
+const langBar=()=>`<div class="ctry sm">${LANGS(CTRY).map(k=>`<button data-ql="${k}" aria-pressed="${QL===k}">${LNAME[k]}</button>`).join("")}</div>`;
 const TL_={
  ti:{qn:"ሕቶ {i} ካብ {n}",exam:"ፈተና",right:"ቅኑዕ",ok:"ቅኑዕ! ",no:"ጌጋ። ",quit:"ደው ኣብል",next:"ቀጻሊ",pass:"ሓሊፍካ! 🎉",fail:"ኣይሓለፍካን",wrong:"ጌጋ",allowed:"ክሳብ {n} ይፍቀድ",wrongs:"ዝተጋገኻዮም",good:"ጽቡቕ! ድሉው ኢኻ 🎉",more:"ዝያዳ ተለማመድ፡ ክትሓልፍ ኢኻ!",back:"ተመለስ"},
  am:{qn:"ጥያቄ {i} ከ{n}",exam:"ፈተና",right:"ትክክል",ok:"ትክክል! ",no:"ስህተት። ",quit:"አቁም",next:"ቀጣይ",pass:"አልፈዋል! 🎉",fail:"አላለፉም",wrong:"ስህተት",allowed:"እስከ {n} ይፈቀዳል",wrongs:"የተሳሳቱት",good:"ጥሩ! ዝግጁ ነዎት 🎉",more:"ተጨማሪ ይለማመዱ፣ ያልፋሉ!",back:"ተመለስ"},
+ no:{qn:"Spørsmål {i} av {n}",exam:"Prøve",right:"riktige",ok:"Riktig! ",no:"Feil. ",quit:"Stopp",next:"Neste",pass:"Du besto! 🎉",fail:"Ikke bestått",wrong:"feil",allowed:"inntil {n} er lov",wrongs:"Feilene dine",good:"Bra! Du er klar 🎉",more:"Øv litt mer, du klarer det!",back:"Tilbake"},
+ sv:{qn:"Fråga {i} av {n}",exam:"Prov",right:"rätt",ok:"Rätt! ",no:"Fel. ",quit:"Stoppa",next:"Nästa",pass:"Godkänd! 🎉",fail:"Inte godkänd",wrong:"fel",allowed:"högst {n} tillåtna",wrongs:"Dina fel",good:"Bra! Du är redo 🎉",more:"Öva mer, du klarar det!",back:"Tillbaka"},
+ de:{qn:"Frage {i} von {n}",exam:"Prüfung",right:"richtig",ok:"Richtig! ",no:"Falsch. ",quit:"Stopp",next:"Weiter",pass:"Bestanden! 🎉",fail:"Nicht bestanden",wrong:"Fehler",allowed:"höchstens {n} erlaubt",wrongs:"Ihre Fehler",good:"Super! Sie sind bereit 🎉",more:"Weiter üben, Sie schaffen das!",back:"Zurück"},
+ nl:{qn:"Vraag {i} van {n}",exam:"Examen",right:"goed",ok:"Goed! ",no:"Fout. ",quit:"Stoppen",next:"Volgende",pass:"Geslaagd! 🎉",fail:"Niet geslaagd",wrong:"fout",allowed:"hoogstens {n} toegestaan",wrongs:"Je fouten",good:"Goed zo! Je bent er klaar voor 🎉",more:"Oefen nog wat, je haalt het!",back:"Terug"},
+ fr:{qn:"Question {i} sur {n}",exam:"Examen",right:"bonnes",ok:"Bonne réponse ! ",no:"Faux. ",quit:"Arrêter",next:"Suivant",pass:"Réussi ! 🎉",fail:"Pas réussi",wrong:"fautes",allowed:"{n} au plus autorisées",wrongs:"Vos erreurs",good:"Bravo ! Vous êtes prêt 🎉",more:"Entraînez-vous encore, vous y arriverez !",back:"Retour"},
  en:{qn:"Question {i} of {n}",exam:"Exam",right:"correct",ok:"Correct! ",no:"Wrong. ",quit:"Stop",next:"Next",pass:"You passed! 🎉",fail:"Not passed",wrong:"wrong",allowed:"up to {n} allowed",wrongs:"Your mistakes",good:"Great! You are ready 🎉",more:"Practise more, you will pass!",back:"Back"}};
 const TL=(k,v)=>{let t=(TL_[QL]||TL_.ti)[k];for(const x in v||{})t=t.replace("{"+x+"}",v[x]);return t};
 const ctryBar=()=>`<div class="ctry">${[["no","🇳🇴 Norge"],...Object.entries(CTRIES).map(([k,c])=>[k,c.f+" "+c.n])].map(([k,n])=>`<button data-ctry="${k}" aria-pressed="${CTRY===k}">${n}</button>`).join("")}</div>`;
 function drawSEHome(){$("qhead").hidden=true;$("qprog").hidden=true;loadSE();const C=CTRIES[CTRY];
  const H={ti:{t:C.t.ti,n:"{n} ሕቶታት ብነጻ ✓",pr:"📘 ልምምድ ሕግታት",prs:"መልሲ ብቐጥታ ትርኢ",ex:"📝 ፈተና",exs:"{n} ሕቶታት፡ ክሳብ {w} ጌጋ ትሓልፍ",load:"ይጽዓን ኣሎ…",note:"ብወግዓዊ ሕግታት ትራፊክ ዝተዳለወ ልምምድ እዩ። ምስኡ ወግዓዊ ትሕዝቶ ("+C.auth+") እውን ኣንብብ።"},
   am:{t:C.t.am,n:"{n} ጥያቄዎች በነጻ ✓",pr:"📘 የህግ ልምምድ",prs:"መልሱን ወዲያው ያያሉ",ex:"📝 ፈተና",exs:"{n} ጥያቄዎች፣ እስከ {w} ስህተት ያልፋሉ",load:"በመጫን ላይ…",note:"በኦፊሴላዊ የትራፊክ ህጎች ላይ የተመሰረተ ልምምድ ነው። ኦፊሴላዊውን ትምህርት ("+C.auth+") ያንብቡ።"},
-  en:{t:C.t.en,n:"{n} questions, free ✓",pr:"📘 Practise the rules",prs:"See the answer straight away",ex:"📝 Exam",exs:"{n} questions, pass with up to {w} mistakes",load:"Loading…",note:"Practice based on the official traffic rules. Also study the official material ("+C.auth+")."}}[QL]||{};
- const langs=`<div class="ctry sm">${[["ti","ትግርኛ"],["am","አማርኛ"],["en","English"]].map(([k,n])=>`<button data-ql="${k}" aria-pressed="${QL===k}">${n}</button>`).join("")}</div>`;
+  en:{t:C.t.en,n:"{n} questions, free ✓",pr:"📘 Practise the rules",prs:"See the answer straight away",ex:"📝 Exam",exs:"{n} questions, pass with up to {w} mistakes",load:"Loading…",note:"Practice based on the official traffic rules. Also study the official material ("+C.auth+")."},
+  sv:{t:"Teori för körkort B (Sverige)",n:"{n} frågor, gratis ✓",pr:"📘 Öva på reglerna",prs:"Se svaret direkt",ex:"📝 Prov",exs:"{n} frågor, godkänd med högst {w} fel",load:"Laddar…",note:"Övning baserad på de officiella trafikreglerna. Läs också det officiella materialet ("+C.auth+")."},
+  de:{t:"Führerschein-Theorie Klasse B (Deutschland)",n:"{n} Fragen, kostenlos ✓",pr:"📘 Regeln üben",prs:"Antwort sofort sehen",ex:"📝 Prüfung",exs:"{n} Fragen, bestanden mit höchstens {w} Fehlern",load:"Lädt…",note:"Übung nach den offiziellen Verkehrsregeln. Lernen Sie auch mit dem offiziellen Material ("+C.auth+")."},
+  nl:{t:"Theorie rijbewijs B (Nederland)",n:"{n} vragen, gratis ✓",pr:"📘 Regels oefenen",prs:"Zie meteen het antwoord",ex:"📝 Examen",exs:"{n} vragen, geslaagd met hoogstens {w} fouten",load:"Laden…",note:"Oefening op basis van de officiële verkeersregels. Leer ook met het officiële materiaal ("+C.auth+")."},
+  fr:{t:"Code de la route – permis B (France)",n:"{n} questions, gratuit ✓",pr:"📘 S'entraîner aux règles",prs:"Voir la réponse tout de suite",ex:"📝 Examen",exs:"{n} questions, réussi avec {w} fautes au plus",load:"Chargement…",note:"Entraînement basé sur le code de la route officiel. Étudiez aussi le matériel officiel ("+C.auth+")."}}[QL]||{};
+ const langs=langBar();
  $("qbody").innerHTML=ctryBar()+langs+`<h3 style="margin:6px 0 0">${C.f} ${H.t}</h3>`+(SEQ.length?`<p class="muted">${H.n.replace("{n}",SEQ.length)}</p>
    <button class="btn" data-run="rule" style="text-align:left">${H.pr}<small>${SEQ.length} · ${H.prs}</small></button>
    <button class="btn" data-run="exam" style="text-align:left">${H.ex}<small>${H.exs.replace("{n}",examN()).replace("{w}",examMaxWrong())}</small></button>
@@ -566,7 +580,7 @@ if(["sign","rule"].includes(QS.get("run")))setTimeout(()=>startRun(QS.get("run")
 $("qbody").addEventListener("click",e=>{
   const r=e.target.closest("[data-run]");if(r){r.dataset.run==="gallery"?gallery():startRun(r.dataset.run);return}
   const b=e.target.closest("[data-buy]");if(b){buy(b.dataset.buy,$("buyMsg"));return}
-  const c=e.target.closest("[data-ctry]");if(c){CTRY=c.dataset.ctry;lsSet("th_ctry",CTRY);buildSE();drawTheoryHome();return}
+  const c=e.target.closest("[data-ctry]");if(c){CTRY=c.dataset.ctry;lsSet("th_ctry",CTRY);fixLang();buildSE();NOQC=null;drawTheoryHome();return}
   const l=e.target.closest("[data-ql]");if(l){QL=l.dataset.ql;lsSet("th_lang",QL);buildSE();NOQC=null;loadNOTR();drawTheoryHome();return}});
 function gallery(){run={mode:"gallery"};$("qhead").hidden=true;$("qprog").hidden=true;
   const groups=[["warn","ምልክታት ሓደጋ"],["prio","ምልክታት ቅድሚ"],["speed","ፍጥነት"],["prohib","ምልክታት ክልከላ"],["mand","ምልክታት ግዴታ"],["info","ምልክታት ሓበሬታ"],["light","መብራህቲ ትራፊክ"],["mark","መስመራት ጽርግያ"]];
