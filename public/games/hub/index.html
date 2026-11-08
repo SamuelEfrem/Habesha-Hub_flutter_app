@@ -72,7 +72,7 @@ canvas{display:block;width:100%;max-width:100%;border-radius:14px;background:var
 /* Domino */
 .dom{display:flex;flex-direction:column;gap:10px}
 .dinfo{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.9rem;opacity:.9}
-.drow{display:flex;gap:4px;align-items:center;min-height:52px}.drow.rev{flex-direction:row-reverse}
+.dsnake{position:relative;margin:0 auto}.dsnake .tile{position:absolute}
 .dline{display:flex;flex-direction:column;gap:6px;justify-content:center;padding:12px 8px;background:#1f5135;border:4px solid #5a3b22;border-radius:12px;min-height:96px}
 .tile{display:inline-flex;background:var(--cream);border:1px solid #b9a77f;border-radius:6px;box-shadow:0 2px 0 rgba(0,0,0,.35);flex:none}
 .tile .h{width:24px;height:24px;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:3px;box-sizing:border-box}
@@ -414,11 +414,17 @@ const DOMI={rule:"ruleDomino",aiDelay:800,
   return `<span class="tile ${cls||""}" ${attr||""}>${half(t[0])}${half(t[1])}</span>`},
  render(el,st,v){const me=v.seat,op=1-me,ps=v.mine?DOMI.plays(st,me):[];
   if(!v.mine)DOSEL=-1;
-  // Snake like on a real table: when a row is full the line turns and comes back the other way
-  const avail=Math.max(160,(el.clientWidth||340)-32),rows=[[]];let used=0;
-  st.line.forEach((t,i)=>{const w=(t[0]===t[1]?27:51)+4;if(used+w>avail&&rows[rows.length-1].length){rows.push([]);used=0}rows[rows.length-1].push(i);used+=w});
-  const line=st.line.length?rows.map((r,ri)=>`<div class="drow ${ri%2?"rev":""}">${r.map(i=>{const t=st.line[i],d=t[0]===t[1];
-    return DOMI.tile(ri%2&&!d?[t[1],t[0]]:t,(d?"v":"")+((i===0||i===st.line.length-1)&&st.line.length>1?" end":""))}).join("")}</div>`).join(""):"";
+  // Snake like on a real table: at the edge a tile turns the corner standing up,
+  // and the line comes back the other way just below – round and round.
+  const HW=51,VW=26,TH=26,G=3,BH=TH+G,A=Math.max(170,(el.clientWidth||340)-28),pos=[];
+  let x=0,dir=1,band=0;
+  st.line.forEach((t,i)=>{const top=band*BH;
+   if(dir>0){if(x+HW<=A){pos.push({t,l:x,y:top});x+=HW+G}
+     else{pos.push({t,l:Math.min(x,A-VW),y:top,v:1});const L=Math.min(x,A-VW);band++;dir=-1;x=L-G}}
+   else{if(x-HW>=0){pos.push({t:[t[1],t[0]],l:x-HW,y:top});x-=HW+G}
+     else{const L=Math.max(0,x-VW);pos.push({t,l:L,y:top,v:1});band++;dir=1;x=L+VW+G}}});
+  const H=(band+1)*BH,Wd=Math.min(A,Math.max(...pos.map(q=>q.l+(q.v?VW:HW)),0));
+  const line=st.line.length?`<div class="dsnake" style="width:${Wd}px;height:${H}px">${pos.map((q,i)=>DOMI.tile(q.t,(q.v?"v":"")+((i===0||i===pos.length-1)&&pos.length>1?" end":""),`style="left:${q.l}px;top:${q.y}px"`)).join("")}</div>`:"";
   const opts=DOSEL>=0?ps.filter(m=>m.i===DOSEL):[];
   const hand=st.hands[me].map((t,i)=>{const can=ps.some(m=>m.i===i);return DOMI.tile(t,"v "+(DOSEL===i?"sel":can?"ok":v.mine?"no":""),`data-i="${i}"`)}).join("");
   const others=st.hands[op].map(()=>"<span></span>").join("");
