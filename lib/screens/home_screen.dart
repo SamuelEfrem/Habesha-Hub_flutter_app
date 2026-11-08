@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
+import 'dart:io' show Platform;
 import 'package:geolocator/geolocator.dart';
 import '../models/business.dart';
 import '../services/business_service.dart';
@@ -117,6 +118,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   Future<bool> _ensureLocation() async {
     if (!await Geolocator.isLocationServiceEnabled()) {
       if (_askedThisStart) return false;
+      if (Platform.isIOS) {
+        // iPhone: an app cannot open the main Location Services switch, so explain the way
+        await _locationDialog(
+            tr('Turn on location'),
+            tr('Location Services are off on your iPhone. Open Settings → Privacy & Security → Location Services and turn it on. Then come back to Habesha Hub.'),
+            okOnly: true);
+        _askedThisStart = true;
+        _waitingForSettings = true;
+        return false;
+      }
       final go = await _locationDialog(
           tr('Turn on location'),
           tr('Habesha Hub needs your location to show Habesha places near you.'));
@@ -130,13 +141,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     }
     var perm = await Geolocator.checkPermission();
     if (perm == LocationPermission.denied) {
+      // Explain first, so people know which button to press in the phone's question
+      if (_askedThisStart) return false;
+      final go = await _locationDialog(
+          tr('Find Habesha places near you'),
+          Platform.isIOS
+              ? tr('Habesha Hub uses your location only to show restaurants, churches and shops near you. In the next question, tap "Allow While Using App".')
+              : tr('Habesha Hub uses your location only to show restaurants, churches and shops near you. In the next question, tap "While using the app".'),
+          yes: tr('Continue'));
+      if (!go) {
+        _askedThisStart = true;
+        return false;
+      }
       perm = await Geolocator.requestPermission();
     }
-    if (perm == LocationPermission.deniedForever) {
+    if (perm == LocationPermission.deniedForever || perm == LocationPermission.denied) {
       if (_askedThisStart) return false;
       final go = await _locationDialog(
           tr('Allow location'),
-          tr('Location is blocked for Habesha Hub. Open settings → Permissions → Location → Allow.'));
+          Platform.isIOS
+              ? tr('Location is off for Habesha Hub. Tap "Open settings", then Location → "While Using the App".')
+              : tr('Location is blocked for Habesha Hub. Open settings → Permissions → Location → Allow.'),
+          yes: tr('Open settings'));
       if (go) {
         _waitingForSettings = true;
         await Geolocator.openAppSettings();
@@ -148,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     return perm == LocationPermission.always || perm == LocationPermission.whileInUse;
   }
 
-  Future<bool> _locationDialog(String title, String text) async {
+  Future<bool> _locationDialog(String title, String text, {String? yes, bool okOnly = false}) async {
     if (!mounted) return false;
     return await showDialog<bool>(
           context: context,
@@ -165,12 +191,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
             content: Text(text, textAlign: TextAlign.center, style: tsBodyLg(color: kTextSub)),
             actionsAlignment: MainAxisAlignment.center,
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx, false),
-                  child: Text(tr('Not now'), style: tsTitleMd(color: kTextSub))),
+              if (!okOnly)
+                TextButton(onPressed: () => Navigator.pop(ctx, false),
+                    child: Text(tr('Not now'), style: tsTitleMd(color: kTextSub))),
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: kSecondary, foregroundColor: kOnAccent),
                 onPressed: () => Navigator.pop(ctx, true),
-                child: Text(tr('Turn on'), style: const TextStyle(fontWeight: FontWeight.w800)),
+                child: Text(okOnly ? 'OK' : (yes ?? tr('Turn on')), style: const TextStyle(fontWeight: FontWeight.w800)),
               ),
             ],
           ),
@@ -521,7 +548,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
         Text(tr('Allow location to see Habesha businesses near you'),
             textAlign: TextAlign.center, style: tsTitleLg(color: kText)),
         const SizedBox(height: 18),
-        SizedBox(width: 220, child: goldButton(tr('Allow location'), _searchNearby, icon: Icons.my_location_rounded)),
+        // A tap on the button always asks again (also after "Not now")
+        SizedBox(width: 220, child: goldButton(tr('Allow location'), () { _askedThisStart = false; _searchNearby(); }, icon: Icons.my_location_rounded)),
       ]),
     );
   }
