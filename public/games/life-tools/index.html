@@ -510,8 +510,8 @@ const CTRIES={se:{f:"🇸🇪",n:"Sverige",exam:30,wrong:6,auth:"Transportstyrel
    t:{ti:"ቲዮሪ መንጃ ፍቓድ ብሪጣንያ (B)",am:"የእንግሊዝ መንጃ ፈቃድ ቲዎሪ (B)",en:"UK driving theory (car)"}}};
 if(CTRY!=="no"&&!CTRIES[CTRY])CTRY="no";
 const LOCAL={no:"no",se:"sv",de:"de",nl:"nl",fr:"fr",uk:"en"};
-const LNAME={no:"Norsk",sv:"Svenska",de:"Deutsch",nl:"Nederlands",fr:"Français",en:"English",ti:"ትግርኛ",am:"አማርኛ"};
-const LANGS=c=>[...new Set([LOCAL[c],"ti","am","en"])];
+const LNAME={no:"🇳🇴 Norsk",sv:"🇸🇪 Svenska",de:"🇩🇪 Deutsch",nl:"🇳🇱 Nederlands",fr:"🇫🇷 Français",en:"🇬🇧 English",ti:"🇪🇷 ትግርኛ",am:"🇪🇹 አማርኛ"};
+const LANGS=c=>[LOCAL[c],"ti","am"];
 function fixLang(){if(!LANGS(CTRY).includes(QL)){QL=LOCAL[CTRY];lsSet("th_lang",QL)}}
 fixLang();
 function buildSE(){const R=RAW[CTRY];if(!R){SEQ=[];return}SEQ=R.map(x=>{const o=Array.isArray(x.o)?x.o:(x.o[QL]||x.o.en);
