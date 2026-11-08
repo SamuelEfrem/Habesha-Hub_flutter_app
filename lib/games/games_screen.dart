@@ -13,7 +13,8 @@ import 'purchase_service.dart';
 class GamesScreen extends StatefulWidget {
   const GamesScreen({super.key});
 
-  static const String baseUrl = 'https://habesha-hub.no/games';
+  // GAMES_BASE can point a test build at a local copy of the pages
+  static const String baseUrl = String.fromEnvironment('GAMES_BASE', defaultValue: 'https://habesha-hub.no/games');
 
   /// Opens one of the web pages (hub, life-tools, driving …) inside the app
   static void openPage(BuildContext context, String title, String page) {
