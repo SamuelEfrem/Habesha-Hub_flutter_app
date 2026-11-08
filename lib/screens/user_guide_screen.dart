@@ -70,7 +70,7 @@ class UserGuideScreen extends StatelessWidget {
           'Press Games on the home screen.',
           'Habesha Games: Dama, Genna, racing and riddles – against the phone, a friend or online.',
           'Life Tools: driving theory class B in Tigrinya. All 500 questions and the exam are free.',
-          'The practical driving test in 3D is opened with a code. The code works for your phone number after an SMS check.',
+          'The practical driving test in 3D is free too. Choose your country at the top: Norway, Sweden, Germany, the Netherlands, France or the UK.',
         ]),
         (Icons.send_outlined, 'Send money home', () => kTintRed, () => kInkRed, [
           'Press Send money and choose the country.',

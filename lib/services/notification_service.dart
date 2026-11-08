@@ -50,6 +50,9 @@ class NotificationService {
     // the app starts before the login is restored: save the token again when the user is known
     FirebaseAuth.instance.authStateChanges().listen((u) { if (u != null && !u.isAnonymous) _saveToken().catchError((_) {}); });
 
+    // iPhone: show the banner also while the app is open (Android uses the local notification below)
+    await _messaging.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
+
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen(_showLocalNotification);
 
@@ -128,6 +131,7 @@ class NotificationService {
   static Future<void> _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
+    if (Platform.isIOS) return; // iOS shows it itself (presentation options above)
 
     const details = NotificationDetails(
       android: AndroidNotificationDetails(

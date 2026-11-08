@@ -800,7 +800,8 @@ window.habeshaProgress=o=>{if(!o)return;for(const k in o.stars||{})PROG.stars[k]
 let destI=0;
 if(QSD.get("app")==="1")document.documentElement.classList.add("app");
 // Unlocked together with the full theory course (the app calls habeshaUnlock)
-let PRO=(QSD.get("pro")||"").split(",").includes("theory_pro");
+// Everything is free since 2026-11 (driving test and all missions); the code system stays unused
+let PRO=true;
 window.habeshaUnlock=k=>{if(k==="theory_pro"&&!PRO){PRO=true;if(!L||!L.on)drawMenu()}};
 
 

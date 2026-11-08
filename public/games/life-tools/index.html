@@ -450,7 +450,7 @@ drawNew();
    The app also passes products the user already owns in the URL: ?pro=theory_pro,lang_pro */
 const PRICE={theory_pro:"49 kr",lang_pro:"49 kr"};
 const ownedFromUrl=(QS.get("pro")||"").split(",").map(s=>s.trim()).filter(Boolean);
-function isPro(k){if(k==="lang_pro")return true;/* free since 2026-11 */if(ownedFromUrl.includes(k))return true;if(k==="theory_pro")return false;try{return localStorage.getItem("pro_"+k)==="1"}catch(e){return false}}
+function isPro(k){if(k==="lang_pro"||k==="theory_pro")return true;/* free since 2026-11 */if(ownedFromUrl.includes(k))return true;if(k==="theory_pro")return false;try{return localStorage.getItem("pro_"+k)==="1"}catch(e){return false}}
 window.habeshaUnlock=function(k){if(k!=="theory_pro"){try{localStorage.setItem("pro_"+k,"1")}catch(e){}}if(!ownedFromUrl.includes(k))ownedFromUrl.push(k);closeUnlock();drawTheoryHome();drawLang()};
 function buyOld(k,msgEl){
   if(window.HabeshaApp&&typeof HabeshaApp.postMessage==="function"){HabeshaApp.postMessage(JSON.stringify({type:"buy",product:k}));return}

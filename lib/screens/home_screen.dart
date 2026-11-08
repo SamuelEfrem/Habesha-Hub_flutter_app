@@ -24,6 +24,7 @@ import 'cross_links.dart';
 import 'hair_beauty.dart';
 import '../services/update_check.dart';
 import '../services/review_prompt.dart';
+import '../utils/share_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -294,6 +295,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
               _buildSkeletons()
             else
               SliverToBoxAdapter(child: _buildLocationPrompt()),
+            SliverToBoxAdapter(child: _buildShareCard()),
             const SliverToBoxAdapter(child: SizedBox(height: 40)),
           ],
         ),
@@ -477,6 +479,35 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   }
 
   // Shown before the first search (location not allowed yet)
+  // "Know someone who needs this? Share the app" – more people find the app through friends
+  Widget _buildShareCard() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      child: Material(
+        color: kCard,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () => shareText(tr('Check out Habesha Hub!\n\nFind Ethiopian & Eritrean businesses near you.\n\nDownload now: https://habesha-hub.no/download.html')),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(children: [
+              const Text('💚', style: TextStyle(fontSize: 26)),
+              const SizedBox(width: 14),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(tr('Know someone who needs this?'), style: tsTitleMd()),
+                const SizedBox(height: 2),
+                Text(tr('Share Habesha Hub with family and friends'), style: tsBodySm()),
+              ])),
+              const SizedBox(width: 8),
+              Icon(Icons.share_rounded, color: kSecondary, size: 22),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildLocationPrompt() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
