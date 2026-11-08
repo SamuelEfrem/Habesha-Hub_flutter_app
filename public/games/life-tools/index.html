@@ -481,7 +481,7 @@ window.habeshaRedeemResult=function(r){const m=$("ubMsg"),g=$("ubGo");if(g)g.dis
 // The app sends the paid questions after unlock
 window.habeshaAddQuestions=function(list){if(!Array.isArray(list))return;
   const have=new Set(ALLQ.map(x=>x.q));
-  list.forEach(x=>{if(x&&x.q&&!have.has(x.q)){ALLQ.push({q:x.q,o:x.o,c:x.c,ex:x.ex,cat:"rule",free:true});have.add(x.q)}});
+  list.forEach((x,k)=>{if(x&&x.q&&!have.has(x.q)){ALLQ.push({q:x.q,o:x.o,c:x.c,ex:x.ex,cat:"rule",free:true,mi:k});have.add(x.q)}});NOQC=null;
   if(!run)drawTheoryHome()};
 // All theory is free (2026-11): the extra questions come from a file next to this page
 fetch("theory_more.json").then(r=>r.ok?r.json():[]).then(l=>window.habeshaAddQuestions(l)).catch(()=>{});
@@ -490,7 +490,7 @@ fetch("theory_more.json").then(r=>r.ok?r.json():[]).then(l=>window.habeshaAddQue
 const RULES=[...Q,...Q2].map(x=>({q:x[0],o:x[1],c:x[2],ex:x[3],cat:"rule"}));
 const SIGNQ=buildSignQuestions();
 const ALLQ=[...RULES,...SIGNQ];
-RULES.forEach(x=>x.free=true);SIGNQ.forEach(x=>x.free=true);
+RULES.forEach((x,i)=>{x.free=true;x.ri=i});SIGNQ.forEach(x=>x.free=true);
 const FREE_N=ALLQ.filter(x=>x.free).length;
 const PRO_TOTAL=PRO_RULES+SIGNQ.filter(x=>!x.free).length;
 let run=null;
@@ -514,12 +514,26 @@ function buildSE(){const R=RAW[CTRY];if(!R){SEQ=[];return}SEQ=R.map(x=>{const o=
   const ord=o.map((_,i)=>i);for(let i=ord.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ord[i],ord[j]]=[ord[j],ord[i]]}
   return {q:x.q[QL]||x.q.en,o:ord.map(i=>o[i]),c:ord.indexOf(x.c),ex:x.ex[QL]||x.ex.en,cat:"rule",free:true}})}
 function loadSE(){const k=CTRY;if(RAW[k]){buildSE();return}fetch("theory_"+k+".json").then(r=>r.ok?r.json():[]).then(l=>{RAW[k]=l;if(CTRY===k){buildSE();if(!run)drawTheoryHome()}}).catch(()=>{})}
-const CQ=()=>CTRY!=="no"?SEQ:ALLQ;
+/* Norway: the questions are written in Tigrinya; English and Amharic come from theory_no_i18n.json */
+let NOTR=null,NOQC=null;
+function loadNOTR(){if(NOTR||QL==="ti")return;fetch("theory_no_i18n.json").then(r=>r.ok?r.json():null).then(j=>{if(!j)return;NOTR=j;NOQC=null;if(!run)drawTheoryHome()}).catch(()=>{})}
+// a Tigrinya sign text in the chosen language (also "A፡ B።" made of two known parts)
+function trTi(t){const D=NOTR&&NOTR[QL]&&NOTR[QL].ti;if(!D||typeof t!=="string")return t;if(D[t])return D[t];
+  const m=t.match(/^«(.+)» ዝብል ምልክት ኣየናይ እዩ\?$/);if(m)return QL==="en"?`Which sign means «${trTi(m[1])}»?`:`«${trTi(m[1])}» የሚለው ምልክት የትኛው ነው?`;
+  const u=t.replace(/።$/,"");let i=u.indexOf("፡ ");while(i>0){const a=u.slice(0,i),b=u.slice(i+2);if(D[a]&&D[b])return QL==="en"?`${D[a]}: ${D[b]}.`:`${D[a]}፦ ${D[b]}።`;i=u.indexOf("፡ ",i+1)}return t}
+function NOQ(){if(NOQC&&NOQC.l===QL&&NOQC.n===ALLQ.length)return NOQC.q;const L=NOTR[QL];
+  const q=ALLQ.map(x=>{const t=x.ri!=null?L.rules[x.ri]:x.mi!=null?L.more[x.mi]:null;
+    if(t)return Object.assign({},x,{q:t[0],o:t[1],ex:t[2]});
+    return Object.assign({},x,{q:trTi(x.q),o:x.o.map(o=>typeof o==="string"?trTi(o):o),ex:trTi(x.ex)})});
+  NOQC={l:QL,n:ALLQ.length,q};return q}
+const CQ=()=>CTRY!=="no"?SEQ:(QL!=="ti"&&NOTR&&NOTR[QL]?NOQ():ALLQ);
+const NUI=(k,ti,v)=>{let t=(QL!=="ti"&&NOTR&&NOTR[QL]&&NOTR[QL].ui[k])||ti;for(const x in v||{})t=t.split("{"+x+"}").join(v[x]);return t};
+const langBar=()=>`<div class="ctry sm">${[["ti","ትግርኛ"],["am","አማርኛ"],["en","English"]].map(([k,n])=>`<button data-ql="${k}" aria-pressed="${QL===k}">${n}</button>`).join("")}</div>`;
 const TL_={
  ti:{qn:"ሕቶ {i} ካብ {n}",exam:"ፈተና",right:"ቅኑዕ",ok:"ቅኑዕ! ",no:"ጌጋ። ",quit:"ደው ኣብል",next:"ቀጻሊ",pass:"ሓሊፍካ! 🎉",fail:"ኣይሓለፍካን",wrong:"ጌጋ",allowed:"ክሳብ {n} ይፍቀድ",wrongs:"ዝተጋገኻዮም",good:"ጽቡቕ! ድሉው ኢኻ 🎉",more:"ዝያዳ ተለማመድ፡ ክትሓልፍ ኢኻ!",back:"ተመለስ"},
  am:{qn:"ጥያቄ {i} ከ{n}",exam:"ፈተና",right:"ትክክል",ok:"ትክክል! ",no:"ስህተት። ",quit:"አቁም",next:"ቀጣይ",pass:"አልፈዋል! 🎉",fail:"አላለፉም",wrong:"ስህተት",allowed:"እስከ {n} ይፈቀዳል",wrongs:"የተሳሳቱት",good:"ጥሩ! ዝግጁ ነዎት 🎉",more:"ተጨማሪ ይለማመዱ፣ ያልፋሉ!",back:"ተመለስ"},
  en:{qn:"Question {i} of {n}",exam:"Exam",right:"correct",ok:"Correct! ",no:"Wrong. ",quit:"Stop",next:"Next",pass:"You passed! 🎉",fail:"Not passed",wrong:"wrong",allowed:"up to {n} allowed",wrongs:"Your mistakes",good:"Great! You are ready 🎉",more:"Practise more, you will pass!",back:"Back"}};
-const TL=(k,v)=>{let t=(TL_[CTRY!=="no"?QL:"ti"]||TL_.ti)[k];for(const x in v||{})t=t.replace("{"+x+"}",v[x]);return t};
+const TL=(k,v)=>{let t=(TL_[QL]||TL_.ti)[k];for(const x in v||{})t=t.replace("{"+x+"}",v[x]);return t};
 const ctryBar=()=>`<div class="ctry">${[["no","🇳🇴 Norge"],...Object.entries(CTRIES).map(([k,c])=>[k,c.f+" "+c.n])].map(([k,n])=>`<button data-ctry="${k}" aria-pressed="${CTRY===k}">${n}</button>`).join("")}</div>`;
 function drawSEHome(){$("qhead").hidden=true;$("qprog").hidden=true;loadSE();const C=CTRIES[CTRY];
  const H={ti:{t:C.t.ti,n:"{n} ሕቶታት ብነጻ ✓",pr:"📘 ልምምድ ሕግታት",prs:"መልሲ ብቐጥታ ትርኢ",ex:"📝 ፈተና",exs:"{n} ሕቶታት፡ ክሳብ {w} ጌጋ ትሓልፍ",load:"ይጽዓን ኣሎ…",note:"ብወግዓዊ ሕግታት ትራፊክ ዝተዳለወ ልምምድ እዩ። ምስኡ ወግዓዊ ትሕዝቶ ("+C.auth+") እውን ኣንብብ።"},
@@ -536,14 +550,15 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random
 function drawTheoryHome(){if(run)return;if(CTRY!=="no"){drawSEHome();return}const pro=isPro("theory_pro");
   $("qhead").hidden=true;$("qprog").hidden=true;
   const nr=pool("rule").length,ns=pool("sign").length;
-  $("qbody").innerHTML=ctryBar()+`<p class="muted">ኩሎም ${ALLQ.length} ሕቶታት ብነጻ ✓</p>
+  loadNOTR();
+  $("qbody").innerHTML=ctryBar()+langBar()+`<p class="muted">${NUI("allFree","ኩሎም {n} ሕቶታት ብነጻ ✓",{n:ALLQ.length})}</p>
    <div class="signrow">${["give","stop","prio","speed50","noEntry","deer"].map(id=>signSVG(id,44)).join("")}</div>
-   <button class="btn" data-run="rule" style="text-align:left">📘 ልምምድ ሕግታት<small>${nr} ሕቶታት፡ መልሲ ብቐጥታ ትርኢ</small></button>
-   <button class="btn" data-run="sign" style="text-align:left">🚸 ልምምድ ምልክታት<small>${ns} ሕቶታት ብስእሊ ምልክታት</small></button>
-   <button class="btn" data-run="exam" style="text-align:left">📝 ፈተና ከም ናይ ሓቂ<small>${examN()} ሕቶታት፡ ክሳብ ${examMaxWrong()} ጌጋ ትሓልፍ፡ ውጽኢት ኣብ መወዳእታ</small></button>
-   <button class="btn ghost" data-run="gallery">📖 ኩሎም ምልክታት ተማሃር (${SIGNS.length})</button>
+   <button class="btn" data-run="rule" style="text-align:left">${NUI("rules","📘 ልምምድ ሕግታት")}<small>${NUI("rulesS","{n} ሕቶታት፡ መልሲ ብቐጥታ ትርኢ",{n:nr})}</small></button>
+   <button class="btn" data-run="sign" style="text-align:left">${NUI("signs","🚸 ልምምድ ምልክታት")}<small>${NUI("signsS","{n} ሕቶታት ብስእሊ ምልክታት",{n:ns})}</small></button>
+   <button class="btn" data-run="exam" style="text-align:left">${NUI("exam","📝 ፈተና ከም ናይ ሓቂ")}<small>${NUI("examS","{n} ሕቶታት፡ ክሳብ {w} ጌጋ ትሓልፍ፡ ውጽኢት ኣብ መወዳእታ",{n:examN(),w:examMaxWrong()})}</small></button>
+   <button class="btn ghost" data-run="gallery">${NUI("gallery","📖 ኩሎም ምልክታት ተማሃር ({n})",{n:SIGNS.length})}</button>
    ${pro?"":`<a class="btn" href="../driving/${location.search}" style="text-align:left;text-decoration:none;background:#1f7a4a">🚗 ናጻ ምዝዋር<small>ንኹሉ ብነጻ፡ ኣብ ዝደለኻዮ ዘውር</small></a>`}
-   ${pro?`<div class="probox"><b>✓ ፈተና ምዝዋር ክፉት እዩ</b><a class="btn" href="../driving/${location.search}" style="text-align:left;text-decoration:none;background:#1f7a4a">🚦 ፈተና ምዝዋር ብመኪና<small>ምስ መምህር ብድምጺ፡ GPS፡ ሕግታት ትራፊክ፡ ፓርክ</small></a></div>`
+   ${pro?`<div class="probox"><b>${NUI("open","✓ ፈተና ምዝዋር ክፉት እዩ")}</b><a class="btn" href="../driving/${location.search}" style="text-align:left;text-decoration:none;background:#1f7a4a">${NUI("drive","🚦 ፈተና ምዝዋር ብመኪና")}<small>${NUI("driveS","ምስ መምህር ብድምጺ፡ GPS፡ ሕግታት ትራፊክ፡ ፓርክ")}</small></a></div>`
     :`<div class="lock"><div><b>🔒 ፈተና ምዝዋር ብመኪና</b><ul class="locklist"><li>🚦 ምስ መምህር ብድምጺ፡ GPS፡ ሕግታት ትራፊክን ፓርክን</li></ul></div><button class="btn" data-buy="theory_pro">🔓 ክፈት ብኮድ</button></div><p class="muted" id="buyMsg"></p>`}`}
 // the driving test links straight to the right practice
 if(["sign","rule"].includes(QS.get("run"))){CTRY="no"}
@@ -552,10 +567,10 @@ $("qbody").addEventListener("click",e=>{
   const r=e.target.closest("[data-run]");if(r){r.dataset.run==="gallery"?gallery():startRun(r.dataset.run);return}
   const b=e.target.closest("[data-buy]");if(b){buy(b.dataset.buy,$("buyMsg"));return}
   const c=e.target.closest("[data-ctry]");if(c){CTRY=c.dataset.ctry;lsSet("th_ctry",CTRY);buildSE();drawTheoryHome();return}
-  const l=e.target.closest("[data-ql]");if(l){QL=l.dataset.ql;lsSet("th_lang",QL);buildSE();drawTheoryHome();return}});
+  const l=e.target.closest("[data-ql]");if(l){QL=l.dataset.ql;lsSet("th_lang",QL);buildSE();NOQC=null;loadNOTR();drawTheoryHome();return}});
 function gallery(){run={mode:"gallery"};$("qhead").hidden=true;$("qprog").hidden=true;
   const groups=[["warn","ምልክታት ሓደጋ"],["prio","ምልክታት ቅድሚ"],["speed","ፍጥነት"],["prohib","ምልክታት ክልከላ"],["mand","ምልክታት ግዴታ"],["info","ምልክታት ሓበሬታ"],["light","መብራህቲ ትራፊክ"],["mark","መስመራት ጽርግያ"]];
-  $("qbody").innerHTML=`<button class="btn ghost" id="gBack">← ተመለስ</button>`+groups.map(([g,n])=>`<h3 style="margin:6px 0 0">${n}</h3><div class="gallery">${SIGNS.filter(s=>s[4]===g).map(s=>`<div class="gitem">${signSVG(s[0],72)}<span>${esc(s[3])}</span></div>`).join("")}</div>`).join("");
+  $("qbody").innerHTML=`<button class="btn ghost" id="gBack">${esc(trTi("← ተመለስ"))}</button>`+groups.map(([g,n])=>`<h3 style="margin:6px 0 0">${esc(trTi(n))}</h3><div class="gallery">${SIGNS.filter(s=>s[4]===g).map(s=>`<div class="gitem">${signSVG(s[0],72)}<span>${esc(trTi(s[3]))}</span></div>`).join("")}</div>`).join("");
   $("gBack").onclick=()=>{run=null;drawTheoryHome()}}
 function startRun(mode){const p=shuffle(pool(mode==="exam"?null:mode));run={mode,order:mode==="exam"?p.slice(0,examN()):p,i:0,score:0,wrong:0,answered:false,answers:[]};showQ()}
 const optHTML=(o,i)=>typeof o==="object"?`<button data-i="${i}" class="sopt">${signSVG(o.s,84)}</button>`:`<button data-i="${i}">${esc(o)}</button>`;
