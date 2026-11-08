@@ -72,7 +72,8 @@ canvas{display:block;width:100%;max-width:100%;border-radius:14px;background:var
 /* Domino */
 .dom{display:flex;flex-direction:column;gap:10px}
 .dinfo{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.9rem;opacity:.9}
-.dline{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center;padding:12px 8px;background:#1f5135;border:4px solid #5a3b22;border-radius:12px;min-height:96px}
+.drow{display:flex;gap:4px;align-items:center;min-height:52px}.drow.rev{flex-direction:row-reverse}
+.dline{display:flex;flex-direction:column;gap:6px;justify-content:center;padding:12px 8px;background:#1f5135;border:4px solid #5a3b22;border-radius:12px;min-height:96px}
 .tile{display:inline-flex;background:var(--cream);border:1px solid #b9a77f;border-radius:6px;box-shadow:0 2px 0 rgba(0,0,0,.35);flex:none}
 .tile .h{width:24px;height:24px;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:3px;box-sizing:border-box}
 .tile .h+.h{border-left:1px solid #b9a77f}
@@ -413,7 +414,11 @@ const DOMI={rule:"ruleDomino",aiDelay:800,
   return `<span class="tile ${cls||""}" ${attr||""}>${half(t[0])}${half(t[1])}</span>`},
  render(el,st,v){const me=v.seat,op=1-me,ps=v.mine?DOMI.plays(st,me):[];
   if(!v.mine)DOSEL=-1;
-  const line=st.line.map((t,i)=>DOMI.tile(t,(t[0]===t[1]?"v":"")+((i===0||i===st.line.length-1)&&st.line.length>1?" end":""))).join("");
+  // Snake like on a real table: when a row is full the line turns and comes back the other way
+  const avail=Math.max(160,(el.clientWidth||340)-32),rows=[[]];let used=0;
+  st.line.forEach((t,i)=>{const w=(t[0]===t[1]?27:51)+4;if(used+w>avail&&rows[rows.length-1].length){rows.push([]);used=0}rows[rows.length-1].push(i);used+=w});
+  const line=st.line.length?rows.map((r,ri)=>`<div class="drow ${ri%2?"rev":""}">${r.map(i=>{const t=st.line[i],d=t[0]===t[1];
+    return DOMI.tile(ri%2&&!d?[t[1],t[0]]:t,(d?"v":"")+((i===0||i===st.line.length-1)&&st.line.length>1?" end":""))}).join("")}</div>`).join(""):"";
   const opts=DOSEL>=0?ps.filter(m=>m.i===DOSEL):[];
   const hand=st.hands[me].map((t,i)=>{const can=ps.some(m=>m.i===i);return DOMI.tile(t,"v "+(DOSEL===i?"sel":can?"ok":v.mine?"no":""),`data-i="${i}"`)}).join("");
   const others=st.hands[op].map(()=>"<span></span>").join("");
