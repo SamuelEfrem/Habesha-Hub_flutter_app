@@ -961,8 +961,10 @@ window.habeshaSpeakResult=ok=>{if(!ok&&LANG==="ti"&&!tiFallback){tiFallback=true
 const VKEYS=["turnR","turnL","straight","finish","light","stop","give","none","round","prio","zebra","lead","mSpeed","mRed","mStop","mZebra","mDist","mLane","mWrong",
   "mCrash","mGive","mRight","mHitPed","mPark","mInd","mOneWay","mWalk","mYield","mTram","mRound","okRed","okStop","okZebra","okTurn","okPark","pass","fail","slow","praise0","praise1","praise2"];
 const vtext=k=>(/^praise\d$/.test(k)?TI.praise[+k.slice(6)]:TI[k])||"";
-function preloadVoice(){VKEYS.forEach(k=>{const src=`voice/${LANG}/${k}.mp3`;if(src in vcache)return;vcache[src]=null;const a=new Audio();a.preload="auto";
-  a.oncanplaythrough=()=>{vcache[src]=true};a.onerror=()=>{vcache[src]=false};a.src=src})}
+// Which lines are recorded? Ask the server (phones in the app often never fire "canplaythrough",
+// so waiting for that made every recorded line look missing and the instructor went silent)
+function preloadVoice(){VKEYS.forEach(k=>{const src=`voice/${LANG}/${k}.mp3`;if(src in vcache)return;vcache[src]=null;
+  fetch(src,{method:"HEAD",cache:"force-cache"}).then(r=>{vcache[src]=r.ok;if(r.ok){const a=new Audio();a.preload="auto";a.src=src}}).catch(()=>{vcache[src]=false})})}
 // All lines recorded → play them one after another; otherwise the phone voice reads the whole text
 let vq=null,lastKeys="",lastKeysT=0;
 function say(keys){let srcs=keys.map(k=>`voice/${LANG}/${k}.mp3`);
