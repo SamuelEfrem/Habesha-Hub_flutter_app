@@ -956,7 +956,7 @@ function ac(){AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC
 function engineOn(){if(ENG)return;try{const A=ac(),o1=A.createOscillator(),o2=A.createOscillator(),f=A.createBiquadFilter(),g=A.createGain();
   o1.type="sawtooth";o2.type="square";o1.frequency.value=34;o2.frequency.value=17;f.type="lowpass";f.frequency.value=380;f.Q.value=2;g.gain.value=0;
   o1.connect(f);o2.connect(f);f.connect(g).connect(A.destination);o1.start();o2.start();ENG={o1,o2,f,g}}catch(e){}}
-function engineSet(v,gas){if(!ENG)return;const t=AC.currentTime,s=Math.min(1,Math.abs(v)/26);
+function engineSet(v,gas){if(!ENG)return;const t=AC.currentTime,s=Math.min(1,Math.abs(v)/27.8);
   // four gears: the revs climb in each gear and drop a bit when it shifts up
   const gearPart=s<.02?0:(s*4)%1,rpm=s<.02?0:.3+.7*gearPart*.85+s*.15,hz=34+rpm*95;
   ENG.o1.frequency.setTargetAtTime(hz,t,.07);ENG.o2.frequency.setTargetAtTime(hz/2,t,.07);
@@ -1055,10 +1055,10 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   if(L&&L.on){gas=K.arrowup||K.w||P.g;brk=K.arrowdown||K.s||K[" "]||P.b;steerIn=P.steer!=null?P.steer:((K.arrowright||K.d||P.r)?1:0)-((K.arrowleft||K.a||P.l)?1:0)}
   // gear D drives forward, gear R backwards; the brake only stops the car
   // the engine pulls hard from standstill and less at speed; the brake bites harder the longer it is held
-  if(gas)player.v+=(REV?-5:Math.max(2.2,10.5*(1-Math.abs(player.v)/30)))*dt;
+  if(gas)player.v+=(REV?-5:Math.max(1.2,10.5*(1-Math.abs(player.v)/40)))*dt;
   if(L&&L.on){engineOn();engineSet(player.v,gas)}else engineOff();
   brakeT=brk?Math.min(1,brakeT+dt*2.2):0;if(brk)player.v-=Math.sign(player.v)*Math.min(Math.abs(player.v),(9+17*brakeT)*dt);
-  player.v-=player.v*.55*dt;if(!gas&&Math.abs(player.v)<.25)player.v=0;player.v=REV?Math.max(-6,Math.min(0,player.v)):Math.max(0,Math.min(25,player.v));
+  player.v-=player.v*(gas?.1:.4)*dt;if(!gas&&Math.abs(player.v)<.25)player.v=0;player.v=REV?Math.max(-6,Math.min(0,player.v)):Math.max(0,Math.min(27.8,player.v));
   // the wheel comes back faster than it turns in, and the car turns less sharply at speed
   const av=Math.abs(player.v);player.steer+=(steerIn-player.steer)*Math.min(1,dt*(steerIn===0?8:5));
   const yaw=player.steer*1.9*Math.min(1,av/5)/(1+Math.pow(av/15,2))*Math.sign(player.v||1);player.a+=yaw*dt;
