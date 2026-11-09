@@ -15,9 +15,9 @@ if (!/^\d+\.\d+\.\d+$/.test(version || '')) {
   process.exit(1);
 }
 const MSG = {
-  news_en: { title: `🎉 Habesha Hub ${version} is here`, body: 'Events, services in every country, Hair & beauty and more. Update the app in the store now.' },
-  news_ti: { title: `🎉 Habesha Hub ${version} መጺኡ`, body: 'ፍሉያት ኣጋጣሚታት፡ ኣገልግሎታት ኣብ ኩሉ ሃገር፡ ጸጉርን ጽባቐን ካልእን። ሕጂ ኣብ ስቶር ኣሐድሱ።' },
-  news_am: { title: `🎉 Habesha Hub ${version} ደርሷል`, body: 'ዝግጅቶች፣ አገልግሎቶች በሁሉም አገር፣ ፀጉርና ውበት እና ሌሎችም። አሁን በስቶር ያዘምኑ።' },
+  news_en: { title: `🎉 Habesha Hub ${version} is here`, body: 'Free driving theory in your language in 6 countries, Domino and better games. Update now.' },
+  news_ti: { title: `🎉 Habesha Hub ${version} መጺኡ`, body: 'ብነጻ ቲዮሪ መንጃ ፍቓድ ብቋንቋኻ ኣብ 6 ሃገራት፡ ዶሚኖን ዝሓሹ ጸወታታትን። ሕጂ ኣሐድሱ።' },
+  news_am: { title: `🎉 Habesha Hub ${version} ደርሷል`, body: 'በነጻ የመንጃ ፈቃድ ቲዎሪ በቋንቋዎ በ6 አገሮች፣ ዶሚኖና የተሻሉ ጨዋታዎች። አሁን ያዘምኑ።' },
 };
 
 (async () => {
