@@ -35,6 +35,7 @@ h1{margin:0;font-weight:800;font-size:1.45rem}
 .pb.on{background:rgba(255,255,255,.3)}
 .pb.g{background:rgba(60,207,142,.35)}.pb.b{background:rgba(255,93,93,.35)}
 .inds{position:absolute;left:50%;bottom:112px;transform:translateX(-50%);display:flex;gap:64px;pointer-events:none}
+.ind.horn{font-size:1.05rem;margin-left:6px}.ind.horn:active{background:rgba(247,201,72,.55)}
 .ind{pointer-events:auto;width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.42);color:#fff;font:800 1.2rem "Sora";touch-action:none;cursor:pointer}
 .ind.on{border-color:#3ccf8e}.ind.flash{background:#3ccf8e;color:#04210f}
 .speed.over .num{color:#ff5d5d}
@@ -124,7 +125,7 @@ html,body{margin:0;overscroll-behavior:none}
     <canvas class="gps" id="gps" width="236" height="236"></canvas><div class="hitflash" id="hitflash"></div>
     <div class="pedals"><div class="wheelpad" id="wheel"><div class="wheel" id="wheelK"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="41" fill="none" stroke="#1b1e23" stroke-width="12"/><circle cx="50" cy="50" r="41" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.5"/><path d="M50 52 L13 45 M50 52 L87 45 M50 52 L50 89" stroke="#2a2f36" stroke-width="10" stroke-linecap="round"/><circle cx="50" cy="51" r="14" fill="#2a2f36" stroke="#f7c948" stroke-width="2.5"/><rect x="45.5" y="4" width="9" height="11" rx="2.5" fill="#f7c948"/></svg></div><button id="bL" hidden></button><button id="bR" hidden></button></div>
       <div class="pdl"><button class="gearb" id="bRv" type="button"><b id="gear">D</b><small id="gearTo">⇄ R</small></button><button class="pb b" id="bB"><i></i><span id="lB">ፍሬን</span></button><button class="pb g" id="bG"><i></i><span id="lG">ነዳዲ</span></button></div></div>
-    <div class="inds"><button class="ind" id="iL" type="button" aria-label="Left indicator">◀</button><button class="ind" id="iR" type="button" aria-label="Right indicator">▶</button></div>
+    <div class="inds"><button class="ind" id="iL" type="button" aria-label="Left indicator">◀</button><button class="ind" id="iR" type="button" aria-label="Right indicator">▶</button><button class="ind horn" id="hornB" type="button" aria-label="Horn">📯</button></div>
     <button id="endB" type="button" hidden></button>
     <div class="ov" id="ov"><div class="card" id="menu"></div></div>
   </div>
@@ -949,6 +950,26 @@ function lightState(S,now){return axisState(S.ni,S.nj,S.vert,now)}
 let AC=null;
 function chime(f,dur){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=f;
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.18,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+dur+.05)}catch(e){}}
+/* car sounds: engine (follows speed and gas), indicator relay tick, horn "beep beep" */
+let ENG=null;
+function ac(){AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();return AC}
+function engineOn(){if(ENG)return;try{const A=ac(),o1=A.createOscillator(),o2=A.createOscillator(),f=A.createBiquadFilter(),g=A.createGain();
+  o1.type="sawtooth";o2.type="square";o1.frequency.value=34;o2.frequency.value=17;f.type="lowpass";f.frequency.value=380;f.Q.value=2;g.gain.value=0;
+  o1.connect(f);o2.connect(f);f.connect(g).connect(A.destination);o1.start();o2.start();ENG={o1,o2,f,g}}catch(e){}}
+function engineSet(v,gas){if(!ENG)return;const t=AC.currentTime,s=Math.min(1,Math.abs(v)/26);
+  // four gears: the revs climb in each gear and drop a bit when it shifts up
+  const gearPart=s<.02?0:(s*4)%1,rpm=s<.02?0:.3+.7*gearPart*.85+s*.15,hz=34+rpm*95;
+  ENG.o1.frequency.setTargetAtTime(hz,t,.07);ENG.o2.frequency.setTargetAtTime(hz/2,t,.07);
+  ENG.f.frequency.setTargetAtTime(320+rpm*1100+(gas?250:0),t,.09);ENG.g.gain.setTargetAtTime((gas?.075:.045)+s*.025,t,.12)}
+function engineOff(){if(!ENG)return;const e=ENG;ENG=null;try{e.g.gain.setTargetAtTime(0,AC.currentTime,.08);setTimeout(()=>{try{e.o1.stop();e.o2.stop()}catch(x){}},500)}catch(x){}}
+function relayClick(hi){try{const A=ac(),n=Math.floor(A.sampleRate*.018),b=A.createBuffer(1,n,A.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,4);const src=A.createBufferSource(),f=A.createBiquadFilter(),g=A.createGain();
+  src.buffer=b;f.type="bandpass";f.frequency.value=hi?3200:2300;f.Q.value=3;g.gain.value=.55;src.connect(f).connect(g).connect(A.destination);src.start()}catch(e){}}
+let hornT=0;
+function horn(){const now=performance.now();if(now-hornT<700)return;hornT=now;try{const A=ac(),t0=A.currentTime;
+  [0,.24].forEach(dt=>{const t=t0+dt,g=A.createGain(),f=A.createBiquadFilter();f.type="lowpass";f.frequency.value=2200;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.16,t+.012);g.gain.setValueAtTime(.16,t+.15);g.gain.linearRampToValueAtTime(0,t+.19);
+    [415,523].forEach(fr=>{const o=A.createOscillator();o.type="square";o.frequency.value=fr;o.connect(f);o.start(t);o.stop(t+.2)});f.connect(g).connect(A.destination)})}catch(e){}}
 const vcache={};let lastSaid="",lastSaidT=0,tiFallback=false;
 function speakText(text){if(!text)return;const now=performance.now();if(text===lastSaid&&now-lastSaidT<900)return;lastSaid=text;lastSaidT=now;
   const clean=text.replace(/[✓✗!🎉🎊]/g,"").trim();
@@ -1035,6 +1056,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   // gear D drives forward, gear R backwards; the brake only stops the car
   // the engine pulls hard from standstill and less at speed; the brake bites harder the longer it is held
   if(gas)player.v+=(REV?-5:Math.max(2.2,10.5*(1-Math.abs(player.v)/30)))*dt;
+  if(L&&L.on){engineOn();engineSet(player.v,gas)}else engineOff();
   brakeT=brk?Math.min(1,brakeT+dt*2.2):0;if(brk)player.v-=Math.sign(player.v)*Math.min(Math.abs(player.v),(9+17*brakeT)*dt);
   player.v-=player.v*.55*dt;if(!gas&&Math.abs(player.v)<.25)player.v=0;player.v=REV?Math.max(-6,Math.min(0,player.v)):Math.max(0,Math.min(25,player.v));
   // the wheel comes back faster than it turns in, and the car turns less sharply at speed
@@ -1168,7 +1190,11 @@ function bindLangs(){$("dLangs").onclick=e=>{const b=e.target.closest("[data-l]"
 let IND=0,indTurned=0,indPhase=false,indNext=0;
 function setInd(d){IND=IND===d?0:d;indTurned=0;$("iL").classList.toggle("on",IND<0);$("iR").classList.toggle("on",IND>0);if(!IND){$("iL").classList.remove("flash");$("iR").classList.remove("flash");player.indL.color.setHex(0x3a2606);player.indR.color.setHex(0x3a2606)}}
 function tickInd(now,dt,yaw){if(!IND)return;indTurned+=Math.abs(yaw)*dt;if(indTurned>1&&Math.abs(player.steer)<.12){setInd(IND);return}
-  if(now<indNext)return;indNext=now+350;indPhase=!indPhase;const el=$(IND<0?"iL":"iR"),m=IND<0?player.indL:player.indR;el.classList.toggle("flash",indPhase);m.color.setHex(indPhase?0xffa41c:0x3a2606);chime(indPhase?1500:1100,.03)}
+  if(now<indNext)return;indNext=now+350;indPhase=!indPhase;const el=$(IND<0?"iL":"iR"),m=IND<0?player.indL:player.indR;el.classList.toggle("flash",indPhase);m.color.setHex(indPhase?0xffa41c:0x3a2606);relayClick(indPhase)}
+$("hornB").addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();horn()});
+addEventListener("keydown",e=>{if(e.key.toLowerCase()==="h"&&!e.repeat)horn()});
+// no engine sound when the app goes to the background
+document.addEventListener("visibilitychange",()=>{if(document.hidden)engineOff()});
 [["iL",-1],["iR",1]].forEach(([id,d])=>$(id).addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(L&&L.on)setInd(d)}));
 addEventListener("keydown",e=>{const k=e.key.toLowerCase();if(L&&L.on&&!e.repeat&&(k==="q"||k==="e"))setInd(k==="q"?-1:1)});
 // optional: steer by tilting the phone
