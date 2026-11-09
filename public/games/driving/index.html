@@ -965,8 +965,10 @@ function preloadVoice(){VKEYS.forEach(k=>{const src=`voice/${LANG}/${k}.mp3`;if(
   a.oncanplaythrough=()=>{vcache[src]=true};a.onerror=()=>{vcache[src]=false};a.src=src})}
 // All lines recorded → play them one after another; otherwise the phone voice reads the whole text
 let vq=null,lastKeys="",lastKeysT=0;
-function say(keys){const srcs=keys.map(k=>`voice/${LANG}/${k}.mp3`);
-  if(srcs.every(s=>vcache[s]===true)){const now=performance.now(),id=srcs.join();if(id===lastKeys&&now-lastKeysT<900)return;lastKeys=id;lastKeysT=now;
+function say(keys){let srcs=keys.map(k=>`voice/${LANG}/${k}.mp3`);
+  // Recorded voice wins: play every recorded line, skip the ones not recorded yet (the text is on screen anyway)
+  if(srcs.some(s=>vcache[s]===true))srcs=srcs.filter(s=>vcache[s]===true);
+  if(srcs.length&&srcs.every(s=>vcache[s]===true)){const now=performance.now(),id=srcs.join();if(id===lastKeys&&now-lastKeysT<900)return;lastKeys=id;lastKeysT=now;
     if(vq)vq.pause();let i=0;const next=()=>{if(i>=srcs.length)return;vq=new Audio(srcs[i++]);vq.onended=next;vq.play().catch(()=>{})};next();return}
   speakText(keys.map(vtext).join(". "))}
 // Recorded sounds in ../shared/sfx/ (ouch.mp3, crash.mp3) are used instead of the made-up ones when present

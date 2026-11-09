@@ -156,3 +156,14 @@ Start with Tigrinya (`ti/`) – phones have no Tigrinya voice.
 | `praise1.mp3` | Praise | Bra! |
 | `praise2.mp3` | Praise | Flott kjørt! |
 
+### Still missing in `voice/ti/` (record these 8 too)
+| File | When | Say |
+|---|---|---|
+| `round.mp3` | Roundabout ahead | ዙርያ መገዲ፦ ኣብ ውሽጢ ዘለዉ መካይን ቅድሚ ሃብ፡ ብየማን ዙር |
+| `prio.mp3` | On a priority road | ኣብ ናይ ቀዳምነት ጽርግያ ኣለኻ |
+| `mInd.mp3` | Mistake: no indicator | ምልክት መጠወዪ ኣይተጠቐምካን |
+| `mOneWay.mp3` | Mistake: wrong way, one-way street | ኣብ ሓደ ኣንፈት ጽርግያ ብጌጋ ኣንፈት |
+| `mWalk.mp3` | Mistake: drove on the pavement | ኣብ ጽርግያ እግረኛ ዘዊርካ |
+| `mYield.mp3` | Mistake: did not give way | ቅድሚ ኣይሃብካን |
+| `mTram.mp3` | Mistake: did not give way to the tram | ንትራም ቅድሚ ኣይሃብካን |
+| `mRound.mp3` | Mistake: wrong way in the roundabout | ኣብ ዙርያ መገዲ ብጌጋ ኣንፈት |
