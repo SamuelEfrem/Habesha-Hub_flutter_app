@@ -524,7 +524,7 @@ let NOTR=null,NOQC=null;
 function loadNOTR(){if(NOTR||QL==="ti")return;fetch("theory_no_i18n.json").then(r=>r.ok?r.json():null).then(j=>{if(!j)return;NOTR=j;NOQC=null;if(!run)drawTheoryHome()}).catch(()=>{})}
 // a Tigrinya sign text in the chosen language (also "A፡ B።" made of two known parts)
 function trTi(t){const D=NOTR&&NOTR[QL]&&NOTR[QL].ti;if(!D||typeof t!=="string")return t;if(D[t])return D[t];
-  const m=t.match(/^«(.+)» ዝብል ምልክት ኣየናይ እዩ\?$/);if(m)return QL==="am"?`«${trTi(m[1])}» የሚለው ምልክት የትኛው ነው?`:QL==="no"?`Hvilket skilt betyr «${trTi(m[1])}»?`:`Which sign means «${trTi(m[1])}»?`;
+  const m=t.match(/^«(.+)» ዝብል ምልክት ኣየናይ እዩ\?$/);if(m){const x=trTi(m[1]);return ({am:`«${x}» የሚለው ምልክት የትኛው ነው?`,no:`Hvilket skilt betyr «${x}»?`,sv:`Vilket märke betyder «${x}»?`,de:`Welches Zeichen bedeutet «${x}»?`,nl:`Welk bord betekent «${x}»?`,fr:`Quel panneau signifie « ${x} » ?`})[QL]||`Which sign means «${x}»?`};
   const u=t.replace(/።$/,"");let i=u.indexOf("፡ ");while(i>0){const a=u.slice(0,i),b=u.slice(i+2);if(D[a]&&D[b])return QL==="am"?`${D[a]}፦ ${D[b]}።`:`${D[a]}: ${D[b]}.`;i=u.indexOf("፡ ",i+1)}return t}
 function NOQ(){if(NOQC&&NOQC.l===QL&&NOQC.n===ALLQ.length)return NOQC.q;const L=NOTR[QL];
   const q=ALLQ.map(x=>{const t=x.ri!=null?L.rules[x.ri]:x.mi!=null?L.more[x.mi]:null;
@@ -533,7 +533,14 @@ function NOQ(){if(NOQC&&NOQC.l===QL&&NOQC.n===ALLQ.length)return NOQC.q;const L=
   NOQC={l:QL,n:ALLQ.length,q};return q}
 // the driving test follows the language chosen here (Tigrinya uses the recorded voice)
 const drvHref=()=>{const q=new URLSearchParams(location.search);q.set("il",QL);return "../driving/?"+q.toString()};
-const CQ=()=>CTRY!=="no"?SEQ:(QL!=="ti"&&NOTR&&NOTR[QL]?NOQ():ALLQ);
+// road-sign questions for the other countries (signs are almost the same across Europe; the UK uses mph, so no km/h signs there)
+let CSC=null;
+function CQC(){const D=NOTR&&NOTR[QL]&&NOTR[QL].ti;if(!D)return SEQ;
+  if(CSC&&CSC.k===CTRY+QL&&CSC.s===SEQ)return CSC.q;
+  const sg=ALLQ.filter(x=>x.cat==="sign"&&!(CTRY==="uk"&&/speed/i.test(x.img||"")&&true)&&!(CTRY==="uk"&&x.o.some(o=>o&&o.s&&/speed/i.test(o.s))))
+    .map(x=>Object.assign({},x,{q:trTi(x.q),o:x.o.map(o=>typeof o==="string"?trTi(o):o),ex:trTi(x.ex)}));
+  CSC={k:CTRY+QL,s:SEQ,q:SEQ.concat(sg)};return CSC.q}
+const CQ=()=>CTRY!=="no"?CQC():(QL!=="ti"&&NOTR&&NOTR[QL]?NOQ():ALLQ);
 const NUI=(k,ti,v)=>{let t=(QL!=="ti"&&NOTR&&NOTR[QL]&&NOTR[QL].ui[k])||ti;for(const x in v||{})t=t.split("{"+x+"}").join(v[x]);return t};
 const langBar=()=>`<div class="ctry sm">${LANGS(CTRY).map(k=>`<button data-ql="${k}" aria-pressed="${QL===k}">${LNAME[k]}</button>`).join("")}</div>`;
 const TL_={
@@ -551,17 +558,18 @@ const curPick=()=>CTRY==="no"&&(QL==="ti"||QL==="am")?QL:CTRY;
 function setPick(k){if(k==="ti"||k==="am"){CTRY="no";QL=k}else{CTRY=k;QL=LOCAL[k]}lsSet("th_ctry",CTRY);lsSet("th_lang",QL)}
 const ctryBar=()=>`<div class="ctry">${PICKS.map(([k,n])=>`<button data-pick="${k}" aria-pressed="${curPick()===k}">${n}</button>`).join("")}</div>`;
 const ctryBarOld=()=>`<div class="ctry">${[["no","🇳🇴 Norge"],...Object.entries(CTRIES).map(([k,c])=>[k,c.f+" "+c.n])].map(([k,n])=>`<button data-ctry="${k}" aria-pressed="${CTRY===k}">${n}</button>`).join("")}</div>`;
-function drawSEHome(){$("qhead").hidden=true;$("qprog").hidden=true;loadSE();const C=CTRIES[CTRY];
- const H={ti:{t:C.t.ti,dr:"🚦 ፈተና ምዝዋር ብመኪና 3D",drs:"ምስ መምህር ብድምጺ፡ GPS፡ ሕግታት ትራፊክ፡ ፓርክ – ብነጻ",n:"{n} ሕቶታት ብነጻ ✓",pr:"📘 ልምምድ ሕግታት",prs:"መልሲ ብቐጥታ ትርኢ",ex:"📝 ፈተና",exs:"{n} ሕቶታት፡ ክሳብ {w} ጌጋ ትሓልፍ",load:"ይጽዓን ኣሎ…",note:"ብወግዓዊ ሕግታት ትራፊክ ዝተዳለወ ልምምድ እዩ። ምስኡ ወግዓዊ ትሕዝቶ ("+C.auth+") እውን ኣንብብ።"},
-  am:{t:C.t.am,dr:"🚦 የ3D የመንዳት ፈተና",drs:"በድምፅ አስተማሪ፣ GPS፣ የትራፊክ ህጎች፣ ማቆሚያ – በነጻ",n:"{n} ጥያቄዎች በነጻ ✓",pr:"📘 የህግ ልምምድ",prs:"መልሱን ወዲያው ያያሉ",ex:"📝 ፈተና",exs:"{n} ጥያቄዎች፣ እስከ {w} ስህተት ያልፋሉ",load:"በመጫን ላይ…",note:"በኦፊሴላዊ የትራፊክ ህጎች ላይ የተመሰረተ ልምምድ ነው። ኦፊሴላዊውን ትምህርት ("+C.auth+") ያንብቡ።"},
-  en:{t:C.t.en,dr:"🚦 Driving test in a 3D car",drs:"Voice instructor, GPS, traffic rules, parking – free",n:"{n} questions, free ✓",pr:"📘 Practise the rules",prs:"See the answer straight away",ex:"📝 Exam",exs:"{n} questions, pass with up to {w} mistakes",load:"Loading…",note:"Practice based on the official traffic rules. Also study the official material ("+C.auth+")."},
-  sv:{dr:"🚦 Uppkörning i 3D-bil",drs:"Röstinstruktör, GPS, trafikregler, parkering – gratis",t:"Teori för körkort B (Sverige)",n:"{n} frågor, gratis ✓",pr:"📘 Öva på reglerna",prs:"Se svaret direkt",ex:"📝 Prov",exs:"{n} frågor, godkänd med högst {w} fel",load:"Laddar…",note:"Övning baserad på de officiella trafikreglerna. Läs också det officiella materialet ("+C.auth+")."},
-  de:{dr:"🚦 Fahrprüfung im 3D-Auto",drs:"Sprach-Fahrlehrer, GPS, Verkehrsregeln, Parken – kostenlos",t:"Führerschein-Theorie Klasse B (Deutschland)",n:"{n} Fragen, kostenlos ✓",pr:"📘 Regeln üben",prs:"Antwort sofort sehen",ex:"📝 Prüfung",exs:"{n} Fragen, bestanden mit höchstens {w} Fehlern",load:"Lädt…",note:"Übung nach den offiziellen Verkehrsregeln. Lernen Sie auch mit dem offiziellen Material ("+C.auth+")."},
-  nl:{dr:"🚦 Rijexamen in een 3D-auto",drs:"Instructeur met stem, GPS, verkeersregels, parkeren – gratis",t:"Theorie rijbewijs B (Nederland)",n:"{n} vragen, gratis ✓",pr:"📘 Regels oefenen",prs:"Zie meteen het antwoord",ex:"📝 Examen",exs:"{n} vragen, geslaagd met hoogstens {w} fouten",load:"Laden…",note:"Oefening op basis van de officiële verkeersregels. Leer ook met het officiële materiaal ("+C.auth+")."},
-  fr:{dr:"🚦 Examen de conduite en voiture 3D",drs:"Moniteur vocal, GPS, code de la route, stationnement – gratuit",t:"Code de la route – permis B (France)",n:"{n} questions, gratuit ✓",pr:"📘 S'entraîner aux règles",prs:"Voir la réponse tout de suite",ex:"📝 Examen",exs:"{n} questions, réussi avec {w} fautes au plus",load:"Chargement…",note:"Entraînement basé sur le code de la route officiel. Étudiez aussi le matériel officiel ("+C.auth+")."}}[QL]||{};
+function drawSEHome(){$("qhead").hidden=true;$("qprog").hidden=true;loadSE();loadNOTR();const C=CTRIES[CTRY];
+ const H={ti:{t:C.t.ti,sg:"🚸 ልምምድ ምልክታት",sgs:"ሕቶታት ብስእሊ ምልክታት",dr:"🚦 ፈተና ምዝዋር ብመኪና 3D",drs:"ምስ መምህር ብድምጺ፡ GPS፡ ሕግታት ትራፊክ፡ ፓርክ – ብነጻ",n:"{n} ሕቶታት ብነጻ ✓",pr:"📘 ልምምድ ሕግታት",prs:"መልሲ ብቐጥታ ትርኢ",ex:"📝 ፈተና",exs:"{n} ሕቶታት፡ ክሳብ {w} ጌጋ ትሓልፍ",load:"ይጽዓን ኣሎ…",note:"ብወግዓዊ ሕግታት ትራፊክ ዝተዳለወ ልምምድ እዩ። ምስኡ ወግዓዊ ትሕዝቶ ("+C.auth+") እውን ኣንብብ።"},
+  am:{t:C.t.am,sg:"🚸 የምልክት ልምምድ",sgs:"ጥያቄዎች ከምልክት ስዕሎች ጋር",dr:"🚦 የ3D የመንዳት ፈተና",drs:"በድምፅ አስተማሪ፣ GPS፣ የትራፊክ ህጎች፣ ማቆሚያ – በነጻ",n:"{n} ጥያቄዎች በነጻ ✓",pr:"📘 የህግ ልምምድ",prs:"መልሱን ወዲያው ያያሉ",ex:"📝 ፈተና",exs:"{n} ጥያቄዎች፣ እስከ {w} ስህተት ያልፋሉ",load:"በመጫን ላይ…",note:"በኦፊሴላዊ የትራፊክ ህጎች ላይ የተመሰረተ ልምምድ ነው። ኦፊሴላዊውን ትምህርት ("+C.auth+") ያንብቡ።"},
+  en:{t:C.t.en,sg:"🚸 Practise the signs",sgs:"questions with pictures of the signs",dr:"🚦 Driving test in a 3D car",drs:"Voice instructor, GPS, traffic rules, parking – free",n:"{n} questions, free ✓",pr:"📘 Practise the rules",prs:"See the answer straight away",ex:"📝 Exam",exs:"{n} questions, pass with up to {w} mistakes",load:"Loading…",note:"Practice based on the official traffic rules. Also study the official material ("+C.auth+")."},
+  sv:{sg:"🚸 Öva på vägmärkena",sgs:"frågor med bilder på märkena",dr:"🚦 Uppkörning i 3D-bil",drs:"Röstinstruktör, GPS, trafikregler, parkering – gratis",t:"Teori för körkort B (Sverige)",n:"{n} frågor, gratis ✓",pr:"📘 Öva på reglerna",prs:"Se svaret direkt",ex:"📝 Prov",exs:"{n} frågor, godkänd med högst {w} fel",load:"Laddar…",note:"Övning baserad på de officiella trafikreglerna. Läs också det officiella materialet ("+C.auth+")."},
+  de:{sg:"🚸 Verkehrszeichen üben",sgs:"Fragen mit Bildern der Zeichen",dr:"🚦 Fahrprüfung im 3D-Auto",drs:"Sprach-Fahrlehrer, GPS, Verkehrsregeln, Parken – kostenlos",t:"Führerschein-Theorie Klasse B (Deutschland)",n:"{n} Fragen, kostenlos ✓",pr:"📘 Regeln üben",prs:"Antwort sofort sehen",ex:"📝 Prüfung",exs:"{n} Fragen, bestanden mit höchstens {w} Fehlern",load:"Lädt…",note:"Übung nach den offiziellen Verkehrsregeln. Lernen Sie auch mit dem offiziellen Material ("+C.auth+")."},
+  nl:{sg:"🚸 Verkeersborden oefenen",sgs:"vragen met afbeeldingen van borden",dr:"🚦 Rijexamen in een 3D-auto",drs:"Instructeur met stem, GPS, verkeersregels, parkeren – gratis",t:"Theorie rijbewijs B (Nederland)",n:"{n} vragen, gratis ✓",pr:"📘 Regels oefenen",prs:"Zie meteen het antwoord",ex:"📝 Examen",exs:"{n} vragen, geslaagd met hoogstens {w} fouten",load:"Laden…",note:"Oefening op basis van de officiële verkeersregels. Leer ook met het officiële materiaal ("+C.auth+")."},
+  fr:{sg:"🚸 S'entraîner aux panneaux",sgs:"questions avec images des panneaux",dr:"🚦 Examen de conduite en voiture 3D",drs:"Moniteur vocal, GPS, code de la route, stationnement – gratuit",t:"Code de la route – permis B (France)",n:"{n} questions, gratuit ✓",pr:"📘 S'entraîner aux règles",prs:"Voir la réponse tout de suite",ex:"📝 Examen",exs:"{n} questions, réussi avec {w} fautes au plus",load:"Chargement…",note:"Entraînement basé sur le code de la route officiel. Étudiez aussi le matériel officiel ("+C.auth+")."}}[QL]||{};
  const langs="";
- $("qbody").innerHTML=ctryBar()+langs+`<h3 style="margin:6px 0 0">${C.f} ${H.t}</h3>`+(SEQ.length?`<p class="muted">${H.n.replace("{n}",SEQ.length)}</p>
+ $("qbody").innerHTML=ctryBar()+langs+`<h3 style="margin:6px 0 0">${C.f} ${H.t}</h3>`+(SEQ.length?`<p class="muted">${H.n.replace("{n}",CQ().length)}</p>
    <button class="btn" data-run="rule" style="text-align:left">${H.pr}<small>${SEQ.length} · ${H.prs}</small></button>
+   ${CQ().length>SEQ.length?`<button class="btn" data-run="sign" style="text-align:left">${H.sg}<small>${CQ().length-SEQ.length} ${H.sgs}</small></button>`:""}
    <button class="btn" data-run="exam" style="text-align:left">${H.ex}<small>${H.exs.replace("{n}",examN()).replace("{w}",examMaxWrong())}</small></button>
    <p class="muted">${H.note}</p>`:`<p class="muted">${H.load}</p>`)+`<div class="probox"><a class="btn" href="${drvHref()}" style="text-align:left;text-decoration:none;background:#1f7a4a">${H.dr}<small>${H.drs}</small></a></div>`}
 function pool(cat){const pro=isPro("theory_pro"),L=CQ();return L.map((q,i)=>i).filter(i=>(pro||L[i].free)&&(!cat||L[i].cat===cat))}
