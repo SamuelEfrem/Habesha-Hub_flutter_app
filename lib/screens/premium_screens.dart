@@ -231,6 +231,7 @@ Future<void> showPremiumDialog(BuildContext context, String docId, Business b) a
   DateTime custom = base.add(const Duration(days: 30));
   bool trial = b.premiumTrial;
   DateTime endFor(String c) => switch (c) {
+        '3d' => DateTime(base.year, base.month, base.day + 3, 23, 59),
         '1m' => DateTime(base.year, base.month + 1, base.day, 23, 59),
         '12m' => DateTime(base.year + 1, base.month, base.day, 23, 59),
         _ => DateTime(custom.year, custom.month, custom.day, 23, 59),
@@ -240,7 +241,7 @@ Future<void> showPremiumDialog(BuildContext context, String docId, Business b) a
     builder: (ctx) => StatefulBuilder(builder: (ctx, setS) {
       Widget opt(String key, String label) => RadioListTile<String>(
             contentPadding: EdgeInsets.zero, dense: true, value: key, groupValue: choice,
-            activeColor: kSecondary, onChanged: (v) => setS(() => choice = v!),
+            activeColor: kSecondary, onChanged: (v) => setS(() { choice = v!; if (choice == '3d') trial = true; }),
             title: Text(label, style: tsBodyLg(color: kText)),
           );
       return AlertDialog(
@@ -249,6 +250,7 @@ Future<void> showPremiumDialog(BuildContext context, String docId, Business b) a
         content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(b.name, style: tsBodySm(color: kTextSub)),
           const SizedBox(height: 8),
+          opt('3d', '🎁 ${tr('3 days free trial')}'),
           opt('1m', tr('1 month')),
           opt('12m', tr('12 months')),
           opt('custom', '${tr('Custom end date')}: ${_date(custom)}'),

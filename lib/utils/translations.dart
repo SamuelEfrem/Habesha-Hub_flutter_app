@@ -1046,6 +1046,7 @@ class AppTranslations {
     'Swipe up to see all places': {'Tigrinya': 'ኩሉ ቦታታት ንምርኣይ ናብ ላዕሊ ሕለፍ', 'Amharic': 'ሁሉንም ቦታዎች ለማየት ወደ ላይ ያንሸራትቱ'},
     'Customers can call, chat, book a time and open your website, shown first, 20 photos, 3 videos and a menu': {'Tigrinya': 'ዓማዊል ክድውሉ፡ ክጽሕፉ፡ ግዜ ክሕዙን ዌብሳይትካ ክኸፍቱን ይኽእሉ፡ ቀዳምነት ምርኣይ፡ 20 ስእልታት፡ 3 ቪድዮታትን ሜኑን', 'Amharic': 'ደንበኞች መደወል፣ መጻፍ፣ ቀጠሮ መያዝና ድረ-ገጽዎን መክፈት ይችላሉ፣ መጀመሪያ መታየት፣ 20 ፎቶዎች፣ 3 ቪዲዮዎችና ሜኑ'},
     'Gallery, videos, chat, booking, phone number and website are for Premium businesses': {'Tigrinya': 'ጋለሪ፡ ቪድዮ፡ ቻት፡ ምሓዝ ግዜ፡ ቁጽሪ ተሌፎንን ዌብሳይትን ንፕሪሚየም ንግድታት እዮም', 'Amharic': 'ጋለሪ፣ ቪዲዮ፣ ቻት፣ ቀጠሮ፣ ስልክ ቁጥርና ድረ-ገጽ ለፕሪሚየም ንግዶች ናቸው'},
+    '3 days free trial': {'Tigrinya': '3 መዓልቲ ናጻ ፈተነ', 'Amharic': '3 ቀን ነጻ ሙከራ'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},
