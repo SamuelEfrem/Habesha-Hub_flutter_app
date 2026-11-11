@@ -778,7 +778,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
               final tab = i < 2 ? i : i - 1;
               final selected = i != 2 && _currentTab == tab;
               final color = selected ? kSecondary : kTextSub;
-              final raw = i == 2 ? tr('Habesha AI') : (i == 4 && !loggedIn) ? tr('Log in') : t(items[i]['key'] as String);
+              final raw = i == 2 ? tr('Habesha AI') : (i == 4 && !loggedIn) ? tr('Business login') : t(items[i]['key'] as String);
               final label = (raw == items[i]['key']) ? (items[i]['label'] as String) : raw;
               return Expanded(
                 child: InkWell(
