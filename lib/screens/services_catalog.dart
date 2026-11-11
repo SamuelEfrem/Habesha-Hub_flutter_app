@@ -422,7 +422,7 @@ class ServiceTile extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(serviceText(e, 'publicName'), maxLines: 1, overflow: TextOverflow.ellipsis, style: tsTitleMd(color: kText)),
+                ServiceNameText(data: e, maxLines: 1, style: tsTitleMd(color: kText)),
                 Text(serviceSubLabel(e), maxLines: 1, overflow: TextOverflow.ellipsis, style: tsBodySm(color: kInkGreen).copyWith(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
                 Text([serviceStr(e['city']), serviceStr(e['area'])].where((x) => x.isNotEmpty).join(' · '), style: tsBodySm(color: kTextSub)),
@@ -851,4 +851,23 @@ class ServicesApprovalTab extends StatelessWidget {
       },
     );
   }
+}
+
+
+/// The provider's name, or "Habesha Hub Norge" when the country has a wekil (the wekil is the contact).
+class ServiceNameText extends StatelessWidget {
+  final Map<String, dynamic> data;
+  final TextStyle style;
+  final int? maxLines;
+  const ServiceNameText({super.key, required this.data, required this.style, this.maxLines});
+  @override
+  Widget build(BuildContext context) => FutureBuilder<Map<String, String>>(
+        future: wekilPhones(),
+        builder: (_, snap) {
+          final code = serviceStr(data['country']);
+          final viaWekil = isDirectContact(data) && (snap.data?[code] ?? '').isNotEmpty;
+          return Text(viaWekil ? hubNameForCode(code) : serviceText(data, 'publicName'),
+              maxLines: maxLines, overflow: maxLines == null ? null : TextOverflow.ellipsis, style: style);
+        },
+      );
 }

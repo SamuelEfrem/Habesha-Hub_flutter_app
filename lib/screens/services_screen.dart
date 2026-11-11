@@ -555,7 +555,7 @@ class ServiceProviderScreen extends StatelessWidget {
               Row(children: [
                 ProviderAvatar(data: data, size: 60),
                 const SizedBox(width: 14),
-                Expanded(child: Text(serviceText(data, 'publicName'), style: tsHeadlineMd(color: kSecondary))),
+                Expanded(child: ServiceNameText(data: data, style: tsHeadlineMd(color: kSecondary))),
               ]),
               if (serviceStr(data['city']).isNotEmpty) ...[
                 const SizedBox(height: 8),

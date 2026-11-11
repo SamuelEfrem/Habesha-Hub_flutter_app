@@ -13,6 +13,7 @@ import 'auth_screen.dart';
 import 'member_screens.dart';
 import 'services_screen.dart';
 import 'services_catalog.dart';
+import '../utils/countries.dart';
 
 // ═══════════════════════════════════════════════════════════
 // HABESHA HUB SERVICE — one trusted person (ወኪል, "wekil") per country
@@ -72,6 +73,8 @@ Future<Map<String, String>> wekilPhones() async {
   }
   return _phones!;
 }
+
+String hubNameForCode(String code) => _iso.containsKey(code) ? hubName(_iso[code]!) : 'Habesha Hub';
 
 /// ISO code of the country this account is wekil for ('' = not a wekil).
 Future<String> myWekilCode() async => codeOfCountry(await myWekilCountry());
@@ -168,10 +171,16 @@ class ServiceHubScreen extends StatefulWidget {
   State<ServiceHubScreen> createState() => _ServiceHubScreenState();
 }
 
+/// Habesha Hub <country>: choose the country, see the categories with the photos and videos
+/// the wekil posted; booking goes to the wekil. "Didn't find it?" sends a request to the wekil.
 class _ServiceHubScreenState extends State<ServiceHubScreen> {
-  List<String> _countries = [];
-  String _country = '';
+  String _code = '';           // ISO code, e.g. "NO"
+  Map<String, String> _phones = {};
   bool _loading = true;
+
+  String get _countryName => _iso[_code] ?? '';
+  String get _title => _countryName.isNotEmpty ? hubName(_countryName) : 'Habesha Hub ${tr(countryName(_code))}';
+  bool get _hasWekil => (_phones[_code] ?? '').isNotEmpty;
 
   @override
   void initState() {
@@ -180,12 +189,9 @@ class _ServiceHubScreenState extends State<ServiceHubScreen> {
   }
 
   Future<void> _load() async {
-    try {
-      final d = await _db.collection('app_config').doc('wekilCountries').get();
-      _countries = List<String>.from(d.data()?['list'] ?? const []);
-    } catch (_) {}
-    final mine = await detectCountry();
-    _country = _countries.contains(mine) ? mine : _countries.contains('Norway') ? 'Norway' : (_countries.isEmpty ? '' : _countries.first);
+    final loc = await ServiceLocation.load();
+    _phones = await wekilPhones();
+    _code = loc.$1;
     if (mounted) setState(() => _loading = false);
   }
 
@@ -207,80 +213,100 @@ class _ServiceHubScreenState extends State<ServiceHubScreen> {
     return mounted;
   }
 
-  Future<void> _ask(String cat) async {
+  Future<void> _ask() async {
+    if (!_hasWekil) {
+      launchUrl(Uri.parse('https://wa.me/$kWhatsAppSupport?text=${Uri.encodeComponent('$_title: ')}'), mode: LaunchMode.externalApplication);
+      return;
+    }
     if (!await _realAccount() || !mounted) return;
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceRequestForm(country: _country, category: cat)));
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceRequestForm(country: _countryName, category: 'other')));
+  }
+
+  Future<void> _pickCountry() async {
+    final r = await pickServiceLocation(context, _code, '', const []);
+    if (r == null || !mounted) return;
+    await ServiceLocation.save(r.$1, r.$2);
+    setState(() => _code = r.$1);
   }
 
   @override
   Widget build(BuildContext context) {
     final me = FirebaseAuth.instance.currentUser;
-    return _pageScaffold(context, hubName(_country), _loading
+    final groups = kServiceGroups;
+    return _pageScaffold(context, _loading ? 'Habesha Hub' : _title, _loading
         ? Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))
-        : ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 40), children: [
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(color: kTintGreen, borderRadius: BorderRadius.circular(18)),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('${flagOf(_country)} ${hubName(_country)}', style: tsTitleLg(color: kInkGreen)),
-                const SizedBox(height: 6),
-                Text(tr('Tell us what you need. Our wekil in your country finds a trusted Habesha service for you and contacts you on WhatsApp.'),
-                    style: tsBodySm(color: kInkGreen)),
-              ]),
+        : ListView(padding: const EdgeInsets.fromLTRB(20, 4, 20, 40), children: [
+            // the country: always shown, easy to change
+            Material(
+              color: kTintGreen,
+              borderRadius: BorderRadius.circular(16),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: _pickCountry,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(children: [
+                    Text(countryFlag(_code), style: const TextStyle(fontSize: 28)),
+                    const SizedBox(width: 12),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(_title, style: tsTitleLg(color: kInkGreen)),
+                      Text(tr('Choose country'), style: tsBodySm(color: kInkGreen)),
+                    ])),
+                    Icon(Icons.expand_more_rounded, color: kInkGreen),
+                  ]),
+                ),
+              ),
             ),
-            if (_countries.length > 1) ...[
-              const SizedBox(height: 14),
-              Wrap(spacing: 8, runSpacing: 8, children: [
-                for (final c in _countries)
-                  ChoiceChip(
-                    label: Text('${flagOf(c)} ${_local[c] ?? c}'),
-                    selected: _country == c, showCheckmark: false,
-                    selectedColor: kSecondary,
-                    labelStyle: TextStyle(color: _country == c ? kOnAccent : kText, fontWeight: FontWeight.w600),
-                    onSelected: (_) => setState(() => _country = c),
-                  ),
-              ]),
-            ],
-            const SizedBox(height: 20),
-            if (_country.isEmpty)
-              Text(tr('Habesha Hub Service is not open in your country yet. Coming soon!'), style: tsBodyLg(color: kTextSub))
-            else ...[
-              Text(tr('What do you need?'), style: tsHeadlineSm(color: kText)),
-              const SizedBox(height: 12),
-              GridView.count(
-                crossAxisCount: 3, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 0.95,
-                children: [
-                  for (final c in _cats)
-                    Material(
-                      color: kCard,
-                      borderRadius: BorderRadius.circular(16),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
-                        onTap: () => _ask(c.$1),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                            Text(c.$2, style: const TextStyle(fontSize: 28)),
-                            const SizedBox(height: 6),
-                            Text(tr(c.$3), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontFamily: kFontBody, fontSize: 12, fontWeight: FontWeight.w600, color: kText)),
-                          ]),
-                        ),
+            const SizedBox(height: 18),
+            // every category; inside: the photos and videos the wekil posted
+            GridView.count(
+              crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 1.35,
+              children: [
+                for (final g in groups)
+                  Material(
+                    color: kCard,
+                    borderRadius: BorderRadius.circular(18),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(18),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceGroupScreen(group: g, country: _code, city: ''))),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                          Text(g.emoji, style: const TextStyle(fontSize: 30)),
+                          Text(tr(g.label), maxLines: 2, overflow: TextOverflow.ellipsis, style: tsTitleMd(color: kText)),
+                        ]),
                       ),
                     ),
-                ],
+                  ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            // didn't find it? the wekil finds it
+            Material(
+              color: kCard,
+              borderRadius: BorderRadius.circular(16),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: _ask,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(children: [
+                    const Text('🤝', style: TextStyle(fontSize: 26)),
+                    const SizedBox(width: 12),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(tr('Did not find what you need?'), style: tsTitleMd(color: kText)),
+                      Text('${tr('Tell')} $_title ${tr('and we find it for you')}', style: tsBodySm(color: kTextSub)),
+                    ])),
+                    Icon(Icons.chevron_right_rounded, color: kTextSub),
+                  ]),
+                ),
               ),
-            ],
+            ),
             if (me != null && !me.isAnonymous) ...[
-              const SizedBox(height: 26),
+              const SizedBox(height: 24),
               _MyRequests(uid: me.uid),
             ],
-            const SizedBox(height: 20),
-            Center(child: TextButton(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ServicesScreen())),
-              child: Text(tr('See all service providers'), style: tsBodySm(color: kSecondary)),
-            )),
           ]));
   }
 }

@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/business.dart';
 import '../services/business_service.dart';
 import '../widgets/business_card.dart';
+import '../widgets/radial_menu.dart';
 import '../utils/language_notifier.dart';
 import '../utils/theme_notifier.dart';
 import '../theme/app_theme.dart';
@@ -479,43 +480,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   // ── Round shortcuts to every part of the app ──
   Widget _buildShortcuts(String Function(String) t) {
     void push(Widget w) => Navigator.push(context, MaterialPageRoute(builder: (_) => w));
-    final items = <(IconData, String, Color, Color, VoidCallback)>[
-      (Icons.work_outline_rounded, _hubName, kTintYellow, kInkYellow, () => push(const ServiceHubScreen())),
-      (Icons.shopping_bag_outlined, tr('Market'), kTintBlue, kInkBlue, () => push(const MarketplaceScreen())),
-      (Icons.send_outlined, tr('Send money'), kTintRed, kInkRed, () => push(const SendMoneyScreen())),
-      (Icons.event_outlined, tr('Events'), kTintGreen, kInkGreen, () => push(const EventsScreen())),
-      (Icons.sports_esports_outlined, tr('Learn & play'), kTintYellow, kInkYellow, () => push(const GamesScreen())),
-    ];
+    // all shortcuts in one round button that opens with a spring
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 18),
-      child: GridView.count(
-        crossAxisCount: 5,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 2,
-        childAspectRatio: 0.72,
-        children: [
-          for (final it in items)
-            InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () { HapticFeedback.selectionClick(); it.$5(); },
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Container(
-                  width: 54, height: 54,
-                  decoration: BoxDecoration(color: it.$3, shape: BoxShape.circle),
-                  child: Icon(it.$1, color: it.$4, size: 24),
-                ),
-                const SizedBox(height: 7),
-                Text(it.$2,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontFamily: kFontBody, fontSize: 10.5, height: 1.15, fontWeight: FontWeight.w600, color: kText)),
-              ]),
-            ),
-        ],
-      ),
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+      child: RadialMenu(items: [
+        RadialItem(Icons.work_outline_rounded, _hubName, kTintYellow, kInkYellow, () => push(const ServiceHubScreen())),
+        RadialItem(Icons.shopping_bag_outlined, tr('Market'), kTintBlue, kInkBlue, () => push(const MarketplaceScreen())),
+        RadialItem(Icons.send_outlined, tr('Send money'), kTintRed, kInkRed, () => push(const SendMoneyScreen())),
+        RadialItem(Icons.event_outlined, tr('Events'), kTintGreen, kInkGreen, () => push(const EventsScreen())),
+        RadialItem(Icons.sports_esports_outlined, tr('Learn & play'), kTintYellow, kInkYellow, () => push(const GamesScreen())),
+      ]),
     );
   }
 
