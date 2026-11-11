@@ -1316,7 +1316,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
             await launchUrl(url, mode: LaunchMode.externalApplication);
           }
         }),
-      if (b.category == 'Hotel')
+      if (b.category == 'Hotel' && b.premium)
         _quickAction(Icons.hotel_rounded, tr('Book Room'), () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => HotelBookingScreen(business: b)))),
       if (b.premium)
