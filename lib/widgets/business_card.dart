@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/premium_screens.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -197,12 +198,8 @@ class _BusinessCardState extends State<BusinessCard> {
           _iconBtn(_isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded, _toggleFav, color: _isFavorite ? Colors.redAccent : Colors.white),
         ]),
       ),
-      if (b.isPremium)
-        Positioned(bottom: 10, right: 12, child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(100), ),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.verified_rounded, color: kSecondary, size: 12), SizedBox(width: 4), Text('Premium', style: tsLabel())]),
-        )),
+      if (b.premium)
+        const Positioned(bottom: 10, right: 12, child: PremiumBadge(onPhoto: true)),
     ]);
   }
 

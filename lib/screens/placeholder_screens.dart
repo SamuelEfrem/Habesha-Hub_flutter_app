@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/business.dart';
+import '../services/premium.dart';
 import '../widgets/business_card.dart';
 import '../utils/language_notifier.dart';
 import '../utils/theme_notifier.dart';
@@ -147,7 +148,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           b.description.toLowerCase().contains(q) ||
           hairSearchText(b).contains(q)).toList();
     }
-    return list;
+    return premiumFirst(list);
   }
 
   String _catLabel(String key) {

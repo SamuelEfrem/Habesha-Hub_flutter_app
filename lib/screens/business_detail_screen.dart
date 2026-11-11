@@ -25,6 +25,8 @@ import '../utils/translations.dart';
 import 'community_screens.dart';
 import 'websites_screens.dart';
 import 'hair_beauty.dart';
+import '../services/premium.dart';
+import 'premium_screens.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final Business business;
@@ -58,6 +60,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   String? _localImageUrl;
   List<String> _localGalleryImages = [];
   String? _localVideoUrl;
+  List<String> _videos = []; // premium: up to 3 videos
+  int _vid = 0;
   bool _uploadingGallery = false;
   bool _uploadingVideo = false;
   double _userRating = 0;
@@ -123,6 +127,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         _ratingCount = count;
         _localGalleryImages = gallery;
         if (video != null) _localVideoUrl = video;
+        final vids = data['promoVideos'] is List ? List<String>.from(data['promoVideos']) : <String>[];
+        _videos = vids.isNotEmpty ? vids : [if (video != null && video.isNotEmpty) video];
       });
     }
   }
@@ -172,6 +178,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     final user = FirebaseAuth.instance.currentUser;
     // Don't count owner's own views
     if (user?.uid == widget.business.ownerId) return;
+    trackStat(widget.business, 'views');
     await _db.collection('businesses').doc(widget.business.id).update({
       'viewCount': FieldValue.increment(1),
     });
@@ -211,6 +218,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   }
 
   Future<void> _openMaps() async {
+    trackStat(widget.business, 'directions');
     final url = Uri.parse(
         'https://www.google.com/maps/dir/?api=1&destination=${widget.business.lat},${widget.business.lng}&travelmode=driving');
     if (await canLaunchUrl(url)) {
@@ -227,6 +235,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   }
 
   Future<void> _callBusiness() async {
+    trackStat(widget.business, 'calls');
     final url = Uri.parse('tel:${widget.business.phone}');
     if (await canLaunchUrl(url)) await launchUrl(url);
   }
@@ -307,9 +316,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   }
 
   Future<void> _uploadGalleryImage() async {
-    if (_localGalleryImages.length >= 5) {
+    if (_localGalleryImages.length >= maxPhotos(widget.business)) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(tr('Max 5 images!'), style: tsBodySm(color: kText)),
+          content: Text(widget.business.premium ? tr('Max 20 images') : tr('Max 5 images. Premium: up to 20 images and 3 videos'), style: tsBodySm(color: kText)),
           backgroundColor: kRed));
       return;
     }
@@ -345,6 +354,11 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   }
 
     Future<void> _uploadPromoVideo() async {
+    if (_videos.length >= maxVideos(widget.business)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr('Max 3 videos'), style: tsBodySm(color: kText)), backgroundColor: kRed));
+      return;
+    }
     final picker = ImagePicker();
     final picked = await picker.pickVideo(
         source: ImageSource.gallery, maxDuration: const Duration(seconds: 30));
@@ -359,9 +373,11 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       await _db
           .collection('businesses')
           .doc(widget.business.id)
-          .update({'promoVideoUrl': url});
+          .update({'promoVideos': [..._videos, url], 'promoVideoUrl': _videos.isEmpty ? url : _videos.first});
       if (mounted) {
         setState(() {
+          _videos = [..._videos, url];
+          _vid = _videos.length - 1;
           _localVideoUrl = url;
           _uploadingVideo = false;
         });
@@ -475,6 +491,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 6),
+                    if (widget.business.premium) const Padding(
+                        padding: EdgeInsets.only(bottom: 6), child: PremiumBadge()),
                     if (widget.business.rating == 0 && _ratingCount == 0)
                       Text(tr('New on Habesha Hub'),
                           style: tsBodySm(color: kSecondary))
@@ -616,7 +634,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         _buildStatsWidget(),
         const SizedBox(height: 24),
       ],
-      if (_localVideoUrl != null || widget.business.promoVideoUrl != null) ...[
+      if (_videos.isNotEmpty) ...[
         _buildVideoPlayer(),
         const SizedBox(height: 24),
       ],
@@ -628,11 +646,11 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       ],
       _buildReviewsSection(),
       const SizedBox(height: 24),
-      if (_isOwner && !widget.business.isPremium) ...[
+      if (_isOwner && !widget.business.premium) ...[
         _buildPremiumUpgradeSection(),
         const SizedBox(height: 24),
       ],
-      if (widget.business.isPremium) ...[
+      if (widget.business.premium) ...[
         _buildPremiumSection(),
         const SizedBox(height: 24)
       ],
@@ -672,6 +690,11 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
               Icon(Icons.bar_chart_rounded, color: kSecondary, size: 20),
               const SizedBox(width: 8),
               Text(tr('Business Statistics'), style: tsTitleMd(color: kSecondary)),
+              const Spacer(),
+              TextButton(
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MyStatsScreen(business: widget.business))),
+                child: Text('${tr('My stats')} ›', style: tsTitleMd(color: kSecondary).copyWith(fontSize: 13)),
+              ),
             ]),
             const SizedBox(height: 16),
             Row(children: [
@@ -733,9 +756,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           Text('⭐', style: TextStyle(fontSize: 28)),
           SizedBox(width: 12),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(lang == 'Tigrinya' ? 'ፕሪሚዩም ኹን' : lang == 'Amharic' ? 'ፕሪሚዬም ሁን' : lang == 'Norsk' ? 'Bli Premium' : 'Upgrade to Premium', style: tsTitleMd(color: kSecondary)),
+            Text(tr('Upgrade to Premium'), style: tsTitleMd(color: kSecondary)),
             SizedBox(height: 4),
-            Text(lang == 'Tigrinya' ? 'ሜኑ ጸዓን፡ ቅድሚ ምርኣይ' : lang == 'Amharic' ? 'ሜኑ ስቀሉ፣ ቅድሚያ ይሰጡ' : lang == 'Norsk' ? 'Last opp meny, vis øverst' : 'Upload menu, show first', style: tsBodySm(color: kTextSub)),
+            Text(tr('Shown first, on the home screen, 20 photos, 3 videos and a menu'), style: tsBodySm(color: kTextSub)),
           ])),
           Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 16),
         ]),
@@ -921,12 +944,13 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                 else
                   Icon(Icons.photo_library_rounded, color: kSecondary, size: 16),
                 const SizedBox(width: 6),
-                Text('${tr('Gallery')} (${_localGalleryImages.length}/5)',
+                Text('${tr('Gallery')} (${_localGalleryImages.length}/${maxPhotos(widget.business)})',
                     style: tsTitleMd(color: kSecondary).copyWith(fontSize: 12)),
               ]),
             ),
           ),
         ),
+        if (maxVideos(widget.business) > 0) ...[
         SizedBox(width: 10),
         Expanded(
           child: GestureDetector(
@@ -943,12 +967,13 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                 else
                   Icon(Icons.videocam_rounded, color: kSecondary, size: 16),
                 const SizedBox(width: 6),
-                Text(_localVideoUrl != null ? tr('Video') : tr('Add video'),
+                Text('${_videos.isEmpty ? tr('Add video') : tr('Video')} (${_videos.length}/${maxVideos(widget.business)})',
                     style: tsTitleMd(color: kSecondary).copyWith(fontSize: 12)),
               ]),
             ),
           ),
         ),
+        ],
       ]),
       const SizedBox(height: 10),
       Row(children: [
@@ -1180,7 +1205,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
               ])));
     }
 
-    if (_isOwner && widget.business.isPremium) {
+    if (_isOwner && widget.business.premium) {
       return GestureDetector(
           onTap: _uploadingMenu ? null : _uploadMenuImage,
           child: Container(
@@ -1206,7 +1231,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
               ])));
     }
 
-    if (_isOwner && !widget.business.isPremium) {
+    if (_isOwner && !widget.business.premium) {
       return GestureDetector(
         onTap: () async {
           final lang = languageNotifier.language;
@@ -1267,6 +1292,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       if (b.phone.isNotEmpty) _quickAction(Icons.phone_rounded, t('call'), _callBusiness),
       if (site.isNotEmpty)
         _quickAction(Icons.language_rounded, t('web'), () async {
+          trackStat(b, 'website');
           final url = Uri.parse(site.startsWith('http') ? site : 'https://$site');
           if (await canLaunchUrl(url)) {
             await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -1275,7 +1301,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       if (b.category == 'Hotel')
         _quickAction(Icons.hotel_rounded, tr('Book Room'), () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => HotelBookingScreen(business: b)))),
-      _quickAction(Icons.chat_bubble_rounded, t('chat_tab'), () => _tabController.animateTo(1)),
+      _quickAction(Icons.chat_bubble_rounded, t('chat_tab'), () { trackStat(b, 'chats'); _tabController.animateTo(1); }),
     ];
     return Row(children: [
       for (var i = 0; i < actions.length; i++) ...[
@@ -1526,10 +1552,21 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
   }
 
   Widget _buildVideoPlayer() {
-    final url = _localVideoUrl ?? widget.business.promoVideoUrl;
-    if (url == null) return const SizedBox();
+    if (_videos.isEmpty) return const SizedBox();
+    if (_vid >= _videos.length) _vid = 0;
+    final url = _videos[_vid];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(tr('Video'), style: tsHeadlineSm(color: kSecondary)),
+      Row(children: [
+        Text(tr('Video'), style: tsHeadlineSm(color: kSecondary)),
+        const Spacer(),
+        // several videos: small numbered buttons
+        if (_videos.length > 1) for (var i = 0; i < _videos.length; i++) Padding(
+          padding: const EdgeInsets.only(left: 6),
+          child: ChoiceChip(label: Text('${i + 1}'), selected: _vid == i, showCheckmark: false,
+              selectedColor: kSecondary, labelStyle: TextStyle(color: _vid == i ? kOnAccent : kText, fontWeight: FontWeight.w700),
+              onSelected: (_) => setState(() => _vid = i)),
+        ),
+      ]),
       const SizedBox(height: 12),
       Container(
         height: 200,
@@ -1538,7 +1575,20 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           borderRadius: BorderRadius.circular(12),
         ),
         clipBehavior: Clip.hardEdge,
-        child: _VideoPlayerWidget(url: url),
+        child: _VideoPlayerWidget(key: ValueKey(url), url: url),
+      ),
+      if (_isOwner) Align(
+        alignment: Alignment.centerRight,
+        child: TextButton.icon(
+          icon: Icon(Icons.delete_outline_rounded, color: kRed, size: 18),
+          label: Text(tr('Remove this video'), style: tsBodySm(color: kRed)),
+          onPressed: () async {
+            final rest = List<String>.from(_videos)..removeAt(_vid);
+            await _db.collection('businesses').doc(widget.business.id).update({
+              'promoVideos': rest, 'promoVideoUrl': rest.isEmpty ? null : rest.first});
+            if (mounted) setState(() { _videos = rest; _vid = 0; _localVideoUrl = rest.isEmpty ? null : rest.first; });
+          },
+        ),
       ),
     ]);
   }
@@ -1711,7 +1761,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
 
 class _VideoPlayerWidget extends StatefulWidget {
   final String url;
-  const _VideoPlayerWidget({required this.url});
+  const _VideoPlayerWidget({super.key, required this.url});
 
   @override
   State<_VideoPlayerWidget> createState() => _VideoPlayerWidgetState();

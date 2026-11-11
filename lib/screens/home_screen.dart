@@ -24,6 +24,8 @@ import 'events_screens.dart';
 import 'cross_links.dart';
 import 'hair_beauty.dart';
 import 'small_business_screen.dart';
+import 'premium_screens.dart';
+import '../services/premium.dart';
 import '../services/update_check.dart';
 import '../services/review_prompt.dart';
 import '../utils/share_helper.dart';
@@ -266,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
               hairSearchText(b).contains(_searchQuery.toLowerCase()))
           .toList();
     }
-    return list;
+    return premiumFirst(list);
   }
 
   @override
@@ -310,6 +312,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
             const SliverToBoxAdapter(child: WeekendEventsCard()),
             const SliverToBoxAdapter(child: SmallBizHomeCard()),
             if (_hasSearched) ...[
+              if (_selectedCategory == 'All' && _searchQuery.isEmpty)
+                SliverToBoxAdapter(child: FeaturedRow(businesses: _businesses,
+                    lat: _position?.latitude ?? 59.9139, lng: _position?.longitude ?? 10.7522)),
               SliverToBoxAdapter(child: _buildResultsHeader(t)),
               const SliverToBoxAdapter(child: SizedBox(height: 12)),
               SliverToBoxAdapter(child: _buildCategoryChips()),

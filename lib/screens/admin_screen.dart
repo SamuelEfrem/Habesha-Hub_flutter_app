@@ -13,6 +13,8 @@ import 'services_catalog.dart';
 import 'notices_screen.dart';
 import 'websites_screens.dart';
 import 'home_shops_screen.dart';
+import 'premium_screens.dart';
+import '../utils/translations.dart';
 import 'housing_screen.dart';
 import '../models/business.dart';
 import 'edit_business_screen.dart';
@@ -113,6 +115,7 @@ class _AdminScreenState extends State<AdminScreen>
     (Icons.block_rounded, 'Rejected'),
     (Icons.verified_user_rounded, 'Claims'),
     (Icons.flag_rounded, 'Reports'),
+    (Icons.star_rounded, 'Premium'),
     (Icons.add_business_rounded, 'Suggestions'),
     (Icons.key_rounded, 'Codes'),
     (Icons.mail_rounded, 'Messages'),
@@ -219,6 +222,7 @@ class _AdminScreenState extends State<AdminScreen>
             _BusinessList(status: 'rejected', db: _db),
             const ClaimsAdminTab(),
             const ReportsAdminTab(),
+            const PremiumAdminTab(),
             const SuggestionsAdminTab(),
             const UnlockCodesAdminTab(),
             _ContactMessagesList(db: _db),
@@ -590,7 +594,7 @@ class _AdminCardState extends State<_AdminCard> {
                 Row(children: [
                   Flexible(child: Text(business.name, maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: tsTitleLg(color: kText))),
-                  if (business.isPremium) ...[
+                  if (business.premium) ...[
                     const SizedBox(width: 4),
                     Icon(Icons.star_rounded, color: kSecondary, size: 16),
                   ],
@@ -641,9 +645,11 @@ class _AdminCardState extends State<_AdminCard> {
                       toUid: business.ownerId, refName: business.name, refType: 'business', refId: widget.docId)),
                 _pill(Icons.edit_rounded, 'Edit', kSecondary, () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => EditBusinessScreen(business: business, docId: widget.docId)))),
-                _pill(business.isPremium ? Icons.star_rounded : Icons.star_outline_rounded,
-                    business.isPremium ? 'Remove Premium' : 'Make Premium', kSecondary,
-                    () => widget.db.collection('businesses').doc(widget.docId).update({'isPremium': !business.isPremium})),
+                _pill(business.premium ? Icons.update_rounded : Icons.star_outline_rounded,
+                    business.premium ? tr('Extend Premium') : tr('Make Premium'), kSecondary,
+                    () => showPremiumDialog(context, widget.docId, business)),
+                if (business.premium)
+                  _pill(Icons.star_rounded, tr('Remove Premium'), kRed, () => removePremium(context, widget.docId, business)),
                 _pill(Icons.delete_outline_rounded, 'Delete', kRed, _delete),
               ]),
             ]),

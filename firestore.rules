@@ -46,7 +46,7 @@ service cloud.firestore {
       allow update: if isAdmin()
         // owner may edit everything except approval / premium / ownership
         || (signedIn() && resource.data.ownerId == uid()
-            && !changed().hasAny(['status', 'isPremium', 'ownerId']))
+            && !changed().hasAny(['status', 'isPremium', 'ownerId', 'premiumUntil', 'premiumSince', 'premiumTrial']))
         // anyone: view counter
         || changed().hasOnly(['viewCount'])
         // logged-in users: add ONE rating (average must stay 0–5)
@@ -58,6 +58,22 @@ service cloud.firestore {
         || (signedIn() && changed().hasOnly(['reviewCount'])
             && request.resource.data.reviewCount == resource.data.get('reviewCount', 0) + 1);
       allow delete: if isAdmin() || (signedIn() && resource.data.ownerId == uid());
+
+      // monthly stats for the owner: anyone may add +1 to one counter, only owner/admin read
+      match /stats/{month} {
+        function statKeys() { return ['views', 'calls', 'directions', 'website', 'chats']; }
+        function plusOne(k) {
+          return request.resource.data.get(k, 0) == resource.data.get(k, 0)
+              || request.resource.data.get(k, 0) == resource.data.get(k, 0) + 1;
+        }
+        allow read: if isAdmin() || bizOwner(bizId);
+        allow create: if month.matches('^[0-9]{4}-[0-9]{2}$')
+          && request.resource.data.keys().hasOnly(statKeys()) && request.resource.data.size() == 1
+          && request.resource.data.values()[0] == 1;
+        allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(statKeys())
+          && request.resource.data.diff(resource.data).affectedKeys().size() == 1
+          && plusOne('views') && plusOne('calls') && plusOne('directions') && plusOne('website') && plusOne('chats');
+      }
 
       match /reviews/{reviewId} {
         allow read: if true;

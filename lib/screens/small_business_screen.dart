@@ -55,26 +55,23 @@ class SmallBizHomeCard extends StatelessWidget {
   const SmallBizHomeCard({super.key});
   @override
   Widget build(BuildContext context) {
+    // one slim line, so the home screen stays calm
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
       child: Material(
         color: kTintGreen,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SmallBusinessScreen())),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
             child: Row(children: [
-              const Text('🌱', style: TextStyle(fontSize: 26)),
-              const SizedBox(width: 14),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(tr('Small & home businesses'), style: tsTitleMd(color: kInkGreen)),
-                const SizedBox(height: 2),
-                Text(tr('Support new and home-based Habesha businesses'), style: tsBodySm(color: kInkGreen)),
-              ])),
-              const SizedBox(width: 8),
-              Icon(Icons.chevron_right_rounded, color: kInkGreen, size: 26),
+              const Text('🌱', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 10),
+              Expanded(child: Text(tr('Small & home businesses'), maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: tsTitleMd(color: kInkGreen))),
+              Icon(Icons.chevron_right_rounded, color: kInkGreen, size: 22),
             ]),
           ),
         ),

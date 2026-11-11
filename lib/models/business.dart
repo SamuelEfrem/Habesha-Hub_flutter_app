@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 
 class Business {
   final String id;
@@ -35,6 +36,9 @@ class Business {
   final bool comesToYou;
   // small / new / home-based business (shown in "Small & home businesses")
   final bool smallBiz;
+  // Premium end date (null = no end date). Only admin sets it.
+  final DateTime? premiumUntil;
+  final bool premiumTrial;
 
   Business({
     required this.id,
@@ -67,7 +71,12 @@ class Business {
     this.worksFromHome = false,
     this.comesToYou = false,
     this.smallBiz = false,
+    this.premiumUntil,
+    this.premiumTrial = false,
   });
+
+  /// Premium right now: switched on and not expired (it goes back to normal by itself).
+  bool get premium => isPremium && (premiumUntil == null || premiumUntil!.isAfter(DateTime.now()));
 
   factory Business.fromFirestore(Map<String, dynamic> data, String id) {
     return Business(
@@ -98,6 +107,8 @@ class Business {
       worksFromHome: data['worksFromHome'] == true,
       comesToYou: data['comesToYou'] == true,
       smallBiz: data['smallBiz'] == true,
+      premiumUntil: data['premiumUntil'] is Timestamp ? (data['premiumUntil'] as Timestamp).toDate() : null,
+      premiumTrial: data['premiumTrial'] == true,
       galleryImages: data['galleryImages'] != null
           ? List<String>.from(data['galleryImages'])
           : [],
