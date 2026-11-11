@@ -41,6 +41,20 @@ const AREAS = {
       ['Humera', 14.2950, 36.6167], ['Abiy Addi', 13.6200, 39.0000], ['Korem', 12.5050, 39.5228], ['Hawzen', 13.9750, 39.4300],
       ['Sheraro', 14.4000, 37.7667], ['Enticho', 14.2667, 39.1500], ['Zalambessa', 14.5167, 39.3833], ['Adi Remets', 13.8667, 37.4000]],
   },
+  eritrea: {
+    label: 'Eritrea',
+    country: 'Eritrea',
+    area: '["boundary"="administrative"]["admin_level"="2"]["name:en"="Eritrea"]',
+    body: `
+      nwr(area.a)["name"]["amenity"~"^(restaurant|cafe|fast_food|bar|pub|nightclub|clinic|hospital|doctors|dentist|pharmacy|place_of_worship)$"];
+      nwr(area.a)["name"]["shop"];
+      nwr(area.a)["name"]["tourism"~"^(hotel|guest_house|hostel|motel)$"];`,
+    keep: () => true,
+    towns: [['Asmara', 15.3229, 38.9251], ['Keren', 15.7778, 38.4511], ['Massawa', 15.6097, 39.4500], ['Mendefera', 14.8872, 38.8153],
+      ['Barentu', 15.1058, 37.5907], ['Assab', 13.0092, 42.7394], ['Dekemhare', 15.0700, 39.0475], ['Adi Keyh', 14.8444, 39.3767],
+      ['Agordat', 15.5486, 37.8867], ['Nakfa', 16.6639, 38.4761], ['Ghinda', 15.4500, 39.0833], ['Senafe', 14.7000, 39.4167],
+      ['Adi Quala', 14.6333, 38.8333], ['Tesseney', 15.1100, 36.6575], ['Segeneiti', 15.0333, 39.3167], ['Afabet', 16.1933, 38.6950]],
+  },
   addis: {
     label: 'Addis Ababa',
     area: '["boundary"="administrative"]["name:en"="Addis Ababa"]',
