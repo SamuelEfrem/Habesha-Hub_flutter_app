@@ -73,3 +73,6 @@ tools/private/
 *translate*credentials*.json
 *-translate-*.json
 .env
+
+# wekil account script (contains the password pattern) stays on this PC only
+tools/create_wekils.js
