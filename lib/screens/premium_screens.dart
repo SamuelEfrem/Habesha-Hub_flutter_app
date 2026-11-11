@@ -42,9 +42,10 @@ class FeaturedRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final list = premiumFirst(businesses.where((b) => b.premium).toList()).take(10).toList();
-    if (list.isEmpty) return const SizedBox.shrink();
+    // one premium business is already first in the list below, so the row only shows from 2
+    if (list.length < 2) return const SizedBox.shrink();
     return Padding(
-      padding: const EdgeInsets.only(top: 4, bottom: 14),
+      padding: const EdgeInsets.only(top: 18, bottom: 14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),

@@ -931,7 +931,7 @@ class AppTranslations {
     'Be the first: register your small business': {'Tigrinya': 'ቀዳማይ ኩን፦ ንእሽቶ ንግድኻ ኣመዝግብ', 'Amharic': 'የመጀመሪያው ይሁኑ፦ አነስተኛ ንግድዎን ያስመዝግቡ'},
     'Register your business': {'Tigrinya': 'ንግድኻ ኣመዝግብ', 'Amharic': 'ንግድዎን ያስመዝግቡ'},
     'Premium': {'Tigrinya': 'ፕሪሚየም', 'Amharic': 'ፕሪሚየም'},
-    'Featured': {'Tigrinya': 'ፍሉያት', 'Amharic': 'ተለይተው የቀረቡ'},
+    'Featured': {'Tigrinya': 'ዝተመርጹ', 'Amharic': 'ተለይተው የቀረቡ'},
     'My stats': {'Tigrinya': 'ናተይ ኣሃዛት', 'Amharic': 'የእኔ ስታቲስቲክስ'},
     'Profile views': {'Tigrinya': 'ርእይቶ ፕሮፋይል', 'Amharic': 'የፕሮፋይል እይታዎች'},
     'Calls': {'Tigrinya': 'ደወላት', 'Amharic': 'ጥሪዎች'},
