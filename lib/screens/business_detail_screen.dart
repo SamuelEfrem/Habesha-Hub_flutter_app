@@ -27,6 +27,7 @@ import 'websites_screens.dart';
 import 'hair_beauty.dart';
 import '../services/premium.dart';
 import 'premium_screens.dart';
+import 'business_chat.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final Business business;
@@ -76,7 +77,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     _initChat();
     _loadRatingState();
     _localGalleryImages = List.from(widget.business.galleryImages);
-    if (widget.openChat) {
+    if (widget.openChat && widget.business.premium) {
       WidgetsBinding.instance
           .addPostFrameCallback((_) => _tabController.animateTo(1));
     }
@@ -202,6 +203,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
     await chatRef.set({
       'businessId': widget.business.id,
       'userId': _userId,
+      'ownerId': widget.business.ownerId,
+      'userName': _nickname ?? '',
+      'lastText': text,
+      'ownerUnread': true,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
 
@@ -399,9 +404,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         backgroundColor: kBg,
         body: NestedScrollView(
           headerSliverBuilder: (_, __) => [_buildSliver()],
-          body: TabBarView(
-              controller: _tabController,
-              children: [_buildInfoTab(), _buildChatTab()]),
+          // chat only with premium businesses
+          body: widget.business.premium
+              ? TabBarView(controller: _tabController, children: [_buildInfoTab(), _buildChatTab()])
+              : _buildInfoTab(),
         ),
       ),
     );
@@ -549,7 +555,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                     ])),
         ]),
       ),
-      bottom: TabBar(
+      bottom: !widget.business.premium ? null : TabBar(
           controller: _tabController,
           indicatorColor: kSecondary,
           indicatorWeight: 2,
@@ -762,7 +768,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(tr('Upgrade to Premium'), style: tsTitleMd(color: kSecondary)),
             SizedBox(height: 4),
-            Text(tr('Shown first, on the home screen, 20 photos, 3 videos and a menu'), style: tsBodySm(color: kTextSub)),
+            Text(tr('Chat with customers, shown first, 20 photos, 3 videos and a menu'), style: tsBodySm(color: kTextSub)),
           ])),
           Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 16),
         ]),
@@ -932,7 +938,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         ),
       ),
       SizedBox(height: 10),
-      Row(children: [
+      if (widget.business.premium) Row(children: [
         Expanded(
           child: GestureDetector(
             onTap: _uploadingGallery ? null : _uploadGalleryImage,
@@ -978,7 +984,12 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           ),
         ),
         ],
-      ]),
+      ]) else Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: kTintYellow, borderRadius: BorderRadius.circular(12)),
+        child: Text('⭐ ${tr('Gallery, videos and chat are for Premium businesses')}', style: tsBodySm(color: kInkYellow)),
+      ),
       const SizedBox(height: 10),
       Row(children: [
         Expanded(
@@ -1305,7 +1316,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       if (b.category == 'Hotel')
         _quickAction(Icons.hotel_rounded, tr('Book Room'), () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => HotelBookingScreen(business: b)))),
-      _quickAction(Icons.chat_bubble_rounded, t('chat_tab'), () { trackStat(b, 'chats'); _tabController.animateTo(1); }),
+      if (b.premium)
+        _quickAction(Icons.chat_bubble_rounded, t('chat_tab'), () { trackStat(b, 'chats'); _tabController.animateTo(1); }),
     ];
     return Row(children: [
       for (var i = 0; i < actions.length; i++) ...[
@@ -1601,6 +1613,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
 
   Widget _buildChatTab() {
     final t = languageNotifier.t;
+    if (_isOwner) return BusinessInbox(business: widget.business);
     if (_chatLoading) {
       return Center(
           child:

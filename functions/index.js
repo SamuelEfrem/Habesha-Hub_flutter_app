@@ -782,6 +782,27 @@ async function welcome(uid, refType, refId, name) {
 }
 
 // Someone registered a business (imports are already approved and stay quiet)
+// Chat with a premium business: tell the owner about a new message, and the customer about the answer
+exports.notifyBusinessChat = onDocumentCreated('chats/{chatId}/messages/{msgId}', async (event) => {
+  const m = event.data?.data();
+  if (!m) return;
+  const [bizId, userId] = event.params.chatId.split('_');
+  const biz = (await getFirestore().collection('businesses').doc(bizId).get()).data();
+  if (!biz || !biz.ownerId) return;
+  const fromOwner = m.userId === biz.ownerId;
+  const to = fromOwner ? userId : biz.ownerId;
+  if (!to || to === m.userId) return;
+  await sendTo(to, {
+    notification: {
+      title: fromOwner ? `💬 ${biz.name || 'Habesha Hub'}` : `💬 ${m.nickname || 'Customer'} · ${biz.name || ''}`,
+      body: String(m.text || '').slice(0, 180),
+    },
+    data: { type: 'chat', businessId: bizId },
+    android: { priority: 'high' },
+    apns: { payload: { aps: { sound: 'default' } } },
+  });
+});
+
 exports.notifyNewBusiness = onDocumentCreated('businesses/{id}', async (event) => {
   const b = event.data?.data();
   if (!b || b.status !== 'pending') return;

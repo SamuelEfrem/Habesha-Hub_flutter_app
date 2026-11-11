@@ -11,7 +11,8 @@ import '../models/business.dart';
 
 const kAdminUid = 'W3z67R3wiXUVvcPFDS0oxgfaDlj1';
 
-int maxPhotos(Business b) => b.premium ? 20 : 5;
+// normal businesses: only the profile picture; premium: 20 photos and 3 videos
+int maxPhotos(Business b) => b.premium ? 20 : 0;
 int maxVideos(Business b) => b.premium ? 3 : 0;
 
 // one seed per app start: premium businesses take turns being first

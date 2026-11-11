@@ -90,7 +90,16 @@ service cloud.firestore {
           || (signedIn() && chatId.split('_')[1] == uid())
           || bizOwner(chatId.split('_')[0]);
       }
-      allow read, write: if chatAllowed();
+      // ownerId (for the owner's inbox) must be the real owner of the business
+      function ownerOk() {
+        return !('ownerId' in request.resource.data)
+          || request.resource.data.ownerId == get(/databases/$(database)/documents/businesses/$(chatId.split('_')[0])).data.ownerId;
+      }
+      allow get: if chatAllowed();
+      // the owner's inbox: list of chats for his businesses
+      allow list: if isAdmin() || (signedIn() && resource.data.ownerId == uid());
+      allow create, update: if chatAllowed() && ownerOk();
+      allow delete: if chatAllowed();
       match /messages/{msgId} {
         allow read: if chatAllowed();
         allow create: if chatAllowed() && request.resource.data.text.size() <= 2000;
