@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
@@ -35,6 +37,49 @@ const _flags = {
   'Egypt': '🇪🇬', 'Angola': '🇦🇴',
 };
 String flagOf(String c) => _flags[c] ?? '🌍';
+
+// the country in its own language: "Habesha Hub Norge", "Habesha Hub Sverige" …
+const _local = {
+  'Norway': 'Norge', 'Sweden': 'Sverige', 'Denmark': 'Danmark', 'UK': 'UK', 'Germany': 'Deutschland',
+  'Netherlands': 'Nederland', 'France': 'France', 'Belgium': 'België', 'Switzerland': 'Schweiz', 'Italy': 'Italia',
+  'USA': 'USA', 'Canada': 'Canada', 'Ethiopia': 'Ethiopia', 'Eritrea': 'Eritrea', 'Uganda': 'Uganda', 'Kenya': 'Kenya',
+  'South Sudan': 'South Sudan', 'Rwanda': 'Rwanda', 'Egypt': 'Egypt', 'Angola': 'Angola',
+};
+String hubName(String c) => c.isEmpty ? 'Habesha Hub Service' : 'Habesha Hub ${_local[c] ?? c}';
+
+const _iso = {
+  'NO': 'Norway', 'SE': 'Sweden', 'DK': 'Denmark', 'GB': 'UK', 'DE': 'Germany', 'NL': 'Netherlands', 'FR': 'France',
+  'BE': 'Belgium', 'CH': 'Switzerland', 'IT': 'Italy', 'US': 'USA', 'CA': 'Canada', 'ET': 'Ethiopia', 'ER': 'Eritrea',
+  'UG': 'Uganda', 'KE': 'Kenya', 'SS': 'South Sudan', 'RW': 'Rwanda', 'EG': 'Egypt', 'AO': 'Angola',
+};
+String? _myCountry;
+
+/// The user's country from the position (only if location is already allowed; we never ask here).
+Future<String> detectCountry() async {
+  if (_myCountry != null) return _myCountry!;
+  try {
+    final p = await Geolocator.checkPermission();
+    if (p == LocationPermission.always || p == LocationPermission.whileInUse) {
+      final pos = await Geolocator.getLastKnownPosition();
+      if (pos != null) {
+        final pm = await placemarkFromCoordinates(pos.latitude, pos.longitude);
+        if (pm.isNotEmpty) return _myCountry = _iso[(pm.first.isoCountryCode ?? '').toUpperCase()] ?? '';
+      }
+    }
+  } catch (_) {}
+  return '';
+}
+
+/// "Habesha Hub Norge" for the home screen shortcut (the user's country when it has a wekil).
+Future<String> hubShortcutName() async {
+  final c = await detectCountry();
+  try {
+    final d = await _db.collection('app_config').doc('wekilCountries').get();
+    final list = List<String>.from(d.data()?['list'] ?? const []);
+    if (list.contains(c)) return hubName(c);
+  } catch (_) {}
+  return 'Habesha Hub Service';
+}
 
 const _cats = [
   ('food', '🍲', 'Food & catering'),
@@ -117,7 +162,8 @@ class _ServiceHubScreenState extends State<ServiceHubScreen> {
       final d = await _db.collection('app_config').doc('wekilCountries').get();
       _countries = List<String>.from(d.data()?['list'] ?? const []);
     } catch (_) {}
-    _country = _countries.contains('Norway') ? 'Norway' : (_countries.isEmpty ? '' : _countries.first);
+    final mine = await detectCountry();
+    _country = _countries.contains(mine) ? mine : _countries.contains('Norway') ? 'Norway' : (_countries.isEmpty ? '' : _countries.first);
     if (mounted) setState(() => _loading = false);
   }
 
@@ -147,15 +193,14 @@ class _ServiceHubScreenState extends State<ServiceHubScreen> {
   @override
   Widget build(BuildContext context) {
     final me = FirebaseAuth.instance.currentUser;
-    return _pageScaffold(context, 'Habesha Hub Service', _loading
+    return _pageScaffold(context, hubName(_country), _loading
         ? Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))
         : ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 40), children: [
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(color: kTintGreen, borderRadius: BorderRadius.circular(18)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('${flagOf(_country)} Habesha Hub Service${_country.isEmpty ? '' : ' · ${tr(_country)}'}',
-                    style: tsTitleLg(color: kInkGreen)),
+                Text('${flagOf(_country)} ${hubName(_country)}', style: tsTitleLg(color: kInkGreen)),
                 const SizedBox(height: 6),
                 Text(tr('Tell us what you need. Our wekil in your country finds a trusted Habesha service for you and contacts you on WhatsApp.'),
                     style: tsBodySm(color: kInkGreen)),
@@ -166,7 +211,7 @@ class _ServiceHubScreenState extends State<ServiceHubScreen> {
               Wrap(spacing: 8, runSpacing: 8, children: [
                 for (final c in _countries)
                   ChoiceChip(
-                    label: Text('${flagOf(c)} ${tr(c)}'),
+                    label: Text('${flagOf(c)} ${_local[c] ?? c}'),
                     selected: _country == c, showCheckmark: false,
                     selectedColor: kSecondary,
                     labelStyle: TextStyle(color: _country == c ? kOnAccent : kText, fontWeight: FontWeight.w600),
@@ -370,7 +415,7 @@ class _ServiceRequestFormState extends State<ServiceRequestForm> {
   @override
   Widget build(BuildContext context) {
     return _pageScaffold(context, _catLabel(widget.category), ListView(padding: const EdgeInsets.all(20), children: [
-      Text('${flagOf(widget.country)} Habesha Hub Service · ${tr(widget.country)}', style: tsBodySm(color: kTextSub)),
+      Text('${flagOf(widget.country)} ${hubName(widget.country)}', style: tsBodySm(color: kTextSub)),
       const SizedBox(height: 14),
       _f(_text, tr('What do you need?'), lines: 4, hint: tr('E.g. food for 50 people on Saturday')),
       _f(_city, tr('City')),
@@ -502,7 +547,7 @@ class _WekilRequestScreenState extends State<WekilRequestScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
             icon: const Icon(Icons.chat_rounded),
             label: Text(tr('Contact on WhatsApp'), style: const TextStyle(fontWeight: FontWeight.w700)),
-            onPressed: () => launchUrl(Uri.parse('https://wa.me/$digits?text=${Uri.encodeComponent('Habesha Hub Service: ${r['name'] ?? ''}')}'),
+            onPressed: () => launchUrl(Uri.parse('https://wa.me/$digits?text=${Uri.encodeComponent('${hubName((r['country'] ?? '').toString())}: ${r['name'] ?? ''}')}'),
                 mode: LaunchMode.externalApplication),
           ),
           const SizedBox(height: 18),

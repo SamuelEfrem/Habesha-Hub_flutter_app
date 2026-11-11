@@ -51,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   bool _hasSearched = false;
   bool _isSearching = false;
   List<Business> _businesses = [];
+  String _hubName = 'Habesha Hub Service'; // "Habesha Hub Norge" when the country has a wekil
 
   final _categories = [
     {'key': 'All', 'emoji': '🏠'},
@@ -232,6 +233,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
       final pos = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
       if (mounted) setState(() => _position = pos);
+      hubShortcutName().then((n) { if (mounted && n != _hubName) setState(() => _hubName = n); });
       final snapshot = await _service.getBusinessesNear(pos.latitude, pos.longitude);
       snapshot.sort((a, b) => a
           .distanceTo(pos.latitude, pos.longitude)
@@ -474,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   Widget _buildShortcuts(String Function(String) t) {
     void push(Widget w) => Navigator.push(context, MaterialPageRoute(builder: (_) => w));
     final items = <(IconData, String, Color, Color, VoidCallback)>[
-      (Icons.work_outline_rounded, tr('Services'), kTintYellow, kInkYellow, () => push(const ServiceHubScreen())),
+      (Icons.work_outline_rounded, _hubName, kTintYellow, kInkYellow, () => push(const ServiceHubScreen())),
       (Icons.shopping_bag_outlined, tr('Market'), kTintBlue, kInkBlue, () => push(const MarketplaceScreen())),
       (Icons.send_outlined, tr('Send money'), kTintRed, kInkRed, () => push(const SendMoneyScreen())),
       (Icons.event_outlined, tr('Events'), kTintGreen, kInkGreen, () => push(const EventsScreen())),
