@@ -9,8 +9,9 @@
 //             with a website, phone, brand or Wikipedia entry
 //
 // Run:
-//   node tools/import_osm_area.js tigray addis            (only shows what would be added)
-//   node tools/import_osm_area.js tigray addis --write    (saves in Firestore)
+//   node tools/import_osm_area.js tigray eritrea addis           (only shows what would be added)
+//   node tools/import_osm_area.js tigray eritrea addis --write   (saves in Firestore)
+//   eritrea – every named restaurant, café, bar, hotel, shop, clinic, hospital and church in Eritrea
 //
 // Safe to run again: every place gets id "osm_<type>_<id>" and is updated, not
 // duplicated. A place that is already in the app (same name within 2 km) is
@@ -141,7 +142,7 @@ function hours(oh) {
 
 (async () => {
   const want = args.filter(a => AREAS[a]);
-  if (!want.length) { console.log('Use: node tools/import_osm_area.js tigray addis [--write]'); process.exit(1); }
+  if (!want.length) { console.log('Use: node tools/import_osm_area.js tigray eritrea addis [--write]'); process.exit(1); }
 
   initializeApp({ credential: cert(require(path.join(__dirname, '..', 'serviceAccountKey.json'))) });
   const db = getFirestore();
@@ -171,7 +172,7 @@ function hours(oh) {
       const street = [t['addr:street'], t['addr:housenumber']].filter(Boolean).join(' ');
       docs.push({ id, area: key, data: {
         name, category: cat, description: description(t, cat, town),
-        address: street ? `${street}, ${town}` : town, lat, lng, country: 'Ethiopia',
+        address: street ? `${street}, ${town}` : town, lat, lng, country: A.country || 'Ethiopia',
         phone: t.phone || t['contact:phone'] || '', website: t.website || t['contact:website'] || null,
         imageUrl: '', rating: 0, ratingCount: 0, isOpen: false, isPremium: false, pdfMenuUrl: null,
         openingHours: hours(t.opening_hours), galleryImages: [], promoVideoUrl: null,
@@ -209,6 +210,6 @@ function hours(oh) {
     await batch.commit();
     console.log(`   💾 ${Math.min(i + 400, docs.length)}/${docs.length} saved`);
   }
-  console.log('\n🎉 Done! They are live in the app now (Explore → Ethiopia).');
+  console.log('\n🎉 Done! They are live in the app now (Explore → Ethiopia / Eritrea).');
   process.exit(0);
 })().catch(e => { console.error('❌', e.message || e); process.exit(1); });
