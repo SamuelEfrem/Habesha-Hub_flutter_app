@@ -6,7 +6,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:ui';
 import 'firebase_options.dart';
-import 'screens/splash_screen.dart';
+import 'screens/home_screen.dart';
 import 'utils/language_notifier.dart';
 import 'theme/app_theme.dart';
 import 'utils/theme_notifier.dart';
@@ -152,7 +152,7 @@ class AppEntry extends StatelessWidget {
         if (!snap.hasData) return Scaffold(backgroundColor: kBg);
         // the new intro is shown once to everyone, also after updating
         final done = snap.data!.getBool(kOnboardingKey) ?? false;
-        return done ? const SplashScreen() : const OnboardingScreen();
+        return done ? const HomeScreen() : const OnboardingScreen();
       },
     );
   }

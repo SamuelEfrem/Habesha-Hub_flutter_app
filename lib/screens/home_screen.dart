@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import 'dart:io' show Platform;
 import 'package:geolocator/geolocator.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/business.dart';
 import '../services/business_service.dart';
 import '../widgets/business_card.dart';
@@ -743,14 +744,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     );
   }
 
-  Widget _buildBottomNav(String Function(String) t) {
+  Widget _buildBottomNav(String Function(String) t) => StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (_, snap) => _bottomNav(t, snap.data != null && !snap.data!.isAnonymous),
+      );
+
+  Widget _bottomNav(String Function(String) t, bool loggedIn) {
     // key = translation key; label = fallback if key not found
     final items = [
       {'icon': Icons.home_outlined, 'on': Icons.home_rounded, 'key': 'home', 'label': 'Home'},
       {'icon': Icons.explore_outlined, 'on': Icons.explore_rounded, 'key': 'explore', 'label': 'Explore'},
       {'icon': Icons.chat_bubble_outline_rounded, 'on': Icons.chat_bubble_rounded, 'key': 'Habesha AI', 'label': 'Habesha AI'},
       {'icon': Icons.smart_display_outlined, 'on': Icons.smart_display_rounded, 'key': 'tok', 'label': 'Hab Tok'},
-      {'icon': Icons.person_outline_rounded, 'on': Icons.person_rounded, 'key': 'profile', 'label': 'Profile'},
+      loggedIn
+          ? {'icon': Icons.person_outline_rounded, 'on': Icons.person_rounded, 'key': 'profile', 'label': 'Profile'}
+          : {'icon': Icons.login_rounded, 'on': Icons.login_rounded, 'key': 'Log in', 'label': 'Log in'},
     ];
     return Container(
       decoration: BoxDecoration(
@@ -770,7 +778,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
               final tab = i < 2 ? i : i - 1;
               final selected = i != 2 && _currentTab == tab;
               final color = selected ? kSecondary : kTextSub;
-              final raw = i == 2 ? tr('Habesha AI') : t(items[i]['key'] as String);
+              final raw = i == 2 ? tr('Habesha AI') : (i == 4 && !loggedIn) ? tr('Log in') : t(items[i]['key'] as String);
               final label = (raw == items[i]['key']) ? (items[i]['label'] as String) : raw;
               return Expanded(
                 child: InkWell(
