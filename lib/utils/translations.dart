@@ -972,6 +972,8 @@ class AppTranslations {
     'Chat with customers, shown first, 20 photos, 3 videos and a menu': {'Tigrinya': 'ምስ ዓማዊል ቻት፡ ቀዳምነት ምርኣይ፡ 20 ስእልታት፡ 3 ቪድዮታትን ሜኑን', 'Amharic': 'ከደንበኞች ጋር ቻት፣ መጀመሪያ መታየት፣ 20 ፎቶዎች፣ 3 ቪዲዮዎችና ሜኑ'},
     'Gallery, videos, chat and phone number are for Premium businesses': {'Tigrinya': 'ጋለሪ፡ ቪድዮ፡ ቻትን ቁጽሪ ተሌፎንን ንፕሪሚየም ንግድታት እዮም', 'Amharic': 'ጋለሪ፣ ቪዲዮ፣ ቻትና ስልክ ቁጥር ለፕሪሚየም ንግዶች ናቸው'},
     'Customers can call and chat, shown first, 20 photos, 3 videos and a menu': {'Tigrinya': 'ዓማዊል ክድውሉን ክጽሕፉን ይኽእሉ፡ ቀዳምነት ምርኣይ፡ 20 ስእልታት፡ 3 ቪድዮታትን ሜኑን', 'Amharic': 'ደንበኞች መደወልና መጻፍ ይችላሉ፣ መጀመሪያ መታየት፣ 20 ፎቶዎች፣ 3 ቪዲዮዎችና ሜኑ'},
+    'Gallery, videos, chat, phone number and website are for Premium businesses': {'Tigrinya': 'ጋለሪ፡ ቪድዮ፡ ቻት፡ ቁጽሪ ተሌፎንን ዌብሳይትን ንፕሪሚየም ንግድታት እዮም', 'Amharic': 'ጋለሪ፣ ቪዲዮ፣ ቻት፣ ስልክ ቁጥርና ድረ-ገጽ ለፕሪሚየም ንግዶች ናቸው'},
+    'Customers can call, chat and open your website, shown first, 20 photos, 3 videos and a menu': {'Tigrinya': 'ዓማዊል ክድውሉ፡ ክጽሕፉን ዌብሳይትካ ክኸፍቱን ይኽእሉ፡ ቀዳምነት ምርኣይ፡ 20 ስእልታት፡ 3 ቪድዮታትን ሜኑን', 'Amharic': 'ደንበኞች መደወል፣ መጻፍና ድረ-ገጽዎን መክፈት ይችላሉ፣ መጀመሪያ መታየት፣ 20 ፎቶዎች፣ 3 ቪዲዮዎችና ሜኑ'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},

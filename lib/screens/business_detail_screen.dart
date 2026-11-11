@@ -768,7 +768,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(tr('Upgrade to Premium'), style: tsTitleMd(color: kSecondary)),
             SizedBox(height: 4),
-            Text(tr('Customers can call and chat, shown first, 20 photos, 3 videos and a menu'), style: tsBodySm(color: kTextSub)),
+            Text(tr('Customers can call, chat and open your website, shown first, 20 photos, 3 videos and a menu'), style: tsBodySm(color: kTextSub)),
           ])),
           Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 16),
         ]),
@@ -988,7 +988,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(color: kTintYellow, borderRadius: BorderRadius.circular(12)),
-        child: Text('⭐ ${tr('Gallery, videos, chat and phone number are for Premium businesses')}', style: tsBodySm(color: kInkYellow)),
+        child: Text('⭐ ${tr('Gallery, videos, chat, phone number and website are for Premium businesses')}', style: tsBodySm(color: kInkYellow)),
       ),
       const SizedBox(height: 10),
       Row(children: [
@@ -1306,7 +1306,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
       _quickAction(Icons.directions_rounded, tr('Directions'), _openMaps, primary: true),
       // the phone number is shown (and callable) only for premium businesses
       if (b.phone.isNotEmpty && b.premium) _quickAction(Icons.phone_rounded, t('call'), _callBusiness),
-      if (site.isNotEmpty)
+      // the website link is shown only for premium businesses (and Habesha Tech Help itself)
+      if (site.isNotEmpty && (b.premium || b.id == kTechHelpBusinessId))
         _quickAction(Icons.language_rounded, t('web'), () async {
           trackStat(b, 'website');
           final url = Uri.parse(site.startsWith('http') ? site : 'https://$site');
