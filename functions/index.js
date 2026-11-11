@@ -122,6 +122,13 @@ const COUNTRY = { UG: 'Uganda', ET: 'Ethiopia', ER: 'Eritrea', KE: 'Kenya', SS: 
 const cut = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
 
 // Everything the assistant may recommend: businesses, Habesha Hub services and marketplace items
+// premium right now (switched on and not expired); only premium businesses show their phone number
+function premiumNow(b) {
+  if (!b || b.isPremium !== true) return false;
+  const u = b.premiumUntil && b.premiumUntil.toDate ? b.premiumUntil.toDate() : null;
+  return !u || u > new Date();
+}
+
 async function appContext() {
   if (Date.now() - ctxCache.at < 10 * 60 * 1000 && ctxCache.text) return ctxCache.text;
   const db = getFirestore();
@@ -131,7 +138,7 @@ async function appContext() {
     db.collection('marketplace').orderBy('createdAt', 'desc').limit(60).get().catch(() => ({ docs: [] })),
   ]);
   const businesses = biz.docs.map(d => { const b = d.data();
-    return `- ${cut(b.name, 60)} | ${b.category || ''} | ${cut(b.address, 80)} | ${b.country || ''} | phone ${b.phone || '-'}`; });
+    return `- ${cut(b.name, 60)} | ${b.category || ''} | ${cut(b.address, 80)} | ${b.country || ''} | phone ${premiumNow(b) && b.phone ? b.phone : '-'}`; });
   const services = svc.docs.map(d => { const v = d.data();
     const t = v.translations || {};
     return `- ${cut(v.publicName, 40)} (Tigrinya: ${cut(t.Tigrinya?.publicName, 40)}, Amharic: ${cut(t.Amharic?.publicName, 40)})` +
@@ -616,7 +623,7 @@ ${v.imageUrl ? `<img class="hero" src="${esc(img)}" alt="">` : `<div class="ph">
 ${v.description ? `<p>${esc(v.description)}</p>` : ''}
 <div class="row">
 <a class="btn" href="${esc(maps)}">🧭 Directions</a>
-${v.phone ? `<a class="btn btn2" href="tel:${esc(String(v.phone).replace(/\s/g, ''))}">📞 Call</a>` : ''}
+${v.phone && premiumNow(v) ? `<a class="btn btn2" href="tel:${esc(String(v.phone).replace(/\s/g, ''))}">📞 Call</a>` : ''}
 </div>
 <a class="btn" href="https://habesha-hub.no/download.html">📲 Find more Habesha places in the app</a>
 ${v.source === 'osm' ? '<p class="muted" style="font-size:12px">Data © OpenStreetMap contributors</p>' : ''}
