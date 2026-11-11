@@ -434,22 +434,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   // ── Search field + "Near me" button ──
   Widget _buildSearchRow(String Function(String) t) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
       child: Row(children: [
         Expanded(
           child: Container(
-            height: 54,
-            decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(27)),
+            height: 44,
+            decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(22)),
             child: TextField(
               controller: _searchController,
-              style: tsBodyLg(color: kText).copyWith(fontSize: 15),
+              style: tsBodyLg(color: kText).copyWith(fontSize: 14),
               onChanged: (v) => setState(() => _searchQuery = v),
               decoration: InputDecoration(
                 hintText: t('search_hint'),
-                hintStyle: tsBodyLg(color: kTextSub).copyWith(fontSize: 15),
+                hintStyle: tsBodyLg(color: kTextSub).copyWith(fontSize: 13.5),
                 prefixIcon: Padding(
                   padding: const EdgeInsets.only(left: 8),
-                  child: Icon(Icons.search_rounded, color: kTextSub, size: 22),
+                  child: Icon(Icons.search_rounded, color: kTextSub, size: 20),
                 ),
                 suffixIcon: _searchQuery.isEmpty ? null : IconButton(
                   icon: Icon(Icons.close_rounded, color: kTextSub, size: 20),
@@ -459,7 +459,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),
@@ -474,11 +474,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
               customBorder: const CircleBorder(),
               onTap: _searchNearby,
               child: SizedBox(
-                width: 54, height: 54,
+                width: 44, height: 44,
                 child: _isSearching
-                    ? Padding(padding: const EdgeInsets.all(16),
+                    ? Padding(padding: const EdgeInsets.all(13),
                         child: CircularProgressIndicator(color: kOnAccent, strokeWidth: 2.2))
-                    : Icon(Icons.my_location_rounded, color: kOnAccent, size: 24),
+                    : Icon(Icons.my_location_rounded, color: kOnAccent, size: 20),
               ),
             ),
           ),

@@ -14,6 +14,7 @@ import 'notices_screen.dart';
 import 'websites_screens.dart';
 import 'home_shops_screen.dart';
 import 'premium_screens.dart';
+import 'wekil_screens.dart';
 import '../utils/translations.dart';
 import 'housing_screen.dart';
 import '../models/business.dart';
@@ -115,20 +116,11 @@ class _AdminScreenState extends State<AdminScreen>
     (Icons.block_rounded, 'Rejected'),
     (Icons.verified_user_rounded, 'Claims'),
     (Icons.flag_rounded, 'Reports'),
-    (Icons.star_rounded, 'Premium'),
     (Icons.add_business_rounded, 'Suggestions'),
-    (Icons.key_rounded, 'Codes'),
-    (Icons.mail_rounded, 'Messages'),
-    (Icons.event_note_rounded, 'Bookings'),
-    (Icons.flight_rounded, 'Travel'),
-    (Icons.design_services_rounded, 'Services'),
-    (Icons.receipt_long_rounded, 'Orders'),
-    (Icons.storefront_outlined, 'Home shops'),
-    (Icons.home_work_outlined, 'Housing'),
     (Icons.verified_user_outlined, 'Members'),
-    (Icons.event_rounded, 'Events'),
-    (Icons.add_business_outlined, 'New services'),
-    (Icons.language_rounded, 'Websites'),
+    (Icons.star_rounded, 'Premium'),
+    (Icons.mail_rounded, 'Messages'),
+    (Icons.grid_view_rounded, 'More'),
   ];
 
   @override
@@ -222,38 +214,13 @@ class _AdminScreenState extends State<AdminScreen>
             _BusinessList(status: 'rejected', db: _db),
             const ClaimsAdminTab(),
             const ReportsAdminTab(),
-            const PremiumAdminTab(),
             const SuggestionsAdminTab(),
-            const UnlockCodesAdminTab(),
-            _ContactMessagesList(db: _db),
-            const BookingListScreen(),
-            _TravelRequestsList(db: _db),
-            // ─ SERVICES (anonymous providers) ─
-            Scaffold(
-              backgroundColor: Colors.transparent,
-              floatingActionButton: FloatingActionButton(
-                backgroundColor: kSecondary,
-                foregroundColor: kOnAccent,
-                onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const AddServiceScreen())),
-                child: const Icon(Icons.add_rounded),
-              ),
-              body: const ManageServicesTab(),
-            ),
-            // ─ BOOKINGS (service_bookings) ─
-            const ManageBookingsTab(),
-            // ─ HOME SHOPS (ቤት ዕዳጋ) ─
-            const HomeShopsAdminTab(),
-            // ─ HOUSING (Market > Housing) ─
-            const HousingAdminTab(),
             // ─ MEMBERS (who may book / sell) ─
             const MembersAdminTab(),
-            // ─ EVENTS + organizer applications ─
-            const EventsAdminTab(),
-            // ─ services the providers registered themselves ─
-            const ServicesApprovalTab(),
-            // ─ website requests (Habesha Tech Help) ─
-            const WebsiteRequestsAdminTab(),
+            const PremiumAdminTab(),
+            _ContactMessagesList(db: _db),
+            // ─ everything used less often, as a calm grid ─
+            _MoreTab(db: _db),
           ],
         ),
       ),
@@ -967,6 +934,67 @@ class _TravelRequestsList extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+
+// ── "More": the admin sections that are used less often ──
+class _MoreTab extends StatelessWidget {
+  final FirebaseFirestore db;
+  const _MoreTab({required this.db});
+
+  void _open(BuildContext context, String title, Widget body, {Widget? fab}) => Navigator.push(context, MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: kBg,
+          appBar: AppBar(backgroundColor: kBg, surfaceTintColor: Colors.transparent, iconTheme: IconThemeData(color: kSecondary),
+              title: Text(title, style: tsTitleMd(color: kText).copyWith(fontSize: 18))),
+          floatingActionButton: fab,
+          body: body,
+        ),
+      ));
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <(IconData, String, VoidCallback)>[
+      (Icons.public_rounded, 'Wekils & service requests', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WekilInboxScreen(country: '')))),
+      (Icons.event_rounded, 'Events', () => _open(context, 'Events', const EventsAdminTab())),
+      (Icons.storefront_outlined, 'Home shops', () => _open(context, 'Home shops', const HomeShopsAdminTab())),
+      (Icons.home_work_outlined, 'Housing', () => _open(context, 'Housing', const HousingAdminTab())),
+      (Icons.language_rounded, 'Websites', () => _open(context, 'Websites', const WebsiteRequestsAdminTab())),
+      (Icons.add_business_outlined, 'New services', () => _open(context, 'New services', const ServicesApprovalTab())),
+      (Icons.design_services_rounded, 'Services', () => _open(context, 'Services', const ManageServicesTab(),
+          fab: FloatingActionButton(backgroundColor: kSecondary, foregroundColor: kOnAccent,
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddServiceScreen())),
+              child: const Icon(Icons.add_rounded)))),
+      (Icons.receipt_long_rounded, 'Orders', () => _open(context, 'Orders', const ManageBookingsTab())),
+      (Icons.event_note_rounded, 'Bookings', () => _open(context, 'Bookings', const BookingListScreen())),
+      (Icons.flight_rounded, 'Travel', () => _open(context, 'Travel', _TravelRequestsList(db: db))),
+      (Icons.key_rounded, 'Codes', () => _open(context, 'Codes', const UnlockCodesAdminTab())),
+    ];
+    return GridView.count(
+      padding: const EdgeInsets.all(16),
+      crossAxisCount: 3, mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 1.05,
+      children: [
+        for (final it in items)
+          Material(
+            color: kCard,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: it.$3,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(it.$1, color: kSecondary, size: 26),
+                  const SizedBox(height: 8),
+                  Text(it.$2, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontFamily: kFontBody, fontSize: 12, fontWeight: FontWeight.w600, color: kText)),
+                ]),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

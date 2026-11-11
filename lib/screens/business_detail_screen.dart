@@ -601,7 +601,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         const SizedBox(height: 12),
       ],
       _buildMenuButton(),
-      if (!_isOwner &&
+      // booking a time is a Premium feature
+      if (!_isOwner && widget.business.premium &&
           FirebaseAuth.instance.currentUser?.email != 'samuelefriem@gmail.com') ...[
         const SizedBox(height: 12),
         GestureDetector(
@@ -768,7 +769,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(tr('Upgrade to Premium'), style: tsTitleMd(color: kSecondary)),
             SizedBox(height: 4),
-            Text(tr('Customers can call, chat and open your website, shown first, 20 photos, 3 videos and a menu'), style: tsBodySm(color: kTextSub)),
+            Text(tr('Customers can call, chat, book a time and open your website, shown first, 20 photos, 3 videos and a menu'), style: tsBodySm(color: kTextSub)),
           ])),
           Icon(Icons.arrow_forward_ios_rounded, color: kSecondary, size: 16),
         ]),
@@ -988,7 +989,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(color: kTintYellow, borderRadius: BorderRadius.circular(12)),
-        child: Text('⭐ ${tr('Gallery, videos, chat, phone number and website are for Premium businesses')}', style: tsBodySm(color: kInkYellow)),
+        child: Text('⭐ ${tr('Gallery, videos, chat, booking, phone number and website are for Premium businesses')}', style: tsBodySm(color: kInkYellow)),
       ),
       const SizedBox(height: 10),
       Row(children: [
