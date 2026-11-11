@@ -26,6 +26,7 @@ import 'cross_links.dart';
 import 'hair_beauty.dart';
 import 'premium_screens.dart';
 import 'wekil_screens.dart';
+import 'websites_screens.dart';
 import '../services/premium.dart';
 import '../services/update_check.dart';
 import '../services/review_prompt.dart';
@@ -344,6 +345,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
               _buildSkeletons()
             else
               SliverToBoxAdapter(child: _buildLocationPrompt()),
+            SliverToBoxAdapter(child: _buildWebsiteAd()),
             SliverToBoxAdapter(child: _buildShareCard()),
             const SliverToBoxAdapter(child: SizedBox(height: 40)),
           ],
@@ -503,6 +505,35 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
 
   // Shown before the first search (location not allowed yet)
   // "Know someone who needs this? Share the app" – more people find the app through friends
+  // small ad: we make websites for private people and businesses
+  Widget _buildWebsiteAd() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      child: Material(
+        color: kTintBlue,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WebsitesScreen())),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(children: [
+              const Text('💻', style: TextStyle(fontSize: 26)),
+              const SizedBox(width: 14),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(tr('Need your own website?'), style: tsTitleMd(color: kInkBlue)),
+                const SizedBox(height: 2),
+                Text(tr('For you or your business. Contact us, we make it the way you need it.'), style: tsBodySm(color: kInkBlue)),
+              ])),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right_rounded, color: kInkBlue, size: 24),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildShareCard() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),

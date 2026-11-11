@@ -1040,6 +1040,8 @@ class AppTranslations {
     'and we find it for you': {'Tigrinya': 'ንሕና ክንረኽበልካ ኢና', 'Amharic': 'እኛ እናገኝልዎታለን'},
     'Services, market, events and more': {'Tigrinya': 'ኣገልግሎት፡ ዕዳጋ፡ ፍሉያት ኣጋጣሚታትን ካልእን', 'Amharic': 'አገልግሎት፣ ገበያ፣ ዝግጅቶችና ሌሎችም'},
     'Scroll down to see all places': {'Tigrinya': 'ኩሉ ቦታታት ንምርኣይ ናብ ታሕቲ ኣውርድ', 'Amharic': 'ሁሉንም ቦታዎች ለማየት ወደ ታች ይሸብልሉ'},
+    'Need your own website?': {'Tigrinya': 'ናይ ባዕልኻ ዌብሳይት የድልየካ ዶ?', 'Amharic': 'የራስዎ ድረ-ገጽ ያስፈልግዎታል?'},
+    'For you or your business. Contact us, we make it the way you need it.': {'Tigrinya': 'ንኣኻ ወይ ንንግድኻ። ተወከሰና፡ ከም ድሌትካ ንሰርሓልካ።', 'Amharic': 'ለእርስዎ ወይም ለንግድዎ። ያግኙን፣ እንደፍላጎትዎ እንሰራልዎታለን።'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},
