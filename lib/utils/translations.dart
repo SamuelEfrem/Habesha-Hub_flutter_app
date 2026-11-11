@@ -962,6 +962,8 @@ class AppTranslations {
     'Ends within 7 days': {'Tigrinya': 'ኣብ 7 መዓልቲ ዝውድኡ', 'Amharic': 'በ7 ቀናት ውስጥ የሚያበቁ'},
     'Active': {'Tigrinya': 'ንጡፍ', 'Amharic': 'ንቁ'},
     'Expired': {'Tigrinya': 'ዝወድአ', 'Amharic': 'ጊዜው ያለፈ'},
+    'Show all': {'Tigrinya': 'ኩሉ ኣርኢ', 'Amharic': 'ሁሉንም አሳይ'},
+    'None within 50 km yet': {'Tigrinya': 'ገና ኣብ 50 ኪ.ሜ ውሽጢ የለን', 'Amharic': 'እስካሁን በ50 ኪ.ሜ ውስጥ የለም'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},

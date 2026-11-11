@@ -91,6 +91,7 @@ class _SmallBusinessScreenState extends State<SmallBusinessScreen> {
   String _tab = 'biz';
   double _lat = 59.9139, _lng = 10.7522;
   bool _hasPos = false;
+  bool _showAll = false; // 50 km like the other lists, unless the user asks for all
   late Future<List<Business>> _load;
 
   @override
@@ -152,7 +153,10 @@ class _SmallBusinessScreenState extends State<SmallBusinessScreen> {
         if (snap.connectionState != ConnectionState.done) {
           return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
         }
-        final list = snap.data ?? const <Business>[];
+        final everything = snap.data ?? const <Business>[];
+        final near = _hasPos ? everything.where((b) => b.distanceTo(_lat, _lng) <= 50).toList() : everything;
+        final list = _showAll ? everything : near;
+        final more = everything.length - near.length;
         return RefreshIndicator(
           color: kSecondary,
           onRefresh: () async { final f = _fetch(); setState(() => _load = f); await f; },
@@ -163,7 +167,7 @@ class _SmallBusinessScreenState extends State<SmallBusinessScreen> {
               const SizedBox(height: 30),
               const Center(child: Text('🌱', style: TextStyle(fontSize: 40))),
               const SizedBox(height: 8),
-              Center(child: Text(tr('Nothing here yet'), style: tsTitleMd(color: kText))),
+              Center(child: Text(everything.isEmpty ? tr('Nothing here yet') : tr('None within 50 km yet'), style: tsTitleMd(color: kText))),
               const SizedBox(height: 4),
               Center(child: Text(tr('Be the first: register your small business'), textAlign: TextAlign.center, style: tsBodySm(color: kTextSub))),
             ],
@@ -175,6 +179,11 @@ class _SmallBusinessScreenState extends State<SmallBusinessScreen> {
                 onTap: () => Navigator.push(context, MaterialPageRoute(
                     builder: (_) => BusinessDetailScreen(business: b, userLat: _lat, userLng: _lng))),
               ),
+            if (!_showAll && more > 0)
+              Center(child: TextButton(
+                onPressed: () => setState(() => _showAll = true),
+                child: Text('${tr('Show all')} (+$more)', style: tsTitleMd(color: kSecondary)),
+              )),
           ]),
         );
       },
