@@ -801,14 +801,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Icon((selected ? items[i]['on'] : items[i]['icon']) as IconData, color: color, size: 25),
                     const SizedBox(height: 4),
-                    Text(label,
+                    // long labels ("Business login") shrink a little instead of being cut
+                    FittedBox(fit: BoxFit.scaleDown, child: Text(label,
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        
                         style: TextStyle(
                             fontFamily: kFontBody,
                             fontSize: 11,
                             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                            color: color)),
+                            color: color))),
                   ]),
                 ),
               );
