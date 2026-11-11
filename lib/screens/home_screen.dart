@@ -50,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   Position? _position;
   String _searchQuery = '';
   bool _hasSearched = false;
+  bool _scrolled = false; // hides the "scroll down" hint
   bool _isSearching = false;
   List<Business> _businesses = [];
   String _hubName = 'Habesha Hub Service'; // "Habesha Hub Norge" when the country has a wekil
@@ -309,13 +310,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
         color: kSecondary,
         backgroundColor: kBg,
         onRefresh: _searchNearby,
-        child: CustomScrollView(
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (n) {
+            if (!_scrolled && n.metrics.pixels > 40) setState(() => _scrolled = true);
+            return false;
+          },
+          child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(child: _buildTopBar()),
             SliverToBoxAdapter(child: _buildSearchRow(t)),
             if (_searchQuery.trim().length >= 2) SliverToBoxAdapter(child: CrossSearchResults(query: _searchQuery)),
             SliverToBoxAdapter(child: _buildShortcuts(t)),
+            if (_hasSearched) SliverToBoxAdapter(child: ScrollHint(visible: !_scrolled)),
             const SliverToBoxAdapter(child: WeekendEventsCard()),
             if (_hasSearched) ...[
               if (_selectedCategory == 'All' && _searchQuery.isEmpty)
@@ -340,6 +347,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
             SliverToBoxAdapter(child: _buildShareCard()),
             const SliverToBoxAdapter(child: SizedBox(height: 40)),
           ],
+        ),
         ),
       ),
     );
@@ -483,7 +491,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     // all shortcuts in one round button that opens with a spring
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
-      child: RadialMenu(items: [
+      child: ShortcutRow(items: [
         RadialItem(Icons.work_outline_rounded, _hubName, kTintYellow, kInkYellow, () => push(const ServiceHubScreen())),
         RadialItem(Icons.shopping_bag_outlined, tr('Market'), kTintBlue, kInkBlue, () => push(const MarketplaceScreen())),
         RadialItem(Icons.send_outlined, tr('Send money'), kTintRed, kInkRed, () => push(const SendMoneyScreen())),

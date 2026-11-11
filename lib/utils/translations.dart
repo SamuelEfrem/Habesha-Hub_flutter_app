@@ -1039,6 +1039,7 @@ class AppTranslations {
     'Tell': {'Tigrinya': 'ንገሮ ን', 'Amharic': 'ይንገሩ ለ'},
     'and we find it for you': {'Tigrinya': 'ንሕና ክንረኽበልካ ኢና', 'Amharic': 'እኛ እናገኝልዎታለን'},
     'Services, market, events and more': {'Tigrinya': 'ኣገልግሎት፡ ዕዳጋ፡ ፍሉያት ኣጋጣሚታትን ካልእን', 'Amharic': 'አገልግሎት፣ ገበያ፣ ዝግጅቶችና ሌሎችም'},
+    'Scroll down to see all places': {'Tigrinya': 'ኩሉ ቦታታት ንምርኣይ ናብ ታሕቲ ኣውርድ', 'Amharic': 'ሁሉንም ቦታዎች ለማየት ወደ ታች ይሸብልሉ'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},

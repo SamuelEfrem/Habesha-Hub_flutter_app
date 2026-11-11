@@ -682,7 +682,7 @@ class WekilAdminScreen extends StatelessWidget {
       title: Text(tr('Add wekil'), style: tsTitleLg(color: kText)),
       content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
         TextField(controller: email, keyboardType: TextInputType.emailAddress, style: tsBodyLg(color: kText),
-            decoration: const InputDecoration(labelText: 'Email', hintText: 'samiefr+norge@gmail.com')),
+            decoration: InputDecoration(labelText: tr('Email'), hintText: 'samiefr+norge@gmail.com')),
         const SizedBox(height: 10),
         TextField(controller: name, style: tsBodyLg(color: kText), decoration: InputDecoration(labelText: tr('Name'))),
         const SizedBox(height: 10),

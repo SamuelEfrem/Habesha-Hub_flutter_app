@@ -95,27 +95,29 @@ class WeekendEventsCard extends StatelessWidget {
         if (docs.isEmpty) return const SizedBox.shrink();
         final e = docs.first.data(), t = _date(e['startAt'])!;
         final who = _s(e['artistName']).isNotEmpty ? _s(e['artistName']) : _s(e['title']);
+        // a small pill: one short line, centred
         return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Material(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Center(child: Material(
             color: kTintGreen,
-            borderRadius: BorderRadius.circular(16),
+            shape: const StadiumBorder(),
             child: InkWell(
-              borderRadius: BorderRadius.circular(16),
+              customBorder: const StadiumBorder(),
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsScreen())),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                child: Row(children: [
-                  const Text('🎵', style: TextStyle(fontSize: 20)),
-                  const SizedBox(width: 10),
-                  Expanded(child: Text(
-                    '${tr('This weekend')}: $who · ${_s(e['city'])} · ${tr(_days[t.weekday - 1])}${docs.length > 1 ? '  +${docs.length - 1}' : ''}',
-                    maxLines: 2, overflow: TextOverflow.ellipsis, style: tsTitleMd(color: kInkGreen).copyWith(fontSize: 14))),
-                  Icon(Icons.chevron_right_rounded, color: kInkGreen),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Text('🎵', style: TextStyle(fontSize: 13)),
+                  const SizedBox(width: 6),
+                  Flexible(child: Text(
+                    '${tr('This weekend')}: $who · ${tr(_days[t.weekday - 1])}${docs.length > 1 ? '  +${docs.length - 1}' : ''}',
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontFamily: kFontBody, fontSize: 12, fontWeight: FontWeight.w700, color: kInkGreen))),
+                  Icon(Icons.chevron_right_rounded, color: kInkGreen, size: 16),
                 ]),
               ),
             ),
-          ),
+          )),
         );
       },
     );

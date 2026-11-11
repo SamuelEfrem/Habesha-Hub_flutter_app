@@ -319,7 +319,7 @@ service cloud.firestore {
       let d = request.resource.data;
       return d.keys().hasOnly(['publicName', 'description', 'group', 'subcategory', 'category', 'country', 'city', 'area',
           'priceRange', 'languages', 'travels', 'travelsWhere', 'whatsapp', 'phone', 'links', 'sampleImages', 'sampleVideoUrls',
-          'ownerId', 'contactMode', 'status', 'available', 'createdAt', 'updatedAt'])
+          'ownerId', 'contactMode', 'status', 'available', 'createdAt', 'updatedAt', 'translations', 'rating', 'ratingCount', 'reviewCount'])
         && d.contactMode == 'direct' && d.group in ['weddings', 'travel', 'music']
         && d.publicName is string && d.publicName.size() > 0 && d.publicName.size() <= 80
         && d.get('description', '').size() <= 2000 && d.country is string && d.country.size() == 2
@@ -329,7 +329,7 @@ service cloud.firestore {
       let d = request.resource.data;
       return d.keys().hasOnly(['publicName', 'description', 'group', 'subcategory', 'category', 'country', 'city', 'area',
           'priceRange', 'languages', 'travels', 'travelsWhere', 'whatsapp', 'phone', 'links', 'sampleImages', 'sampleVideoUrls',
-          'ownerId', 'contactMode', 'status', 'available', 'createdAt', 'updatedAt'])
+          'ownerId', 'contactMode', 'status', 'available', 'createdAt', 'updatedAt', 'translations', 'rating', 'ratingCount', 'reviewCount'])
         && d.ownerId == uid() && d.contactMode == 'direct' && d.group in ['weddings', 'travel', 'music']
         && d.status == 'pending' && d.available == false
         && d.publicName is string && d.publicName.size() > 0 && d.publicName.size() <= 80

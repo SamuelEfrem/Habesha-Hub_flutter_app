@@ -53,16 +53,14 @@ const kServiceCountries = [
 String serviceStr(dynamic v) => v == null ? '' : v.toString().trim();
 
 /// Provider text in the selected language.
-/// Firestore: publicName / description in English, plus
-///   translations: { Tigrinya: {publicName, description}, Amharic: {...} }
+/// Firestore: publicName / description as written, plus (made by the Cloud Function translateService)
+///   translations: { English: {publicName, description}, Tigrinya: {...}, Amharic: {...} }
 String serviceText(Map<String, dynamic> data, String field) {
   final lang = languageNotifier.language;
-  if (lang != 'English') {
-    final t9n = data['translations'];
-    if (t9n is Map && t9n[lang] is Map) {
-      final v = serviceStr((t9n[lang] as Map)[field]);
-      if (v.isNotEmpty) return v;
-    }
+  final t9n = data['translations'];
+  if (t9n is Map && t9n[lang] is Map) {
+    final v = serviceStr((t9n[lang] as Map)[field]);
+    if (v.isNotEmpty) return v;
   }
   return serviceStr(data[field]);
 }

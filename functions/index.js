@@ -837,6 +837,37 @@ exports.notifyServiceRequestStatus = onDocumentUpdated('serviceRequests/{id}', a
     data: { type: 'serviceRequest' }, android: { priority: 'high' }, apns: { payload: { aps: { sound: 'default' } } } });
 });
 
+// Service providers: the name and description are translated to English, Tigrinya and Amharic
+// (the wekil may write in Norwegian, Swedish, German … or Tigrinya). Runs when the text changes.
+exports.translateService = onDocumentWritten({ document: 'anonymous_services/{id}', secrets: [GEMINI_KEY], timeoutSeconds: 60 }, async (event) => {
+  const v = event.data?.after?.data();
+  if (!v) return;
+  const name = String(v.publicName || '').slice(0, 120), desc = String(v.description || '').slice(0, 2000);
+  if (!name && !desc) return;
+  const src = `${name}\n${desc}`;
+  if (v.translations?.src === src) return;   // already translated (also stops the loop after our own write)
+  const prompt = `Translate this service listing for the Habesha community app. Keep names of people and businesses as they are. ` +
+    `Answer ONLY with JSON: {"English":{"publicName":"","description":""},"Tigrinya":{"publicName":"","description":""},"Amharic":{"publicName":"","description":""}}.` +
+    `\n\nName: ${name}\nDescription: ${desc}`;
+  try {
+    let out = null;
+    for (const model of [GEMINI_MODEL, GEMINI_FALLBACK]) {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(cleanKey())}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.2, maxOutputTokens: 3000, responseMimeType: 'application/json' } }),
+      });
+      if (!r.ok) continue;
+      const data = await r.json();
+      const txt = data?.candidates?.[0]?.content?.parts?.map(x => x.text || '').join('') || '';
+      try { out = JSON.parse(txt); break; } catch (e) { /* try the other model */ }
+    }
+    if (!out) return;
+    const clean = o => ({ publicName: String(o?.publicName || '').slice(0, 120), description: String(o?.description || '').slice(0, 2500) });
+    await event.data.after.ref.update({ translations: { English: clean(out.English), Tigrinya: clean(out.Tigrinya), Amharic: clean(out.Amharic), src } });
+  } catch (e) { console.error('translateService', e.message); }
+});
+
 exports.notifyNewBusiness = onDocumentCreated('businesses/{id}', async (event) => {
   const b = event.data?.data();
   if (!b || b.status !== 'pending') return;
