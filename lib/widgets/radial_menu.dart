@@ -27,7 +27,7 @@ class _RadialMenuState extends State<RadialMenu> with TickerProviderStateMixin {
   // a soft "breathing" ring so new users see that the button can be tapped
   late final AnimationController _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))..repeat();
 
-  static const _center = 72.0, _item = 56.0, _radius = 118.0;
+  static const _center = 72.0, _item = 54.0, _rowGap = 22.0, _arc = 22.0;
 
   @override
   void dispose() {
@@ -53,14 +53,14 @@ class _RadialMenuState extends State<RadialMenu> with TickerProviderStateMixin {
       builder: (context, _) {
         final t = Curves.easeOutCubic.transform(_open.value);
         // the area grows while the menu opens
-        final height = _center + 24 + (_radius + _item + 8) * t;
+        final height = _center + 30 + (_item + 40) * t;
         return SizedBox(
           height: height,
           child: LayoutBuilder(builder: (context, box) {
             final cx = box.maxWidth / 2, cy = _center / 2 + 4;
             return Stack(clipBehavior: Clip.none, children: [
               // the shortcuts on a half circle under the button
-              for (var i = 0; i < n; i++) _bubble(i, n, cx, cy),
+              for (var i = 0; i < n; i++) _bubble(i, n, cx, cy, box.maxWidth),
               // the round button in the middle
               Positioned(
                 left: cx - _center / 2, top: cy - _center / 2,
@@ -81,7 +81,7 @@ class _RadialMenuState extends State<RadialMenu> with TickerProviderStateMixin {
                         boxShadow: [BoxShadow(color: kSecondary.withValues(alpha: 0.35), blurRadius: 16, offset: const Offset(0, 6))],
                       ),
                       child: Transform.rotate(
-                        angle: t * math.pi * 0.75,
+                        angle: t * math.pi / 2,
                         child: Icon(t > 0.5 ? Icons.close_rounded : Icons.apps_rounded, color: kOnAccent, size: 32),
                       ),
                     ),
@@ -90,7 +90,7 @@ class _RadialMenuState extends State<RadialMenu> with TickerProviderStateMixin {
               ),
               // a short hint under the closed button
               if (t < 0.99) Positioned(
-                left: 0, right: 0, top: cy + _center / 2 + 6,
+                left: 0, right: 0, top: cy + _center / 2 + 12,
                 child: Opacity(
                   opacity: 1 - t,
                   child: Text(tr('Services, market, events and more'), textAlign: TextAlign.center,
@@ -104,19 +104,20 @@ class _RadialMenuState extends State<RadialMenu> with TickerProviderStateMixin {
     );
   }
 
-  Widget _bubble(int i, int n, double cx, double cy) {
+  Widget _bubble(int i, int n, double cx, double cy, double width) {
     // each bubble starts a little later than the one before
-    final start = i * 0.08, end = (start + 0.62).clamp(0.0, 1.0);
+    final start = i * 0.07, end = (start + 0.6).clamp(0.0, 1.0);
     final p = Interval(start, end, curve: Curves.elasticOut).transform(_open.value);
     final fade = Interval(start, (start + 0.3).clamp(0.0, 1.0)).transform(_open.value);
-    // angles from left to right along the lower half circle
-    final a = math.pi * (0.95 - 0.9 * (n == 1 ? 0.5 : i / (n - 1)));
-    final x = cx + math.cos(a) * _radius * p - _item / 2;
-    final y = cy + math.sin(a) * _radius * p * 0.92 + 18 * p - _item / 2;
+    // one calm row under the button, in a soft smile-shaped arc (the ends a bit higher)
+    final slot = width / n, rel = n == 1 ? 0.0 : (i - (n - 1) / 2) / ((n - 1) / 2);
+    final tx = slot * i + slot / 2, ty = cy + _center / 2 + _rowGap + _arc * (1 - rel * rel);
+    final x = cx + (tx - cx) * p - _item / 2;
+    final y = cy + (ty - cy) * p - _item / 2 + _item / 2;
     final it = widget.items[i];
     if (_open.value == 0) return const SizedBox.shrink();
     return Positioned(
-      left: x - 14, top: y,
+      left: x - 14, top: y - _item / 2,
       child: Opacity(
         opacity: fade,
         child: Transform.scale(
