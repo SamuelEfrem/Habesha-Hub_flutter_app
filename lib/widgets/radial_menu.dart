@@ -91,7 +91,7 @@ class _ShortcutState extends State<_Shortcut> {
   }
 }
 
-/// "Scroll down to see all places" with a gently bouncing arrow; hidden as soon as the user scrolls.
+/// "Swipe up to see all places" with a gently bouncing arrow; hidden as soon as the user scrolls.
 class ScrollHint extends StatefulWidget {
   final bool visible;
   const ScrollHint({super.key, required this.visible});
@@ -119,8 +119,8 @@ class _ScrollHintState extends State<ScrollHint> with SingleTickerProviderStateM
           builder: (_, __) {
             final y = math.sin(_b.value * math.pi * 2) * 4;
             return Column(children: [
-              Text(tr('Scroll down to see all places'), style: TextStyle(fontFamily: kFontBody, fontSize: 11.5, fontWeight: FontWeight.w600, color: kTextSub)),
-              Transform.translate(offset: Offset(0, y + 2), child: Icon(Icons.keyboard_double_arrow_down_rounded, color: kSecondary, size: 22)),
+              Text(tr('Swipe up to see all places'), style: TextStyle(fontFamily: kFontBody, fontSize: 11.5, fontWeight: FontWeight.w600, color: kTextSub)),
+              Transform.translate(offset: Offset(0, y + 2), child: Icon(Icons.keyboard_double_arrow_up_rounded, color: kSecondary, size: 22)),
             ]);
           },
         ),

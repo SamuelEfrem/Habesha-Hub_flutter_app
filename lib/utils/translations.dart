@@ -1043,6 +1043,7 @@ class AppTranslations {
     'Need your own website?': {'Tigrinya': 'ናይ ባዕልኻ ዌብሳይት የድልየካ ዶ?', 'Amharic': 'የራስዎ ድረ-ገጽ ያስፈልግዎታል?'},
     'For you or your business. Contact us, we make it the way you need it.': {'Tigrinya': 'ንኣኻ ወይ ንንግድኻ። ተወከሰና፡ ከም ድሌትካ ንሰርሓልካ።', 'Amharic': 'ለእርስዎ ወይም ለንግድዎ። ያግኙን፣ እንደፍላጎትዎ እንሰራልዎታለን።'},
     'Habesha Hub Service': {'Tigrinya': 'ሓበሻ ሃብ ኣገልግሎት', 'Amharic': 'ሐበሻ ሀብ አገልግሎት'},
+    'Swipe up to see all places': {'Tigrinya': 'ኩሉ ቦታታት ንምርኣይ ናብ ላዕሊ ሕለፍ', 'Amharic': 'ሁሉንም ቦታዎች ለማየት ወደ ላይ ያንሸራትቱ'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},
