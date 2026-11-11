@@ -200,6 +200,8 @@ class _BusinessCardState extends State<BusinessCard> {
       ),
       if (b.premium)
         const Positioned(bottom: 10, right: 12, child: PremiumBadge(onPhoto: true)),
+      if (b.smallBiz || b.worksFromHome)
+        const Positioned(bottom: 10, left: 12, child: SmallBizBadge(onPhoto: true)),
     ]);
   }
 

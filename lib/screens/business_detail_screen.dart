@@ -491,8 +491,12 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 6),
-                    if (widget.business.premium) const Padding(
-                        padding: EdgeInsets.only(bottom: 6), child: PremiumBadge()),
+                    if (widget.business.premium || widget.business.smallBiz || widget.business.worksFromHome) Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Wrap(spacing: 6, children: [
+                          if (widget.business.premium) const PremiumBadge(),
+                          if (widget.business.smallBiz || widget.business.worksFromHome) const SmallBizBadge(),
+                        ])),
                     if (widget.business.rating == 0 && _ratingCount == 0)
                       Text(tr('New on Habesha Hub'),
                           style: tsBodySm(color: kSecondary))

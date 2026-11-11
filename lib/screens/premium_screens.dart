@@ -31,6 +31,21 @@ class PremiumBadge extends StatelessWidget {
       );
 }
 
+/// Small "🌱 Small business" pill (small / new / home-based businesses).
+class SmallBizBadge extends StatelessWidget {
+  final bool onPhoto;
+  const SmallBizBadge({super.key, this.onPhoto = false});
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+        decoration: BoxDecoration(
+            color: onPhoto ? Colors.black.withValues(alpha: 0.6) : kTintGreen,
+            borderRadius: BorderRadius.circular(100)),
+        child: Text('🌱 ${tr('Small business')}', style: TextStyle(fontFamily: kFontBody, fontSize: 11.5, fontWeight: FontWeight.w700,
+            color: onPhoto ? Colors.white : kInkGreen)),
+      );
+}
+
 // ═══════════════════════════════════════════════════════════
 // FEATURED row on the home screen (only shown when there are premium businesses nearby)
 // ═══════════════════════════════════════════════════════════
