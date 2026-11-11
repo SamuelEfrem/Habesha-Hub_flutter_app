@@ -1014,6 +1014,8 @@ class AppTranslations {
     'Add wekil': {'Tigrinya': 'ወኪል ወስኽ', 'Amharic': 'ወኪል ጨምር'},
     'Each wekil logs in with his own email and password and sees only the requests of his country. Tip: samiefr+norge@gmail.com, samiefr+sverige@gmail.com … all arrive in samiefr@gmail.com.': {'Tigrinya': 'ነፍሲ ወከፍ ወኪል ብናቱ ኢመይልን ፓስዎርድን ይኣቱ፡ ናይ ሃገሩ ሕቶታት ጥራይ ይርኢ።', 'Amharic': 'እያንዳንዱ ወኪል በራሱ ኢሜይልና የይለፍ ቃል ይገባል፣ የአገሩን ጥያቄዎች ብቻ ያያል።'},
     'No wekils yet': {'Tigrinya': 'ገና ወኪል የለን', 'Amharic': 'እስካሁን ወኪል የለም'},
+    'Businesses': {'Tigrinya': 'ንግድታት', 'Amharic': 'ንግዶች'},
+    'Small & home': {'Tigrinya': 'ናእሽቱን ገዛን', 'Amharic': 'አነስተኛና ቤት'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},

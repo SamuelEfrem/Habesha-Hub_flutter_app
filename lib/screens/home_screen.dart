@@ -9,7 +9,6 @@ import '../widgets/business_card.dart';
 import '../utils/language_notifier.dart';
 import '../utils/theme_notifier.dart';
 import '../theme/app_theme.dart';
-import 'services_screen.dart';
 import 'business_detail_screen.dart';
 import 'placeholder_screens.dart';
 import 'marketplace_screen.dart';
@@ -23,7 +22,6 @@ import 'send_money_screen.dart';
 import 'events_screens.dart';
 import 'cross_links.dart';
 import 'hair_beauty.dart';
-import 'small_business_screen.dart';
 import 'premium_screens.dart';
 import 'wekil_screens.dart';
 import '../services/premium.dart';
@@ -46,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   int _currentTab = 0;
   String _selectedCategory = 'All';
   String _hairSub = '', _hairFor = '';
+  String _size = 'all'; // all | big | small (small, new or home-based)
   Position? _position;
   String _searchQuery = '';
   bool _hasSearched = false;
@@ -271,6 +270,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
               hairSearchText(b).contains(_searchQuery.toLowerCase()))
           .toList();
     }
+    if (_size != 'all') {
+      list = list.where((b) => (b.smallBiz || b.worksFromHome) == (_size == 'small')).toList();
+    }
     return premiumFirst(list);
   }
 
@@ -313,13 +315,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
             if (_searchQuery.trim().length >= 2) SliverToBoxAdapter(child: CrossSearchResults(query: _searchQuery)),
             SliverToBoxAdapter(child: _buildShortcuts(t)),
             const SliverToBoxAdapter(child: WeekendEventsCard()),
-            const SliverToBoxAdapter(child: SmallBizHomeCard()),
             if (_hasSearched) ...[
               if (_selectedCategory == 'All' && _searchQuery.isEmpty)
                 SliverToBoxAdapter(child: FeaturedRow(businesses: _businesses,
                     lat: _position?.latitude ?? 59.9139, lng: _position?.longitude ?? 10.7522)),
               SliverToBoxAdapter(child: _buildResultsHeader(t)),
-              const SliverToBoxAdapter(child: SizedBox(height: 12)),
+              const SliverToBoxAdapter(child: SizedBox(height: 10)),
+              SliverToBoxAdapter(child: _buildSizeFilter()),
+              const SliverToBoxAdapter(child: SizedBox(height: 10)),
               SliverToBoxAdapter(child: _buildCategoryChips()),
               if (_selectedCategory == kHairCategory) SliverToBoxAdapter(child: Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -626,6 +629,36 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
             ),
           );
         },
+      ),
+    );
+  }
+
+  // All · Businesses · Small & home — one calm segmented row under "Nearby"
+  Widget _buildSizeFilter() {
+    Widget seg(String key, String label) {
+      final sel = _size == key;
+      return Expanded(child: GestureDetector(
+        onTap: () { HapticFeedback.selectionClick(); setState(() => _size = key); },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: sel ? kSecondary : Colors.transparent, borderRadius: BorderRadius.circular(100)),
+          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontFamily: kFontBody, fontSize: 13, fontWeight: FontWeight.w700, color: sel ? kOnAccent : kText)),
+        ),
+      ));
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(100)),
+        child: Row(children: [
+          seg('all', tr('All')),
+          seg('big', '🏢 ${tr('Businesses')}'),
+          seg('small', '🌱 ${tr('Small & home')}'),
+        ]),
       ),
     );
   }
