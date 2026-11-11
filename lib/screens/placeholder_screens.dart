@@ -589,13 +589,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 12),
                 Text(_nicknameCtrl.text.isEmpty ? (isLoggedIn ? tr('User') : tr('Guest')) : _nicknameCtrl.text, style: tsHeadlineMd()),
                 const SizedBox(height: 4),
-                Text(isLoggedIn ? (_user?.email ?? '') : tr('Log in for full access'), style: tsBodySm(color: kTextSub.withOpacity(0.6)), textAlign: TextAlign.center),
+                Text(isLoggedIn ? (_user?.email ?? '') : tr('Browsing is free for everyone'), style: tsBodySm(color: kTextSub.withOpacity(0.6)), textAlign: TextAlign.center),
                 const SizedBox(height: 20),
               ]),
             ),
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                if (!isLoggedIn) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(color: kTintGreen, borderRadius: BorderRadius.circular(18)),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(tr('Log in or create an account'), style: tsTitleLg(color: kInkGreen)),
+                      const SizedBox(height: 4),
+                      Text(tr('Free. With an account you can book, sell and save your favourites.'), style: tsBodySm(color: kInkGreen)),
+                      const SizedBox(height: 14),
+                      SizedBox(width: double.infinity, child: goldButton(tr('Log in or sign up'), _login, icon: Icons.login_rounded)),
+                    ]),
+                  ),
+                  const SizedBox(height: 20),
+                ],
 
                 Text(t('nickname'), style: tsTitleMd(color: kTextSub)),
                 const SizedBox(height: 8),
@@ -713,8 +728,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _menuRow(Icons.logout_rounded, t('logout'), _logout, color: kRed),
                   const SizedBox(height: 12),
                   _menuRow(Icons.delete_forever_rounded, t('delete_account'), _deleteAccount, color: kRed),
-                ] else
-                  _menuRow(Icons.login_rounded, t('login'), _login, color: kSecondary),
+                ],
                 const SizedBox(height: 40),
               ]),
             ),

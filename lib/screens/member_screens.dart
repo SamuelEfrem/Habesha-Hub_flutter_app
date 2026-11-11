@@ -210,9 +210,9 @@ class _MemberFormScreenState extends State<MemberFormScreen> {
 
   Future<void> _save() async {
     final digits = _phone.text.replaceAll(RegExp(r'[^0-9]'), '');
-    if (_name.text.trim().length < 2 || digits.length < 8 || _city.text.trim().isEmpty || _address.text.trim().isEmpty) {
-      setState(() => _error = _l('Please fill in everything. WhatsApp with country code (e.g. +47…).',
-          'በጃኹም ኩሉ ምልኡ። ዋትስኣፕ ምስ ኮድ ሃገር (ን.ኣ. +47…)።', 'እባክዎ ሁሉንም ይሙሉ። ዋትስአፕ ከአገር ኮድ ጋር (ለምሳሌ +47…)።'));
+    if (_name.text.trim().length < 2 || digits.length < 8 || _city.text.trim().isEmpty) {
+      setState(() => _error = _l('Please fill in name, WhatsApp (with country code, e.g. +47…) and city.',
+          'በጃኹም ስም፡ ዋትስኣፕ (ምስ ኮድ ሃገር፡ ን.ኣ. +47…) ከተማን ምልኡ።', 'እባክዎ ስም፣ ዋትስአፕ (ከአገር ኮድ ጋር፣ ለምሳሌ +47…) እና ከተማ ይሙሉ።'));
       return;
     }
     final u = FirebaseAuth.instance.currentUser;
@@ -261,7 +261,7 @@ class _MemberFormScreenState extends State<MemberFormScreen> {
       _field(_name, _l('Full name', 'ምሉእ ስም', 'ሙሉ ስም')),
       _field(_phone, _l('Phone (WhatsApp)', 'ቴሌፎን (ዋትስኣፕ)', 'ስልክ (ዋትስአፕ)'), type: TextInputType.phone, hint: '+47…'),
       _field(_city, _l('City', 'ከተማ', 'ከተማ')),
-      _field(_address, _l('Address', 'ኣድራሻ', 'አድራሻ'), type: TextInputType.streetAddress),
+      _field(_address, _l('Address (optional)', 'ኣድራሻ (ኣማራጺ)', 'አድራሻ (አማራጭ)'), type: TextInputType.streetAddress),
       if (_error.isNotEmpty) Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: Text(_error, style: tsBodySm(color: kRed)),
