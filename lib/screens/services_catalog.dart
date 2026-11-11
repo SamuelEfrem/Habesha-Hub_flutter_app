@@ -18,6 +18,7 @@ import 'provider_extras.dart';
 import 'services_screen.dart';
 import 'notices_screen.dart';
 import 'cross_links.dart';
+import 'wekil_screens.dart';
 import 'hair_beauty.dart';
 import 'placeholder_screens.dart' show ExploreScreen;
 
@@ -476,7 +477,10 @@ class DirectServiceInfo extends StatelessWidget {
 }
 
 /// Bottom buttons for direct contact: WhatsApp + call
-Widget directContactBar(BuildContext context, Map<String, dynamic> data) {
+Widget directContactBar(BuildContext context, Map<String, dynamic> data) =>
+    WekilContactBar(data: data, fallback: () => _ownContactBar(context, data));
+
+Widget _ownContactBar(BuildContext context, Map<String, dynamic> data) {
   final wa = digitsOnly(serviceStr(data['whatsapp'])), ph = digitsOnly(serviceStr(data['phone']).isNotEmpty ? serviceStr(data['phone']) : serviceStr(data['whatsapp']));
   final msg = '${tr('Hi, I saw your service on Habesha Hub')}: ${serviceText(data, 'publicName')}';
   return SafeArea(child: Padding(
@@ -520,8 +524,10 @@ Future<void> _reportService(BuildContext context, String id, String name) async 
 
 // ── Register / edit your service ──
 Future<void> openServiceForm(BuildContext context, {String? group, String? docId, Map<String, dynamic>? existing}) async {
-  if (!await ensureMember(context) || !context.mounted) return;
-  Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceFormScreen(group: group, docId: docId, existing: existing)));
+  final code = await wekilCodeOrExplain(context);
+  if (code == null || !context.mounted) return;
+  Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceFormScreen(group: group, docId: docId, existing: existing,
+      wekilCode: code == 'ADMIN' ? null : code)));
 }
 
 Future<void> openMyServices(BuildContext context) async {
@@ -533,7 +539,9 @@ Future<void> openMyServices(BuildContext context) async {
 class ServiceFormScreen extends StatefulWidget {
   final String? group, docId;
   final Map<String, dynamic>? existing;
-  const ServiceFormScreen({super.key, this.group, this.docId, this.existing});
+  /// set when a wekil adds / edits: the country is fixed and the provider is published at once
+  final String? wekilCode;
+  const ServiceFormScreen({super.key, this.group, this.docId, this.existing, this.wekilCode});
   @override
   State<ServiceFormScreen> createState() => _ServiceFormScreenState();
 }
@@ -551,6 +559,7 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.wekilCode != null) _country = widget.wekilCode!;
     final e = widget.existing;
     if (e != null) {
       _name.text = serviceStr(e['publicName']); _desc.text = serviceStr(e['description']); _city.text = serviceStr(e['city']);
@@ -641,7 +650,11 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
         'whatsapp': _wa.text.trim(), 'phone': _phone.text.trim(),
         'links': {for (final (k, c) in [('instagram', _ig), ('tiktok', _tt), ('youtube', _yt)]) if (_link(c) != null) k: _link(c)},
         'sampleImages': photos.take(kMaxPhotos).toList(), 'sampleVideoUrls': videos.take(kMaxVideos).toList(),
-        'ownerId': u.uid, 'contactMode': 'direct', 'status': 'pending', 'available': false, 'updatedAt': FieldValue.serverTimestamp(),
+        'ownerId': widget.wekilCode != null ? (serviceStr(widget.existing?['ownerId']).isNotEmpty ? serviceStr(widget.existing!['ownerId']) : u.uid) : u.uid,
+        'contactMode': 'direct',
+        // the wekil publishes at once; the admin's own edits keep the old way
+        'status': widget.wekilCode != null ? 'approved' : 'pending', 'available': widget.wekilCode != null,
+        'updatedAt': FieldValue.serverTimestamp(),
       };
       if (widget.docId == null) {
         await _svc.add({...data, 'createdAt': FieldValue.serverTimestamp()});
@@ -649,7 +662,7 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
         await _svc.doc(widget.docId).update(data);
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('Thank you! Habesha Hub checks your service and publishes it soon'))));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(widget.wekilCode != null ? tr('Saved and published') : tr('Thank you! Habesha Hub checks your service and publishes it soon'))));
       Navigator.pop(context);
     } catch (_) {
       if (mounted) setState(() { _saving = false; _error = tr('Could not save. Check your internet and try again.'); });
@@ -671,7 +684,8 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(color: kTintGreen, borderRadius: BorderRadius.circular(14)),
-          child: Text(tr('Free now. Habesha Hub may later offer paid extras. Customers contact you directly on WhatsApp or phone.'), style: tsBodySm(color: kInkGreen)),
+          child: Text(widget.wekilCode != null ? tr('You add this provider as wekil. Customers see it at once, and WhatsApp and call go to you.')
+              : tr('Free now. Habesha Hub may later offer paid extras. Customers contact you directly on WhatsApp or phone.'), style: tsBodySm(color: kInkGreen)),
         ),
         const SizedBox(height: 14),
         Wrap(spacing: 8, runSpacing: 8, children: [
@@ -707,8 +721,8 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
           contentPadding: EdgeInsets.zero,
           leading: Text(countryFlag(_country), style: const TextStyle(fontSize: 26)),
           title: Text(tr(countryName(_country)), style: tsBodyLg(color: kText)),
-          trailing: Text(tr('Change'), style: tsBodySm(color: kInkGreen).copyWith(fontWeight: FontWeight.w700)),
-          onTap: () async {
+          trailing: widget.wekilCode != null ? null : Text(tr('Change'), style: tsBodySm(color: kInkGreen).copyWith(fontWeight: FontWeight.w700)),
+          onTap: widget.wekilCode != null ? null : () async {
             final r = await pickServiceLocation(context, _country, '', const []);
             if (r != null && mounted) { setState(() => _country = r.$1); _loadCities(); }
           },
@@ -738,7 +752,7 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: kHabGreen, foregroundColor: Colors.white, minimumSize: const Size.fromHeight(52)),
           onPressed: _saving ? null : _save,
-          child: Text(_saving ? '…' : tr('Send for approval')),
+          child: Text(_saving ? '…' : widget.wekilCode != null ? tr('Save and publish') : tr('Send for approval')),
         ),
         SizedBox(height: MediaQuery.paddingOf(context).bottom + 20),
       ]),

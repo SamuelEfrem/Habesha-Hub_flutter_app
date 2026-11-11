@@ -12,6 +12,7 @@ import '../utils/translations.dart';
 import 'auth_screen.dart';
 import 'member_screens.dart';
 import 'services_screen.dart';
+import 'services_catalog.dart';
 
 // ═══════════════════════════════════════════════════════════
 // HABESHA HUB SERVICE — one trusted person (ወኪል, "wekil") per country
@@ -53,6 +54,27 @@ const _iso = {
   'UG': 'Uganda', 'KE': 'Kenya', 'SS': 'South Sudan', 'RW': 'Rwanda', 'EG': 'Egypt', 'AO': 'Angola',
 };
 String? _myCountry;
+String codeOfCountry(String name) {
+  for (final e in _iso.entries) { if (e.value == name) return e.key; }
+  return '';
+}
+
+/// The wekils' WhatsApp numbers by ISO code ("NO" → "+47 …"), public in app_config/wekilCountries.
+Map<String, String>? _phones;
+Future<Map<String, String>> wekilPhones() async {
+  if (_phones != null) return _phones!;
+  try {
+    final d = await _db.collection('app_config').doc('wekilCountries').get();
+    final m = d.data()?['phones'];
+    _phones = m is Map ? m.map((k, v) => MapEntry(k.toString(), v.toString())) : {};
+  } catch (_) {
+    return {};
+  }
+  return _phones!;
+}
+
+/// ISO code of the country this account is wekil for ('' = not a wekil).
+Future<String> myWekilCode() async => codeOfCountry(await myWekilCountry());
 
 /// The user's country from the position (only if location is already allowed; we never ask here).
 Future<String> detectCountry() async {
@@ -469,6 +491,11 @@ class _WekilInboxScreenState extends State<WekilInboxScreen> {
                     labelStyle: TextStyle(color: _filter == 'closed' ? kOnAccent : kText, fontWeight: FontWeight.w600),
                     onSelected: (_) => setState(() => _filter = 'closed')),
                 const Spacer(),
+                if (widget.country.isNotEmpty) IconButton(
+                  tooltip: tr('Service providers'),
+                  icon: Icon(Icons.storefront_rounded, color: kSecondary),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => WekilProvidersScreen(country: widget.country))),
+                ),
                 if (_isAdmin) IconButton(
                   tooltip: tr('Wekils'),
                   icon: Icon(Icons.manage_accounts_rounded, color: kSecondary),
@@ -616,11 +643,13 @@ class WekilAdminScreen extends StatelessWidget {
   static Future<void> _syncCountries() async {
     final all = await _db.collection('wekils').get();
     final list = {for (final d in all.docs) (d.data()['country'] ?? '').toString()}..remove('');
-    await _db.collection('app_config').doc('wekilCountries').set({'list': list.toList()..sort()});
+    final phones = {for (final d in all.docs) if ((d.data()['phone'] ?? '').toString().isNotEmpty) codeOfCountry((d.data()['country'] ?? '').toString()): d.data()['phone'].toString()};
+    await _db.collection('app_config').doc('wekilCountries').set({'list': list.toList()..sort(), 'phones': phones});
+    _phones = null;
   }
 
   Future<void> _add(BuildContext context) async {
-    final email = TextEditingController(), name = TextEditingController();
+    final email = TextEditingController(), name = TextEditingController(), phone = TextEditingController();
     String country = 'Norway';
     final ok = await showDialog<bool>(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, setS) => AlertDialog(
       backgroundColor: kCard,
@@ -630,6 +659,9 @@ class WekilAdminScreen extends StatelessWidget {
             decoration: const InputDecoration(labelText: 'Email', hintText: 'samiefr+norge@gmail.com')),
         const SizedBox(height: 10),
         TextField(controller: name, style: tsBodyLg(color: kText), decoration: InputDecoration(labelText: tr('Name'))),
+        const SizedBox(height: 10),
+        TextField(controller: phone, keyboardType: TextInputType.phone, style: tsBodyLg(color: kText),
+            decoration: InputDecoration(labelText: tr('WhatsApp number'), hintText: '+47 …', helperText: tr('Customers see this number'))),
         const SizedBox(height: 10),
         DropdownButtonFormField<String>(
           initialValue: country, dropdownColor: kCard, style: tsBodyLg(color: kText),
@@ -645,7 +677,8 @@ class WekilAdminScreen extends StatelessWidget {
     )));
     final e = email.text.trim().toLowerCase();
     if (ok != true || !e.contains('@')) return;
-    await _db.collection('wekils').doc(e).set({'country': country, 'name': name.text.trim(), 'createdAt': FieldValue.serverTimestamp()});
+    await _db.collection('wekils').doc(e).set({'country': country, 'code': codeOfCountry(country), 'name': name.text.trim(),
+        'phone': phone.text.trim(), 'createdAt': FieldValue.serverTimestamp()});
     await _syncCountries();
   }
 
@@ -672,7 +705,7 @@ class WekilAdminScreen extends StatelessWidget {
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('${d.data()['name'] ?? ''}'.isEmpty ? tr((d.data()['country'] ?? '').toString()) : '${d.data()['name']} · ${tr((d.data()['country'] ?? '').toString())}',
                       style: tsTitleMd(color: kText)),
-                  Text(d.id, style: tsBodySm(color: kTextSub)),
+                  Text([d.id, (d.data()['phone'] ?? '').toString()].where((x) => x.isNotEmpty).join('  ·  '), style: tsBodySm(color: kTextSub)),
                 ])),
                 IconButton(icon: Icon(Icons.delete_outline_rounded, color: kRed), tooltip: tr('Remove'),
                     onPressed: () async { await d.reference.delete(); await _syncCountries(); }),
@@ -686,5 +719,135 @@ class WekilAdminScreen extends StatelessWidget {
       icon: const Icon(Icons.person_add_alt_1_rounded),
       label: Text(tr('Add wekil'), style: const TextStyle(fontWeight: FontWeight.w700)),
     ));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 4. WEKIL — the service providers of his country (add, edit, show / hide)
+//   anonymous_services where country == ISO code; customers contact the wekil
+// ═══════════════════════════════════════════════════════════
+class WekilProvidersScreen extends StatelessWidget {
+  final String country;
+  const WekilProvidersScreen({super.key, required this.country});
+
+  @override
+  Widget build(BuildContext context) {
+    final code = codeOfCountry(country);
+    return _pageScaffold(context, '${flagOf(country)} ${tr('Service providers')}', StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _db.collection('anonymous_services').where('country', isEqualTo: code).snapshots(),
+      builder: (context, snap) {
+        if (snap.hasError) return Center(child: Text(tr('Could not load requests'), style: tsBodySm(color: kTextSub)));
+        if (!snap.hasData) return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+        final docs = snap.data!.docs.toList()
+          ..sort((a, b) => serviceText(a.data(), 'publicName').toLowerCase().compareTo(serviceText(b.data(), 'publicName').toLowerCase()));
+        return ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 100), children: [
+          Text(tr('Customers see these providers, but WhatsApp and call go to you as wekil.'), style: tsBodySm(color: kTextSub)),
+          const SizedBox(height: 12),
+          if (docs.isEmpty) Padding(padding: const EdgeInsets.only(top: 30),
+              child: Center(child: Text(tr('No service providers yet'), style: tsBodyLg(color: kTextSub)))),
+          for (final d in docs) Builder(builder: (context) {
+            final m = d.data();
+            final live = m['available'] == true;
+            final imgs = serviceImages(m);
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.fromLTRB(10, 8, 4, 8),
+              decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(14)),
+              child: Row(children: [
+                ClipRRect(borderRadius: BorderRadius.circular(10), child: SizedBox(width: 52, height: 52,
+                    child: imgs.isNotEmpty ? Image.network(imgs.first, fit: BoxFit.cover, cacheWidth: 160,
+                        errorBuilder: (_, __, ___) => Container(color: kTintGreen)) : Container(color: kTintGreen,
+                        child: Icon(Icons.storefront_rounded, color: kInkGreen)))),
+                const SizedBox(width: 10),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(serviceText(m, 'publicName'), maxLines: 1, overflow: TextOverflow.ellipsis, style: tsTitleMd(color: kText)),
+                  Text([serviceSubLabel(m), serviceStr(m['city']), serviceStr(m['whatsapp'])].where((x) => x.isNotEmpty).join(' · '),
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: tsBodySm(color: kTextSub)),
+                ])),
+                Switch(value: live, activeThumbColor: kHabGreen,
+                    onChanged: (v) => d.reference.update({'available': v, 'status': v ? 'approved' : 'paused', 'updatedAt': FieldValue.serverTimestamp()})),
+                IconButton(icon: Icon(Icons.edit_outlined, color: kSecondary),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceFormScreen(docId: d.id, existing: m, wekilCode: code)))),
+              ]),
+            );
+          }),
+        ]);
+      },
+    ), fab: FloatingActionButton.extended(
+      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceFormScreen(wekilCode: code))),
+      backgroundColor: kSecondary, foregroundColor: kOnAccent,
+      icon: const Icon(Icons.add_business_outlined),
+      label: Text(tr('Add service provider'), style: const TextStyle(fontWeight: FontWeight.w700)),
+    ));
+  }
+}
+
+/// Only the wekil (or admin) adds service providers; everyone else is told whom to contact.
+Future<String?> wekilCodeOrExplain(BuildContext context) async {
+  if (_isAdmin) return 'ADMIN';
+  final code = await myWekilCode();
+  if (code.isNotEmpty) return code;
+  if (!context.mounted) return null;
+  final mine = await detectCountry();
+  final phones = await wekilPhones();
+  final wa = (phones[codeOfCountry(mine)] ?? '').replaceAll(RegExp(r'[^0-9]'), '');
+  if (!context.mounted) return null;
+  await showDialog(context: context, builder: (ctx) => AlertDialog(
+    backgroundColor: kCard,
+    title: Text(hubName(phones.containsKey(codeOfCountry(mine)) ? mine : ''), style: tsTitleLg(color: kText)),
+    content: Text(tr('Service providers are added by our wekil. Do you offer a service? Contact us and we add you.'), style: tsBodyLg(color: kText)),
+    actions: [
+      TextButton(onPressed: () => Navigator.pop(ctx), child: Text(tr('Cancel'), style: tsBodySm(color: kTextSub))),
+      FilledButton(
+        style: FilledButton.styleFrom(backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white),
+        onPressed: () {
+          Navigator.pop(ctx);
+          launchUrl(Uri.parse('https://wa.me/${wa.isNotEmpty ? wa : kWhatsAppSupport}?text=${Uri.encodeComponent(tr('Hi, I offer a service and want to be on Habesha Hub'))}'),
+              mode: LaunchMode.externalApplication);
+        },
+        child: const Text('WhatsApp'),
+      ),
+    ],
+  ));
+  return null;
+}
+
+/// Bottom buttons on a provider page: WhatsApp + call go to the wekil of that country
+/// (countries without a wekil keep the provider's own number).
+class WekilContactBar extends StatelessWidget {
+  final Map<String, dynamic> data;
+  final Widget Function() fallback;
+  const WekilContactBar({super.key, required this.data, required this.fallback});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, String>>(
+      future: wekilPhones(),
+      builder: (context, snap) {
+        if (!snap.hasData) return const SizedBox(height: 76);
+        final code = serviceStr(data['country']);
+        final digits = (snap.data![code] ?? '').replaceAll(RegExp(r'[^0-9]'), '');
+        if (digits.length < 8) return fallback();
+        final country = _iso[code] ?? '';
+        final msg = '${tr('Hi')} ${hubName(country)}, ${tr('I want to book')}: ${serviceText(data, 'publicName')} (${serviceStr(data['city'])})';
+        return SafeArea(child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text('${flagOf(country)} ${tr('Booked through')} ${hubName(country)}', style: tsBodySm(color: kTextSub)),
+            const SizedBox(height: 6),
+            Row(children: [
+              Expanded(child: SizedBox(height: 52, child: FilledButton.icon(
+                style: FilledButton.styleFrom(backgroundColor: kHabGreen, foregroundColor: Colors.white),
+                onPressed: () => launchUrl(Uri.parse('https://wa.me/$digits?text=${Uri.encodeComponent(msg)}'), mode: LaunchMode.externalApplication),
+                icon: const Icon(Icons.chat_rounded), label: Text(tr('Book on WhatsApp'), style: const TextStyle(fontWeight: FontWeight.w800))))),
+              const SizedBox(width: 10),
+              SizedBox(height: 52, child: OutlinedButton.icon(
+                onPressed: () => launchUrl(Uri.parse('tel:+$digits')),
+                icon: const Icon(Icons.call_rounded), label: Text(tr('Call')))),
+            ]),
+          ]),
+        ));
+      },
+    );
   }
 }

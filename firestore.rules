@@ -284,6 +284,12 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/wekils/$(request.auth.token.email))
         && get(/databases/$(database)/documents/wekils/$(request.auth.token.email)).data.country == c;
     }
+    // wekil for an ISO country code ("NO"), used by the service providers
+    function isWekilForCode(code) {
+      return signedIn() && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/wekils/$(request.auth.token.email))
+        && get(/databases/$(database)/documents/wekils/$(request.auth.token.email)).data.get('code', '') == code;
+    }
     match /wekils/{email} {
       allow read: if isAdmin() || (signedIn() && request.auth.token.email == email);
       allow write: if isAdmin();
@@ -309,6 +315,16 @@ service cloud.firestore {
     }
 
     // ── Anonymous service providers (only admin edits) ─────
+    function wekilSvcOk() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['publicName', 'description', 'group', 'subcategory', 'category', 'country', 'city', 'area',
+          'priceRange', 'languages', 'travels', 'travelsWhere', 'whatsapp', 'phone', 'links', 'sampleImages', 'sampleVideoUrls',
+          'ownerId', 'contactMode', 'status', 'available', 'createdAt', 'updatedAt'])
+        && d.contactMode == 'direct' && d.group in ['weddings', 'travel', 'music']
+        && d.publicName is string && d.publicName.size() > 0 && d.publicName.size() <= 80
+        && d.get('description', '').size() <= 2000 && d.country is string && d.country.size() == 2
+        && d.sampleImages.size() <= 5 && d.sampleVideoUrls.size() <= 3;
+    }
     function svcOk() {
       let d = request.resource.data;
       return d.keys().hasOnly(['publicName', 'description', 'group', 'subcategory', 'category', 'country', 'city', 'area',
@@ -323,11 +339,14 @@ service cloud.firestore {
     match /anonymous_services/{id} {
       // only approved (available) services; the owner sees their own, the admin all
       allow read: if resource.data.get('available', false) == true || isAdmin()
-        || (signedIn() && resource.data.get('ownerId', '') == uid());
+        || (signedIn() && resource.data.get('ownerId', '') == uid())
+        || isWekilForCode(resource.data.get('country', ''));
       allow write: if isAdmin();
-      allow create: if canAct() && svcOk();
-      allow update: if canAct() && resource.data.get('ownerId', '') == uid() && svcOk();
-      allow delete: if signedIn() && resource.data.get('ownerId', '') == uid();
+      // only the wekil of the country adds and edits providers (published at once)
+      allow create: if isWekilForCode(request.resource.data.country) && wekilSvcOk();
+      allow update: if isWekilForCode(resource.data.get('country', '')) && isWekilForCode(request.resource.data.country)
+        && (wekilSvcOk() || changed().hasOnly(['available', 'status', 'updatedAt']));
+      allow delete: if (signedIn() && resource.data.get('ownerId', '') == uid()) || isWekilForCode(resource.data.get('country', ''));
 
       // Reviews: one per booking (review ID = booking ID), only by the customer
       // of a completed or paid booking for THIS provider.
