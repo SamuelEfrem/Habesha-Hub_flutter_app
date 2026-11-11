@@ -33,6 +33,8 @@ class Business {
   final String priceFrom;
   final bool worksFromHome;
   final bool comesToYou;
+  // small / new / home-based business (shown in "Small & home businesses")
+  final bool smallBiz;
 
   Business({
     required this.id,
@@ -64,6 +66,7 @@ class Business {
     this.priceFrom = '',
     this.worksFromHome = false,
     this.comesToYou = false,
+    this.smallBiz = false,
   });
 
   factory Business.fromFirestore(Map<String, dynamic> data, String id) {
@@ -94,6 +97,7 @@ class Business {
       priceFrom: data['priceFrom']?.toString() ?? '',
       worksFromHome: data['worksFromHome'] == true,
       comesToYou: data['comesToYou'] == true,
+      smallBiz: data['smallBiz'] == true,
       galleryImages: data['galleryImages'] != null
           ? List<String>.from(data['galleryImages'])
           : [],
@@ -137,6 +141,7 @@ class Business {
       'priceFrom': priceFrom,
       'worksFromHome': worksFromHome,
       'comesToYou': comesToYou,
+      'smallBiz': smallBiz,
     };
   }
 

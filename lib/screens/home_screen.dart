@@ -23,6 +23,7 @@ import 'send_money_screen.dart';
 import 'events_screens.dart';
 import 'cross_links.dart';
 import 'hair_beauty.dart';
+import 'small_business_screen.dart';
 import '../services/update_check.dart';
 import '../services/review_prompt.dart';
 import '../utils/share_helper.dart';
@@ -307,6 +308,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
             if (_searchQuery.trim().length >= 2) SliverToBoxAdapter(child: CrossSearchResults(query: _searchQuery)),
             SliverToBoxAdapter(child: _buildShortcuts(t)),
             const SliverToBoxAdapter(child: WeekendEventsCard()),
+            const SliverToBoxAdapter(child: SmallBizHomeCard()),
             if (_hasSearched) ...[
               SliverToBoxAdapter(child: _buildResultsHeader(t)),
               const SliverToBoxAdapter(child: SizedBox(height: 12)),

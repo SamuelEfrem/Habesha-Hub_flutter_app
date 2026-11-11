@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import 'auth_screen.dart';
 import '../utils/translations.dart';
 import 'hair_beauty.dart';
+import 'small_business_screen.dart';
 
 class RegisterBusinessScreen extends StatefulWidget {
   const RegisterBusinessScreen({super.key});
@@ -35,6 +36,9 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
 
   String _category = 'Restaurant';
   final _hair = HairInfo();
+  bool _smallBiz = false, _fromHome = false; // small / home-based business (every category)
+  // works from home: only an approximate spot, never the home itself
+  bool get _homeBased => _category == kHairCategory ? _hair.fromHome : _fromHome;
   bool _hairError = false;
   String _country = '';
   File? _selectedImage;
@@ -275,9 +279,11 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         'phone': _phoneCtrl.text.trim(),
         'imageUrl': _uploadedImageUrl,
         // works from home: only an approximate spot, never the home itself
-        'lat': _category == kHairCategory && _hair.fromHome ? roughCoord(_lat!) : _lat,
-        'lng': _category == kHairCategory && _hair.fromHome ? roughCoord(_lng!) : _lng,
+        'lat': _homeBased ? roughCoord(_lat!) : _lat,
+        'lng': _homeBased ? roughCoord(_lng!) : _lng,
         if (_category == kHairCategory) ..._hair.toMap(),
+        if (_category != kHairCategory) 'worksFromHome': _fromHome,
+        'smallBiz': _smallBiz,
         'rating': 0.0,
         'isOpen': false,
         'isPremium': false,
@@ -516,6 +522,8 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
         ),
         if (_category == kHairCategory)
           HairBeautyFields(info: _hair, showError: _hairError, onChanged: () => setState(() => _hairError = false)),
+        SmallBizFields(small: _smallBiz, fromHome: _fromHome, showFromHome: _category != kHairCategory,
+            onSmall: (v) => setState(() => _smallBiz = v), onFromHome: (v) => setState(() => _fromHome = v)),
       ],
     );
   }
@@ -581,7 +589,7 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen>
                   }
                 },
                 decoration: InputDecoration(
-                  hintText: _category == kHairCategory && _hair.fromHome ? tr('Area and city, e.g. Grønland, Oslo') : tr('Street 15, 0190 Oslo'),
+                  hintText: _homeBased ? tr('Area and city, e.g. Grønland, Oslo') : tr('Street 15, 0190 Oslo'),
                   prefixIcon:
                       Icon(Icons.location_on_rounded, color: kSecondary),
                 ),

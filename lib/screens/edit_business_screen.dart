@@ -6,6 +6,7 @@ import '../models/business.dart';
 import '../theme/app_theme.dart';
 import '../utils/translations.dart';
 import 'hair_beauty.dart';
+import 'small_business_screen.dart';
 
 class EditBusinessScreen extends StatefulWidget {
   final Business business;
@@ -34,6 +35,9 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
 
   late String _category;
   late final HairInfo _hair;
+  bool _smallBiz = false, _fromHome = false; // small / home-based business (every category)
+  // works from home: only an approximate spot, never the home itself
+  bool get _homeBased => _category == kHairCategory ? _hair.fromHome : _fromHome;
   bool _hairError = false;
   late double? _lat;
   late double? _lng;
@@ -69,6 +73,8 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
     _websiteCtrl = TextEditingController(text: b.website ?? '');
     _category = b.category;
     _hair = HairInfo.of(b);
+    _smallBiz = b.smallBiz;
+    _fromHome = b.worksFromHome;
     _lat = b.lat != 0 ? b.lat : null;
     _lng = b.lng != 0 ? b.lng : null;
 
@@ -177,9 +183,11 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
         'address': _addrCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
         'imageUrl': _imgCtrl.text.trim(),
-        'lat': _category == kHairCategory && _hair.fromHome ? roughCoord(_lat!) : _lat,
-        'lng': _category == kHairCategory && _hair.fromHome ? roughCoord(_lng!) : _lng,
+        'lat': _homeBased ? roughCoord(_lat!) : _lat,
+        'lng': _homeBased ? roughCoord(_lng!) : _lng,
         if (_category == kHairCategory) ..._hair.toMap(),
+        if (_category != kHairCategory) 'worksFromHome': _fromHome,
+        'smallBiz': _smallBiz,
         'openingHours': _buildOpeningHours(),
         'website': _websiteCtrl.text.trim(),
         'updatedAt': FieldValue.serverTimestamp(),
@@ -344,6 +352,8 @@ class _EditBusinessScreenState extends State<EditBusinessScreen> {
                     ),
                     if (_category == kHairCategory)
                       HairBeautyFields(info: _hair, showError: _hairError, onChanged: () => setState(() => _hairError = false)),
+        SmallBizFields(small: _smallBiz, fromHome: _fromHome, showFromHome: _category != kHairCategory,
+            onSmall: (v) => setState(() => _smallBiz = v), onFromHome: (v) => setState(() => _fromHome = v)),
                     const SizedBox(height: 16),
 
                     // ── Description ─────────────────────────
