@@ -24,6 +24,7 @@ import 'notices_screen.dart';
 import 'hair_beauty.dart';
 import 'community_screens.dart';
 import 'map_screen.dart';
+import 'wekil_screens.dart';
 
 class ExploreScreen extends StatefulWidget {
   /// e.g. 'Barber' + 'wedding' when opened from Weddings & celebrations (with a back button)
@@ -718,7 +719,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 12),
                 const AdminButton(),
                 const SizedBox(height: 12),
-                if (isLoggedIn) ...[const NoticesRow(), const SizedBox(height: 12)],
+                if (isLoggedIn) ...[const NoticesRow(), const SizedBox(height: 12), const WekilRow()],
                 _menuRow(Icons.menu_book_outlined, tr('How to use Habesha Hub'),
                     () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UserGuideScreen())), color: kText),
                 const SizedBox(height: 12),

@@ -1,0 +1,645 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../theme/app_theme.dart';
+import '../utils/language_notifier.dart';
+import '../utils/theme_notifier.dart';
+import '../utils/translations.dart';
+import 'auth_screen.dart';
+import 'member_screens.dart';
+import 'services_screen.dart';
+
+// ═══════════════════════════════════════════════════════════
+// HABESHA HUB SERVICE — one trusted person (ወኪል, "wekil") per country
+// takes the request and finds the right service provider for the user.
+//   wekils/{email}            { country, name }      admin only (the wekil may read his own)
+//   serviceRequests/{id}      { userId, country, category, city, when, text, name, phone,
+//                               status: new|working|done|cancelled, note, createdAt, updatedAt }
+//   app_config/wekilCountries { list: [...] }        countries that have a wekil
+// No payments in the app. Requests are private: the user, the wekil of that country and the admin.
+// ═══════════════════════════════════════════════════════════
+
+final _db = FirebaseFirestore.instance;
+const _adminEmail = 'samuelefriem@gmail.com';
+
+const kWekilCountries = [
+  'Norway', 'Sweden', 'Denmark', 'UK', 'Germany', 'Netherlands', 'France', 'Belgium', 'Switzerland', 'Italy',
+  'USA', 'Canada', 'Ethiopia', 'Eritrea', 'Uganda', 'Kenya', 'South Sudan', 'Rwanda', 'Egypt', 'Angola',
+];
+const _flags = {
+  'Norway': '🇳🇴', 'Sweden': '🇸🇪', 'Denmark': '🇩🇰', 'UK': '🇬🇧', 'Germany': '🇩🇪', 'Netherlands': '🇳🇱',
+  'France': '🇫🇷', 'Belgium': '🇧🇪', 'Switzerland': '🇨🇭', 'Italy': '🇮🇹', 'USA': '🇺🇸', 'Canada': '🇨🇦',
+  'Ethiopia': '🇪🇹', 'Eritrea': '🇪🇷', 'Uganda': '🇺🇬', 'Kenya': '🇰🇪', 'South Sudan': '🇸🇸', 'Rwanda': '🇷🇼',
+  'Egypt': '🇪🇬', 'Angola': '🇦🇴',
+};
+String flagOf(String c) => _flags[c] ?? '🌍';
+
+const _cats = [
+  ('food', '🍲', 'Food & catering'),
+  ('moving', '🚚', 'Moving & transport'),
+  ('papers', '📄', 'Translation & papers'),
+  ('beauty', '💇', 'Hair & beauty'),
+  ('wedding', '💍', 'Weddings & events'),
+  ('cleaning', '🧹', 'Cleaning'),
+  ('repair', '🔧', 'Repairs & handyman'),
+  ('photo', '📸', 'Photo & video'),
+  ('other', '✨', 'Other'),
+];
+String _catLabel(String k) { for (final c in _cats) { if (c.$1 == k) return '${c.$2} ${tr(c.$3)}'; } return k; }
+
+String _statusLabel(String s) => switch (s) {
+      'working' => tr('A wekil is working on it'),
+      'done' => tr('Done'),
+      'cancelled' => tr('Cancelled'),
+      _ => tr('Received'),
+    };
+Color _statusColor(String s) => switch (s) {
+      'working' => kInkYellow,
+      'done' => kHabGreen,
+      'cancelled' => kTextSub,
+      _ => kInkBlue,
+    };
+
+bool get _isAdmin => FirebaseAuth.instance.currentUser?.email == _adminEmail;
+
+/// The country this account is wekil for ('' = not a wekil).
+Future<String> myWekilCountry() async {
+  final u = FirebaseAuth.instance.currentUser;
+  final email = (u?.email ?? '').toLowerCase();
+  if (u == null || u.isAnonymous || email.isEmpty || !u.emailVerified) return '';
+  try {
+    final d = await _db.collection('wekils').doc(email).get();
+    return (d.data()?['country'] ?? '').toString();
+  } catch (_) {
+    return '';
+  }
+}
+
+Widget _pageScaffold(BuildContext context, String title, Widget body, {Widget? fab}) => AnimatedBuilder(
+      animation: Listenable.merge([languageNotifier, themeNotifier]),
+      builder: (context, _) => Scaffold(
+        backgroundColor: kBg,
+        appBar: AppBar(
+          backgroundColor: kBg,
+          surfaceTintColor: Colors.transparent,
+          iconTheme: IconThemeData(color: kSecondary),
+          title: Text(title, style: tsTitleMd(color: kText).copyWith(fontSize: 18)),
+        ),
+        floatingActionButton: fab,
+        body: body,
+      ),
+    );
+
+// ═══════════════════════════════════════════════════════════
+// 1. USER — "What do you need?"
+// ═══════════════════════════════════════════════════════════
+class ServiceHubScreen extends StatefulWidget {
+  const ServiceHubScreen({super.key});
+  @override
+  State<ServiceHubScreen> createState() => _ServiceHubScreenState();
+}
+
+class _ServiceHubScreenState extends State<ServiceHubScreen> {
+  List<String> _countries = [];
+  String _country = '';
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final d = await _db.collection('app_config').doc('wekilCountries').get();
+      _countries = List<String>.from(d.data()?['list'] ?? const []);
+    } catch (_) {}
+    _country = _countries.contains('Norway') ? 'Norway' : (_countries.isEmpty ? '' : _countries.first);
+    if (mounted) setState(() => _loading = false);
+  }
+
+  /// A real, confirmed account is needed (so the wekil talks to real people).
+  Future<bool> _realAccount() async {
+    var u = FirebaseAuth.instance.currentUser;
+    if (u == null || u.isAnonymous) {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen(returnOnLogin: true)));
+      u = FirebaseAuth.instance.currentUser;
+      if (u == null || u.isAnonymous || !mounted) return false;
+    }
+    try { await u.reload(); } catch (_) {}
+    u = FirebaseAuth.instance.currentUser;
+    if (u == null || !mounted) return false;
+    if (!u.emailVerified) {
+      final ok = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const ConfirmEmailScreen()));
+      if (ok != true) return false;
+    }
+    return mounted;
+  }
+
+  Future<void> _ask(String cat) async {
+    if (!await _realAccount() || !mounted) return;
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceRequestForm(country: _country, category: cat)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final me = FirebaseAuth.instance.currentUser;
+    return _pageScaffold(context, 'Habesha Hub Service', _loading
+        ? Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5))
+        : ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 40), children: [
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(color: kTintGreen, borderRadius: BorderRadius.circular(18)),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('${flagOf(_country)} Habesha Hub Service${_country.isEmpty ? '' : ' · ${tr(_country)}'}',
+                    style: tsTitleLg(color: kInkGreen)),
+                const SizedBox(height: 6),
+                Text(tr('Tell us what you need. Our wekil in your country finds a trusted Habesha service for you and contacts you on WhatsApp.'),
+                    style: tsBodySm(color: kInkGreen)),
+              ]),
+            ),
+            if (_countries.length > 1) ...[
+              const SizedBox(height: 14),
+              Wrap(spacing: 8, runSpacing: 8, children: [
+                for (final c in _countries)
+                  ChoiceChip(
+                    label: Text('${flagOf(c)} ${tr(c)}'),
+                    selected: _country == c, showCheckmark: false,
+                    selectedColor: kSecondary,
+                    labelStyle: TextStyle(color: _country == c ? kOnAccent : kText, fontWeight: FontWeight.w600),
+                    onSelected: (_) => setState(() => _country = c),
+                  ),
+              ]),
+            ],
+            const SizedBox(height: 20),
+            if (_country.isEmpty)
+              Text(tr('Habesha Hub Service is not open in your country yet. Coming soon!'), style: tsBodyLg(color: kTextSub))
+            else ...[
+              Text(tr('What do you need?'), style: tsHeadlineSm(color: kText)),
+              const SizedBox(height: 12),
+              GridView.count(
+                crossAxisCount: 3, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 0.95,
+                children: [
+                  for (final c in _cats)
+                    Material(
+                      color: kCard,
+                      borderRadius: BorderRadius.circular(16),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => _ask(c.$1),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            Text(c.$2, style: const TextStyle(fontSize: 28)),
+                            const SizedBox(height: 6),
+                            Text(tr(c.$3), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontFamily: kFontBody, fontSize: 12, fontWeight: FontWeight.w600, color: kText)),
+                          ]),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+            if (me != null && !me.isAnonymous) ...[
+              const SizedBox(height: 26),
+              _MyRequests(uid: me.uid),
+            ],
+            const SizedBox(height: 20),
+            Center(child: TextButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ServicesScreen())),
+              child: Text(tr('See all service providers'), style: tsBodySm(color: kSecondary)),
+            )),
+          ]));
+  }
+}
+
+class _MyRequests extends StatelessWidget {
+  final String uid;
+  const _MyRequests({required this.uid});
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _db.collection('serviceRequests').where('userId', isEqualTo: uid).snapshots(),
+      builder: (context, snap) {
+        final docs = (snap.data?.docs ?? const []).toList()
+          ..sort((a, b) => _ms(b.data()['createdAt']).compareTo(_ms(a.data()['createdAt'])));
+        if (docs.isEmpty) return const SizedBox.shrink();
+        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(tr('My requests'), style: tsTitleMd(color: kText)),
+          const SizedBox(height: 8),
+          for (final d in docs.take(10)) _RequestTile(doc: d, forWekil: false),
+        ]);
+      },
+    );
+  }
+}
+
+int _ms(dynamic t) => t is Timestamp ? t.millisecondsSinceEpoch : 0;
+
+class _RequestTile extends StatelessWidget {
+  final QueryDocumentSnapshot<Map<String, dynamic>> doc;
+  final bool forWekil;
+  const _RequestTile({required this.doc, required this.forWekil});
+  @override
+  Widget build(BuildContext context) {
+    final r = doc.data();
+    final st = (r['status'] ?? 'new').toString();
+    final ts = r['createdAt'];
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: kCard,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: forWekil ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => WekilRequestScreen(id: doc.id))) : null,
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Expanded(child: Text(_catLabel((r['category'] ?? '').toString()), style: tsTitleMd(color: kText))),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  decoration: BoxDecoration(color: _statusColor(st).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(100)),
+                  child: Text(_statusLabel(st), style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: _statusColor(st))),
+                ),
+              ]),
+              const SizedBox(height: 4),
+              Text([
+                if (forWekil) (r['name'] ?? '').toString(),
+                (r['city'] ?? '').toString(),
+                if (ts is Timestamp) DateFormat('dd.MM HH:mm').format(ts.toDate()),
+              ].where((x) => x.isNotEmpty).join('  ·  '), style: tsBodySm(color: kTextSub)),
+              if ((r['text'] ?? '').toString().isNotEmpty)
+                Padding(padding: const EdgeInsets.only(top: 4),
+                    child: Text(r['text'].toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: tsBodySm(color: kText))),
+              if (!forWekil && (r['note'] ?? '').toString().isNotEmpty)
+                Padding(padding: const EdgeInsets.only(top: 6),
+                    child: Text('💬 ${r['note']}', style: tsBodySm(color: kInkGreen))),
+              if (!forWekil && st == 'new')
+                Align(alignment: Alignment.centerRight, child: TextButton(
+                  onPressed: () => doc.reference.update({'status': 'cancelled', 'updatedAt': FieldValue.serverTimestamp()}),
+                  child: Text(tr('Cancel request'), style: tsBodySm(color: kRed)),
+                )),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ServiceRequestForm extends StatefulWidget {
+  final String country, category;
+  const ServiceRequestForm({super.key, required this.country, required this.category});
+  @override
+  State<ServiceRequestForm> createState() => _ServiceRequestFormState();
+}
+
+class _ServiceRequestFormState extends State<ServiceRequestForm> {
+  late final _name = TextEditingController(text: FirebaseAuth.instance.currentUser?.displayName ?? '');
+  final _phone = TextEditingController(), _city = TextEditingController(), _when = TextEditingController(), _text = TextEditingController();
+  String _error = '';
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // fill in from the member details when we have them
+    final u = FirebaseAuth.instance.currentUser;
+    if (u != null) {
+      _db.collection('members').doc(u.uid).get().then((d) {
+        final m = d.data();
+        if (m == null || !mounted) return;
+        setState(() {
+          if (_name.text.isEmpty) _name.text = (m['name'] ?? '').toString();
+          if (_phone.text.isEmpty) _phone.text = (m['phone'] ?? '').toString();
+          if (_city.text.isEmpty) _city.text = (m['city'] ?? '').toString();
+        });
+      }).catchError((_) {});
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in [_name, _phone, _city, _when, _text]) { c.dispose(); }
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    final digits = _phone.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (_name.text.trim().length < 2 || digits.length < 8 || _city.text.trim().isEmpty || _text.text.trim().length < 5) {
+      setState(() => _error = tr('Please fill in name, WhatsApp (with country code), city and what you need.'));
+      return;
+    }
+    final u = FirebaseAuth.instance.currentUser;
+    if (u == null) return;
+    setState(() { _saving = true; _error = ''; });
+    try {
+      await _db.collection('serviceRequests').add({
+        'userId': u.uid, 'country': widget.country, 'category': widget.category,
+        'name': _name.text.trim(), 'phone': _phone.text.trim(), 'city': _city.text.trim(),
+        'when': _when.text.trim(), 'text': _text.text.trim(),
+        'status': 'new', 'note': '',
+        'createdAt': FieldValue.serverTimestamp(), 'updatedAt': FieldValue.serverTimestamp(),
+      });
+      if (!mounted) return;
+      await showDialog(context: context, builder: (ctx) => AlertDialog(
+        backgroundColor: kCard,
+        title: Text('✅ ${tr('Request sent')}', style: tsTitleLg(color: kText)),
+        content: Text(tr('Our wekil will contact you on WhatsApp soon. You can follow the status under "My requests".'), style: tsBodyLg(color: kText)),
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text('OK', style: tsTitleMd(color: kSecondary)))],
+      ));
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) setState(() { _saving = false; _error = tr('Something went wrong. Please try again.'); });
+    }
+  }
+
+  Widget _f(TextEditingController c, String label, {TextInputType? type, int lines = 1, String? hint}) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: TextField(controller: c, keyboardType: type, maxLines: lines, minLines: 1, style: tsBodyLg(color: kText),
+            decoration: InputDecoration(labelText: label, hintText: hint)),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return _pageScaffold(context, _catLabel(widget.category), ListView(padding: const EdgeInsets.all(20), children: [
+      Text('${flagOf(widget.country)} Habesha Hub Service · ${tr(widget.country)}', style: tsBodySm(color: kTextSub)),
+      const SizedBox(height: 14),
+      _f(_text, tr('What do you need?'), lines: 4, hint: tr('E.g. food for 50 people on Saturday')),
+      _f(_city, tr('City')),
+      _f(_when, tr('When? (optional)')),
+      _f(_name, tr('Your name')),
+      _f(_phone, tr('WhatsApp number'), type: TextInputType.phone, hint: '+47…'),
+      Text(tr('Only Habesha Hub and our wekil see this. It is never shown to others.'), style: tsBodySm(color: kTextSub)),
+      if (_error.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text(_error, style: tsBodySm(color: kRed))),
+      const SizedBox(height: 18),
+      goldButton(_saving ? '' : tr('Send request'), _saving ? null : _send, loading: _saving, icon: Icons.send_rounded),
+    ]));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 2. WEKIL (and admin) — the requests of one country
+// ═══════════════════════════════════════════════════════════
+class WekilInboxScreen extends StatefulWidget {
+  /// '' = admin: every country
+  final String country;
+  const WekilInboxScreen({super.key, required this.country});
+  @override
+  State<WekilInboxScreen> createState() => _WekilInboxScreenState();
+}
+
+class _WekilInboxScreenState extends State<WekilInboxScreen> {
+  String _filter = 'open';
+
+  @override
+  Widget build(BuildContext context) {
+    final col = _db.collection('serviceRequests');
+    final q = widget.country.isEmpty ? col : col.where('country', isEqualTo: widget.country);
+    return _pageScaffold(context,
+        widget.country.isEmpty ? '${tr('Service requests')} · ${tr('All countries')}' : '${flagOf(widget.country)} ${tr('Service requests')}',
+        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: q.snapshots(),
+          builder: (context, snap) {
+            if (snap.hasError) return Center(child: Text(tr('Could not load requests'), style: tsBodySm(color: kTextSub)));
+            if (!snap.hasData) return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+            final all = snap.data!.docs.toList()..sort((a, b) => _ms(b.data()['createdAt']).compareTo(_ms(a.data()['createdAt'])));
+            bool open(String s) => s == 'new' || s == 'working';
+            final list = all.where((d) => _filter == 'open' ? open((d.data()['status'] ?? 'new').toString()) : !open((d.data()['status'] ?? 'new').toString())).toList();
+            final nOpen = all.where((d) => open((d.data()['status'] ?? 'new').toString())).length;
+            return ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 40), children: [
+              Row(children: [
+                ChoiceChip(label: Text('${tr('Open')} ($nOpen)'), selected: _filter == 'open', showCheckmark: false, selectedColor: kSecondary,
+                    labelStyle: TextStyle(color: _filter == 'open' ? kOnAccent : kText, fontWeight: FontWeight.w600),
+                    onSelected: (_) => setState(() => _filter = 'open')),
+                const SizedBox(width: 8),
+                ChoiceChip(label: Text(tr('Finished')), selected: _filter == 'closed', showCheckmark: false, selectedColor: kSecondary,
+                    labelStyle: TextStyle(color: _filter == 'closed' ? kOnAccent : kText, fontWeight: FontWeight.w600),
+                    onSelected: (_) => setState(() => _filter = 'closed')),
+                const Spacer(),
+                if (_isAdmin) IconButton(
+                  tooltip: tr('Wekils'),
+                  icon: Icon(Icons.manage_accounts_rounded, color: kSecondary),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WekilAdminScreen())),
+                ),
+              ]),
+              const SizedBox(height: 10),
+              if (list.isEmpty) Padding(
+                padding: const EdgeInsets.only(top: 40),
+                child: Center(child: Text(tr('No requests here'), style: tsBodyLg(color: kTextSub))),
+              ),
+              for (final d in list) Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                if (widget.country.isEmpty) Padding(
+                  padding: const EdgeInsets.only(left: 4, bottom: 2),
+                  child: Text('${flagOf((d.data()['country'] ?? '').toString())} ${tr((d.data()['country'] ?? '').toString())}', style: tsBodySm(color: kTextSub)),
+                ),
+                _RequestTile(doc: d, forWekil: true),
+              ]),
+            ]);
+          },
+        ));
+  }
+}
+
+class WekilRequestScreen extends StatefulWidget {
+  final String id;
+  const WekilRequestScreen({super.key, required this.id});
+  @override
+  State<WekilRequestScreen> createState() => _WekilRequestScreenState();
+}
+
+class _WekilRequestScreenState extends State<WekilRequestScreen> {
+  final _note = TextEditingController();
+  bool _noteLoaded = false;
+
+  @override
+  void dispose() { _note.dispose(); super.dispose(); }
+
+  DocumentReference<Map<String, dynamic>> get _ref => _db.collection('serviceRequests').doc(widget.id);
+
+  Future<void> _set(String status) async {
+    await _ref.update({'status': status, 'note': _note.text.trim(), 'updatedAt': FieldValue.serverTimestamp()});
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('✓ ${_statusLabel(status)}'), backgroundColor: kGreen));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _pageScaffold(context, tr('Service request'), StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: _ref.snapshots(),
+      builder: (context, snap) {
+        final r = snap.data?.data();
+        if (r == null) return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+        if (!_noteLoaded) { _note.text = (r['note'] ?? '').toString(); _noteLoaded = true; }
+        final st = (r['status'] ?? 'new').toString();
+        final digits = (r['phone'] ?? '').toString().replaceAll(RegExp(r'[^0-9]'), '');
+        Widget row(IconData i, String t) => t.isEmpty ? const SizedBox.shrink() : Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Icon(i, size: 18, color: kSecondary), const SizedBox(width: 10),
+                Expanded(child: Text(t, style: tsBodyLg(color: kText))),
+              ]),
+            );
+        return ListView(padding: const EdgeInsets.all(20), children: [
+          Text(_catLabel((r['category'] ?? '').toString()), style: tsHeadlineSm(color: kText)),
+          const SizedBox(height: 4),
+          Text(_statusLabel(st), style: tsTitleMd(color: _statusColor(st))),
+          const SizedBox(height: 16),
+          row(Icons.notes_rounded, (r['text'] ?? '').toString()),
+          row(Icons.place_outlined, '${flagOf((r['country'] ?? '').toString())} ${r['city'] ?? ''}'),
+          row(Icons.schedule_rounded, (r['when'] ?? '').toString()),
+          row(Icons.person_outline_rounded, (r['name'] ?? '').toString()),
+          row(Icons.phone_outlined, (r['phone'] ?? '').toString()),
+          const SizedBox(height: 8),
+          if (digits.length >= 8) FilledButton.icon(
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+            icon: const Icon(Icons.chat_rounded),
+            label: Text(tr('Contact on WhatsApp'), style: const TextStyle(fontWeight: FontWeight.w700)),
+            onPressed: () => launchUrl(Uri.parse('https://wa.me/$digits?text=${Uri.encodeComponent('Habesha Hub Service: ${r['name'] ?? ''}')}'),
+                mode: LaunchMode.externalApplication),
+          ),
+          const SizedBox(height: 18),
+          TextField(controller: _note, maxLines: 3, minLines: 1, style: tsBodyLg(color: kText),
+              decoration: InputDecoration(labelText: tr('Message to the customer (optional)'))),
+          const SizedBox(height: 14),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            if (st != 'working') OutlinedButton(onPressed: () => _set('working'), child: Text(tr('I am working on it'))),
+            if (st != 'done') FilledButton(style: FilledButton.styleFrom(backgroundColor: kHabGreen), onPressed: () => _set('done'), child: Text(tr('Done'))),
+            if (st != 'cancelled') TextButton(onPressed: () => _set('cancelled'), child: Text(tr('Cancel request'), style: TextStyle(color: kRed))),
+          ]),
+        ]);
+      },
+    ));
+  }
+}
+
+/// Opens the right inbox: admin → all countries, wekil → his country.
+Future<void> openWekilInbox(BuildContext context) async {
+  final c = _isAdmin ? '' : await myWekilCountry();
+  if (!context.mounted || (!_isAdmin && c.isEmpty)) return;
+  Navigator.push(context, MaterialPageRoute(builder: (_) => WekilInboxScreen(country: c)));
+}
+
+/// Profile row for wekils (hidden for everyone else).
+class WekilRow extends StatelessWidget {
+  const WekilRow({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: _isAdmin ? Future.value('') : myWekilCountry(),
+      builder: (context, snap) {
+        final c = snap.data ?? '';
+        if (!_isAdmin && c.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Material(
+            color: kTintGreen,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => openWekilInbox(context),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(children: [
+                  Text(c.isEmpty ? '🌍' : flagOf(c), style: const TextStyle(fontSize: 20)),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text('${tr('Wekil')} · ${tr('Service requests')}', style: tsTitleMd(color: kInkGreen))),
+                  Icon(Icons.chevron_right_rounded, color: kInkGreen),
+                ]),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 3. ADMIN — who is wekil where
+// ═══════════════════════════════════════════════════════════
+class WekilAdminScreen extends StatelessWidget {
+  const WekilAdminScreen({super.key});
+
+  static Future<void> _syncCountries() async {
+    final all = await _db.collection('wekils').get();
+    final list = {for (final d in all.docs) (d.data()['country'] ?? '').toString()}..remove('');
+    await _db.collection('app_config').doc('wekilCountries').set({'list': list.toList()..sort()});
+  }
+
+  Future<void> _add(BuildContext context) async {
+    final email = TextEditingController(), name = TextEditingController();
+    String country = 'Norway';
+    final ok = await showDialog<bool>(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, setS) => AlertDialog(
+      backgroundColor: kCard,
+      title: Text(tr('Add wekil'), style: tsTitleLg(color: kText)),
+      content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: email, keyboardType: TextInputType.emailAddress, style: tsBodyLg(color: kText),
+            decoration: const InputDecoration(labelText: 'Email', hintText: 'samiefr+norge@gmail.com')),
+        const SizedBox(height: 10),
+        TextField(controller: name, style: tsBodyLg(color: kText), decoration: InputDecoration(labelText: tr('Name'))),
+        const SizedBox(height: 10),
+        DropdownButtonFormField<String>(
+          initialValue: country, dropdownColor: kCard, style: tsBodyLg(color: kText),
+          items: [for (final c in kWekilCountries) DropdownMenuItem(value: c, child: Text('${flagOf(c)} ${tr(c)}'))],
+          onChanged: (v) => setS(() => country = v ?? country),
+        ),
+      ])),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Cancel'), style: tsBodySm(color: kTextSub))),
+        FilledButton(style: FilledButton.styleFrom(backgroundColor: kSecondary, foregroundColor: kOnAccent),
+            onPressed: () => Navigator.pop(ctx, true), child: Text(tr('Save'))),
+      ],
+    )));
+    final e = email.text.trim().toLowerCase();
+    if (ok != true || !e.contains('@')) return;
+    await _db.collection('wekils').doc(e).set({'country': country, 'name': name.text.trim(), 'createdAt': FieldValue.serverTimestamp()});
+    await _syncCountries();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _pageScaffold(context, tr('Wekils'), StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _db.collection('wekils').snapshots(),
+      builder: (context, snap) {
+        if (!snap.hasData) return Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
+        final docs = snap.data!.docs;
+        return ListView(padding: const EdgeInsets.all(16), children: [
+          Text(tr('Each wekil logs in with his own email and password and sees only the requests of his country. Tip: samiefr+norge@gmail.com, samiefr+sverige@gmail.com … all arrive in samiefr@gmail.com.'),
+              style: tsBodySm(color: kTextSub)),
+          const SizedBox(height: 14),
+          if (docs.isEmpty) Text(tr('No wekils yet'), style: tsBodyLg(color: kTextSub)),
+          for (final d in docs)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+              decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(14)),
+              child: Row(children: [
+                Text(flagOf((d.data()['country'] ?? '').toString()), style: const TextStyle(fontSize: 22)),
+                const SizedBox(width: 12),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('${d.data()['name'] ?? ''}'.isEmpty ? tr((d.data()['country'] ?? '').toString()) : '${d.data()['name']} · ${tr((d.data()['country'] ?? '').toString())}',
+                      style: tsTitleMd(color: kText)),
+                  Text(d.id, style: tsBodySm(color: kTextSub)),
+                ])),
+                IconButton(icon: Icon(Icons.delete_outline_rounded, color: kRed), tooltip: tr('Remove'),
+                    onPressed: () async { await d.reference.delete(); await _syncCountries(); }),
+              ]),
+            ),
+        ]);
+      },
+    ), fab: FloatingActionButton.extended(
+      onPressed: () => _add(context),
+      backgroundColor: kSecondary, foregroundColor: kOnAccent,
+      icon: const Icon(Icons.person_add_alt_1_rounded),
+      label: Text(tr('Add wekil'), style: const TextStyle(fontWeight: FontWeight.w700)),
+    ));
+  }
+}

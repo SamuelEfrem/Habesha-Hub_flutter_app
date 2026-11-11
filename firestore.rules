@@ -278,6 +278,31 @@ service cloud.firestore {
     }
 
     // App switches the admin turns on/off (e.g. the Home shops holiday banner)
+    // ── Habesha Hub Service: one wekil per country ─────────
+    function isWekilFor(c) {
+      return signedIn() && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/wekils/$(request.auth.token.email))
+        && get(/databases/$(database)/documents/wekils/$(request.auth.token.email)).data.country == c;
+    }
+    match /wekils/{email} {
+      allow read: if isAdmin() || (signedIn() && request.auth.token.email == email);
+      allow write: if isAdmin();
+    }
+    // a request is private: the user, the wekil of that country and the admin
+    match /serviceRequests/{id} {
+      allow read: if isAdmin() || (signedIn() && resource.data.userId == uid()) || isWekilFor(resource.data.country);
+      allow create: if realUser() && request.auth.token.email_verified == true
+        && request.resource.data.userId == uid() && request.resource.data.status == 'new'
+        && request.resource.data.text is string && request.resource.data.text.size() <= 2000
+        && request.resource.data.keys().hasOnly(['userId', 'country', 'category', 'name', 'phone', 'city', 'when', 'text', 'status', 'note', 'createdAt', 'updatedAt']);
+      allow update: if isAdmin()
+        || (isWekilFor(resource.data.country) && changed().hasOnly(['status', 'note', 'updatedAt'])
+            && request.resource.data.status in ['new', 'working', 'done', 'cancelled'])
+        || (signedIn() && resource.data.userId == uid() && changed().hasOnly(['status', 'updatedAt'])
+            && request.resource.data.status == 'cancelled');
+      allow delete: if isAdmin();
+    }
+
     match /app_config/{doc} {
       allow read: if true;
       allow write: if isAdmin();

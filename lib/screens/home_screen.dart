@@ -25,6 +25,7 @@ import 'cross_links.dart';
 import 'hair_beauty.dart';
 import 'small_business_screen.dart';
 import 'premium_screens.dart';
+import 'wekil_screens.dart';
 import '../services/premium.dart';
 import '../services/update_check.dart';
 import '../services/review_prompt.dart';
@@ -473,7 +474,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   Widget _buildShortcuts(String Function(String) t) {
     void push(Widget w) => Navigator.push(context, MaterialPageRoute(builder: (_) => w));
     final items = <(IconData, String, Color, Color, VoidCallback)>[
-      (Icons.work_outline_rounded, tr('Services'), kTintYellow, kInkYellow, () => push(const ServicesScreen())),
+      (Icons.work_outline_rounded, tr('Services'), kTintYellow, kInkYellow, () => push(const ServiceHubScreen())),
       (Icons.shopping_bag_outlined, tr('Market'), kTintBlue, kInkBlue, () => push(const MarketplaceScreen())),
       (Icons.send_outlined, tr('Send money'), kTintRed, kInkRed, () => push(const SendMoneyScreen())),
       (Icons.event_outlined, tr('Events'), kTintGreen, kInkGreen, () => push(const EventsScreen())),

@@ -810,6 +810,33 @@ exports.notifyBusinessChat = onDocumentCreated('chats/{chatId}/messages/{msgId}'
   });
 });
 
+// Habesha Hub Service: a new request goes to the wekil(s) of that country and to the admin
+exports.notifyServiceRequest = onDocumentCreated('serviceRequests/{id}', async (event) => {
+  const r = event.data?.data();
+  if (!r) return;
+  const title = `🤝 New service request · ${r.country || ''}`;
+  const body = `${r.name || ''} · ${r.city || ''}: ${String(r.text || '').slice(0, 140)}`;
+  const wekils = await getFirestore().collection('wekils').where('country', '==', r.country || '').get();
+  for (const w of wekils.docs) {
+    try {
+      const u = await getAuth().getUserByEmail(w.id);
+      await sendTo(u.uid, { notification: { title, body }, data: { type: 'serviceRequest' },
+        android: { priority: 'high' }, apns: { payload: { aps: { sound: 'default' } } } });
+    } catch (e) { /* the wekil has not made the account yet */ }
+  }
+  await pushAdmin(title, body);
+});
+
+// ... and the user hears when the wekil works on it or is done
+exports.notifyServiceRequestStatus = onDocumentUpdated('serviceRequests/{id}', async (event) => {
+  const a = event.data?.before?.data(), b = event.data?.after?.data();
+  if (!a || !b || a.status === b.status || !b.userId) return;
+  const txt = { working: 'Our wekil is working on your request · ወኪልና ኣብ ሕቶኹም ይሰርሕ ኣሎ', done: 'Your request is done · ሕቶኹም ተፈጺሙ' }[b.status];
+  if (!txt) return;
+  await sendTo(b.userId, { notification: { title: '🤝 Habesha Hub Service', body: b.note ? `${txt}: ${String(b.note).slice(0, 140)}` : txt },
+    data: { type: 'serviceRequest' }, android: { priority: 'high' }, apns: { payload: { aps: { sound: 'default' } } } });
+});
+
 exports.notifyNewBusiness = onDocumentCreated('businesses/{id}', async (event) => {
   const b = event.data?.data();
   if (!b || b.status !== 'pending') return;
