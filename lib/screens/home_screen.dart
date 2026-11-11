@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   bool _scrolled = false; // hides the "scroll down" hint
   bool _isSearching = false;
   List<Business> _businesses = [];
-  String _hubName = 'Habesha Hub Service'; // "Habesha Hub Norge" when the country has a wekil
+  String _hubCountry = ''; // "Habesha Hub Norge" when the country has a wekil
 
   final _categories = [
     {'key': 'All', 'emoji': '🏠'},
@@ -236,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
       final pos = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
       if (mounted) setState(() => _position = pos);
-      hubShortcutName().then((n) { if (mounted && n != _hubName) setState(() => _hubName = n); });
+      hubShortcutCountry().then((c) { if (mounted && c != _hubCountry) setState(() => _hubCountry = c); });
       final snapshot = await _service.getBusinessesNear(pos.latitude, pos.longitude);
       snapshot.sort((a, b) => a
           .distanceTo(pos.latitude, pos.longitude)
@@ -494,7 +494,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
       child: ShortcutRow(items: [
-        RadialItem(Icons.work_outline_rounded, _hubName, kTintYellow, kInkYellow, () => push(const ServiceHubScreen())),
+        RadialItem(Icons.work_outline_rounded, hubName(_hubCountry), kTintYellow, kInkYellow, () => push(const ServiceHubScreen())),
         RadialItem(Icons.shopping_bag_outlined, tr('Market'), kTintBlue, kInkBlue, () => push(const MarketplaceScreen())),
         RadialItem(Icons.send_outlined, tr('Send money'), kTintRed, kInkRed, () => push(const SendMoneyScreen())),
         RadialItem(Icons.event_outlined, tr('Events'), kTintGreen, kInkGreen, () => push(const EventsScreen())),

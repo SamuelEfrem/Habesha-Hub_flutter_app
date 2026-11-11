@@ -7,13 +7,13 @@ class LanguageNotifier extends ChangeNotifier {
   factory LanguageNotifier() => _instance;
   LanguageNotifier._internal();
 
-  String _language = 'Tigrinya';
+  String _language = 'English';
   String get language => _language;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
-    // first start: Tigrinya; after that the language the user chose
-    final saved = prefs.getString('language') ?? 'Tigrinya';
+    // first start: English; after that the language the user chose
+    final saved = prefs.getString('language') ?? 'English';
     // Only English, Tigrinya and Amharic are supported (old 'Norsk' → English)
     _language = (saved == 'Tigrinya' || saved == 'Amharic') ? saved : 'English';
     AppTranslations.setLanguage(_language);

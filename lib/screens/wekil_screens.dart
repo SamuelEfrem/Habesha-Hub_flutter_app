@@ -47,7 +47,13 @@ const _local = {
   'USA': 'USA', 'Canada': 'Canada', 'Ethiopia': 'Ethiopia', 'Eritrea': 'Eritrea', 'Uganda': 'Uganda', 'Kenya': 'Kenya',
   'South Sudan': 'South Sudan', 'Rwanda': 'Rwanda', 'Egypt': 'Egypt', 'Angola': 'Angola',
 };
-String hubName(String c) => c.isEmpty ? 'Habesha Hub Service' : 'Habesha Hub ${_local[c] ?? c}';
+String hubName(String c) {
+  final l = languageNotifier.language;
+  if (c.isEmpty) return tr('Habesha Hub Service');
+  if (l == 'Tigrinya') return 'ሓበሻ ሃብ ${tr(c)}';
+  if (l == 'Amharic') return 'ሐበሻ ሀብ ${tr(c)}';
+  return 'Habesha Hub ${_local[c] ?? c}';
+}
 
 const _iso = {
   'NO': 'Norway', 'SE': 'Sweden', 'DK': 'Denmark', 'GB': 'UK', 'DE': 'Germany', 'NL': 'Netherlands', 'FR': 'France',
@@ -95,15 +101,15 @@ Future<String> detectCountry() async {
   return '';
 }
 
-/// "Habesha Hub Norge" for the home screen shortcut (the user's country when it has a wekil).
-Future<String> hubShortcutName() async {
+/// The country for the home screen shortcut "Habesha Hub Norge" ('' = no wekil there: "Habesha Hub Service").
+Future<String> hubShortcutCountry() async {
   final c = await detectCountry();
   try {
     final d = await _db.collection('app_config').doc('wekilCountries').get();
     final list = List<String>.from(d.data()?['list'] ?? const []);
-    if (list.contains(c)) return hubName(c);
+    if (list.contains(c)) return c;
   } catch (_) {}
-  return 'Habesha Hub Service';
+  return '';
 }
 
 const _cats = [
@@ -179,7 +185,8 @@ class _ServiceHubScreenState extends State<ServiceHubScreen> {
   bool _loading = true;
 
   String get _countryName => _iso[_code] ?? '';
-  String get _title => _countryName.isNotEmpty ? hubName(_countryName) : 'Habesha Hub ${tr(countryName(_code))}';
+  String get _title => _countryName.isNotEmpty ? hubName(_countryName)
+      : '${languageNotifier.language == 'Tigrinya' ? 'ሓበሻ ሃብ' : languageNotifier.language == 'Amharic' ? 'ሐበሻ ሀብ' : 'Habesha Hub'} ${tr(countryName(_code))}';
   bool get _hasWekil => (_phones[_code] ?? '').isNotEmpty;
 
   @override
