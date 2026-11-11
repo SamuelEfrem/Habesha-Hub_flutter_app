@@ -25,9 +25,9 @@ class RadialMenu extends StatefulWidget {
 class _RadialMenuState extends State<RadialMenu> with TickerProviderStateMixin {
   late final AnimationController _open = AnimationController(vsync: this, duration: const Duration(milliseconds: 650));
   // a soft "breathing" ring so new users see that the button can be tapped
-  late final AnimationController _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))..repeat();
+  late final AnimationController _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 2600))..repeat();
 
-  static const _center = 72.0, _item = 54.0, _rowGap = 22.0, _arc = 22.0;
+  static const _center = 58.0, _item = 52.0, _rowGap = 22.0, _arc = 22.0;
 
   @override
   void dispose() {
@@ -53,7 +53,7 @@ class _RadialMenuState extends State<RadialMenu> with TickerProviderStateMixin {
       builder: (context, _) {
         final t = Curves.easeOutCubic.transform(_open.value);
         // the area grows while the menu opens
-        final height = _center + 30 + (_item + 40) * t;
+        final height = _center + 26 + (_item + 40) * t;
         return SizedBox(
           height: height,
           child: LayoutBuilder(builder: (context, box) {
@@ -70,20 +70,36 @@ class _RadialMenuState extends State<RadialMenu> with TickerProviderStateMixin {
                     if (_open.value == 0) Opacity(
                       opacity: (1 - _pulse.value) * 0.45,
                       child: Container(
-                        width: _center + 22 * _pulse.value, height: _center + 22 * _pulse.value,
+                        width: _center + 16 * _pulse.value, height: _center + 16 * _pulse.value,
                         decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: kSecondary, width: 2)),
                       ),
                     ),
+                    // light circle with a green ring; inside, five small dots in the colours of the
+                    // shortcuts slowly turn around. Open: green with an X.
                     Container(
                       width: _center, height: _center,
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle, color: kSecondary,
-                        boxShadow: [BoxShadow(color: kSecondary.withValues(alpha: 0.35), blurRadius: 16, offset: const Offset(0, 6))],
+                        shape: BoxShape.circle,
+                        color: Color.lerp(kCard, kSecondary, t),
+                        border: Border.all(color: kSecondary, width: 2),
+                        boxShadow: [BoxShadow(color: kSecondary.withValues(alpha: 0.22), blurRadius: 12, offset: const Offset(0, 4))],
                       ),
-                      child: Transform.rotate(
-                        angle: t * math.pi / 2,
-                        child: Icon(t > 0.5 ? Icons.close_rounded : Icons.apps_rounded, color: kOnAccent, size: 32),
-                      ),
+                      child: t > 0.5
+                          ? Transform.rotate(angle: (t - 0.5) * math.pi, child: Icon(Icons.close_rounded, color: kOnAccent, size: 26))
+                          : Opacity(
+                              opacity: 1 - t * 2,
+                              child: Stack(alignment: Alignment.center, children: [
+                                for (var k = 0; k < n; k++) Builder(builder: (_) {
+                                  // 5 dots, 72° apart; one turn of 72° per pulse, so it loops without a jump
+                                  final a = -math.pi / 2 + k * 2 * math.pi / n + _pulse.value * 2 * math.pi / n;
+                                  return Transform.translate(
+                                    offset: Offset(math.cos(a) * 13, math.sin(a) * 13),
+                                    child: Container(width: 9, height: 9,
+                                        decoration: BoxDecoration(color: widget.items[k].ink, shape: BoxShape.circle)),
+                                  );
+                                }),
+                              ]),
+                            ),
                     ),
                   ]),
                 ),
@@ -94,7 +110,7 @@ class _RadialMenuState extends State<RadialMenu> with TickerProviderStateMixin {
                 child: Opacity(
                   opacity: 1 - t,
                   child: Text(tr('Services, market, events and more'), textAlign: TextAlign.center,
-                      style: TextStyle(fontFamily: kFontBody, fontSize: 12, fontWeight: FontWeight.w600, color: kTextSub)),
+                      style: TextStyle(fontFamily: kFontBody, fontSize: 11.5, fontWeight: FontWeight.w600, color: kTextSub)),
                 ),
               ),
             ]);
