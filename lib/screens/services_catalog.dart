@@ -296,7 +296,10 @@ class _LocationSheetState extends State<_LocationSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final list = kAllCountries.where((c) => _q.isEmpty || tr(c.$2).toLowerCase().contains(_q.toLowerCase()) || c.$2.toLowerCase().contains(_q.toLowerCase())).toList();
+    const alias = {'US': 'usa america', 'GB': 'uk england britain', 'AE': 'uae dubai'};
+    final q = _q.toLowerCase();
+    final list = kAllCountries.where((c) => q.isEmpty || tr(c.$2).toLowerCase().contains(q) || c.$2.toLowerCase().contains(q)
+        || (alias[c.$1] ?? '').contains(q)).toList();
     return SafeArea(child: SizedBox(
       height: MediaQuery.sizeOf(context).height * .85,
       child: Padding(
