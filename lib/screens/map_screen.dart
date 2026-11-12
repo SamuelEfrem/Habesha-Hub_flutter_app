@@ -165,18 +165,21 @@ class _BusinessesMapScreenState extends State<BusinessesMapScreen> {
 }
 
 /// Small "Map" button used above result lists
-Widget mapButton(VoidCallback onTap) => Material(
+/// [compact]: only the map icon (for narrow rows)
+Widget mapButton(VoidCallback onTap, {bool compact = false}) => Material(
       color: kSecondary.withOpacity(0.15),
       borderRadius: BorderRadius.circular(100),
       child: InkWell(
         borderRadius: BorderRadius.circular(100),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 12, vertical: compact ? 10 : 6),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.map_rounded, color: kSecondary, size: 16),
-            const SizedBox(width: 6),
-            Text(tr('Map'), style: tsTitleMd(color: kSecondary)),
+            Icon(Icons.map_rounded, color: kSecondary, size: compact ? 20 : 16),
+            if (!compact) ...[
+              const SizedBox(width: 6),
+              Text(tr('Map'), style: tsTitleMd(color: kSecondary)),
+            ],
           ]),
         ),
       ),

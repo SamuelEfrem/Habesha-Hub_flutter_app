@@ -250,7 +250,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         builder: (_) => BusinessesMapScreen(
                               businesses: _results,
                               title: _city.isNotEmpty ? _city : tr(_country),
-                            )))),
+                            ))), compact: box.maxWidth < 430),
                 ])),
               ),
               const SizedBox(height: 12),
@@ -280,9 +280,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: tsTitleMd(color: kText))),
-            const SizedBox(width: 6),
-            Icon(Icons.keyboard_arrow_down_rounded, color: kSecondary, size: 20),
+                style: tsTitleMd(color: kText).copyWith(fontSize: 14))),
+            const SizedBox(width: 2),
+            Icon(Icons.keyboard_arrow_down_rounded, color: kSecondary, size: 18),
           ]),
         ),
       ),
