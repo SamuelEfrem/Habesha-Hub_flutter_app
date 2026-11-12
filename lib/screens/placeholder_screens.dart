@@ -224,24 +224,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         const SizedBox(width: 8),
                         Flexible(flex: 3, child: _pickerButton(_city.isEmpty ? t('all_cities') : _city, _showCitySheet)),
                       ],
-                      const SizedBox(width: 8),
-                      // small & home businesses only (tap again for all)
-                      Material(
-                        color: _smallOnly ? kSecondary : kCard,
-                        borderRadius: BorderRadius.circular(12),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () => setState(() => _smallOnly = !_smallOnly),
-                          child: Tooltip(
-                            message: tr('Small & home'),
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: box.maxWidth < 430 ? 10 : 12, vertical: 10),
-                              child: Text(box.maxWidth < 430 ? '🌱' : '🌱 ${tr('Small & home')}', maxLines: 1,
-                                  style: tsTitleMd(color: _smallOnly ? kOnAccent : kText).copyWith(fontSize: 13)),
-                            ),
-                          ),
-                        ),
-                      ),
                     ]),
                   ),
                   const SizedBox(width: 8),
@@ -250,7 +232,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         builder: (_) => BusinessesMapScreen(
                               businesses: _results,
                               title: _city.isNotEmpty ? _city : tr(_country),
-                            ))), compact: box.maxWidth < 430),
+                            ))), compact: box.maxWidth < 360),
                 ])),
               ),
               const SizedBox(height: 12),
@@ -295,14 +277,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
       counts[b.category] = (counts[b.category] ?? 0) + 1;
     }
     final cats = _categoryOrder.where(counts.containsKey).toList();
-    if (cats.length < 2) return const SizedBox.shrink();
     return SizedBox(
       height: 40,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
-          _chip(tr('All'), _category.isEmpty, () => setState(() => _category = '')),
+          _chip(tr('All'), _category.isEmpty && !_smallOnly, () => setState(() { _category = ''; _smallOnly = false; })),
+          // small, new and home-based businesses (tap again for all)
+          _chip('🌱 ${tr('Small & home')}', _smallOnly, () => setState(() => _smallOnly = !_smallOnly)),
           for (final c in cats)
             _chip('${_catLabel(c)}  ${counts[c]}', _category == c, () => setState(() => _category = c)),
         ],
