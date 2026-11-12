@@ -492,7 +492,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     void push(Widget w) => Navigator.push(context, MaterialPageRoute(builder: (_) => w));
     // all shortcuts in one round button that opens with a spring
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+      padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
       child: ShortcutRow(items: [
         RadialItem(Icons.work_outline_rounded, hubName(_hubCountry), kTintYellow, kInkYellow, () => push(const ServiceHubScreen())),
         RadialItem(Icons.shopping_bag_outlined, tr('Market'), kTintBlue, kInkBlue, () => push(const MarketplaceScreen())),
