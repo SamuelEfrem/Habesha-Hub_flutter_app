@@ -51,6 +51,9 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
 .box p{margin:0;color:var(--muted);font-family:system-ui,sans-serif;font-size:.9rem;line-height:1.45;text-align:center}
 .btn{font:800 1rem var(--display);border:0;border-radius:12px;padding:12px 14px;background:var(--gold);color:#2a1d00;cursor:pointer;text-align:left}
 .btn small{display:block;font-weight:600;font-size:.75rem;opacity:.75}
+.lvl{display:flex;gap:6px;align-items:center;justify-content:center;margin:2px 0 4px}.lvl b{font-size:.8rem;opacity:.8}
+.lvl button{border:0;border-radius:999px;padding:6px 13px;font:700 .82rem inherit;background:rgba(255,255,255,.14);color:inherit;cursor:pointer}
+.lvl button.on{background:var(--gold);color:#2a1d00}
 .btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line);text-align:center}
 .btn:disabled{opacity:.45;cursor:default}
 .row{display:flex;gap:8px}
@@ -350,7 +353,7 @@ function build(key){
 const $=id=>document.getElementById(id);
 /* ================= LANGUAGE ================= */
 const I18N={
- en:{wrongWay:"⚠️ Wrong way! Turn around and follow the arrow",taxi:"Taxi shift",taxiSub:"Pick up and drop off passengers before time runs out",race:"Race the computer",raceSub:"2 laps through the city against 3 local drivers",
+ en:{level:"Level",easy:"Easy",medium:"Medium",hard:"Hard",wrongWay:"⚠️ Wrong way! Turn around and follow the arrow",taxi:"Taxi shift",taxiSub:"Pick up and drop off passengers before time runs out",race:"Race the computer",raceSub:"2 laps through the city against 3 local drivers",
   online:"Race online",onlineSub:"Random players or friends with a code",pick:"Pick up passenger",drop:"Drop off passenger",fares:"Fares",lap:"Lap",pos:"Pos",
   finished:"Finished!",go:"GO!",finish:"FINISH",win:"You win!",place:"You finished #{n}",again:"Race again",nextRace:"New race in {n}…",menu:"Menu",back:"Back",
   quick:"Quick race",quickSub:"Anyone online in {city}",create:"Create friends race",createSub:"Get a code to send on WhatsApp",join:"Join",code:"Friend's code",
@@ -359,7 +362,7 @@ const I18N={
   driveAgain:"Drive again",you:"You",connecting:"Connecting…",noConnect:"Couldn't connect. Try again in a moment.",friends:"Friends race",
   offline:"Online racing isn't available here. In the app it works for everyone who is signed in.",onlineIntro:"Race real people in {city}.",racing:"racing…",laps:"laps",
   left:"drive left",right:"drive right",horn:"Horn",sound:"Sound",record:"New record!",best:"Best"},
- ti:{wrongWay:"⚠️ ጌጋ ኣንፈት! ተመለስ እሞ ነቲ ምልክት ተኸተል",taxi:"ስራሕ ታክሲ",taxiSub:"ግዜ ከይወድአ ተሳፈርቲ ኣልዕል ኣውርድ",race:"ምስ ኮምፒተር ተወዳደር",raceSub:"2 ዙር ኣብ ከተማ ምስ 3 መራሕቲ መካይን",
+ ti:{level:"ደረጃ",easy:"ቀሊል",medium:"ማእከላይ",hard:"ከቢድ",wrongWay:"⚠️ ጌጋ ኣንፈት! ተመለስ እሞ ነቲ ምልክት ተኸተል",taxi:"ስራሕ ታክሲ",taxiSub:"ግዜ ከይወድአ ተሳፈርቲ ኣልዕል ኣውርድ",race:"ምስ ኮምፒተር ተወዳደር",raceSub:"2 ዙር ኣብ ከተማ ምስ 3 መራሕቲ መካይን",
   online:"ኦንላይን ውድድር",onlineSub:"ምስ ዝኾነ ሰብ ወይ ምስ ኣዕሩኽ ብኮድ",pick:"ተሳፋሪ ኣልዕል",drop:"ተሳፋሪ ኣውርድ",fares:"ተሳፈርቲ",lap:"ዙር",pos:"ደረጃ",
   finished:"ወዲእካ!",go:"ጀምር!",finish:"መወዳእታ",win:"ተዓዊትካ!",place:"{n}ይ ወጺእካ",again:"ደጊምካ ተወዳደር",nextRace:"ሓድሽ ውድድር ኣብ {n}…",menu:"ዝርዝር",back:"ተመለስ",
   quick:"ቅልጡፍ ውድድር",quickSub:"ኣብ {city} ዘሎ ዝኾነ ሰብ",create:"ምስ ኣዕሩኽ ውድድር ፍጠር",createSub:"ብዋትስኣፕ ዝስደድ ኮድ ውሰድ",join:"ተጸንበር",code:"ኮድ ዓርኪ",
@@ -368,7 +371,7 @@ const I18N={
   driveAgain:"ደጊምካ ዘውር",you:"ንስኻ",connecting:"ይራኸብ ኣሎ…",noConnect:"ክራኸብ ኣይከኣለን። ደሓር ፈትን።",friends:"ውድድር ኣዕሩኽ",
   offline:"ኦንላይን ውድድር ኣብዚ ኣይሰርሕን። ኣብ ኣፕ ንኹሉ ዝኣተወ ሰብ ይሰርሕ።",onlineIntro:"ኣብ {city} ምስ ሓቀኛታት ሰባት ተወዳደር።",racing:"ይወዳደር…",laps:"ዙር",
   left:"ብጸጋም",right:"ብየማን",horn:"ጡሩምባ",sound:"ድምጺ",record:"ሓድሽ ሪኮርድ!",best:"ዝበለጸ"},
- am:{wrongWay:"⚠️ የተሳሳተ አቅጣጫ! ዞር በልና ቀስቱን ተከተል",taxi:"የታክሲ ስራ",taxiSub:"ጊዜው ሳያልቅ ተሳፋሪዎችን ጫን አውርድ",race:"ከኮምፒውተር ጋር ተወዳደር",raceSub:"2 ዙር በከተማው ከ3 አሽከርካሪዎች ጋር",
+ am:{level:"ደረጃ",easy:"ቀላል",medium:"መካከለኛ",hard:"ከባድ",wrongWay:"⚠️ የተሳሳተ አቅጣጫ! ዞር በልና ቀስቱን ተከተል",taxi:"የታክሲ ስራ",taxiSub:"ጊዜው ሳያልቅ ተሳፋሪዎችን ጫን አውርድ",race:"ከኮምፒውተር ጋር ተወዳደር",raceSub:"2 ዙር በከተማው ከ3 አሽከርካሪዎች ጋር",
   online:"ኦንላይን ውድድር",onlineSub:"ከማንኛውም ሰው ወይም ከጓደኞች በኮድ",pick:"ተሳፋሪ ጫን",drop:"ተሳፋሪ አውርድ",fares:"ተሳፋሪዎች",lap:"ዙር",pos:"ደረጃ",
   finished:"ጨርሰሃል!",go:"ጀምር!",finish:"መጨረሻ",win:"አሸነፍክ!",place:"{n}ኛ ወጥተሃል",again:"እንደገና ተወዳደር",nextRace:"አዲስ ውድድር በ{n}…",menu:"ዝርዝር",back:"ተመለስ",
   quick:"ፈጣን ውድድር",quickSub:"በ{city} ያለ ማንኛውም ሰው",create:"ከጓደኞች ጋር ውድድር ፍጠር",createSub:"በዋትስአፕ የሚላክ ኮድ ውሰድ",join:"ተቀላቀል",code:"የጓደኛ ኮድ",
@@ -564,10 +567,16 @@ function placeAt(x,z,a){player.x=x;player.z=z;player.a=a;player.v=0;player.steer
 
 /* ---------- menu ---------- */
 function showMenu(html){$("menu").innerHTML=html;$("ov").hidden=false}
+// level against the computer cars (remembered)
+let LEVEL='medium';try{LEVEL=localStorage.getItem('cd-level')||'medium'}catch(e){}
+const LVL_SPEED={easy:.82,medium:1,hard:1.12};
+function levelBar(){return `<div class="lvl"><b>${esc(T('level'))}</b>${['easy','medium','hard'].map(l=>`<button data-lvl="${l}" class="${LEVEL===l?'on':''}">${esc(T(l))}</button>`).join('')}</div>`}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-lvl]');if(!b)return;e.stopPropagation();LEVEL=b.dataset.lvl;try{localStorage.setItem('cd-level',LEVEL)}catch(err){}
+  document.querySelectorAll('[data-lvl]').forEach(x=>x.classList.toggle('on',x.dataset.lvl===LEVEL))},true);
 function mainMenu(){mode="menu";G.on=false;clearRace();if(ring)ring.visible=false;
   placeAt(roadPos(3)+3.2*CITIES[cityKey].side,roadPos(5),0);
   showMenu(`<h2>${esc(cityName(cityKey))}</h2><p>${esc(cityTag(cityKey))}</p>
-   <button class="btn" data-act="race">🏁 ${esc(T("race"))}<small>${esc(T("raceSub"))}</small></button>
+   ${levelBar()}<button class="btn" data-act="race">🏁 ${esc(T("race"))}<small>${esc(T("raceSub"))}</small></button>
    <button class="btn" data-act="online">🌍 ${esc(T("online"))}<small>${esc(T("onlineSub"))}</small></button>`);hud(performance.now())}
 $("menu").addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b||b.disabled)return;const a=b.dataset.act;audio();
   if(a==="taxi")startTaxi();if(a==="race")startRace("ai");if(a==="online")onlineMenu();if(a==="menu"){leaveOnline();mainMenu()}
@@ -595,7 +604,7 @@ function startRace(kind,opts={}){clearRace();mode=kind==="ai"?"race":"online";
   R={kind,start:opts.startAt||performance.now()+3500,done:0,finished:null,said:{}};
   if(kind==="ai"){const names=(lang!=="en"&&AI_NAMES_GEEZ[cityKey])||AI_NAMES[cityKey];
     names.forEach((n,i)=>{const s=gridSpot(i+1);const m=carMesh(AI_COL[i],false);scene.add(m);m.add(nameTag(n,"#"+AI_COL[i].toString(16).padStart(6,"0")));
-    ais.push({name:n,mesh:m,x:s.x,z:s.z,a:s.a,v:0,done:0,maxV:24+i*1.6+Math.random()*2,lane:CITIES[cityKey].side*(1.5+i*1.2)*(i%2?1:-1)*.8,finished:null,color:AI_COL[i]})})}
+    ais.push({name:n,mesh:m,x:s.x,z:s.z,a:s.a,v:0,done:0,maxV:(24+i*1.6+Math.random()*2)*LVL_SPEED[LEVEL],lane:CITIES[cityKey].side*(1.5+i*1.2)*(i%2?1:-1)*.8,finished:null,color:AI_COL[i]})})}
   G={on:true,frozen:true,score:0,time:0,pick:true};ring.visible=true;setRing();setWrongText();$("wrongB").hidden=true;$("ov").hidden=true}
 function nextWP(done){return WP[(done+1)%WP.length]}
 function addFinish(){const w=WP[0],z=w.z+RD/2+1.5;

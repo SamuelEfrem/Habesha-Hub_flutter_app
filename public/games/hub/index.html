@@ -96,6 +96,11 @@ canvas{display:block;width:100%;max-width:100%;border-radius:14px;background:var
 .pc{width:76%;max-height:76%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-size:.9rem;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3)}
 .pc.p0{background:var(--cream);color:#2a1d00}.pc.p1{background:#26201c;color:var(--gold);border:2px solid #6b5a4b}
 .pc.sel{outline:3px solid var(--gold);outline-offset:1px}
+/* level against the computer: Easy / Medium / Hard */
+.lvl{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}
+.lvl b{font-size:.8rem;opacity:.8;margin-right:2px}
+.lvl button{border:0;border-radius:999px;padding:7px 14px;font:700 .85rem inherit;background:rgba(127,127,127,.18);color:inherit;cursor:pointer}
+.lvl button.on{background:var(--gold);color:#2a1d00}
 /* Dama: you tried another move while a capture is required: the pieces that must capture and where they land blink */
 .pc.must{animation:dmust .55s ease-in-out 3}
 .dama .d.mustto{animation:dmustsq .55s ease-in-out 3}
@@ -173,6 +178,7 @@ html,body{margin:0;-webkit-text-size-adjust:100%}
       <div class="bar"><button class="back" data-back>←</button><h2 data-t="genna"></h2></div>
       <div class="game">
         <div class="score"><span><span data-t="you"></span> <span id="gnY">0</span></span><span><span data-t="computer"></span> <span id="gnC">0</span></span></div>
+        <div id="gnLevel"></div>
         <div class="gwrap"><canvas id="gc" width="360" height="520" aria-label="Genna field"></canvas><button class="btn gstart" id="gnStart" data-t="start"></button></div>
         <p class="about" data-t="gennaAbout"></p>
       </div>
@@ -215,7 +221,7 @@ const TX={
  you:["You","ንስኻ","አንተ"],computer:["Computer","ኮምፒተር","ኮምፒውተር"],start:["Start","ጀምር","ጀምር"],
  boardSect:["Play together","ብሓባር ተጻወቱ","አብረው ተጫወቱ"],soloSect:["Play alone","በይንኻ ተጻወት","ብቻህን ተጫወት"],
  tagOnline:["1–2 players · online","1–2 ተጻወቲ · ኦንላይን","1–2 ተጫዋቾች · ኦንላይን"],tagSolo:["Solo","በይንኻ","ብቻ"],tagRace:["3D racing · online","3D ውድድር · ኦንላይን","3D ውድድር · ኦንላይን"],
- vsAI:["Play the computer","ምስ ኮምፒተር ተጻወት","ከኮምፒውተር ጋር ተጫወት"],vsAISub:["Alone, anytime","በይንኻ፡ ኣብ ዝኾነ ግዜ","ብቻህን፣ በማንኛውም ጊዜ"],
+ vsAI:["Play the computer","ምስ ኮምፒተር ተጻወት","ከኮምፒውተር ጋር ተጫወት"],level:["Level","ደረጃ","ደረጃ"],easy:["Easy","ቀሊል","ቀላል"],medium:["Medium","ማእከላይ","መካከለኛ"],hard:["Hard","ከቢድ","ከባድ"],vsAISub:["Alone, anytime","በይንኻ፡ ኣብ ዝኾነ ግዜ","ብቻህን፣ በማንኛውም ጊዜ"],
  friend:["Play with a friend","ምስ ዓርኪ ተጻወት","ከጓደኛ ጋር ተጫወት"],friendSub:["Create a code and send it on WhatsApp","ኮድ ፍጠርን ብዋትስኣፕ ስደድን","ኮድ ፍጠርና በዋትስአፕ ላክ"],
  quick:["Random online player","ምስ ዝኾነ ሰብ ኦንላይን","ከማንኛውም ሰው ኦንላይን"],quickSub:["Anyone using the app right now","ሕጂ ነቲ ኣፕ ዝጥቀም ዝኾነ ሰብ","አሁን አፑን የሚጠቀም ማንኛውም ሰው"],
  join:["Join","ተጸንበር","ተቀላቀል"],code:["Friend's code","ኮድ ዓርኪ","የጓደኛ ኮድ"],name:["Your name","ስምካ","ስምህ"],
@@ -277,7 +283,8 @@ function show(id){["home","board","genna","hinq"].forEach(s=>$(s).hidden=s!==id)
 $("homeGrid").onclick=e=>{const b=e.target.closest("[data-g]");if(!b)return;cur=b.dataset.g;
   if(GAMES[cur]){show("board");const m=GAMES_META.find(x=>x.id===cur);$("bTitle").textContent=T(m.id);showModes()}else{show(cur);if(cur==="genna")gnFit()}};
 // Genna: the whole field with both goals must fit on the screen, on every phone
-function gnFit(){if($("genna").hidden)return;const wrap=gc.parentElement;gc.style.width="";gc.style.height="";
+function gnLevelBar(){const el=$("gnLevel");if(el)el.innerHTML=levelBar()}
+function gnFit(){if($("genna").hidden)return;gnLevelBar();const wrap=gc.parentElement;gc.style.width="";gc.style.height="";
   const top=gc.getBoundingClientRect().top+window.scrollY,maxH=window.innerHeight-top-14,maxW=wrap.clientWidth;
   const h=Math.max(240,Math.min(maxH,maxW*520/360));gc.style.height=h+"px";gc.style.width=(h*360/520)+"px"}
 window.addEventListener("resize",()=>gnFit());
@@ -291,9 +298,14 @@ let myNick="";try{myNick=QS.get("name")||localStorage.getItem("hg-nick")||""}cat
 
 /* ================= MATCH FRAMEWORK ================= */
 let M=null;
+// level against the computer (remembered): easy | medium | hard
+let LEVEL='medium';try{LEVEL=localStorage.getItem('hg-level')||'medium'}catch(e){}
+function levelBar(){return `<div class="lvl"><b>${esc(T('level'))}</b>${['easy','medium','hard'].map(l=>`<button data-lvl="${l}" class="${LEVEL===l?'on':''}">${esc(T(l))}</button>`).join('')}</div>`}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-lvl]');if(!b)return;LEVEL=b.dataset.lvl;try{localStorage.setItem('hg-level',LEVEL)}catch(err){}
+  document.querySelectorAll('[data-lvl]').forEach(x=>x.classList.toggle('on',x.dataset.lvl===LEVEL))});
 function G(){return GAMES[cur]}
 function showModes(){leaveMatch();$("play").hidden=true;$("modes").hidden=false;$("rulesNote").textContent=T(G().rule);
-  $("modes").innerHTML=`<button class="btn" data-m="ai">🤖 ${esc(T("vsAI"))}<small>${esc(T("vsAISub"))}</small></button>
+  $("modes").innerHTML=`${levelBar()}<button class="btn" data-m="ai">🤖 ${esc(T("vsAI"))}<small>${esc(T("vsAISub"))}</small></button>
    <div class="row"><input id="nick" maxlength="14" placeholder="${esc(T("name"))}" value="${esc(myNick)}"></div>
    <button class="btn" data-m="create">👥 ${esc(T("friend"))}<small>${esc(T("friendSub"))}</small></button>
    <div class="row"><input id="code" maxlength="6" placeholder="${esc(T("code"))}" autocomplete="off"><button class="btn ghost" data-m="join" style="flex:0 0 auto">${esc(T("join"))}</button></div>
@@ -377,9 +389,20 @@ const DAMA={rule:"ruleDama",
   st.last=[m.from,m.to];
   if(m.cap!=null&&!promo&&DAMA.moves(st,m.to,true).length)st.chain=m.to;else{st.chain=-1;st.turn=1-seat;if(!DAMA.all(st,1-seat).length)st.winner=seat}
   return st},
- ai(st,seat){const ms=DAMA.all(st,seat);if(!ms.length)return null;const caps=ms.filter(m=>m.cap!=null);
+ ai(st,seat){const ms=DAMA.all(st,seat);if(!ms.length)return null;const pick=a=>a[Math.floor(Math.random()*a.length)];
+  if(LEVEL==='easy')return pick(ms);
+  if(LEVEL==='hard')return DAMA.best(st,seat,ms);
+  const caps=ms.filter(m=>m.cap!=null);
   const safe=ms.filter(m=>{const t=clone(st);DAMA.apply(t,m,seat);return !DAMA.all({...t,chain:-1,turn:1-seat},1-seat).some(x=>x.cap===m.to)});
-  const pool=caps.length?caps:(safe.length?safe:ms);return pool[Math.floor(Math.random()*pool.length)]},
+  const pool=caps.length?caps:(safe.length?safe:ms);return pick(pool)},
+ // hard: piece value (king 3), plays its whole jump chain, then assumes the best answer of the other side
+ val(st,seat){let n=0;for(const p of st.b){if(!p)continue;const v=p!==p.toLowerCase()?3:1;n+=DAMA.own(p)===seat?v:-v}return n},
+ play(st,m,seat){const t=clone(st);DAMA.apply(t,m,seat);let g=0;while(t.chain>=0&&t.turn===seat&&g++<12){const nx=DAMA.all(t,seat);if(!nx.length)break;
+  nx.sort((a,b)=>{const x=clone(t),y=clone(t);DAMA.apply(x,a,seat);DAMA.apply(y,b,seat);return DAMA.val(y,seat)-DAMA.val(x,seat)});DAMA.apply(t,nx[0],seat)}return t},
+ best(st,seat,ms){let best=null,bs=-1e9;for(const m of ms){const t=DAMA.play(st,m,seat);let s;
+   if(t.winner===seat)s=1e6;else{const rep=DAMA.all({...t,chain:-1,turn:1-seat},1-seat);
+     s=rep.length?Math.min(...rep.map(r=>DAMA.val(DAMA.play({...t,chain:-1,turn:1-seat},r,1-seat),seat))):1e5}
+   s+=Math.random()*.3;if(s>bs){bs=s;best=m}}return best},
  hint(st){if(st.chain>=0)return T("jump");return !st.winner&&DAMA.all(st,st.turn).some(m=>m.cap!=null)?T("mustCap"):null},
  render(el,st,v){const lk=st.last?st.last.join('-')+':'+st.turn+':'+st.chain:'';if(lk&&lk!==DAMA._lk&&DAMA._lk!==undefined)damaTing(st);DAMA._lk=lk;const order=[...Array(64).keys()];if(v.seat===1)order.reverse();
   if(st.chain>=0&&v.mine)DSEL=st.chain;if(!v.mine)DSEL=-1;
@@ -429,8 +452,12 @@ const DOMI={rule:"ruleDomino",aiDelay:800,
   else st.line.push(t[0]===e[1]?[t[0],t[1]]:[t[1],t[0]]);
   st.passes=0;if(!st.hands[seat].length)st.winner=seat;else st.turn=1-seat;return st},
  ai(st,seat){const ms=DOMI.all(st,seat);if(ms[0].k!=="play")return ms[0];
+  if(LEVEL==='easy')return ms[Math.floor(Math.random()*ms.length)];
   // heaviest tile first (doubles a bit more), so the computer is not left with big points
-  const w=m=>{const t=st.hands[seat][m.i];return t[0]+t[1]+(t[0]===t[1]?3:0)+Math.random()};return ms.reduce((a,b)=>w(b)>w(a)?b:a)},
+  const hand=st.hands[seat];
+  const keep=m=>{if(LEVEL!=='hard')return 0;const t=hand[m.i];let n=0;           // hard: how many of my other tiles still fit
+    for(let j=0;j<hand.length;j++){if(j===m.i)continue;const o=hand[j];if(o[0]===t[0]||o[1]===t[0]||o[0]===t[1]||o[1]===t[1])n++}return n*2.5};
+  const w=m=>{const t=hand[m.i];return t[0]+t[1]+(t[0]===t[1]?3:0)+keep(m)+Math.random()};return ms.reduce((a,b)=>w(b)>w(a)?b:a)},
  score(st){return[`▭${st.hands[0].length}`,`▭${st.hands[1].length}`]},
  hint(st,me){if(st.turn!==me)return null;const ms=DOMI.all(st,me);if(ms[0].k==="draw")return T("dMustDraw");if(ms[0].k==="pass")return T("dMustPass");if(!st.line.length)return st.start?T(st.start[0]===st.start[1]?"dStartDbl":"dStartHigh",{t:st.start[0]+"|"+st.start[1]}):T("dStart");return null},
  tile(t,cls,attr){const P={0:[],1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
@@ -492,7 +519,8 @@ function gnStep(){
   const b=GN.ball,p=GN.p,c=GN.c;
   p.vx=p.x-p.px;p.vy=p.y-p.py;p.px=p.x;p.py=p.y;
   const tx=Math.max(c.r,Math.min(W-c.r,b.x)),ty=b.y<H/2?Math.min(b.y-30,160):70;
-  c.vx=Math.max(-3.2,Math.min(3.2,tx-c.x));c.vy=Math.max(-3,Math.min(3,Math.max(40,ty)-c.y));c.x+=c.vx;c.y+=c.vy;
+  const ksp=LEVEL==='easy'?2.1:LEVEL==='hard'?4.4:3.2;   // keeper speed by level
+  c.vx=Math.max(-ksp,Math.min(ksp,tx-c.x));c.vy=Math.max(-ksp*.94,Math.min(ksp*.94,Math.max(40,ty)-c.y));c.x+=c.vx;c.y+=c.vy;
   b.x+=b.vx;b.y+=b.vy;b.vx*=.995;b.vy*=.995;
   if(b.x<b.r||b.x>W-b.r){b.vx*=-1;b.x=Math.max(b.r,Math.min(W-b.r,b.x))}
   const inGoal=Math.abs(b.x-W/2)<GW/2;
