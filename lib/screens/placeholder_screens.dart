@@ -563,9 +563,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('nickname');
     await prefs.remove('favorites');
-    await languageNotifier.setLanguage('Tigrinya');
+    // the language stays what the user chose
     if (mounted) {
-      setState(() { _user = null; _nicknameCtrl.text = ''; _selectedLang = 'Tigrinya'; _myBusinesses = []; });
+      setState(() { _user = null; _nicknameCtrl.text = ''; _myBusinesses = []; });
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('You are logged out'), style: tsBodySm(color: kText)), backgroundColor: kCardHigh));
     }
   }

@@ -897,16 +897,21 @@ class WekilContactBar extends StatelessWidget {
   }
 }
 
-/// Admin or a wekil: may add and edit service providers.
-Future<bool> canManageServices() async => _isAdmin || (await myWekilCode()).isNotEmpty;
+/// Admin, or the wekil of that country (ISO code; '' = any country): may add and edit service providers.
+Future<bool> canManageServices([String code = '']) async {
+  if (_isAdmin) return true;
+  final mine = await myWekilCode();
+  return mine.isNotEmpty && (code.isEmpty || mine == code);
+}
 
-/// Shows its child only to the admin and the wekils (everyone else sees nothing).
+/// Shows its child only to the admin and the wekil of [country] (everyone else sees nothing).
 class WekilOnly extends StatelessWidget {
   final Widget child;
-  const WekilOnly({super.key, required this.child});
+  final String country; // ISO code; '' = any wekil
+  const WekilOnly({super.key, required this.child, this.country = ''});
   @override
   Widget build(BuildContext context) => FutureBuilder<bool>(
-        future: canManageServices(),
+        future: canManageServices(country),
         builder: (_, snap) => snap.data == true ? child : const SizedBox.shrink(),
       );
 }

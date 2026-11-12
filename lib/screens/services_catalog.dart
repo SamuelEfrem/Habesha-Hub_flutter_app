@@ -214,7 +214,7 @@ class _ServicesHomeState extends State<ServicesHome> {
                     ] else ...[
                       for (final g in kServiceGroups) _groupCard(g, inCity.where((d) => serviceGroupOf(d.data()) == g.key).length),
                       const SizedBox(height: 10),
-                      WekilOnly(child: FilledButton.icon(
+                      WekilOnly(country: _country!, child: FilledButton.icon(
                         style: FilledButton.styleFrom(backgroundColor: kHabGreen, foregroundColor: Colors.white, minimumSize: const Size.fromHeight(52)),
                         onPressed: () => openServiceForm(context),
                         icon: const Icon(Icons.add_business_outlined),
@@ -285,13 +285,13 @@ class _LocationSheetState extends State<_LocationSheet> {
   void initState() {
     super.initState();
     _cities = widget.cities;
-    if (widget.cities.isEmpty) _loadCities(widget.country);   // the regions that have providers
+    if (widget.cities.isEmpty) _loadCities(widget.country);   // the big cities + cities with providers   // the regions that have providers
   }
 
   Future<void> _loadCities(String c) async {
     setState(() => _cities = null);
     final s = await _svc.where('country', isEqualTo: c).where('available', isEqualTo: true).get();
-    if (mounted) setState(() => _cities = citiesOf(s.docs));
+    if (mounted) setState(() => _cities = {...(kRegionsOf[c] ?? const <String>[]), ...citiesOf(s.docs)}.toList()..sort());
   }
 
   @override
@@ -352,7 +352,7 @@ class _ServiceGroupScreenState extends State<ServiceGroupScreen> {
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(backgroundColor: kBg, title: Text('${countryFlag(widget.country)} ${tr(g.label)}', style: tsTitleMd(color: kText))),
-      floatingActionButton: g.selfRegister ? WekilOnly(child: FloatingActionButton.extended(
+      floatingActionButton: g.selfRegister ? WekilOnly(country: widget.country, child: FloatingActionButton.extended(
         backgroundColor: kHabGreen, foregroundColor: Colors.white,
         onPressed: () => openServiceForm(context, group: g.key),
         icon: const Icon(Icons.add_rounded), label: Text(tr('Add service provider')))) : null,
@@ -367,7 +367,7 @@ class _ServiceGroupScreenState extends State<ServiceGroupScreen> {
             final gk = serviceGroupOf(d.data());
             return musicInWeddings ? gk == 'music' || (gk == g.key && serviceSubOf(d.data()) == 'music') : gk == g.key;
           }).toList();
-          final cities = citiesOf(inGroup);
+          final cities = {...(kRegionsOf[widget.country] ?? const <String>[]), ...citiesOf(inGroup)}.toList()..sort();
           final docs = inGroup.where((d) =>
               (_sub.isEmpty || musicInWeddings || serviceSubOf(d.data()) == _sub) &&
               (_city.isEmpty || serviceStr(d.data()['city']).toLowerCase() == _city.toLowerCase())).toList();
