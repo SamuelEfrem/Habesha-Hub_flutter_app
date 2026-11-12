@@ -72,7 +72,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   // most used first; church right after food and shops (not next to clubs); clinic, hotel and association last
   static const _categoryOrder = ['Restaurant', 'Shop', 'Cafe', 'Church', 'Barber', 'Club', 'School',
-    'Photographer', 'Music', 'Decoration', 'Taxi', 'Other', 'Clinic', 'Hotel', 'Association'];
+    'Photographer', 'Music', 'Decoration', 'Taxi', 'Clinic', 'Hotel', 'Association', 'Other'];
 
   @override
   void initState() {

@@ -66,10 +66,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     {'key': 'Barber', 'emoji': '💇'},
     {'key': 'Club', 'emoji': '🎵'},
     {'key': 'School', 'emoji': '🎓'},
-    {'key': 'Other', 'emoji': '📦'},
     {'key': 'Clinic', 'emoji': '🏥'},
     {'key': 'Hotel', 'emoji': '🏨'},
     {'key': 'Association', 'emoji': '🤝'},
+    {'key': 'Other', 'emoji': '📦'},
   ];
 
   // Translate category using translations.dart keys

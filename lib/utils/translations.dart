@@ -1068,6 +1068,7 @@ class AppTranslations {
     'countries': {'Tigrinya': 'ሃገራት', 'Amharic': 'አገሮች'},
     'Region': {'Tigrinya': 'ዞባ', 'Amharic': 'ክልል'},
     'Another city / region': {'Tigrinya': 'ካልእ ከተማ / ዞባ', 'Amharic': 'ሌላ ከተማ / ክልል'},
+    'Hi! I am looking for': {'Tigrinya': 'ሰላም! ዝደልዮ', 'Amharic': 'ሰላም! የምፈልገው'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},

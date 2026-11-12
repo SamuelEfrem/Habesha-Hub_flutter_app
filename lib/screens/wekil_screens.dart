@@ -10,8 +10,6 @@ import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import '../utils/theme_notifier.dart';
 import '../utils/translations.dart';
-import 'auth_screen.dart';
-import 'member_screens.dart';
 import 'services_screen.dart';
 import 'services_catalog.dart';
 import '../utils/countries.dart';
@@ -171,12 +169,9 @@ class ServiceHubScreen extends StatefulWidget {
 class _ServiceHubScreenState extends State<ServiceHubScreen> {
   String _code = '';           // ISO code, e.g. "NO"
   String _city = '';           // region / city ('' = all regions)
-  Map<String, String> _phones = {};
   bool _loading = true;
 
-  String get _countryName => _iso[_code] ?? '';
   String get _title => tr('Habesha Hub Services');
-  bool get _hasWekil => (_phones[_code] ?? '').isNotEmpty;
 
   @override
   void initState() {
@@ -186,38 +181,17 @@ class _ServiceHubScreenState extends State<ServiceHubScreen> {
 
   Future<void> _load() async {
     final loc = await ServiceLocation.load();
-    _phones = await wekilPhones();
     _code = loc.$1;
     _city = loc.$2;
     if (mounted) setState(() => _loading = false);
   }
 
-  /// A real, confirmed account is needed (so the wekil talks to real people).
-  Future<bool> _realAccount() async {
-    var u = FirebaseAuth.instance.currentUser;
-    if (u == null || u.isAnonymous) {
-      await Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen(returnOnLogin: true)));
-      u = FirebaseAuth.instance.currentUser;
-      if (u == null || u.isAnonymous || !mounted) return false;
-    }
-    try { await u.reload(); } catch (_) {}
-    u = FirebaseAuth.instance.currentUser;
-    if (u == null || !mounted) return false;
-    if (!u.emailVerified) {
-      final ok = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const ConfirmEmailScreen()));
-      if (ok != true) return false;
-    }
-    return mounted;
-  }
 
-  Future<void> _ask() async {
-    if (!_hasWekil) {
-      launchUrl(Uri.parse('https://wa.me/$kWhatsAppSupport?text=${Uri.encodeComponent('$_title: ')}'), mode: LaunchMode.externalApplication);
-      return;
-    }
-    if (!await _realAccount() || !mounted) return;
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceRequestForm(country: _countryName, category: 'other')));
-  }
+  /// "Did not find what you need?": an e-mail to Habesha Hub, no login needed
+  Future<void> _ask() => emailSupport(
+        subject: '${tr('Habesha Hub Services')} – ${tr(countryName(_code))}${_city.isEmpty ? '' : ' · $_city'}',
+        body: '${tr('Hi! I am looking for')}: ');
+
 
   /// Country and region: the sheet lists the regions (cities) that have providers.
   Future<void> _pickCountry() async {
