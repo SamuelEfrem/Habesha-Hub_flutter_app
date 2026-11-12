@@ -22,7 +22,6 @@ import '../utils/translations.dart';
 import 'payment.dart';
 import 'notices_screen.dart';
 import 'hair_beauty.dart';
-import 'community_screens.dart';
 import 'map_screen.dart';
 import 'booking_screen.dart';
 import 'wekil_screens.dart';

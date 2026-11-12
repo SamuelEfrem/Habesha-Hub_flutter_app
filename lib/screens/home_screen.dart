@@ -17,7 +17,6 @@ import 'marketplace_screen.dart';
 import 'ai_chat_screen.dart';
 import 'habesha_tok_screen.dart';
 import '../utils/translations.dart';
-import 'community_screens.dart';
 import 'map_screen.dart';
 import '../games/games_screen.dart';
 import 'send_money_screen.dart';
