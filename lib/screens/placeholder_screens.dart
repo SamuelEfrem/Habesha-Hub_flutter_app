@@ -70,8 +70,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
   late String _hairSub = widget.initialSub;
   String _hairFor = '';
 
-  static const _categoryOrder = ['Restaurant', 'Cafe', 'Shop', 'Barber', 'Church', 'School', 'Association', 'Club', 'Clinic', 'Hotel',
-    'Photographer', 'Music', 'Decoration', 'Taxi', 'Other'];
+  // most used first; church right after food and shops (not next to clubs); clinic, hotel and association last
+  static const _categoryOrder = ['Restaurant', 'Shop', 'Cafe', 'Church', 'Barber', 'Club', 'School',
+    'Photographer', 'Music', 'Decoration', 'Taxi', 'Other', 'Clinic', 'Hotel', 'Association'];
 
   @override
   void initState() {

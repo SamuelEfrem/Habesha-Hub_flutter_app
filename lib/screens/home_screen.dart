@@ -58,18 +58,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
 
   final _categories = [
     {'key': 'All', 'emoji': '🏠'},
+    // most used first; church right after the food and shops, not next to clubs; the least used last
     {'key': 'Restaurant', 'emoji': '🍽️'},
     {'key': 'Shop', 'emoji': '🛒'},
     {'key': 'Cafe', 'emoji': '☕'},
-    {'key': 'Club', 'emoji': '🎵'},
-    {'key': 'Clinic', 'emoji': '🏥'},
-    {'key': 'Barber', 'emoji': '💇'},
-
-    {'key': 'Hotel', 'emoji': '🏨'},
     {'key': 'Church', 'emoji': '⛪'},
+    {'key': 'Barber', 'emoji': '💇'},
+    {'key': 'Club', 'emoji': '🎵'},
     {'key': 'School', 'emoji': '🎓'},
-    {'key': 'Association', 'emoji': '🤝'},
     {'key': 'Other', 'emoji': '📦'},
+    {'key': 'Clinic', 'emoji': '🏥'},
+    {'key': 'Hotel', 'emoji': '🏨'},
+    {'key': 'Association', 'emoji': '🤝'},
   ];
 
   // Translate category using translations.dart keys
