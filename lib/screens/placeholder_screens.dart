@@ -182,12 +182,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   onPressed: () => Navigator.pop(context), icon: Icon(Icons.arrow_back_rounded, color: kSecondary)),
                 Expanded(child: Text(widget.initialCategory.isEmpty ? tr('Explore') : _catLabel(widget.initialCategory),
                     style: tsHeadlineLg(color: kSecondary))),
-                IconButton(
-                  tooltip: tr('Suggest a business'),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => SuggestBusinessScreen(country: _country))),
-                  icon: Icon(Icons.add_business_rounded, color: kSecondary),
-                ),
               ]),
             ),
             Padding(
