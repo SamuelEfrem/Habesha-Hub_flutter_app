@@ -358,37 +358,77 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
+  // Countries grouped by part of the world; a tap on a part opens its countries
+  static const _regionOf = {
+    'Africa': ['Ethiopia', 'ኢትዮጵያ', 'Eritrea', 'Sudan', 'South Sudan', 'Uganda', 'Kenya', 'Rwanda', 'Somalia', 'Djibouti', 'Egypt',
+      'Angola', 'South Africa', 'Tanzania', 'Zambia', 'Malawi', 'Mali', 'Burkina Faso', 'Ivory Coast', 'Nigeria', 'Ghana', 'Libya'],
+    'Europe': ['Norway', 'Sweden', 'Denmark', 'Finland', 'Iceland', 'UK', 'Ireland', 'Germany', 'Netherlands', 'Belgium', 'Luxembourg',
+      'France', 'Switzerland', 'Austria', 'Italy', 'Spain', 'Portugal', 'Greece', 'Poland', 'Romania', 'Moldova', 'Ukraine', 'Russia'],
+    'North America': ['USA', 'Canada', 'Mexico'],
+    'Middle East': ['Israel', 'Palestine', 'Lebanon', 'Saudi Arabia', 'UAE', 'United Arab Emirates', 'Kuwait', 'Qatar', 'Bahrain', 'Oman', 'Jordan', 'Turkey'],
+    'Asia': ['China', 'Thailand', 'Vietnam', 'Cambodia', 'Kazakhstan', 'India', 'Japan', 'South Korea', 'Malaysia'],
+    'Oceania': ['Australia', 'New Zealand'],
+    'South America': ['Brazil', 'Argentina', 'Chile', 'Colombia'],
+  };
+  static const _regionIcon = {'Africa': '🌍', 'Europe': '🇪🇺', 'North America': '🌎', 'Middle East': '🕌',
+    'Asia': '🌏', 'Oceania': '🦘', 'South America': '🌎', 'Other': '🌐'};
+  String _regionFor(String country) {
+    for (final e in _regionOf.entries) { if (e.value.contains(country)) return e.key; }
+    return 'Other';
+  }
+
   Widget _countryList({void Function()? afterPick}) {
-    final countries = _countries;
-    return ListView.builder(
+    final groups = <String, List<MapEntry<String, int>>>{};
+    for (final c in _countries) { groups.putIfAbsent(_regionFor(c.key), () => []).add(c); }
+    final order = [..._regionOf.keys, 'Other'].where(groups.containsKey).toList()
+      ..sort((a, b) => groups[b]!.fold<int>(0, (n, e) => n + e.value).compareTo(groups[a]!.fold<int>(0, (n, e) => n + e.value)));
+    return ListView(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
-      itemCount: countries.length,
-      itemBuilder: (_, i) {
-        final c = countries[i];
-        final sel = c.key == _country;
-        return Padding(
+      children: [
+        for (final r in order) Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Material(
-            color: sel ? kSecondary.withOpacity(0.15) : kCard,
+            color: kCard,
             borderRadius: BorderRadius.circular(14),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () { _pickCountry(c.key); afterPick?.call(); },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(children: [
-                  Text(countryFlag(c.key), style: const TextStyle(fontSize: 24)),
-                  const SizedBox(width: 14),
-                  Expanded(child: Text(tr(c.key), style: tsTitleLg(color: kText))),
-                  Text('${c.value}', style: tsTitleMd(color: kSecondary)),
-                  const SizedBox(width: 4),
-                  Icon(Icons.chevron_right_rounded, color: kTextSub, size: 20),
-                ]),
+            clipBehavior: Clip.antiAlias,
+            child: Theme(
+              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                initiallyExpanded: groups[r]!.any((e) => e.key == _country),
+                iconColor: kSecondary, collapsedIconColor: kTextSub,
+                tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                leading: Text(_regionIcon[r] ?? '🌐', style: const TextStyle(fontSize: 22)),
+                title: Text(tr(r), style: tsTitleLg(color: kText)),
+                subtitle: Text('${groups[r]!.length} ${tr('countries')} · ${groups[r]!.fold<int>(0, (n, e) => n + e.value)} ${tr('places')}',
+                    style: tsBodySm(color: kTextSub)),
+                childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                children: [
+                  for (final c in groups[r]!)
+                    Material(
+                      color: c.key == _country ? kSecondary.withOpacity(0.15) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () { _pickCountry(c.key); afterPick?.call(); },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                          child: Row(children: [
+                            Text(countryFlag(c.key), style: const TextStyle(fontSize: 22)),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text(tr(c.key), style: tsTitleMd(color: kText))),
+                            Text('${c.value}', style: tsTitleMd(color: kSecondary)),
+                            const SizedBox(width: 4),
+                            Icon(Icons.chevron_right_rounded, color: kTextSub, size: 20),
+                          ]),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 
