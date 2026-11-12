@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/contact.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -753,8 +754,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
         } else {
           msg = 'Hello Habesha Hub, I want Premium for: ' + bizName;
         }
-        final url = Uri.parse('https://wa.me/4797374482?text=' + Uri.encodeComponent(msg));
-        if (await canLaunchUrl(url)) await launchUrl(url, mode: LaunchMode.externalApplication);
+        await emailSupport(subject: 'Premium: $bizName', body: msg);
       },
       child: Container(
         width: double.infinity,
@@ -1262,8 +1262,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen>
           } else {
             msg = 'Hello Habesha Hub, I want to upgrade to Premium. My business: ' + bizName;
           }
-          final url = Uri.parse('https://wa.me/4797374482?text=' + Uri.encodeComponent(msg));
-          if (await canLaunchUrl(url)) await launchUrl(url, mode: LaunchMode.externalApplication);
+          await emailSupport(subject: 'Premium: $bizName', body: msg);
         },
         child: Container(
           width: double.infinity,

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../utils/contact.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -28,8 +29,8 @@ Future<void> _notice(BuildContext context, String title, String body) => showDia
     content: Text(body, style: tsBodyLg(color: kText)),
     actions: [
       TextButton(
-        onPressed: () => launchUrl(Uri.parse('https://wa.me/$kWhatsAppSupport'), mode: LaunchMode.externalApplication),
-        child: Text('WhatsApp', style: tsBodySm(color: kTextSub))),
+        onPressed: () => emailSupport(subject: 'Habesha Hub account'),
+        child: Text('Email', style: tsBodySm(color: kTextSub))),
       TextButton(onPressed: () => Navigator.pop(ctx), child: Text('OK', style: tsTitleMd(color: kSecondary))),
     ],
   ),
@@ -73,8 +74,8 @@ Future<bool> ensureMember(BuildContext context) async {
   if (status == 'approved') return true;
   if (status == 'rejected') {
     await _notice(context, _l('Not approved', 'ኣይጸደቐን', 'አልጸደቀም'),
-        _l('Your account was not approved. Contact us on WhatsApp.',
-           'ሕሳብኩም ኣይጸደቐን። ብዋትስኣፕ ተወከሱና።', 'መለያዎ አልጸደቀም። በዋትስአፕ ያግኙን።'));
+        _l('Your account was not approved. Contact us: support@habesha-hub.no',
+           'ሕሳብኩም ኣይጸደቐን። ተወከሱና፦ support@habesha-hub.no', 'መለያዎ አልጸደቀም። ያግኙን፦ support@habesha-hub.no'));
     return false;
   }
   await _notice(context, _l('Waiting for approval', 'ፍቓድ ይጽበ ኣሎ', 'ማረጋገጫ በመጠባበቅ ላይ'),

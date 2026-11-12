@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../utils/contact.dart';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import '../utils/theme_notifier.dart';
@@ -85,7 +85,7 @@ class UserGuideScreen extends StatelessWidget {
         (Icons.shield_outlined, 'Safety and help', () => kTintRed, () => kInkRed, [
           'Never send money to people you only know from the internet.',
           'If something looks wrong, use Report on the listing or shop.',
-          'Need help? Write to us on WhatsApp: +47 973 74 482.',
+          'Need help? Write to us: support@habesha-hub.no',
           'You can delete your account under Profile at any time.',
         ]),
       ];
@@ -142,9 +142,9 @@ class UserGuideScreen extends StatelessWidget {
             const SizedBox(height: 8),
             FilledButton.icon(
               style: FilledButton.styleFrom(backgroundColor: kHabGreen, foregroundColor: Colors.white),
-              onPressed: () => launchUrl(Uri.parse('https://wa.me/4797374482'), mode: LaunchMode.externalApplication),
-              icon: const Icon(Icons.chat_outlined),
-              label: Text(tr('Ask us on WhatsApp')),
+              onPressed: () => emailSupport(subject: 'Habesha Hub help'),
+              icon: const Icon(Icons.email_outlined),
+              label: Text(tr('Ask us by email')),
             ),
           ],
         ),

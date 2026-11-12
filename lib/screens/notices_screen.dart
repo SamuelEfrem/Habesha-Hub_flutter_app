@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../utils/contact.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../utils/translations.dart';
 
@@ -130,12 +130,11 @@ class _NoticeCard extends StatelessWidget {
   }
 }
 
-/// Answer Habesha Hub on WhatsApp (+47 973 74 482)
+/// Answer Habesha Hub by e-mail (support@habesha-hub.no)
 Widget _waButton(String about) => OutlinedButton.icon(
-  onPressed: () => launchUrl(Uri.parse('https://wa.me/4797374482?text=${Uri.encodeComponent(about.isEmpty ? 'Hi Habesha Hub' : 'Hi Habesha Hub, about: $about')}'),
-      mode: LaunchMode.externalApplication),
-  icon: const Icon(Icons.chat_rounded, size: 18),
-  label: Text(about.isEmpty ? tr('Contact us on WhatsApp') : tr('Reply on WhatsApp')),
+  onPressed: () => emailSupport(subject: about.isEmpty ? 'Habesha Hub' : 'Habesha Hub: $about'),
+  icon: const Icon(Icons.email_outlined, size: 18),
+  label: Text(about.isEmpty ? tr('Contact us by email') : tr('Reply by email')),
 );
 
 /// Admin: write to the person who registered something, before approving it

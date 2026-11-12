@@ -215,13 +215,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 // Country and city share the free width (long names get "…"), Map stays right
-                child: Row(children: [
+                // narrow screens: the 🌱 button shrinks to its icon, so country and city stay readable
+                child: LayoutBuilder(builder: (context, box) => Row(children: [
                   Expanded(
                     child: Row(children: [
-                      Flexible(child: _pickerButton('${countryFlag(_country)}  ${tr(_country)}', _showCountrySheet)),
+                      Flexible(flex: 3, child: _pickerButton('${countryFlag(_country)} ${tr(_country)}', _showCountrySheet)),
                       if (_cities.isNotEmpty) ...[
                         const SizedBox(width: 8),
-                        Flexible(child: _pickerButton(_city.isEmpty ? t('all_cities') : _city, _showCitySheet)),
+                        Flexible(flex: 3, child: _pickerButton(_city.isEmpty ? t('all_cities') : _city, _showCitySheet)),
                       ],
                       const SizedBox(width: 8),
                       // small & home businesses only (tap again for all)
@@ -231,10 +232,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () => setState(() => _smallOnly = !_smallOnly),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            child: Text('🌱 ${tr('Small & home')}', maxLines: 1,
-                                style: tsTitleMd(color: _smallOnly ? kOnAccent : kText).copyWith(fontSize: 13)),
+                          child: Tooltip(
+                            message: tr('Small & home'),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: box.maxWidth < 430 ? 10 : 12, vertical: 10),
+                              child: Text(box.maxWidth < 430 ? '🌱' : '🌱 ${tr('Small & home')}', maxLines: 1,
+                                  style: tsTitleMd(color: _smallOnly ? kOnAccent : kText).copyWith(fontSize: 13)),
+                            ),
                           ),
                         ),
                       ),
@@ -247,7 +251,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               businesses: _results,
                               title: _city.isNotEmpty ? _city : tr(_country),
                             )))),
-                ]),
+                ])),
               ),
               const SizedBox(height: 12),
               _buildCategoryChips(),
@@ -273,7 +277,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: tsTitleMd(color: kText))),
@@ -807,7 +811,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                   child: Row(children: [Icon(Icons.email_outlined, color: kSecondary, size: 15), const SizedBox(width: 8), Text('support@habesha-hub.no', style: tsBodySm(color: kSecondary))]),
                 ),
-                _social(Icons.chat_rounded, 'WhatsApp +47 973 74 482', 'https://wa.me/4797374482'),
                 _social(Icons.music_note_rounded, 'TikTok @habeshahub1', 'https://www.tiktok.com/@habeshahub1'),
                 _social(Icons.camera_alt_outlined, 'Instagram @habeshahubb', 'https://www.instagram.com/habeshahubb/'),
               ]),

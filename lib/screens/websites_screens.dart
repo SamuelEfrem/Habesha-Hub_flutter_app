@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '../utils/contact.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -104,7 +105,8 @@ String _price(WebPackage p) {
 }
 
 Future<void> _open(String url) => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-Future<void> _wa(String text) => _open('https://wa.me/$_waNumber?text=${Uri.encodeComponent(text)}');
+// questions about websites go by e-mail (the WhatsApp number is only for bookings)
+Future<void> _wa(String text) => emailSupport(subject: 'Website – Habesha Tech Help', body: text);
 
 // ── Entry cards ──
 

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../utils/contact.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
@@ -668,6 +669,33 @@ class WekilAdminScreen extends StatelessWidget {
     _phones = null;
   }
 
+  /// Change the wekil's name or the WhatsApp number customers book on.
+  Future<void> _edit(BuildContext context, QueryDocumentSnapshot<Map<String, dynamic>> d) async {
+    final name = TextEditingController(text: (d.data()['name'] ?? '').toString());
+    final phone = TextEditingController(text: (d.data()['phone'] ?? '').toString());
+    final ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+      backgroundColor: kCard,
+      title: Text('${flagOf((d.data()['country'] ?? '').toString())} ${d.id}', style: tsTitleMd(color: kText)),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: name, style: tsBodyLg(color: kText), decoration: InputDecoration(labelText: tr('Name'))),
+        const SizedBox(height: 10),
+        TextField(controller: phone, keyboardType: TextInputType.phone, style: tsBodyLg(color: kText),
+            decoration: InputDecoration(labelText: tr('WhatsApp number'), hintText: '+46 …', helperText: tr('Customers see this number'))),
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Cancel'), style: tsBodySm(color: kTextSub))),
+        FilledButton(style: FilledButton.styleFrom(backgroundColor: kSecondary, foregroundColor: kOnAccent),
+            onPressed: () => Navigator.pop(ctx, true), child: Text(tr('Save'))),
+      ],
+    ));
+    if (ok != true) return;
+    await d.reference.update({'name': name.text.trim(), 'phone': phone.text.trim(), 'code': codeOfCountry((d.data()['country'] ?? '').toString())});
+    await _syncCountries();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('✓ ${tr('Saved')}'), backgroundColor: kGreen));
+    }
+  }
+
   Future<void> _add(BuildContext context) async {
     final email = TextEditingController(), name = TextEditingController(), phone = TextEditingController();
     String country = 'Norway';
@@ -727,6 +755,8 @@ class WekilAdminScreen extends StatelessWidget {
                       style: tsTitleMd(color: kText)),
                   Text([d.id, (d.data()['phone'] ?? '').toString()].where((x) => x.isNotEmpty).join('  ·  '), style: tsBodySm(color: kTextSub)),
                 ])),
+                IconButton(icon: Icon(Icons.edit_outlined, color: kSecondary), tooltip: tr('Edit'),
+                    onPressed: () => _edit(context, d)),
                 IconButton(icon: Icon(Icons.delete_outline_rounded, color: kRed), tooltip: tr('Remove'),
                     onPressed: () async { await d.reference.delete(); await _syncCountries(); }),
               ]),
@@ -808,24 +838,20 @@ Future<String?> wekilCodeOrExplain(BuildContext context) async {
   final code = await myWekilCode();
   if (code.isNotEmpty) return code;
   if (!context.mounted) return null;
-  final mine = await detectCountry();
-  final phones = await wekilPhones();
-  final wa = (phones[codeOfCountry(mine)] ?? '').replaceAll(RegExp(r'[^0-9]'), '');
   if (!context.mounted) return null;
   await showDialog(context: context, builder: (ctx) => AlertDialog(
     backgroundColor: kCard,
-    title: Text(hubName(phones.containsKey(codeOfCountry(mine)) ? mine : ''), style: tsTitleLg(color: kText)),
+    title: Text(tr('Habesha Hub Service'), style: tsTitleLg(color: kText)),
     content: Text(tr('Service providers are added by our wekil. Do you offer a service? Contact us and we add you.'), style: tsBodyLg(color: kText)),
     actions: [
       TextButton(onPressed: () => Navigator.pop(ctx), child: Text(tr('Cancel'), style: tsBodySm(color: kTextSub))),
       FilledButton(
-        style: FilledButton.styleFrom(backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white),
+        style: FilledButton.styleFrom(backgroundColor: kSecondary, foregroundColor: kOnAccent),
         onPressed: () {
           Navigator.pop(ctx);
-          launchUrl(Uri.parse('https://wa.me/${wa.isNotEmpty ? wa : kWhatsAppSupport}?text=${Uri.encodeComponent(tr('Hi, I offer a service and want to be on Habesha Hub'))}'),
-              mode: LaunchMode.externalApplication);
+          emailSupport(subject: 'Service provider', body: tr('Hi, I offer a service and want to be on Habesha Hub'));
         },
-        child: const Text('WhatsApp'),
+        child: Text(tr('Email')),
       ),
     ],
   ));
