@@ -160,19 +160,14 @@ class HairFilterRows extends StatelessWidget {
       padding: const EdgeInsets.only(right: 8),
       child: ChoiceChip(label: Text(label), selected: on, onSelected: (_) => tap(),
           selectedColor: kHabGreen, showCheckmark: false, backgroundColor: kCard,
-          labelStyle: TextStyle(color: on ? Colors.white : kText, fontWeight: FontWeight.w600, fontSize: 13)),
+          labelStyle: TextStyle(color: on ? Colors.white : kText, fontWeight: FontWeight.w600, fontSize: 12)),
     );
-    return Column(children: [
-      SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 20), children: [
-        chip(tr('All'), sub.isEmpty, () => onSub('')),
-        chip('💍 ${tr('For weddings')}', sub == 'wedding', () => onSub(sub == 'wedding' ? '' : 'wedding')),
-        for (final s in kHairSubs) chip('${s.$3} ${tr(s.$2)}', sub == s.$1, () => onSub(sub == s.$1 ? '' : s.$1)),
-      ])),
-      const SizedBox(height: 6),
-      SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 20), children: [
-        for (final f in kHairFor) chip(tr(f.$2), (forWho.isEmpty ? 'all' : forWho) == f.$1, () => onFor(f.$1 == 'all' ? '' : f.$1)),
-      ])),
-    ]);
+    // one calm row: only barbershop and hair salon (the other types are chosen when registering)
+    return SizedBox(height: 36, child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 20), children: [
+      chip(tr('All'), sub.isEmpty, () => onSub('')),
+      for (final s in kHairSubs.where((x) => x.$1 == 'barber' || x.$1 == 'salon'))
+        chip('${s.$3} ${tr(s.$2)}', sub == s.$1, () => onSub(sub == s.$1 ? '' : s.$1)),
+    ]));
   }
 }
 
