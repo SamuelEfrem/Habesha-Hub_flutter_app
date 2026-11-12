@@ -403,7 +403,7 @@ class _ServiceGroupScreenState extends State<ServiceGroupScreen> {
                 const SizedBox(height: 10),
                 Text(tr('No providers yet'), style: tsTitleMd(color: kText)),
                 const SizedBox(height: 4),
-                Text(g.selfRegister ? tr('Be the first: register your service for free') : tr('Coming soon!'), textAlign: TextAlign.center, style: tsBodySm(color: kTextSub)),
+                Text(tr('Coming soon!'), textAlign: TextAlign.center, style: tsBodySm(color: kTextSub)),
               ]),
             ),
             // all regions: sorted by region, with the region as a small heading
@@ -724,7 +724,7 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
     final groups = kServiceGroups.where((g) => g.selfRegister).toList(), g = serviceGroup(_group);
     return Scaffold(
       backgroundColor: kBg,
-      appBar: AppBar(backgroundColor: kBg, title: Text(widget.docId == null ? tr('Register your service (free)') : tr('Edit service'), style: tsTitleMd(color: kText))),
+      appBar: AppBar(backgroundColor: kBg, title: Text(widget.docId == null ? tr('Add service provider') : tr('Edit service'), style: tsTitleMd(color: kText))),
       body: ListView(padding: const EdgeInsets.all(16), children: [
         Container(
           padding: const EdgeInsets.all(12),
@@ -844,7 +844,7 @@ class MyServicesScreen extends StatelessWidget {
       backgroundColor: kBg,
       appBar: AppBar(backgroundColor: kBg, title: Text(tr('My services'), style: tsTitleMd(color: kText))),
       floatingActionButton: FloatingActionButton.extended(backgroundColor: kHabGreen, foregroundColor: Colors.white,
-          onPressed: () => openServiceForm(context), icon: const Icon(Icons.add_rounded), label: Text(tr('Register your service (free)'))),
+          onPressed: () => openServiceForm(context), icon: const Icon(Icons.add_rounded), label: Text(tr('Add service provider'))),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: _svc.where('ownerId', isEqualTo: u.uid).snapshots(),
         builder: (_, snap) {
