@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 import '../theme/app_theme.dart';
 import '../utils/share_helper.dart';
 import '../utils/translations.dart';
@@ -108,6 +109,7 @@ class WeekendEventsCard extends StatelessWidget {
           child: _NewsTicker(
             label: '🎵 ${tr('This weekend')}',
             text: text,
+            sampleUrl: docs.map((d) => _s(d.data()['sampleUrl'])).firstWhere((u) => u.startsWith('https://'), orElse: () => ''),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsScreen())),
           ),
         );
@@ -119,19 +121,52 @@ class WeekendEventsCard extends StatelessWidget {
 /// One line that scrolls from right to left, like the news line on TV.
 class _NewsTicker extends StatefulWidget {
   final String label, text;
+  /// a short music sample of the event (played right here, max 30 seconds); '' = none
+  final String sampleUrl;
   final VoidCallback onTap;
-  const _NewsTicker({required this.label, required this.text, required this.onTap});
+  const _NewsTicker({required this.label, required this.text, required this.onTap, this.sampleUrl = ''});
   @override
   State<_NewsTicker> createState() => _NewsTickerState();
 }
 
 class _NewsTickerState extends State<_NewsTicker> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(vsync: this);
+  VideoPlayerController? _player;   // plays only the sound of the sample
+  bool _playing = false, _loading = false;
 
   @override
   void dispose() {
     _c.dispose();
+    _player?.dispose();
     super.dispose();
+  }
+
+  Future<void> _stop() async {
+    final p = _player;
+    _player = null;
+    if (mounted) setState(() { _playing = false; _loading = false; });
+    await p?.pause();
+    await p?.dispose();
+  }
+
+  Future<void> _togglePlay() async {
+    if (_playing || _loading) return _stop();
+    setState(() => _loading = true);
+    try {
+      final p = VideoPlayerController.networkUrl(Uri.parse(widget.sampleUrl));
+      _player = p;
+      await p.initialize();
+      if (_player != p) return;   // stopped while loading
+      p.addListener(() {
+        // stops by itself after 30 seconds or at the end
+        final v = p.value;
+        if (_player == p && (v.position >= const Duration(seconds: 30) || (v.isInitialized && !v.isPlaying && v.position >= v.duration && v.duration > Duration.zero))) _stop();
+      });
+      await p.play();
+      if (mounted) setState(() { _playing = true; _loading = false; });
+    } catch (_) {
+      await _stop();
+    }
   }
 
   @override
@@ -142,15 +177,26 @@ class _NewsTickerState extends State<_NewsTicker> with SingleTickerProviderState
       borderRadius: BorderRadius.circular(100),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: widget.onTap,
+        onTap: () { _stop(); widget.onTap(); },
         child: SizedBox(height: 34, child: Row(children: [
-          // fixed label on the left
-          Container(
-            height: 34,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(100)),
-            child: Text(widget.label, style: style.copyWith(color: kOnAccent, fontSize: 12)),
+          // fixed label on the left; with a music sample it is a play / pause button
+          GestureDetector(
+            onTap: widget.sampleUrl.isEmpty ? null : _togglePlay,
+            child: Container(
+              height: 34,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(100)),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                if (widget.sampleUrl.isNotEmpty) ...[
+                  _loading
+                      ? SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: kOnAccent))
+                      : Icon(_playing ? Icons.pause_rounded : Icons.play_arrow_rounded, color: kOnAccent, size: 18),
+                  const SizedBox(width: 4),
+                ],
+                Text(widget.label, style: style.copyWith(color: kOnAccent, fontSize: 12)),
+              ]),
+            ),
           ),
           Expanded(child: LayoutBuilder(builder: (context, box) {
             final tp = TextPainter(text: TextSpan(text: widget.text, style: style), maxLines: 1, textDirection: TextDirection.ltr)..layout();
@@ -610,7 +656,8 @@ class _EventFormScreenState extends State<EventFormScreen> {
   String _cat = 'concert', _artistId = '', _flyerUrl = '', _error = '';
   DateTime? _day, _codeExp;
   TimeOfDay? _time;
-  File? _flyerFile;
+  File? _flyerFile, _sampleFile;
+  String _sampleUrl = '';
   bool _saving = false;
 
   @override
@@ -621,7 +668,7 @@ class _EventFormScreenState extends State<EventFormScreen> {
       _title.text = _s(e['title']); _artist.text = _s(e['artistName']); _venue.text = _s(e['venue']);
       _city.text = _s(e['city']); _area.text = _s(e['area']); _desc.text = _s(e['description']);
       _ticket.text = _s(e['ticketUrl']); _code.text = _s(e['discountCode']); _codeText.text = _s(e['discountText']);
-      _cat = _s(e['category']).isEmpty ? 'concert' : _s(e['category']); _artistId = _s(e['artistId']); _flyerUrl = _s(e['flyerUrl']);
+      _cat = _s(e['category']).isEmpty ? 'concert' : _s(e['category']); _artistId = _s(e['artistId']); _flyerUrl = _s(e['flyerUrl']); _sampleUrl = _s(e['sampleUrl']);
       final t = _date(e['startAt']);
       if (t != null) { _day = DateTime(t.year, t.month, t.day); _time = TimeOfDay(hour: t.hour, minute: t.minute); }
       _codeExp = _date(e['discountExpiresAt']);
@@ -651,6 +698,12 @@ class _EventFormScreenState extends State<EventFormScreen> {
         await ref.putFile(_flyerFile!, SettableMetadata(contentType: 'image/jpeg'));
         flyer = await ref.getDownloadURL();
       }
+      var sample = _sampleUrl;
+      if (_sampleFile != null) {
+        final ref = FirebaseStorage.instance.ref('events/${u.uid}/sample_${DateTime.now().millisecondsSinceEpoch}.mp4');
+        await ref.putFile(_sampleFile!, SettableMetadata(contentType: 'video/mp4'));
+        sample = await ref.getDownloadURL();
+      }
       final admin = _isAdmin();
       final verified = admin || (await myWekilCountry()).isNotEmpty
           || (await _db.collection('users').doc(u.uid).get()).data()?['verifiedOrganizer'] == true;
@@ -658,7 +711,7 @@ class _EventFormScreenState extends State<EventFormScreen> {
       final data = <String, dynamic>{
         'title': _title.text.trim(), 'artistName': _artist.text.trim(), 'artistId': _artistId, 'category': _cat,
         'startAt': Timestamp.fromDate(start), 'venue': _venue.text.trim(), 'city': _city.text.trim(), 'area': _area.text.trim(),
-        'description': _desc.text.trim(), 'flyerUrl': flyer, 'ticketUrl': ticket,
+        'description': _desc.text.trim(), 'flyerUrl': flyer, 'sampleUrl': sample, 'ticketUrl': ticket,
         'discountCode': _code.text.trim(), 'discountText': _codeText.text.trim(),
         'discountExpiresAt': _codeExp == null ? null : Timestamp.fromDate(DateTime(_codeExp!.year, _codeExp!.month, _codeExp!.day, 23, 59)),
         'organizerVerified': verified, 'status': verified ? 'approved' : 'pending', 'updatedAt': FieldValue.serverTimestamp(),
@@ -716,6 +769,24 @@ class _EventFormScreenState extends State<EventFormScreen> {
                           Text(tr('Add the flyer (a photo of a paper poster is fine)'), textAlign: TextAlign.center, style: tsBodySm(color: kTextSub)),
                         ])),
             ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        // optional music sample: plays on the home screen ticker (only what the artist or organizer may share)
+        Material(
+          color: kCard,
+          borderRadius: BorderRadius.circular(14),
+          child: ListTile(
+            leading: Icon(Icons.music_note_rounded, color: kSecondary),
+            title: Text(_sampleFile != null || _sampleUrl.isNotEmpty ? '✓ ${tr('Music sample added')}' : tr('Add a music sample (optional)'), style: tsBodyLg(color: kText)),
+            subtitle: Text(tr('A short video or recording, max 30 seconds. Only music you may share.'), style: tsBodySm(color: kTextSub)),
+            trailing: _sampleFile != null || _sampleUrl.isNotEmpty
+                ? IconButton(icon: Icon(Icons.close_rounded, color: kRed), onPressed: () => setState(() { _sampleFile = null; _sampleUrl = ''; }))
+                : null,
+            onTap: () async {
+              final x = await ImagePicker().pickVideo(source: ImageSource.gallery, maxDuration: const Duration(seconds: 30));
+              if (x != null && mounted) setState(() => _sampleFile = File(x.path));
+            },
           ),
         ),
         const SizedBox(height: 16),

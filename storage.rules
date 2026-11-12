@@ -111,7 +111,7 @@ service firebase.storage {
     }
     match /events/{userId}/{file} {
       allow write: if signedIn() && (request.auth.uid == userId || isAdmin())
-                   && (request.resource == null || isImage(10));
+                   && (request.resource == null || isImage(10) || isMedia(30));
     }
     match /housing/{userId}/{file} {
       allow write: if signedIn() && (request.auth.uid == userId || isAdmin())

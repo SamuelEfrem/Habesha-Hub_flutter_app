@@ -128,10 +128,11 @@ service cloud.firestore {
     function eventOk() {
       let e = request.resource.data;
       return e.keys().hasOnly(['title', 'artistName', 'artistId', 'category', 'startAt', 'venue', 'city', 'area', 'description',
-          'flyerUrl', 'ticketUrl', 'discountCode', 'discountText', 'discountExpiresAt', 'organizerId', 'organizerVerified',
+          'flyerUrl', 'sampleUrl', 'ticketUrl', 'discountCode', 'discountText', 'discountExpiresAt', 'organizerId', 'organizerVerified',
           'status', 'interestedCount', 'createdAt', 'updatedAt'])
         && e.organizerId == uid() && e.title is string && e.title.size() <= 120 && e.get('description', '').size() <= 3000
         && (e.get('ticketUrl', '') == '' || e.ticketUrl.matches('https://[^ ]+'))
+        && (e.get('sampleUrl', '') == '' || e.sampleUrl.matches('https://firebasestorage.googleapis.com/[^ ]+'))
         && (e.status == 'pending' && e.organizerVerified == false
             || e.status == 'approved' && e.organizerVerified == true && verifiedOrganizer());
     }
