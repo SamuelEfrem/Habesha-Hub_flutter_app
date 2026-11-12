@@ -63,6 +63,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   bool _loading = true;
   String _country = '';
   String _city = '';
+  bool _smallOnly = false; // only small, new and home-based businesses
   late String _category = widget.initialCategory;
   String _query = '';
   late String _hairSub = widget.initialSub;
@@ -142,6 +143,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     if (_city.isNotEmpty) list = list.where((b) => _cityOf(b) == _city).toList();
     if (_category.isNotEmpty) list = list.where((b) => b.category == _category).toList();
     if (_category == kHairCategory) list = list.where((b) => hairMatches(b, _hairSub, _hairFor)).toList();
+    if (_smallOnly) list = list.where((b) => b.smallBiz || b.worksFromHome).toList();
     if (q.isNotEmpty) {
       list = list.where((b) =>
           b.name.toLowerCase().contains(q) ||
@@ -221,6 +223,21 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         const SizedBox(width: 8),
                         Flexible(child: _pickerButton(_city.isEmpty ? t('all_cities') : _city, _showCitySheet)),
                       ],
+                      const SizedBox(width: 8),
+                      // small & home businesses only (tap again for all)
+                      Material(
+                        color: _smallOnly ? kSecondary : kCard,
+                        borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => setState(() => _smallOnly = !_smallOnly),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            child: Text('🌱 ${tr('Small & home')}', maxLines: 1,
+                                style: tsTitleMd(color: _smallOnly ? kOnAccent : kText).copyWith(fontSize: 13)),
+                          ),
+                        ),
+                      ),
                     ]),
                   ),
                   const SizedBox(width: 8),
