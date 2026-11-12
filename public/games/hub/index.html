@@ -96,6 +96,13 @@ canvas{display:block;width:100%;max-width:100%;border-radius:14px;background:var
 .pc{width:76%;max-height:76%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-size:.9rem;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3)}
 .pc.p0{background:var(--cream);color:#2a1d00}.pc.p1{background:#26201c;color:var(--gold);border:2px solid #6b5a4b}
 .pc.sel{outline:3px solid var(--gold);outline-offset:1px}
+/* Dama: you tried another move while a capture is required: the pieces that must capture and where they land blink */
+.pc.must{animation:dmust .55s ease-in-out 3}
+.dama .d.mustto{animation:dmustsq .55s ease-in-out 3}
+@keyframes dmust{50%{box-shadow:0 0 0 4px #ff5a4f,0 0 16px #ff5a4f;transform:scale(1.12)}}
+@keyframes dmustsq{50%{background:#c0473f}}
+.dmustmsg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#c0473f;color:#fff;font-weight:800;padding:10px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none;z-index:5;white-space:nowrap;animation:dmsg 1.8s ease forwards}
+@keyframes dmsg{0%{opacity:0;transform:translate(-50%,-40%)}12%{opacity:1;transform:translate(-50%,-50%)}80%{opacity:1}100%{opacity:0}}
 
 /* Riddles */
 .riddle{font-size:1.25rem;font-weight:800;text-align:center;margin:0;line-height:1.4}
@@ -346,7 +353,7 @@ function redraw(){if(!M||!M.st)return;const st=M.st,me=M.seat,op=1-me;
 $("afterRow").addEventListener("click",e=>{if(e.target.id==="againBtn")newRound();if(e.target.id==="toModes")showModes()});
 
 /* ================= DAMA ================= */
-let DSEL=-1;
+let DSEL=-1, DMUST=0; // DMUST: time the "you must capture" hint was shown
 // a soft "ting" after every move; a lower double note when a piece is taken
 let DAC=null;function damaTing(st){try{DAC=DAC||new(window.AudioContext||window.webkitAudioContext)();if(DAC.state==="suspended")DAC.resume();
  const caught=st.b.filter(Boolean).length<(damaTing.n||99);damaTing.n=st.b.filter(Boolean).length;
@@ -377,11 +384,20 @@ const DAMA={rule:"ruleDama",
  render(el,st,v){const lk=st.last?st.last.join('-')+':'+st.turn+':'+st.chain:'';if(lk&&lk!==DAMA._lk&&DAMA._lk!==undefined)damaTing(st);DAMA._lk=lk;const order=[...Array(64).keys()];if(v.seat===1)order.reverse();
   if(st.chain>=0&&v.mine)DSEL=st.chain;if(!v.mine)DSEL=-1;
   const targets=DSEL>=0?DAMA.all(st,v.seat).filter(m=>m.from===DSEL).map(m=>m.to):[];
-  el.innerHTML=`<div class="dama" id="dboard">${order.map(i=>{const r=i>>3,c=i&7,dark=(r+c)%2===1,p=st.b[i];
-    return `<div class="${dark?"d":"l"} ${targets.includes(i)?"hl":""}" data-i="${i}">${p?`<span class="pc p${DAMA.own(p)} ${DSEL===i?"sel":""}">${p!==p.toLowerCase()?"♛":""}</span>`:""}</div>`}).join("")}</div>`;
+  // a capture is required: which pieces must capture and where they land (shown when the player tries something else)
+  const caps=v.mine&&!st.winner?DAMA.all(st,v.seat).filter(m=>m.cap!=null):[];
+  const showMust=caps.length&&Date.now()-DMUST<1800;
+  const mustFrom=showMust?caps.map(m=>m.from):[],mustTo=showMust?caps.map(m=>m.to):[];
+  el.innerHTML=`<div class="dama" id="dboard" style="position:relative">${order.map(i=>{const r=i>>3,c=i&7,dark=(r+c)%2===1,p=st.b[i];
+    return `<div class="${dark?"d":"l"} ${targets.includes(i)?"hl":""} ${mustTo.includes(i)?"mustto":""}" data-i="${i}">${p?`<span class="pc p${DAMA.own(p)} ${DSEL===i?"sel":""} ${mustFrom.includes(i)?"must":""}">${p!==p.toLowerCase()?"♛":""}</span>`:""}</div>`}).join("")}${showMust?`<div class="dmustmsg">⚠️ ${T("mustCap")}</div>`:""}</div>`;
+  const warn=()=>{DSEL=-1;DMUST=Date.now();if(navigator.vibrate)navigator.vibrate(60);redraw()};
   $("dboard").onclick=e=>{const sq=e.target.closest("[data-i]");if(!sq||!v.mine)return;const i=+sq.dataset.i;
-   if(DAMA.own(st.b[i])===v.seat&&st.chain<0){DSEL=i;redraw();return}
-   if(DSEL>=0&&targets.includes(i)){const from=DSEL;DSEL=-1;v.move({from,to:i})}}}
+   if(DAMA.own(st.b[i])===v.seat&&st.chain<0){
+     // this piece cannot capture, but another one must: show the player which one
+     if(caps.length&&!caps.some(m=>m.from===i)){warn();return}
+     DSEL=i;redraw();return}
+   if(DSEL>=0&&targets.includes(i)){const from=DSEL;DSEL=-1;v.move({from,to:i});return}
+   if(caps.length&&!st.b[i])warn()}}
 };
 
 /* ================= DOMINO (ዱሙና) =================
