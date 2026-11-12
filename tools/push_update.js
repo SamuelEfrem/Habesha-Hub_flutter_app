@@ -15,9 +15,9 @@ if (!/^\d+\.\d+\.\d+$/.test(version || '')) {
   process.exit(1);
 }
 const MSG = {
-  news_en: { title: `🎉 Habesha Hub ${version} is here`, body: 'New: Habesha Hub Service in your country, small & home businesses, Premium for businesses and a fresh look. Update now.' },
-  news_ti: { title: `🎉 Habesha Hub ${version} መጺኡ`, body: 'ሓድሽ፦ ሓበሻ ሃብ ኣገልግሎት ኣብ ሃገርኩም፡ ናእሽቱን ናይ ገዛን ንግድታት፡ ፕሪሚየም ንንግድታትን ሓድሽ መልክዕን። ሕጂ ኣሐድሱ።' },
-  news_am: { title: `🎉 Habesha Hub ${version} ደርሷል`, body: 'አዲስ፦ ሐበሻ ሀብ አገልግሎት በአገርዎ፣ አነስተኛና የቤት ንግዶች፣ ፕሪሚየም ለንግዶችና አዲስ መልክ። አሁን ያዘምኑ።' },
+  news_en: { title: `🎉 Habesha Hub ${version} is here`, body: 'New: Habesha Hub Services by region, small & home businesses, a cleaner home screen and more. Update now.' },
+  news_ti: { title: `🎉 Habesha Hub ${version} መጺኡ`, body: 'ሓድሽ፦ ሓበሻ ሃብ ኣገልግሎታት ብዞባ፡ ናእሽቱን ናይ ገዛን ንግድታት፡ ፕሪሚየም ንንግድታትን ሓድሽ መልክዕን። ሕጂ ኣሐድሱ።' },
+  news_am: { title: `🎉 Habesha Hub ${version} ደርሷል`, body: 'አዲስ፦ ሐበሻ ሀብ አገልግሎቶች በክልል፣ አነስተኛና የቤት ንግዶች፣ ፕሪሚየም ለንግዶችና አዲስ መልክ። አሁን ያዘምኑ።' },
 };
 
 (async () => {
