@@ -323,8 +323,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
         Text(tr('Nothing here yet'), style: tsTitleMd(color: kText)),
         const SizedBox(height: 4),
         Text(tr('Try another category or city'), style: tsBodySm(color: kTextSub)),
-        const SizedBox(height: 12),
-        suggestBusinessButton(context, country: _country),
       ]));
     }
     return RefreshIndicator(
@@ -333,15 +331,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
       onRefresh: _load,
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
-        itemCount: list.length + 1,
+        itemCount: list.length,
         itemBuilder: (_, i) {
-          // Last row: missing a place? suggest it
-          if (i == list.length) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Center(child: suggestBusinessButton(context, country: _country)),
-            );
-          }
           final b = list[i];
           return BusinessCard(
             key: ValueKey(b.id),

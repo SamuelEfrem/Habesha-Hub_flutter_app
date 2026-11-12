@@ -712,8 +712,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
         Center(child: Text(
             _businesses.isEmpty ? tr('Browse by country in Explore') : tr('Try another category or city'),
             style: tsBodySm(color: kTextSub))),
-        const SizedBox(height: 8),
-        Center(child: suggestBusinessButton(context)),
       ]));
     }
     return SliverList(
