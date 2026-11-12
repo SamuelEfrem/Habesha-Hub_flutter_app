@@ -12,10 +12,9 @@ class LanguageNotifier extends ChangeNotifier {
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
-    // first start: English; after that the language the user chose
-    final saved = prefs.getString('language') ?? 'English';
-    // Only English, Tigrinya and Amharic are supported (old 'Norsk' → English)
-    _language = (saved == 'Tigrinya' || saved == 'Amharic') ? saved : 'English';
+    // every start is in English; a language chosen in the app stays on every page until the app is closed
+    await prefs.remove('language');
+    _language = 'English';
     AppTranslations.setLanguage(_language);
     notifyListeners();
   }

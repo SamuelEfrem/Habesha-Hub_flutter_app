@@ -594,21 +594,8 @@ class ServiceProviderScreen extends StatelessWidget {
         ]),
       ),
       // Book button always visible at the bottom
-      bottomNavigationBar: isDirectContact(data) ? directContactBar(context, data) : SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          // fixed height — goldButton contains a Center that would otherwise fill the whole screen
-          child: SizedBox(
-            height: 54,
-            child: serviceGroupOf(data) == 'music'
-                ? goldButton(tr('Book on WhatsApp'), () => launchUrl(Uri.parse('https://wa.me/4797374482?text=${Uri.encodeComponent('${tr('Hi, I want to book')} ${serviceStr(data['publicName'])} (Habesha Hub)')}'),
-                    mode: LaunchMode.externalApplication), icon: Icons.chat_rounded)
-                : goldButton(tr('Book Now'), () => Navigator.push(context, MaterialPageRoute(
-              builder: (_) => BookServiceScreen(docId: docId, data: data, country: country))),
-              icon: Icons.calendar_today_rounded),
-          ),
-        ),
-      ),
+      // Book: straight to WhatsApp with the service name (no login)
+      bottomNavigationBar: directContactBar(context, data),
     );
   }
 }

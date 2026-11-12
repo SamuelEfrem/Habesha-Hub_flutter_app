@@ -155,8 +155,8 @@ class _ServicesHomeState extends State<ServicesHome> {
                     Row(children: [
                       if (canPop) IconButton(onPressed: () => Navigator.pop(context), icon: Icon(Icons.arrow_back_rounded, color: kText)),
                       Expanded(child: Text(tr('Services'), style: tsHeadlineMd(color: kText))),
-                      IconButton(tooltip: tr('My services'), icon: Icon(Icons.storefront_outlined, color: kText),
-                          onPressed: () => openMyServices(context)),
+                      WekilOnly(child: IconButton(tooltip: tr('My services'), icon: Icon(Icons.storefront_outlined, color: kText),
+                          onPressed: () => openMyServices(context))),
                       IconButton(tooltip: tr('Favorite services'), icon: const Icon(Icons.favorite_rounded, color: kRed),
                           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoriteServicesScreen()))),
                     ]),
@@ -192,12 +192,12 @@ class _ServicesHomeState extends State<ServicesHome> {
                     ] else ...[
                       for (final g in kServiceGroups) _groupCard(g, inCity.where((d) => serviceGroupOf(d.data()) == g.key).length),
                       const SizedBox(height: 10),
-                      FilledButton.icon(
+                      WekilOnly(child: FilledButton.icon(
                         style: FilledButton.styleFrom(backgroundColor: kHabGreen, foregroundColor: Colors.white, minimumSize: const Size.fromHeight(52)),
                         onPressed: () => openServiceForm(context),
                         icon: const Icon(Icons.add_business_outlined),
-                        label: Text(tr('Register your service (free)'), style: const TextStyle(fontWeight: FontWeight.w800)),
-                      ),
+                        label: Text(tr('Add service provider'), style: const TextStyle(fontWeight: FontWeight.w800)),
+                      )),
                     ],
                   ]);
                 },
@@ -326,10 +326,10 @@ class _ServiceGroupScreenState extends State<ServiceGroupScreen> {
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(backgroundColor: kBg, title: Text('${countryFlag(widget.country)} ${tr(g.label)}', style: tsTitleMd(color: kText))),
-      floatingActionButton: g.selfRegister ? FloatingActionButton.extended(
+      floatingActionButton: g.selfRegister ? WekilOnly(child: FloatingActionButton.extended(
         backgroundColor: kHabGreen, foregroundColor: Colors.white,
         onPressed: () => openServiceForm(context, group: g.key),
-        icon: const Icon(Icons.add_rounded), label: Text(tr('Register your service (free)'))) : null,
+        icon: const Icon(Icons.add_rounded), label: Text(tr('Add service provider')))) : null,
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: servicesIn(widget.country),
         builder: (_, snap) {
@@ -556,6 +556,9 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
   List<String> _photos = [], _videos = [], _citySuggest = [];
   final List<File> _newPhotos = [], _newVideos = [];
 
+  // admin or wekil: publishes at once, only name and city are required
+  bool get _staff => widget.wekilCode != null || FirebaseAuth.instance.currentUser?.email == 'samuelefriem@gmail.com';
+
   @override
   void initState() {
     super.initState();
@@ -617,11 +620,15 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
   String? _link(TextEditingController c) => c.text.trim().startsWith('https://') ? c.text.trim() : null;
 
   Future<void> _save() async {
-    if (_name.text.trim().isEmpty || _city.text.trim().isEmpty || digitsOnly(_wa.text).length < 8) {
-      setState(() => _error = tr('Please write the name, city and WhatsApp number with country code'));
-      return;
+    if (_staff) {
+      if (_name.text.trim().isEmpty || _city.text.trim().isEmpty) { setState(() => _error = tr('Please write the name and the city')); return; }
+    } else {
+      if (_name.text.trim().isEmpty || _city.text.trim().isEmpty || digitsOnly(_wa.text).length < 8) {
+        setState(() => _error = tr('Please write the name, city and WhatsApp number with country code'));
+        return;
+      }
+      if (_sub.isEmpty && (serviceGroup(_group)?.subs.isNotEmpty ?? false)) { setState(() => _error = tr('Please choose what you offer')); return; }
     }
-    if (_sub.isEmpty && (serviceGroup(_group)?.subs.isNotEmpty ?? false)) { setState(() => _error = tr('Please choose what you offer')); return; }
     for (final c in [_ig, _tt, _yt]) {
       if (c.text.trim().isNotEmpty && _link(c) == null) { setState(() => _error = tr('Links must start with https://')); return; }
     }
@@ -653,7 +660,7 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
         'ownerId': widget.wekilCode != null ? (serviceStr(widget.existing?['ownerId']).isNotEmpty ? serviceStr(widget.existing!['ownerId']) : u.uid) : u.uid,
         'contactMode': 'direct',
         // the wekil publishes at once; the admin's own edits keep the old way
-        'status': widget.wekilCode != null ? 'approved' : 'pending', 'available': widget.wekilCode != null,
+        'status': _staff ? 'approved' : 'pending', 'available': _staff,
         'updatedAt': FieldValue.serverTimestamp(),
       };
       if (widget.docId == null) {
@@ -662,7 +669,7 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
         await _svc.doc(widget.docId).update(data);
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(widget.wekilCode != null ? tr('Saved and published') : tr('Thank you! Habesha Hub checks your service and publishes it soon'))));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_staff ? tr('Saved and published') : tr('Thank you! Habesha Hub checks your service and publishes it soon'))));
       Navigator.pop(context);
     } catch (_) {
       if (mounted) setState(() { _saving = false; _error = tr('Could not save. Check your internet and try again.'); });
@@ -684,7 +691,7 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(color: kTintGreen, borderRadius: BorderRadius.circular(14)),
-          child: Text(widget.wekilCode != null ? tr('You add this provider as wekil. Customers see it at once, and WhatsApp and call go to you.')
+          child: Text(_staff ? tr('Only the name and the city are needed. It is shown at once, and customers book through Habesha Hub Service on WhatsApp.')
               : tr('Free now. Habesha Hub may later offer paid extras. Customers contact you directly on WhatsApp or phone.'), style: tsBodySm(color: kInkGreen)),
         ),
         const SizedBox(height: 14),
@@ -752,7 +759,7 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: kHabGreen, foregroundColor: Colors.white, minimumSize: const Size.fromHeight(52)),
           onPressed: _saving ? null : _save,
-          child: Text(_saving ? '…' : widget.wekilCode != null ? tr('Save and publish') : tr('Send for approval')),
+          child: Text(_saving ? '…' : _staff ? tr('Save and publish') : tr('Send for approval')),
         ),
         SizedBox(height: MediaQuery.paddingOf(context).bottom + 20),
       ]),
@@ -861,13 +868,6 @@ class ServiceNameText extends StatelessWidget {
   final int? maxLines;
   const ServiceNameText({super.key, required this.data, required this.style, this.maxLines});
   @override
-  Widget build(BuildContext context) => FutureBuilder<Map<String, String>>(
-        future: wekilPhones(),
-        builder: (_, snap) {
-          final code = serviceStr(data['country']);
-          final viaWekil = isDirectContact(data) && (snap.data?[code] ?? '').isNotEmpty;
-          return Text(viaWekil ? hubNameForCode(code) : serviceText(data, 'publicName'),
-              maxLines: maxLines, overflow: maxLines == null ? null : TextOverflow.ellipsis, style: style);
-        },
-      );
+  Widget build(BuildContext context) => Text(serviceText(data, 'publicName'),
+      maxLines: maxLines, overflow: maxLines == null ? null : TextOverflow.ellipsis, style: style);
 }

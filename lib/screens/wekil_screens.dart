@@ -40,20 +40,8 @@ const _flags = {
 };
 String flagOf(String c) => _flags[c] ?? '🌍';
 
-// the country in its own language: "Habesha Hub Norge", "Habesha Hub Sverige" …
-const _local = {
-  'Norway': 'Norge', 'Sweden': 'Sverige', 'Denmark': 'Danmark', 'UK': 'UK', 'Germany': 'Deutschland',
-  'Netherlands': 'Nederland', 'France': 'France', 'Belgium': 'België', 'Switzerland': 'Schweiz', 'Italy': 'Italia',
-  'USA': 'USA', 'Canada': 'Canada', 'Ethiopia': 'Ethiopia', 'Eritrea': 'Eritrea', 'Uganda': 'Uganda', 'Kenya': 'Kenya',
-  'South Sudan': 'South Sudan', 'Rwanda': 'Rwanda', 'Egypt': 'Egypt', 'Angola': 'Angola',
-};
-String hubName(String c) {
-  final l = languageNotifier.language;
-  if (c.isEmpty) return tr('Habesha Hub Service');
-  if (l == 'Tigrinya') return 'ሓበሻ ሃብ ${tr(c)}';
-  if (l == 'Amharic') return 'ሐበሻ ሀብ ${tr(c)}';
-  return 'Habesha Hub ${_local[c] ?? c}';
-}
+/// Always "Habesha Hub Service" (in the chosen language); the country is shown next to it.
+String hubName(String c) => tr('Habesha Hub Service');
 
 const _iso = {
   'NO': 'Norway', 'SE': 'Sweden', 'DK': 'Denmark', 'GB': 'UK', 'DE': 'Germany', 'NL': 'Netherlands', 'FR': 'France',
@@ -80,7 +68,7 @@ Future<Map<String, String>> wekilPhones() async {
   return _phones!;
 }
 
-String hubNameForCode(String code) => _iso.containsKey(code) ? hubName(_iso[code]!) : 'Habesha Hub';
+String hubNameForCode(String code) => tr('Habesha Hub Service');
 
 /// ISO code of the country this account is wekil for ('' = not a wekil).
 Future<String> myWekilCode() async => codeOfCountry(await myWekilCountry());
@@ -185,8 +173,7 @@ class _ServiceHubScreenState extends State<ServiceHubScreen> {
   bool _loading = true;
 
   String get _countryName => _iso[_code] ?? '';
-  String get _title => _countryName.isNotEmpty ? hubName(_countryName)
-      : '${languageNotifier.language == 'Tigrinya' ? 'ሓበሻ ሃብ' : languageNotifier.language == 'Amharic' ? 'ሐበሻ ሀብ' : 'Habesha Hub'} ${tr(countryName(_code))}';
+  String get _title => tr('Habesha Hub Service');
   bool get _hasWekil => (_phones[_code] ?? '').isNotEmpty;
 
   @override
@@ -256,7 +243,7 @@ class _ServiceHubScreenState extends State<ServiceHubScreen> {
                     Text(countryFlag(_code), style: const TextStyle(fontSize: 28)),
                     const SizedBox(width: 12),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(_title, style: tsTitleLg(color: kInkGreen)),
+                      Text(tr(countryName(_code)), style: tsTitleLg(color: kInkGreen)),
                       Text(tr('Choose country'), style: tsBodySm(color: kInkGreen)),
                     ])),
                     Icon(Icons.expand_more_rounded, color: kInkGreen),
@@ -845,42 +832,52 @@ Future<String?> wekilCodeOrExplain(BuildContext context) async {
   return null;
 }
 
-/// Bottom buttons on a provider page: WhatsApp + call go to the wekil of that country
-/// (countries without a wekil keep the provider's own number).
+/// Bottom of a provider page: "Book now" opens WhatsApp to the wekil of that country
+/// (or Habesha Hub's own number) with the service name, e.g. "Decoration 2". No login needed.
 class WekilContactBar extends StatelessWidget {
   final Map<String, dynamic> data;
-  final Widget Function() fallback;
-  const WekilContactBar({super.key, required this.data, required this.fallback});
+  final Widget Function()? fallback; // not used any more; kept so old callers still compile
+  const WekilContactBar({super.key, required this.data, this.fallback});
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, String>>(
       future: wekilPhones(),
       builder: (context, snap) {
-        if (!snap.hasData) return const SizedBox(height: 76);
         final code = serviceStr(data['country']);
-        final digits = (snap.data![code] ?? '').replaceAll(RegExp(r'[^0-9]'), '');
-        if (digits.length < 8) return fallback();
-        final country = _iso[code] ?? '';
-        final msg = '${tr('Hi')} ${hubName(country)}, ${tr('I want to book')}: ${serviceText(data, 'publicName')} (${serviceStr(data['city'])})';
+        var phone = snap.data?[code] ?? '';
+        if (phone.replaceAll(RegExp(r'[^0-9]'), '').length < 8) phone = '+47 973 74 482';
+        final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+        final name = serviceText(data, 'publicName'), city = serviceStr(data['city']);
+        final msg = '${tr('Hi Habesha Hub Service! I want to book')}: $name${city.isEmpty ? '' : ' ($city)'}. ${tr('Please call me back.')}';
         return SafeArea(child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('${flagOf(country)} ${tr('Booked through')} ${hubName(country)}', style: tsBodySm(color: kTextSub)),
+            Text('${tr('Book through Habesha Hub Service')} · $phone', style: tsBodySm(color: kTextSub)),
             const SizedBox(height: 6),
-            Row(children: [
-              Expanded(child: SizedBox(height: 52, child: FilledButton.icon(
-                style: FilledButton.styleFrom(backgroundColor: kHabGreen, foregroundColor: Colors.white),
-                onPressed: () => launchUrl(Uri.parse('https://wa.me/$digits?text=${Uri.encodeComponent(msg)}'), mode: LaunchMode.externalApplication),
-                icon: const Icon(Icons.chat_rounded), label: Text(tr('Book on WhatsApp'), style: const TextStyle(fontWeight: FontWeight.w800))))),
-              const SizedBox(width: 10),
-              SizedBox(height: 52, child: OutlinedButton.icon(
-                onPressed: () => launchUrl(Uri.parse('tel:+$digits')),
-                icon: const Icon(Icons.call_rounded), label: Text(tr('Call')))),
-            ]),
+            SizedBox(width: double.infinity, height: 52, child: FilledButton.icon(
+              style: FilledButton.styleFrom(backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+              onPressed: () => launchUrl(Uri.parse('https://wa.me/$digits?text=${Uri.encodeComponent(msg)}'), mode: LaunchMode.externalApplication),
+              icon: const Icon(Icons.chat_rounded),
+              label: Text(tr('Book now on WhatsApp'), style: const TextStyle(fontWeight: FontWeight.w800)))),
           ]),
         ));
       },
     );
   }
+}
+
+/// Admin or a wekil: may add and edit service providers.
+Future<bool> canManageServices() async => _isAdmin || (await myWekilCode()).isNotEmpty;
+
+/// Shows its child only to the admin and the wekils (everyone else sees nothing).
+class WekilOnly extends StatelessWidget {
+  final Widget child;
+  const WekilOnly({super.key, required this.child});
+  @override
+  Widget build(BuildContext context) => FutureBuilder<bool>(
+        future: canManageServices(),
+        builder: (_, snap) => snap.data == true ? child : const SizedBox.shrink(),
+      );
 }
