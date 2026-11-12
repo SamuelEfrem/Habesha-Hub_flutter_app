@@ -41,8 +41,8 @@ const _flags = {
 };
 String flagOf(String c) => _flags[c] ?? '🌍';
 
-/// Always "Habesha Hub Service" (in the chosen language); the country is shown next to it.
-String hubName(String c) => tr('Habesha Hub Service');
+/// Always "Habesha Hub Services" (in the chosen language); the country is shown next to it.
+String hubName(String c) => tr('Habesha Hub Services');
 
 const _iso = {
   'NO': 'Norway', 'SE': 'Sweden', 'DK': 'Denmark', 'GB': 'UK', 'DE': 'Germany', 'NL': 'Netherlands', 'FR': 'France',
@@ -69,7 +69,7 @@ Future<Map<String, String>> wekilPhones() async {
   return _phones!;
 }
 
-String hubNameForCode(String code) => tr('Habesha Hub Service');
+String hubNameForCode(String code) => tr('Habesha Hub Services');
 
 /// ISO code of the country this account is wekil for ('' = not a wekil).
 Future<String> myWekilCode() async => codeOfCountry(await myWekilCountry());
@@ -90,7 +90,7 @@ Future<String> detectCountry() async {
   return '';
 }
 
-/// The country for the home screen shortcut "Habesha Hub Norge" ('' = no wekil there: "Habesha Hub Service").
+/// The country for the home screen shortcut "Habesha Hub Norge" ('' = no wekil there: "Habesha Hub Services").
 Future<String> hubShortcutCountry() async {
   final c = await detectCountry();
   try {
@@ -170,11 +170,12 @@ class ServiceHubScreen extends StatefulWidget {
 /// the wekil posted; booking goes to the wekil. "Didn't find it?" sends a request to the wekil.
 class _ServiceHubScreenState extends State<ServiceHubScreen> {
   String _code = '';           // ISO code, e.g. "NO"
+  String _city = '';           // region / city ('' = all regions)
   Map<String, String> _phones = {};
   bool _loading = true;
 
   String get _countryName => _iso[_code] ?? '';
-  String get _title => tr('Habesha Hub Service');
+  String get _title => tr('Habesha Hub Services');
   bool get _hasWekil => (_phones[_code] ?? '').isNotEmpty;
 
   @override
@@ -187,6 +188,7 @@ class _ServiceHubScreenState extends State<ServiceHubScreen> {
     final loc = await ServiceLocation.load();
     _phones = await wekilPhones();
     _code = loc.$1;
+    _city = loc.$2;
     if (mounted) setState(() => _loading = false);
   }
 
@@ -217,11 +219,12 @@ class _ServiceHubScreenState extends State<ServiceHubScreen> {
     await Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceRequestForm(country: _countryName, category: 'other')));
   }
 
+  /// Country and region: the sheet lists the regions (cities) that have providers.
   Future<void> _pickCountry() async {
-    final r = await pickServiceLocation(context, _code, '', const []);
+    final r = await pickServiceLocation(context, _code, _city, const []);
     if (r == null || !mounted) return;
     await ServiceLocation.save(r.$1, r.$2);
-    setState(() => _code = r.$1);
+    setState(() { _code = r.$1; _city = r.$2; });
   }
 
   @override
@@ -244,8 +247,8 @@ class _ServiceHubScreenState extends State<ServiceHubScreen> {
                     Text(countryFlag(_code), style: const TextStyle(fontSize: 28)),
                     const SizedBox(width: 12),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(tr(countryName(_code)), style: tsTitleLg(color: kInkGreen)),
-                      Text(tr('Choose country'), style: tsBodySm(color: kInkGreen)),
+                      Text('${tr(countryName(_code))} · ${_city.isEmpty ? tr('All regions') : _city}', style: tsTitleLg(color: kInkGreen)),
+                      Text(tr('Choose country and region'), style: tsBodySm(color: kInkGreen)),
                     ])),
                     Icon(Icons.expand_more_rounded, color: kInkGreen),
                   ]),
@@ -264,7 +267,7 @@ class _ServiceHubScreenState extends State<ServiceHubScreen> {
                     borderRadius: BorderRadius.circular(18),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(18),
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceGroupScreen(group: g, country: _code, city: ''))),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceGroupScreen(group: g, country: _code, city: _city))),
                       child: Padding(
                         padding: const EdgeInsets.all(14),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -841,7 +844,7 @@ Future<String?> wekilCodeOrExplain(BuildContext context) async {
   if (!context.mounted) return null;
   await showDialog(context: context, builder: (ctx) => AlertDialog(
     backgroundColor: kCard,
-    title: Text(tr('Habesha Hub Service'), style: tsTitleLg(color: kText)),
+    title: Text(tr('Habesha Hub Services'), style: tsTitleLg(color: kText)),
     content: Text(tr('Service providers are added by our wekil. Do you offer a service? Contact us and we add you.'), style: tsBodyLg(color: kText)),
     actions: [
       TextButton(onPressed: () => Navigator.pop(ctx), child: Text(tr('Cancel'), style: tsBodySm(color: kTextSub))),
@@ -875,11 +878,11 @@ class WekilContactBar extends StatelessWidget {
         if (phone.replaceAll(RegExp(r'[^0-9]'), '').length < 8) phone = '+47 973 74 482';
         final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
         final name = serviceText(data, 'publicName'), city = serviceStr(data['city']);
-        final msg = '${tr('Hi Habesha Hub Service! I want to book')}: $name${city.isEmpty ? '' : ' ($city)'}. ${tr('Please call me back.')}';
+        final msg = '${tr('Hi Habesha Hub Services! I want to book')}: $name${city.isEmpty ? '' : ' ($city)'}. ${tr('Please call me back.')}';
         return SafeArea(child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('${tr('Book through Habesha Hub Service')} · $phone', style: tsBodySm(color: kTextSub)),
+            Text('${tr('Book through Habesha Hub Services')} · $phone', style: tsBodySm(color: kTextSub)),
             const SizedBox(height: 6),
             SizedBox(width: double.infinity, height: 52, child: FilledButton.icon(
               style: FilledButton.styleFrom(backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white,

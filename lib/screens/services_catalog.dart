@@ -260,7 +260,11 @@ class _LocationSheetState extends State<_LocationSheet> {
   List<String>? _cities;
 
   @override
-  void initState() { super.initState(); _cities = widget.cities; }
+  void initState() {
+    super.initState();
+    _cities = widget.cities;
+    if (widget.cities.isEmpty) _loadCities(widget.country);   // the regions that have providers
+  }
 
   Future<void> _loadCities(String c) async {
     setState(() => _cities = null);
@@ -283,7 +287,7 @@ class _LocationSheetState extends State<_LocationSheet> {
           SizedBox(height: 40, child: _cities == null
               ? const Center(child: LinearProgressIndicator())
               : ListView(scrollDirection: Axis.horizontal, children: [
-                  Padding(padding: const EdgeInsets.only(right: 8), child: ActionChip(label: Text(tr('All cities')), onPressed: () => Navigator.pop(context, (_country, '')))),
+                  Padding(padding: const EdgeInsets.only(right: 8), child: ActionChip(label: Text(tr('All regions')), onPressed: () => Navigator.pop(context, (_country, '')))),
                   for (final c in _cities!) Padding(padding: const EdgeInsets.only(right: 8), child: ActionChip(label: Text(c), onPressed: () => Navigator.pop(context, (_country, c)))),
                 ])),
           const SizedBox(height: 14),
@@ -355,7 +359,7 @@ class _ServiceGroupScreenState extends State<ServiceGroupScreen> {
             if (cities.length > 1 || _city.isNotEmpty) ...[
               const SizedBox(height: 8),
               SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [
-                _chip(tr('All cities'), _city.isEmpty, () => setState(() => _city = '')),
+                _chip(tr('All regions'), _city.isEmpty, () => setState(() => _city = '')),
                 for (final c in cities) _chip(c, _city.toLowerCase() == c.toLowerCase(), () => setState(() => _city = c)),
               ])),
             ],
@@ -380,7 +384,18 @@ class _ServiceGroupScreenState extends State<ServiceGroupScreen> {
                 Text(g.selfRegister ? tr('Be the first: register your service for free') : tr('Coming soon!'), textAlign: TextAlign.center, style: tsBodySm(color: kTextSub)),
               ]),
             ),
-            for (final d in docs) ServiceTile(doc: d),
+            // all regions: sorted by region, with the region as a small heading
+            if (_city.isNotEmpty) for (final d in docs) ServiceTile(doc: d)
+            else for (final (i, d) in (docs..sort((a, b) => serviceStr(a.data()['city']).toLowerCase()
+                .compareTo(serviceStr(b.data()['city']).toLowerCase()))).indexed) ...[
+              if (i == 0 || serviceStr(docs[i - 1].data()['city']).toLowerCase() != serviceStr(d.data()['city']).toLowerCase())
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 10, 4, 6),
+                  child: Text('📍 ${serviceStr(d.data()['city']).isEmpty ? tr('Other') : serviceStr(d.data()['city'])}',
+                      style: tsTitleMd(color: kInkGreen)),
+                ),
+              ServiceTile(doc: d),
+            ],
           ]);
         },
       ),
@@ -691,7 +706,7 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(color: kTintGreen, borderRadius: BorderRadius.circular(14)),
-          child: Text(_staff ? tr('Only the name and the city are needed. It is shown at once, and customers book through Habesha Hub Service on WhatsApp.')
+          child: Text(_staff ? tr('Only the name and the city are needed. It is shown at once, and customers book through Habesha Hub Services on WhatsApp.')
               : tr('Free now. Habesha Hub may later offer paid extras. Customers contact you directly on WhatsApp or phone.'), style: tsBodySm(color: kInkGreen)),
         ),
         const SizedBox(height: 14),
