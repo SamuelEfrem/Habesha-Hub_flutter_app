@@ -320,11 +320,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(child: _buildTopBar()),
+            // the shortcuts first, then the weekend ticker, then search right above the list it searches
+            SliverToBoxAdapter(child: _buildShortcuts(t)),
+            const SliverToBoxAdapter(child: WeekendEventsCard()),
             SliverToBoxAdapter(child: _buildSearchRow(t)),
             if (_searchQuery.trim().length >= 2) SliverToBoxAdapter(child: CrossSearchResults(query: _searchQuery)),
-            SliverToBoxAdapter(child: _buildShortcuts(t)),
-            if (_hasSearched) SliverToBoxAdapter(child: ScrollHint(visible: !_scrolled)),
-            const SliverToBoxAdapter(child: WeekendEventsCard()),
             if (_hasSearched) ...[
               if (_selectedCategory == 'All' && _searchQuery.isEmpty)
                 SliverToBoxAdapter(child: FeaturedRow(businesses: _businesses,

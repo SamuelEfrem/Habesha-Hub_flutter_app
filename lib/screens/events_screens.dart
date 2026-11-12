@@ -97,33 +97,84 @@ class WeekendEventsCard extends StatelessWidget {
           return t != null && !t.isBefore(from) && t.isBefore(to);
         }).toList();
         if (docs.isEmpty) return const SizedBox.shrink();
-        final e = docs.first.data(), t = _date(e['startAt'])!;
-        final who = _s(e['artistName']).isNotEmpty ? _s(e['artistName']) : _s(e['title']);
-        // a small pill: one short line, centred
+        // a news ticker: every event this weekend runs from right to left
+        final text = docs.map((d) {
+          final e = d.data(), t = _date(e['startAt'])!;
+          final who = _s(e['artistName']).isNotEmpty ? _s(e['artistName']) : _s(e['title']);
+          return '$who · ${_s(e['city'])} · ${tr(_days[t.weekday - 1])}';
+        }).join('     •     ');
         return Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: Center(child: Material(
-            color: kTintGreen,
-            shape: const StadiumBorder(),
-            child: InkWell(
-              customBorder: const StadiumBorder(),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsScreen())),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  const Text('🎵', style: TextStyle(fontSize: 13)),
-                  const SizedBox(width: 6),
-                  Flexible(child: Text(
-                    '${tr('This weekend')}: $who · ${tr(_days[t.weekday - 1])}${docs.length > 1 ? '  +${docs.length - 1}' : ''}',
-                    maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontFamily: kFontBody, fontSize: 12, fontWeight: FontWeight.w700, color: kInkGreen))),
-                  Icon(Icons.chevron_right_rounded, color: kInkGreen, size: 16),
-                ]),
-              ),
-            ),
-          )),
+          child: _NewsTicker(
+            label: '🎵 ${tr('This weekend')}',
+            text: text,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsScreen())),
+          ),
         );
       },
+    );
+  }
+}
+
+/// One line that scrolls from right to left, like the news line on TV.
+class _NewsTicker extends StatefulWidget {
+  final String label, text;
+  final VoidCallback onTap;
+  const _NewsTicker({required this.label, required this.text, required this.onTap});
+  @override
+  State<_NewsTicker> createState() => _NewsTickerState();
+}
+
+class _NewsTickerState extends State<_NewsTicker> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(fontFamily: kFontBody, fontSize: 12.5, fontWeight: FontWeight.w700, color: kInkGreen);
+    return Material(
+      color: kTintGreen,
+      borderRadius: BorderRadius.circular(100),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: widget.onTap,
+        child: SizedBox(height: 34, child: Row(children: [
+          // fixed label on the left
+          Container(
+            height: 34,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(100)),
+            child: Text(widget.label, style: style.copyWith(color: kOnAccent, fontSize: 12)),
+          ),
+          Expanded(child: LayoutBuilder(builder: (context, box) {
+            final tp = TextPainter(text: TextSpan(text: widget.text, style: style), maxLines: 1, textDirection: TextDirection.ltr)..layout();
+            final w = tp.width, v = box.maxWidth;
+            // about 45 pixels per second, whatever the length
+            final ms = ((v + w) / 45 * 1000).round();
+            if (_c.duration?.inMilliseconds != ms) {
+              _c.duration = Duration(milliseconds: ms);
+              _c.repeat();
+            }
+            return ClipRect(child: AnimatedBuilder(
+              animation: _c,
+              builder: (_, __) => Transform.translate(
+                offset: Offset(v - (v + w) * _c.value, 0),
+                child: OverflowBox(
+                  alignment: Alignment.centerLeft, minWidth: 0, maxWidth: double.infinity,
+                  child: Text(widget.text, maxLines: 1, softWrap: false, style: style),
+                ),
+              ),
+            ));
+          })),
+          Padding(padding: const EdgeInsets.only(right: 6), child: Icon(Icons.chevron_right_rounded, color: kInkGreen, size: 18)),
+        ])),
+      ),
     );
   }
 }
