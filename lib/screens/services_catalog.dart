@@ -70,6 +70,28 @@ bool isDirectContact(Map data) => serviceStr(data['contactMode']) == 'direct';
 String digitsOnly(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
 String countryLabel(String code) => '${countryFlag(code)} ${tr(countryName(code))}';
 
+// the big cities (regions) a wekil can choose from, per country
+const kRegionsOf = <String, List<String>>{
+  'NO': ['Oslo', 'Bergen', 'Trondheim', 'Stavanger', 'Kristiansand', 'Drammen', 'Fredrikstad', 'Tromsø'],
+  'SE': ['Stockholm', 'Göteborg', 'Malmö', 'Uppsala', 'Västerås', 'Örebro', 'Linköping'],
+  'DK': ['København', 'Aarhus', 'Odense', 'Aalborg'],
+  'DE': ['Berlin', 'Frankfurt', 'München', 'Hamburg', 'Köln', 'Stuttgart', 'Düsseldorf', 'Nürnberg'],
+  'NL': ['Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Eindhoven'],
+  'CH': ['Zürich', 'Genf', 'Bern', 'Basel', 'Lausanne'],
+  'IT': ['Roma', 'Milano', 'Bologna', 'Torino'],
+  'GB': ['London', 'Birmingham', 'Manchester', 'Leeds', 'Glasgow', 'Bristol'],
+  'FR': ['Paris', 'Lyon', 'Marseille', 'Toulouse'],
+  'BE': ['Brussel', 'Antwerpen', 'Liège'],
+  'US': ['Washington DC', 'Seattle', 'Los Angeles', 'Oakland', 'Dallas', 'Houston', 'Atlanta', 'Minneapolis', 'Denver', 'Las Vegas', 'New York'],
+  'CA': ['Toronto', 'Calgary', 'Edmonton', 'Vancouver', 'Ottawa', 'Winnipeg', 'Kitchener', 'Montreal'],
+  'ET': ['Addis Ababa', 'Mekelle', 'Bahir Dar', 'Hawassa', 'Gondar', 'Dire Dawa', 'Adigrat', 'Aksum'],
+  'ER': ['Asmara', 'Keren', 'Massawa', 'Mendefera', 'Dekemhare', 'Barentu', 'Assab'],
+  'UG': ['Kampala', 'Entebbe'],
+  'KE': ['Nairobi', 'Mombasa'],
+  'SS': ['Juba'],
+  'EG': ['Cairo', 'Alexandria'],
+};
+
 // ── where the user looks: saved choice, else phone position (if already allowed), else phone language region ──
 class ServiceLocation {
   static Future<(String, String)> load() async {
@@ -568,6 +590,7 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
   late String _group = widget.group ?? 'weddings';
   String _sub = '', _country = 'NO', _error = '';
   bool _travels = false, _saving = false;
+  int _cityRev = 0; // rebuilds the city field when a region chip is tapped
   List<String> _photos = [], _videos = [], _citySuggest = [];
   final List<File> _newPhotos = [], _newVideos = [];
 
@@ -749,14 +772,28 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
             if (r != null && mounted) { setState(() => _country = r.$1); _loadCities(); }
           },
         ),
+        // region: the big cities of the country as quick choices, or write another city below
+        Text(tr('Region'), style: tsLabel()),
+        const SizedBox(height: 6),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          for (final r in {...(kRegionsOf[_country] ?? const <String>[]), ..._citySuggest})
+            ChoiceChip(
+              label: Text(r), showCheckmark: false, selectedColor: kHabGreen,
+              selected: _city.text.trim().toLowerCase() == r.toLowerCase(),
+              labelStyle: TextStyle(color: _city.text.trim().toLowerCase() == r.toLowerCase() ? Colors.white : kText, fontWeight: FontWeight.w600),
+              onSelected: (_) => setState(() { _city.text = r; _cityRev++; }),
+            ),
+        ]),
+        const SizedBox(height: 10),
         Autocomplete<String>(
+          key: ValueKey(_cityRev),
           initialValue: TextEditingValue(text: _city.text),
           optionsBuilder: (v) => _citySuggest.where((c) => v.text.isNotEmpty && c.toLowerCase().startsWith(v.text.toLowerCase())),
           onSelected: (v) => _city.text = v,
           fieldViewBuilder: (_, ctrl, focus, __) {
             ctrl.addListener(() => _city.text = ctrl.text);
             return Padding(padding: const EdgeInsets.only(bottom: 12), child: TextField(controller: ctrl, focusNode: focus, style: tsBodyLg(color: kText),
-                decoration: InputDecoration(labelText: tr('City'))));
+                decoration: InputDecoration(labelText: tr('Another city / region'))));
           },
         ),
         _f(_area, tr('Area (optional)')),
