@@ -178,7 +178,7 @@ Widget mapButton(VoidCallback onTap, {bool compact = false}) => Material(
             Icon(Icons.map_rounded, color: kSecondary, size: compact ? 20 : 16),
             if (!compact) ...[
               const SizedBox(width: 6),
-              Text(tr('Map'), style: tsTitleMd(color: kSecondary)),
+              Text(tr('Map'), style: tsTitleMd(color: kSecondary).copyWith(fontSize: 13)),
             ],
           ]),
         ),
