@@ -24,6 +24,7 @@ import 'notices_screen.dart';
 import 'hair_beauty.dart';
 import 'community_screens.dart';
 import 'map_screen.dart';
+import 'booking_screen.dart';
 import 'wekil_screens.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -704,6 +705,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Container(padding: EdgeInsets.all(16), decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12)), child: Text(t('no_businesses_yet'), style: tsBodySm(), textAlign: TextAlign.center))
                   else
                     ..._myBusinesses.map((b) => _businessRow(b, context)),
+                  // bookings customers made at the owner's businesses
+                  if (_myBusinesses.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    _menuRow(Icons.event_note_rounded, tr('Bookings for my business'),
+                        () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BookingListScreen()))),
+                  ],
                   const SizedBox(height: 24),
                 ],
                 GestureDetector(

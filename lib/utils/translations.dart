@@ -1059,6 +1059,7 @@ class AppTranslations {
     'Reply by email': {'Tigrinya': 'ብኢመይል መልሱ', 'Amharic': 'በኢሜይል ይመልሱ'},
     'All regions': {'Tigrinya': 'ኩሎም ዞባታት', 'Amharic': 'ሁሉም ክልሎች'},
     'Choose country and region': {'Tigrinya': 'ሃገርን ዞባን ምረጽ', 'Amharic': 'አገርና ክልል ይምረጡ'},
+    'Bookings for my business': {'Tigrinya': 'ሓዝታት ንትካለይ', 'Amharic': 'ለድርጅቴ የተያዙ ቀጠሮዎች'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},
