@@ -612,7 +612,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
 
   Widget _buildCategoryChips() {
     return SizedBox(
-      height: 40,
+      height: 32,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -629,12 +629,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
                 customBorder: const StadiumBorder(),
                 onTap: () => setState(() => _selectedCategory = cat['key']!),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 13),
                   child: Center(
                     child: Text(_catLabel(cat['key']!),
                         style: TextStyle(
                             fontFamily: kFontBody,
-                            fontSize: 14,
+                            fontSize: 11.5,
                             fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                             color: selected ? kOnAccent : kText)),
                   ),
@@ -655,11 +655,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
         onTap: () { HapticFeedback.selectionClick(); setState(() => _size = key); },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          height: 36,
+          height: 32,
           alignment: Alignment.center,
           decoration: BoxDecoration(color: sel ? kSecondary : Colors.transparent, borderRadius: BorderRadius.circular(100)),
           child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontFamily: kFontBody, fontSize: 13, fontWeight: FontWeight.w700, color: sel ? kOnAccent : kText)),
+              style: TextStyle(fontFamily: kFontBody, fontSize: 11.5, fontWeight: FontWeight.w700, color: sel ? kOnAccent : kText)),
         ),
       ));
     }
@@ -681,9 +681,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(children: [
-        Text(tr('Nearby'), style: TextStyle(fontFamily: kFontHeadline, fontSize: 20, fontWeight: FontWeight.w800, color: kText)),
+        Text(tr('Nearby'), style: TextStyle(fontFamily: kFontHeadline, fontSize: 16, fontWeight: FontWeight.w800, color: kText)),
         const SizedBox(width: 8),
-        Text('${_filtered.length}', style: tsTitleMd(color: kTextSub)),
+        Text('${_filtered.length}', style: tsBodySm(color: kTextSub)),
         const Spacer(),
         if (_filtered.isNotEmpty)
           mapButton(() => Navigator.push(context, MaterialPageRoute(
