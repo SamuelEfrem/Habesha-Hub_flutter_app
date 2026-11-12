@@ -14,6 +14,7 @@ import 'auth_screen.dart';
 import 'member_screens.dart';
 import 'services_screen.dart';
 import 'notices_screen.dart';
+import 'wekil_screens.dart';
 
 // Events: concerts, DJs, church and community events.
 // The app never sells tickets: "Buy ticket" opens the organizer's own https page.
@@ -74,7 +75,10 @@ Future<bool> _loggedIn(BuildContext context) async {
 }
 
 Future<void> openEventForm(BuildContext context, {String? docId, Map<String, dynamic>? existing}) async {
-  if (!await ensureMember(context) || !context.mounted) return;
+  // wekils post at once without the member form; everyone else becomes a member first
+  final wekil = (await myWekilCountry()).isNotEmpty;
+  if (!context.mounted) return;
+  if (!wekil && (!await ensureMember(context) || !context.mounted)) return;
   Navigator.push(context, MaterialPageRoute(builder: (_) => EventFormScreen(docId: docId, existing: existing)));
 }
 
@@ -597,7 +601,8 @@ class _EventFormScreenState extends State<EventFormScreen> {
         flyer = await ref.getDownloadURL();
       }
       final admin = _isAdmin();
-      final verified = admin || (await _db.collection('users').doc(u.uid).get()).data()?['verifiedOrganizer'] == true;
+      final verified = admin || (await myWekilCountry()).isNotEmpty
+          || (await _db.collection('users').doc(u.uid).get()).data()?['verifiedOrganizer'] == true;
       final start = DateTime(_day!.year, _day!.month, _day!.day, _time!.hour, _time!.minute);
       final data = <String, dynamic>{
         'title': _title.text.trim(), 'artistName': _artist.text.trim(), 'artistId': _artistId, 'category': _cat,

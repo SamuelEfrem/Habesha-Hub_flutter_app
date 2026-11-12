@@ -117,8 +117,13 @@ service cloud.firestore {
     }
 
     // ── Events: only approved ones are public; verified organizers publish at once ──
+    // wekils (Habesha Hub Services) count as verified organizers
+    function isWekil() {
+      return signedIn() && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/wekils/$(request.auth.token.email));
+    }
     function verifiedOrganizer() {
-      return signedIn() && get(/databases/$(database)/documents/users/$(uid())).data.get('verifiedOrganizer', false) == true;
+      return isWekil() || (signedIn() && get(/databases/$(database)/documents/users/$(uid())).data.get('verifiedOrganizer', false) == true);
     }
     function eventOk() {
       let e = request.resource.data;
@@ -132,8 +137,8 @@ service cloud.firestore {
     }
     match /events/{id} {
       allow read: if resource.data.status == 'approved' || isAdmin() || (signedIn() && resource.data.organizerId == uid());
-      allow create: if isAdmin() || (canAct() && eventOk() && request.resource.data.interestedCount == 0);
-      allow update: if isAdmin() || (canAct() && resource.data.organizerId == uid() && resource.data.status != 'removed'
+      allow create: if isAdmin() || ((canAct() || isWekil()) && eventOk() && request.resource.data.interestedCount == 0);
+      allow update: if isAdmin() || ((canAct() || isWekil()) && resource.data.organizerId == uid() && resource.data.status != 'removed'
         && eventOk() && request.resource.data.interestedCount == resource.data.interestedCount);
       allow delete: if isAdmin() || (signedIn() && resource.data.organizerId == uid());
       // "Interested": one per person; the count is kept by a Cloud Function
