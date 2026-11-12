@@ -373,7 +373,7 @@ let DAC=null;function damaTing(st){try{DAC=DAC||new(window.AudioContext||window.
  notes.forEach(([f,dt])=>{const o=DAC.createOscillator(),g=DAC.createGain();o.type="sine";o.frequency.value=f;const t=t0+dt;
   g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.3,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+.35);o.connect(g).connect(DAC.destination);o.start(t);o.stop(t+.4)})}catch(e){}}
 const DAMA={rule:"ruleDama",
- init(first){const b=Array(64).fill("");for(let i=0;i<64;i++){const r=i>>3,c=i&7;if((r+c)%2===1){if(r<2)b[i]="b";else if(r>5)b[i]="a"}}DSEL=-1;DAMA._lk=undefined;damaTing.n=24;return{b,turn:first||0,chain:-1,winner:null,last:null}},
+ init(first){const b=Array(64).fill("");for(let i=0;i<64;i++){const r=i>>3,c=i&7;if((r+c)%2===1){if(r<3)b[i]="b";else if(r>4)b[i]="a"}}DSEL=-1;DAMA._lk=undefined;damaTing.n=24;return{b,turn:first||0,chain:-1,winner:null,last:null}},
  own(p){return p?(p.toLowerCase()==="a"?0:1):-1},
  moves(st,i,onlyJ){const p=st.b[i];if(!p)return[];const o=DAMA.own(p),king=p!==p.toLowerCase(),r=i>>3,c=i&7;
   // a man moves and captures only forward; only a king goes backwards. A king captures everything in every direction, a man only men
