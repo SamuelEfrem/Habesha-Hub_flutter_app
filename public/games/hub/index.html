@@ -252,7 +252,7 @@ const TX={
  dBlocked:["Blocked – fewest points: {a} vs {b}","ተዓጽዩ – ውሑድ ነጥቢ፦ {a} ምስ {b}","ተዘግቷል – ትንሽ ነጥብ፦ {a} ከ {b}"],dStart:["Put down any tile to start","ንምጅማር ዝኾነ ኣቐምጥ","ለመጀመር ማንኛውንም አስቀምጥ"],dStartDbl:["You have the highest double – start with {t}","ዝለዓለ ድርብ ኣሎካ – ብ{t} ጀምር","ከፍተኛው ድርብ አለህ – በ{t} ጀምር"],dStartHigh:["Nobody has a double – start with your highest tile {t}","ድርብ ዝሓዘ የለን – ብዝለዓለ {t} ጀምር","ድርብ የያዘ የለም – በከፍተኛው {t} ጀምር"],genna:["Genna","ገና","ገና"],hinq:["Riddles","ሕንቅልሕንቅሊተይ","እንቆቅልሽ"],
  tagDrive:["Practical driving test · traffic rules · voice","ፈተና ምዝዋር · ሕግታት ትራፊክ · ድምጺ መምህር","የመንጃ ተግባር ፈተና · የትራፊክ ሕግ · የአስተማሪ ድምፅ"],
  keberoAbout:["Tap the drum when the ring closes on it, like at a wedding.","ከም ኣብ መርዓ፡ ቀለበት ምስ በጽሐ ከበሮ ውቕዕ።","እንደ ሰርግ፣ ቀለበቱ ሲደርስ ከበሮውን ምታ።"],
- ruleDama:["Simple rules: pieces move forward diagonally, jump to capture, and become king at the far side. Pieces capture only forwards, also several in a row. Only a king moves backwards. A king captures forwards and backwards, both kings and normal pieces. A normal piece captures only normal pieces. If you can capture, you must. Rules differ between villages.","ቀሊል ሕጊ፦ ጠጠራት ብሰያፍ ንቕድሚት ይኸዱ፡ ብምዝላል ይበልዑ፡ መወዳእታ ምስ በጽሑ ንጉስ ይኾኑ። ንቕድሚት ጥራይ ይበልዑ፡ ብተኸታታሊ እውን። ንድሕሪት ዝኸይድ ንጉስ ጥራይ እዩ። ክትበልዕ እንተ ኽኢልካ ግድን ክትበልዕ ኣለካ። ንጉስ ንቕድሚትን ንድሕሪትን ይበልዕ፡ ንጉስን ተራ ጠጠርን። ተራ ጠጠር ንተራ ጠጠር ጥራይ ይበልዕ።","ቀላል ህግ፦ ጠጠሮች በሰያፍ ወደ ፊት ይሄዳሉ፣ በመዝለል ይበላሉ፣ መጨረሻ ሲደርሱ ንጉሥ ይሆናሉ። ወደ ፊት ብቻ ይበላሉ፣ በተከታታይም። ወደ ኋላ የሚሄደው ንጉሥ ብቻ ነው። መብላት ከቻልክ ግዴታ መብላት አለብህ። ንጉሥ ወደ ፊትም ወደ ኋላም ይበላል፣ ንጉሥንም ተራ ጠጠርንም። ተራ ጠጠር የሚበላው ተራ ጠጠርን ብቻ ነው።"],
+ ruleDama:["Simple rules: pieces move forward diagonally, jump to capture, and become king at the far side. Pieces capture only forwards, also several in a row. Only a king moves backwards. A king captures forwards and backwards, both kings and normal pieces. A normal piece captures only normal pieces. If your king can capture, it must. A normal piece may choose to capture or not. Rules differ between villages.","ቀሊል ሕጊ፦ ጠጠራት ብሰያፍ ንቕድሚት ይኸዱ፡ ብምዝላል ይበልዑ፡ መወዳእታ ምስ በጽሑ ንጉስ ይኾኑ። ንቕድሚት ጥራይ ይበልዑ፡ ብተኸታታሊ እውን። ንድሕሪት ዝኸይድ ንጉስ ጥራይ እዩ። ንጉስካ ክበልዕ እንተ ኽኢሉ ግድን ክበልዕ ኣለዎ። ተራ ጠጠር ክበልዕ ወይ ክገድፍ ይኽእል። ንጉስ ንቕድሚትን ንድሕሪትን ይበልዕ፡ ንጉስን ተራ ጠጠርን። ተራ ጠጠር ንተራ ጠጠር ጥራይ ይበልዕ።","ቀላል ህግ፦ ጠጠሮች በሰያፍ ወደ ፊት ይሄዳሉ፣ በመዝለል ይበላሉ፣ መጨረሻ ሲደርሱ ንጉሥ ይሆናሉ። ወደ ፊት ብቻ ይበላሉ፣ በተከታታይም። ወደ ኋላ የሚሄደው ንጉሥ ብቻ ነው። ንጉሥህ መብላት ከቻለ ግዴታ መብላት አለበት። ተራ ጠጠር መብላት ወይም መተው ይችላል። ንጉሥ ወደ ፊትም ወደ ኋላም ይበላል፣ ንጉሥንም ተራ ጠጠርንም። ተራ ጠጠር የሚበላው ተራ ጠጠርን ብቻ ነው።"],
 };
 const LI={en:0,ti:1,am:2};
 let lang=(QS.get("lang")||"").slice(0,2);
@@ -382,8 +382,13 @@ const DAMA={rule:"ruleDama",
    if(step&&in1&&!st.b[r1*8+c1]&&!onlyJ)out.push({from:i,to:r1*8+c1});
    const vic=in1?st.b[r1*8+c1]:"";if(step&&in1&&in2&&vic&&DAMA.own(vic)!==o&&(king||vic===vic.toLowerCase())&&!st.b[r2*8+c2])out.push({from:i,to:r2*8+c2,cap:r1*8+c1})});return out},
  all(st,seat){if(st.chain>=0)return DAMA.moves(st,st.chain,true);const ms=[];for(let i=0;i<64;i++)if(DAMA.own(st.b[i])===seat)ms.push(...DAMA.moves(st,i,false));
-  // if a capture is possible you must capture (you choose which one)
-  const caps=ms.filter(m=>m.cap!=null);return caps.length?caps:ms},
+  // only a king forces a capture: if one of your kings can capture, you must capture (you choose which one);
+  // a normal piece may capture or make another move
+  const caps=ms.filter(m=>m.cap!=null);return DAMA.kingCap(st,caps)?caps:ms},
+ kingCap(st,caps){return caps.some(m=>{const p=st.b[m.from];return p&&p!==p.toLowerCase()})},
+ // true when the player must capture now (a king can capture)
+ forced(st,seat){if(st.chain>=0)return true;const ms=[];for(let i=0;i<64;i++)if(DAMA.own(st.b[i])===seat)ms.push(...DAMA.moves(st,i,false));
+  return DAMA.kingCap(st,ms.filter(m=>m.cap!=null))},
  apply(st,mv,seat){const m=DAMA.all(st,seat).find(x=>x.from===mv.from&&x.to===mv.to);if(!m)return st;const p=st.b[m.from];st.b[m.to]=p;st.b[m.from]="";if(m.cap!=null)st.b[m.cap]="";
   const r=m.to>>3;let promo=false;if(p==="a"&&r===0){st.b[m.to]="A";promo=true}if(p==="b"&&r===7){st.b[m.to]="B";promo=true}
   st.last=[m.from,m.to];
@@ -403,12 +408,12 @@ const DAMA={rule:"ruleDama",
    if(t.winner===seat)s=1e6;else{const rep=DAMA.all({...t,chain:-1,turn:1-seat},1-seat);
      s=rep.length?Math.min(...rep.map(r=>DAMA.val(DAMA.play({...t,chain:-1,turn:1-seat},r,1-seat),seat))):1e5}
    s+=Math.random()*.3;if(s>bs){bs=s;best=m}}return best},
- hint(st){if(st.chain>=0)return T("jump");return !st.winner&&DAMA.all(st,st.turn).some(m=>m.cap!=null)?T("mustCap"):null},
+ hint(st){if(st.chain>=0)return T("jump");return !st.winner&&DAMA.forced(st,st.turn)?T("mustCap"):null},
  render(el,st,v){const lk=st.last?st.last.join('-')+':'+st.turn+':'+st.chain:'';if(lk&&lk!==DAMA._lk&&DAMA._lk!==undefined)damaTing(st);DAMA._lk=lk;const order=[...Array(64).keys()];if(v.seat===1)order.reverse();
   if(st.chain>=0&&v.mine)DSEL=st.chain;if(!v.mine)DSEL=-1;
   const targets=DSEL>=0?DAMA.all(st,v.seat).filter(m=>m.from===DSEL).map(m=>m.to):[];
   // a capture is required: which pieces must capture and where they land (shown when the player tries something else)
-  const caps=v.mine&&!st.winner?DAMA.all(st,v.seat).filter(m=>m.cap!=null):[];
+  const caps=v.mine&&!st.winner&&DAMA.forced(st,v.seat)?DAMA.all(st,v.seat).filter(m=>m.cap!=null):[];
   const showMust=caps.length&&Date.now()-DMUST<1800;
   const mustFrom=showMust?caps.map(m=>m.from):[],mustTo=showMust?caps.map(m=>m.to):[];
   el.innerHTML=`<div class="dama" id="dboard" style="position:relative">${order.map(i=>{const r=i>>3,c=i&7,dark=(r+c)%2===1,p=st.b[i];
