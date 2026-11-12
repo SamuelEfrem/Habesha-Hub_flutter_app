@@ -23,7 +23,6 @@ final _notes = _db.collection('websiteRequestNotes');
 /// The "Habesha Tech Help" business profile, where the offer is shown
 const kTechHelpBusinessId = 'HBstLTkSi47nOVkM6Vx2';
 const _adminUid = 'W3z67R3wiXUVvcPFDS0oxgfaDlj1';
-const _waNumber = '4797374482';
 const _privacyUrl = 'https://habesha-hub.no/privacy.html';
 
 bool get _isAdmin {
@@ -186,10 +185,6 @@ class WebsitesScreen extends StatelessWidget {
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyWebsiteRequestsScreen())),
           child: Text(tr('My requests'))),
       ]),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: kHabGreen, foregroundColor: Colors.white,
-        onPressed: () => openWebsiteRequest(context),
-        icon: const Icon(Icons.language_rounded), label: Text(tr('Get a website'))),
       body: StreamBuilder<WebsiteContent>(
         stream: websiteContent(),
         builder: (_, snap) {
@@ -242,7 +237,7 @@ class WebsitesScreen extends StatelessWidget {
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: () => _wa('Hi Habesha Tech Help, I want a website for my business'),
-              icon: const Icon(Icons.chat_rounded, size: 18), label: Text(tr('Contact on WhatsApp'))),
+              icon: const Icon(Icons.email_outlined, size: 18), label: Text('${tr('Contact us by email')} · support@habesha-hub.no')),
           ]);
         },
       ),
@@ -547,7 +542,7 @@ class _SentScreen extends StatelessWidget {
         FilledButton.icon(
           style: FilledButton.styleFrom(backgroundColor: kHabGreen),
           onPressed: () => _wa('Hi Habesha Tech Help, I sent a website request for: $businessName'),
-          icon: const Icon(Icons.chat_rounded), label: Text(tr('Contact on WhatsApp'))),
+          icon: const Icon(Icons.email_outlined), label: Text(tr('Contact us by email'))),
         const SizedBox(height: 8),
         TextButton(
           onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MyWebsiteRequestsScreen())),
@@ -591,7 +586,7 @@ class MyWebsiteRequestsScreen extends StatelessWidget {
                       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                         TextButton.icon(
                           onPressed: () => _wa('Hi Habesha Tech Help, about my website request: ${_s(d.data()['businessName'])}'),
-                          icon: const Icon(Icons.chat_rounded, size: 18), label: Text(tr('WhatsApp'))),
+                          icon: const Icon(Icons.email_outlined, size: 18), label: Text(tr('Email'))),
                         TextButton.icon(
                           onPressed: () async {
                             final ok = await showDialog<bool>(context: context, builder: (c) => AlertDialog(
