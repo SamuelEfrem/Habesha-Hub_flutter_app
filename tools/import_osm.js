@@ -348,6 +348,8 @@ async function run() {
     // Same name within 2 km (some old entries only have the city as position)
     const dup = mine.find(b => km(lat, lng, b.lat || 0, b.lng || 0) < 2 && norm(b.name) && norm(b.name) === norm(t.name));
     if (dup) { skipped.push(`${t.name}  (finnes allerede)`); dupIds.push(id); continue; }
+    // Ethiopia and Eritrea come from tools/import_osm_area.js (every place there, not only Habesha names)
+    if (['Ethiopia', 'Eritrea'].includes(country(lat, lng))) continue;
     const cat = category(t);
     let address = osmAddress(t);
     if (!address) { address = await reverseAddress(lat, lng); lookups++; }
