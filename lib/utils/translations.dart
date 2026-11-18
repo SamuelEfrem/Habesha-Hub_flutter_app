@@ -1089,6 +1089,7 @@ class AppTranslations {
     'Your Habesha world in one app': {'Tigrinya': 'ዓለምካ ሓበሻ ኣብ ሓደ ኣፕ', 'Amharic': 'የሐበሻ ዓለምዎ በአንድ መተግበሪያ'},
     'Start': {'Tigrinya': 'ጀምር', 'Amharic': 'ጀምር'},
     'Skip': {'Tigrinya': 'ሕለፍ', 'Amharic': 'እለፍ'},
+    'Location is off on your phone. Turn it on, then come back. You can still use Explore.': {'Tigrinya': 'ኣብ ስልክኻ ቦታ ተዓጽዩ ኣሎ። ክፈቶ እሞ ተመለስ። Explore ግን ክትጥቀም ትኽእል ኢኻ።', 'Amharic': 'በስልክዎ ላይ አካባቢ ጠፍቷል። ያብሩትና ይመለሱ። Exploreን ግን መጠቀም ይችላሉ።'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},

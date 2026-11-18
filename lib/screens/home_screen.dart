@@ -151,6 +151,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
       if (Platform.isAndroid && fromButton) return true;
       // iPhone: an app cannot turn Location Services on; Explore still works
       _askedThisStart = true;
+      if (fromButton && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr('Location is off on your phone. Turn it on, then come back. You can still use Explore.'))));
+      }
       return false;
     }
     return true;
