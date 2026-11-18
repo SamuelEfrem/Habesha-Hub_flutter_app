@@ -1185,7 +1185,8 @@ exports.aiDraftListing = onRequest(
         `Answer ONLY with JSON: {"title":"short, max 60 characters","description":"1-3 short sentences","category":"one of Habesha, Clothes, Electronics, Furniture, Food, Books, Other",` +
         `"deal":"sell","price":"a fair second-hand price as a number only, or empty","garment":"zuria|kemis|netela|gabi|suit|kids or empty","condition":"new|once|used or empty"}`;
       let out = null;
-      for (const model of [GEMINI_MODEL, GEMINI_FALLBACK]) {
+      // the light model first: reading one photo is easy and it answers much faster
+      for (const model of [GEMINI_FALLBACK, GEMINI_MODEL]) {
         const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(cleanKey())}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: [{ role: 'user', parts: [{ inline_data: { mime_type: 'image/jpeg', data: photo } }, { text: prompt }] }],
