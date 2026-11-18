@@ -1080,6 +1080,8 @@ class AppTranslations {
     'Music file': {'Tigrinya': 'ፋይል ሙዚቃ', 'Amharic': 'የሙዚቃ ፋይል'},
     'The file is too big (max 300 MB). Choose a shorter video or a music file.': {'Tigrinya': 'ፋይል ዓቢ እዩ (እንተበዝሐ 300 MB)። ዝሓጸረ ቪድዮ ወይ ፋይል ሙዚቃ ምረጽ።', 'Amharic': 'ፋይሉ ትልቅ ነው (ቢበዛ 300 MB)። አጭር ቪዲዮ ወይም የሙዚቃ ፋይል ይምረጡ።'},
     'A song or a video, any length. We keep the first 30 seconds, sound only. Only music you may share.': {'Tigrinya': 'ደርፊ ወይ ቪድዮ፡ ዝኾነ ንውሓት። ቀዳሞት 30 ካልኢት ድምጺ ጥራይ ንሕዝ። ክተካፍሎ ዝፍቀደልካ ሙዚቃ ጥራይ።', 'Amharic': 'ዘፈን ወይም ቪዲዮ፣ ማንኛውም ርዝመት። የመጀመሪያዎቹን 30 ሰከንድ ድምጽ ብቻ እንይዛለን። ማጋራት የተፈቀደልዎትን ሙዚቃ ብቻ።'},
+    'Nearby uses your location (GPS) only to show Habesha places near you.': {'Tigrinya': 'ኣብ ጥቓኻ ቦታታት ሓበሻ ንምርኣይ ጥራይ ቦታኻ (GPS) ንጥቀም።', 'Amharic': 'በአቅራቢያዎ ያሉ የሐበሻ ቦታዎችን ለማሳየት ብቻ አካባቢዎን (GPS) እንጠቀማለን።'},
+    'Allow': {'Tigrinya': 'ፍቐድ', 'Amharic': 'ፍቀድ'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},

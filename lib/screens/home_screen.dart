@@ -120,65 +120,44 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     }
   }
 
-  /// Location service on + permission given? Otherwise ask (system dialog,
-  /// or our dialog that opens the right settings page).
-  Future<bool> _ensureLocation() async {
-    if (!await Geolocator.isLocationServiceEnabled()) {
-      if (_askedThisStart) return false;
-      if (Platform.isIOS) {
-        // iPhone: an app cannot open the main Location Services switch, so explain the way
-        await _locationDialog(
-            tr('Turn on location'),
-            tr('Location Services are off on your iPhone. Open Settings → Privacy & Security → Location Services and turn it on. Then come back to Habesha Hub.'),
-            okOnly: true);
-        _askedThisStart = true;
-        _waitingForSettings = true;
-        return false;
-      }
-      final go = await _locationDialog(
-          tr('Turn on location'),
-          tr('Habesha Hub needs your location to show Habesha places near you.'));
-      if (go) {
-        _waitingForSettings = true;
-        await Geolocator.openLocationSettings();
-      } else {
-        _askedThisStart = true;
-      }
-      return false;
-    }
+  /// Simple: one short info ("Nearby uses GPS"), then the phone's own question.
+  /// Never sends people to the settings at start.
+  /// Android with GPS off: the phone shows its own "Turn on location?" box inside the app (OK = on).
+  /// [fromButton]: the user tapped "Allow location" themselves; only then, if location is
+  /// blocked for good, we offer the settings page (there is no other way).
+  Future<bool> _ensureLocation({bool fromButton = false}) async {
     var perm = await Geolocator.checkPermission();
     if (perm == LocationPermission.denied) {
-      // Explain first, so people know which button to press in the phone's question
-      if (_askedThisStart) return false;
+      if (_askedThisStart && !fromButton) return false;
       final go = await _locationDialog(
           tr('Find Habesha places near you'),
-          Platform.isIOS
-              ? tr('Habesha Hub uses your location only to show restaurants, churches and shops near you. In the next question, tap "Allow While Using App".')
-              : tr('Habesha Hub uses your location only to show restaurants, churches and shops near you. In the next question, tap "While using the app".'),
-          yes: tr('Continue'));
-      if (!go) {
-        _askedThisStart = true;
-        return false;
-      }
+          tr('Nearby uses your location (GPS) only to show Habesha places near you.'),
+          yes: tr('Allow'));
+      _askedThisStart = true;
+      if (!go) return false;
       perm = await Geolocator.requestPermission();
     }
-    if (perm == LocationPermission.deniedForever || perm == LocationPermission.denied) {
-      if (_askedThisStart) return false;
-      final go = await _locationDialog(
-          tr('Allow location'),
-          Platform.isIOS
-              ? tr('Location is off for Habesha Hub. Tap "Open settings", then Location → "While Using the App".')
-              : tr('Location is blocked for Habesha Hub. Open settings → Permissions → Location → Allow.'),
-          yes: tr('Open settings'));
-      if (go) {
-        _waitingForSettings = true;
-        await Geolocator.openAppSettings();
-      } else {
-        _askedThisStart = true;
+    if (perm != LocationPermission.whileInUse && perm != LocationPermission.always) {
+      _askedThisStart = true;
+      if (fromButton && perm == LocationPermission.deniedForever) {
+        final go = await _locationDialog(
+            tr('Allow location'),
+            Platform.isIOS
+                ? tr('Location is off for Habesha Hub. Tap "Open settings", then Location → "While Using the App".')
+                : tr('Location is blocked for Habesha Hub. Open settings → Permissions → Location → Allow.'),
+            yes: tr('Open settings'));
+        if (go) { _waitingForSettings = true; await Geolocator.openAppSettings(); }
       }
       return false;
     }
-    return perm == LocationPermission.always || perm == LocationPermission.whileInUse;
+    if (!await Geolocator.isLocationServiceEnabled()) {
+      // Android: getCurrentPosition shows the phone's own "Turn on location?" box in the app
+      if (Platform.isAndroid) return true;
+      // iPhone: an app cannot turn Location Services on; Explore still works
+      _askedThisStart = true;
+      return false;
+    }
+    return true;
   }
 
   Future<bool> _locationDialog(String title, String text, {String? yes, bool okOnly = false}) async {
@@ -221,14 +200,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     super.dispose();
   }
 
-  Future<void> _searchNearby() async {
+  Future<void> _searchNearby({bool fromButton = false}) async {
     if (_isSearching) return;
     HapticFeedback.selectionClick();
     setState(() {
       _isSearching = true;
     });
     try {
-      if (!await _ensureLocation()) {
+      if (!await _ensureLocation(fromButton: fromButton)) {
         if (mounted) setState(() => _isSearching = false);
         return;
       }
@@ -246,6 +225,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
         _isSearching = false;
       });
       _listAnim.forward(from: 0);
+    } on LocationServiceDisabledException {
+      // "No thanks" in the phone's "Turn on location?" box: just stop, ask again next start
+      _askedThisStart = true;
+      if (mounted) setState(() => _isSearching = false);
     } catch (e) {
       print('GPS Error: ' + e.toString());
       if (mounted) setState(() => _isSearching = false);
@@ -556,7 +539,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
             textAlign: TextAlign.center, style: tsTitleLg(color: kText)),
         const SizedBox(height: 18),
         // A tap on the button always asks again (also after "Not now")
-        SizedBox(width: 220, child: goldButton(tr('Allow location'), () { _askedThisStart = false; _searchNearby(); }, icon: Icons.my_location_rounded)),
+        SizedBox(width: 220, child: goldButton(tr('Allow location'), () => _searchNearby(fromButton: true), icon: Icons.my_location_rounded)),
       ]),
     );
   }
