@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,9 +19,65 @@ import '../utils/language_notifier.dart';
 //
 // Firestore  shop_products/{id}: { title, description, price, delivery,
 //            imageUrl, buyUrl (https), active (bool), order (number), createdAt }
+//
+// Shopify (automatic): app_config/shop { url: "https://your-shop.myshopify.com",
+//            currency: "kr", delivery: "7–15 days" }. Every Shopify shop has a public
+//            product list (<url>/products.json), so no key is needed: the products
+//            published in Shopify show up here by themselves, "Buy" opens them there.
 // ═══════════════════════════════════════════════════════════
 
 final _col = FirebaseFirestore.instance.collection('shop_products');
+final _cfg = FirebaseFirestore.instance.collection('app_config').doc('shop');
+
+// products from Shopify, kept for 10 minutes
+List<Map<String, dynamic>> _shopifyCache = [];
+String _shopifyCacheUrl = '';
+DateTime _shopifyCacheAt = DateTime(2000);
+
+String _cleanUrl(String u) {
+  var x = u.trim();
+  if (x.isEmpty) return '';
+  if (!x.startsWith('http')) x = 'https://$x';
+  return x.replaceFirst('http://', 'https://').replaceAll(RegExp(r'/+$'), '');
+}
+
+String _money(String price, String currency) {
+  final p = price.replaceFirst(RegExp(r'\.00$'), '');
+  final cur = currency.trim().isEmpty ? 'kr' : currency.trim();
+  return (cur == 'kr' || cur == 'NOK' || cur == 'SEK' || cur == 'DKK') ? '$p ${cur == 'NOK' ? 'kr' : cur}' : '$cur $p';
+}
+
+/// Published products from the Shopify shop (empty when there is no shop yet or it fails)
+Future<List<Map<String, dynamic>>> fetchShopify(String rawUrl, String currency, String delivery, {bool fresh = false}) async {
+  final url = _cleanUrl(rawUrl);
+  if (url.isEmpty) return [];
+  if (!fresh && url == _shopifyCacheUrl && DateTime.now().difference(_shopifyCacheAt).inMinutes < 10) return _shopifyCache;
+  try {
+    final r = await http.get(Uri.parse('$url/products.json?limit=60')).timeout(const Duration(seconds: 15));
+    if (r.statusCode != 200) return [];
+    final list = (jsonDecode(r.body)['products'] as List?) ?? [];
+    final out = <Map<String, dynamic>>[];
+    for (final p in list) {
+      final m = p as Map<String, dynamic>;
+      final imgs = (m['images'] as List?) ?? [];
+      final vars = (m['variants'] as List?) ?? [];
+      out.add({
+        'title': _s(m['title']),
+        'description': _s(m['body_html']).replaceAll(RegExp(r'<[^>]*>'), ' ').replaceAll('&nbsp;', ' ')
+            .replaceAll('&amp;', '&').replaceAll(RegExp(r'\s+'), ' ').trim(),
+        'imageUrl': imgs.isEmpty ? '' : _s((imgs.first as Map)['src']),
+        'price': vars.isEmpty ? '' : _money(_s((vars.first as Map)['price']), currency),
+        'delivery': delivery,
+        'buyUrl': '$url/products/${_s(m['handle'])}',
+        'fromShopify': true,
+      });
+    }
+    _shopifyCache = out; _shopifyCacheUrl = url; _shopifyCacheAt = DateTime.now();
+    return out;
+  } catch (_) {
+    return [];
+  }
+}
 
 bool get _admin {
   final u = FirebaseAuth.instance.currentUser;
@@ -39,13 +97,23 @@ class ShopProductsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: _cfg.snapshots(),
+      builder: (_, cfgSnap) {
+        final cfg = cfgSnap.data?.data() ?? const <String, dynamic>{};
+        return FutureBuilder<List<Map<String, dynamic>>>(
+          future: fetchShopify(_s(cfg['url']), _s(cfg['currency']), _s(cfg['delivery']).isEmpty ? '7–15 days' : _s(cfg['delivery'])),
+          builder: (_, shopify) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: _col.snapshots(),
       builder: (_, snap) {
         final admin = _admin;
         final docs = (snap.data?.docs ?? []).where((d) => admin || d.data()['active'] != false).toList()
           ..sort((a, b) => ((a.data()['order'] ?? 999) as num).compareTo((b.data()['order'] ?? 999) as num));
-        if (docs.isEmpty && !admin) return const SizedBox.shrink();
+        final items = <(String, Map<String, dynamic>)>[
+          for (final d in docs) (d.id, d.data()),
+          for (final p in shopify.data ?? const <Map<String, dynamic>>[]) ('', p),
+        ];
+        if (items.isEmpty && !admin) return const SizedBox.shrink();
         return Padding(
           padding: const EdgeInsets.only(top: 14),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -56,6 +124,11 @@ class ShopProductsRow extends StatelessWidget {
                 const SizedBox(width: 6),
                 Icon(Icons.verified_rounded, color: kSecondary, size: 18),
                 const Spacer(),
+                if (admin) IconButton(
+                  tooltip: 'Shopify',
+                  onPressed: () => _shopifySettings(context, cfg),
+                  icon: Icon(Icons.link_rounded, color: _s(cfg['url']).isEmpty ? kTextSub : kSecondary),
+                ),
                 if (admin) TextButton.icon(
                   onPressed: () => openShopProductForm(context),
                   icon: Icon(Icons.add_rounded, color: kSecondary, size: 18),
@@ -63,7 +136,7 @@ class ShopProductsRow extends StatelessWidget {
                 ),
               ]),
             ),
-            if (docs.isEmpty) ...[
+            if (items.isEmpty) ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
                 child: Text(_l('Only you see this. Examples below show how it will look; add your first product.',
@@ -118,12 +191,15 @@ class ShopProductsRow extends StatelessWidget {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  itemCount: docs.length,
+                  itemCount: items.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (_, i) => _ShopCard(id: docs[i].id, d: docs[i].data()),
+                  itemBuilder: (_, i) => _ShopCard(id: items[i].$1, d: items[i].$2),
                 ),
               ),
           ]),
+        );
+      },
+          ),
         );
       },
     );
@@ -221,7 +297,13 @@ void _showProduct(BuildContext context, String id, Map<String, dynamic> d) {
                 'ኣብ ናይ መርበብ ድኳንና ብውሑስ ትኸፍል። ብHabesha Hub ይሽየጥን ይስደድን።',
                 'በድረ-ገጽ ሱቃችን በደህና ይከፍላሉ። በHabesha Hub የሚሸጥና የሚላክ።'),
             textAlign: TextAlign.center, style: tsBodySm(color: kTextSub)),
-        if (_admin) ...[
+        if (_admin && d['fromShopify'] == true) ...[
+          const SizedBox(height: 14),
+          Text(_l('From Shopify: change it in Shopify, the app updates by itself.',
+                  'ካብ Shopify፦ ኣብ Shopify ቀይሮ፡ ኣፕ ባዕሉ ይሕደስ።', 'ከShopify፦ በShopify ይቀይሩት፣ መተግበሪያው ራሱ ይታደሳል።'),
+              textAlign: TextAlign.center, style: tsBodySm(color: kTextSub)),
+        ],
+        if (_admin && d['fromShopify'] != true) ...[
           const SizedBox(height: 18),
           Row(children: [
             Expanded(child: OutlinedButton.icon(
@@ -347,4 +429,54 @@ void openShopProductForm(BuildContext context, {String? id, Map<String, dynamic>
       ])),
     )),
   );
+}
+
+
+/// Admin: connect the Shopify shop (address, currency, delivery text) and test it
+void _shopifySettings(BuildContext context, Map<String, dynamic> cfg) {
+  final url = TextEditingController(text: _s(cfg['url']));
+  final cur = TextEditingController(text: _s(cfg['currency']).isEmpty ? 'kr' : _s(cfg['currency']));
+  final del = TextEditingController(text: _s(cfg['delivery']).isEmpty ? '7–15 days' : _s(cfg['delivery']));
+  String msg = '';
+  bool busy = false;
+  showDialog(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, set) => AlertDialog(
+    backgroundColor: kCardHigh,
+    title: Text(_l('Connect Shopify', 'Shopify ኣራኽብ', 'Shopifyን ያገናኙ'), style: tsHeadlineSm(color: kText)),
+    content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(_l('Paste the address of your shop. Products you publish in Shopify then show up here by themselves.',
+              'ኣድራሻ ድኳንካ ለጥፍ። ኣብ Shopify እተውጽኦም ፍርያት ባዕሎም ኣብዚ ይርኣዩ።',
+              'የሱቅዎን አድራሻ ይለጥፉ። በShopify የሚያወጧቸው ምርቶች ራሳቸው እዚህ ይታያሉ።'),
+          style: tsBodySm(color: kTextSub)),
+      const SizedBox(height: 12),
+      TextField(controller: url, keyboardType: TextInputType.url, style: tsBodyLg(color: kText),
+          decoration: const InputDecoration(labelText: 'https://your-shop.myshopify.com')),
+      TextField(controller: cur, style: tsBodyLg(color: kText),
+          decoration: InputDecoration(labelText: _l('Currency (kr, USD, EUR…)', 'ባጤራ', 'ምንዛሬ'))),
+      TextField(controller: del, style: tsBodyLg(color: kText),
+          decoration: InputDecoration(labelText: _l('Delivery time', 'ግዜ ምብጻሕ', 'የማድረሻ ጊዜ'))),
+      if (msg.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 12), child: Text(msg, style: tsBodySm(color: kText))),
+    ])),
+    actions: [
+      TextButton(
+        onPressed: busy ? null : () async {
+          set(() { busy = true; msg = ''; });
+          final found = await fetchShopify(url.text, cur.text, del.text, fresh: true);
+          set(() { busy = false; msg = found.isEmpty
+              ? _l('No products found. Check the address, and that products are published in Shopify.',
+                   'ፍርያት ኣይተረኽበን። ኣድራሻ ርአ።', 'ምርት አልተገኘም። አድራሻውን ያረጋግጡ።')
+              : '✓ ${found.length} ${_l('products found', 'ፍርያት ተረኺቦም', 'ምርቶች ተገኝተዋል')}'; });
+        },
+        child: Text(_l('Test', 'ፈትን', 'ሞክር')),
+      ),
+      TextButton(
+        onPressed: () async {
+          await _cfg.set({'url': _cleanUrl(url.text), 'currency': cur.text.trim(), 'delivery': del.text.trim(),
+              'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+          _shopifyCacheUrl = '';
+          if (ctx.mounted) Navigator.pop(ctx);
+        },
+        child: Text(_l('Save', 'ዕቀብ', 'አስቀምጥ'), style: TextStyle(color: kSecondary, fontWeight: FontWeight.w800)),
+      ),
+    ],
+  )));
 }
