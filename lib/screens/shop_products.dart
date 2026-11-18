@@ -48,20 +48,24 @@ String _money(String price, String currency) {
 }
 
 /// One Shopify product → the map the cards use. Products tagged "uganda-delivery"
-/// (e.g. from our partner in Kampala) are delivered in Uganda only.
+/// (any "<country>-delivery" tag, a local partner) are delivered in that country only.
 Map<String, dynamic> _fromShopify(Map<String, dynamic> m, String url, String currency, String delivery) {
   final imgs = (m['images'] as List?) ?? [];
   final vars = (m['variants'] as List?) ?? [];
   final tags = ((m['tags'] is List) ? (m['tags'] as List).map((e) => '$e') : _s(m['tags']).split(','))
       .map((e) => e.trim().toLowerCase()).toList();
-  final uganda = tags.contains('uganda-delivery');
+  // "<country>-delivery" (e.g. uganda-delivery, ethiopia-delivery): a local partner delivers in that country only
+  final local = tags.firstWhere((t) => t.endsWith('-delivery') && t.length > 9, orElse: () => '');
+  final country = local.isEmpty ? '' : local.substring(0, local.length - 9).split('-')
+      .map((w) => w.isEmpty ? w : w[0].toUpperCase() + w.substring(1)).join(' ');
   return {
     'title': _s(m['title']),
     'description': _s(m['body_html']).replaceAll(RegExp(r'<[^>]*>'), ' ').replaceAll('&nbsp;', ' ')
         .replaceAll('&amp;', '&').replaceAll(RegExp(r'\s+'), ' ').trim(),
     'imageUrl': imgs.isEmpty ? '' : _s((imgs.first as Map)['src']),
     'price': vars.isEmpty ? '' : _money(_s((vars.first as Map)['price']), currency),
-    'delivery': uganda ? _l('Delivered in Uganda (1–3 days)', 'ኣብ ኡጋንዳ ይበጽሕ (1–3 መዓልቲ)', 'በኡጋንዳ ይደርሳል (1–3 ቀን)') : delivery,
+    'delivery': country.isEmpty ? delivery
+        : _l('Delivered in $country (1–3 days)', 'ኣብ $country ይበጽሕ (1–3 መዓልቲ)', 'በ$country ይደርሳል (1–3 ቀን)'),
     'type': _s(m['product_type']).trim(),
     'buyUrl': '$url/products/${_s(m['handle'])}',
     'fromShopify': true,
