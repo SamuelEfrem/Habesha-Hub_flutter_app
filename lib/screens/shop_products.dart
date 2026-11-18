@@ -252,7 +252,20 @@ class ShopProductsRow extends StatelessWidget {
                 ),
               ),
             ]
-            else
+            else ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+                child: Row(children: [
+                  const Text('🌍 ', style: TextStyle(fontSize: 18)),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(_l('Delivered to Europe, USA, Canada & more', 'ናብ ኤውሮጳ፡ ኣመሪካ፡ ካናዳን ካልእን ይበጽሕ', 'ወደ አውሮፓ፣ አሜሪካ፣ ካናዳና ሌሎችም ይደርሳል'),
+                        style: tsTitleMd(color: kText).copyWith(fontSize: 14.5)),
+                    Text(_l('Free shipping · 7–15 days', 'ናጻ ምልኣኽ · 7–15 መዓልቲ', 'ነጻ መላኪያ · 7–15 ቀን'), style: tsBodySm(color: kTextSub)),
+                  ])),
+                ]),
+              ),
+              _CategoryTiles(products: [for (final e in items) e.$2], onOpen: (type) => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => ShopAllScreen(cfg: cfg, initialType: type)))),
               SizedBox(
                 height: 228,
                 child: ListView.separated(
@@ -263,6 +276,7 @@ class ShopProductsRow extends StatelessWidget {
                   itemBuilder: (_, i) => _ShopCard(id: items[i].$1, d: items[i].$2),
                 ),
               ),
+            ],
             // ── local partner shops: delivered in that country only ──
             for (final ct in local.keys) ...[
               const SizedBox(height: 16),
@@ -595,6 +609,27 @@ class _ShopAllScreenState extends State<ShopAllScreen> {
   bool _loading = true;
   String _q = '';
   late String _type = widget.initialType;
+  String _sort = '';   // '' newest · 'low' · 'high'
+  String _cond = '';   // '' all · 'new' · 'used'
+
+  static double _num(dynamic price) => double.tryParse(_s(price).replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+  static bool _used(Map p) => RegExp(r'\((Used|Refurbished)\)').hasMatch(_s(p['title']));
+
+  Widget _chip(String label, bool on, VoidCallback tap) => Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: Material(
+          color: on ? kSecondary : kCard,
+          borderRadius: BorderRadius.circular(100),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(100),
+            onTap: tap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+              child: Text(label, style: tsLabel(color: on ? kOnAccent : kText).copyWith(fontSize: 12)),
+            ),
+          ),
+        ),
+      );
 
   @override
   void initState() {
@@ -614,7 +649,11 @@ class _ShopAllScreenState extends State<ShopAllScreen> {
     final types = counts.keys.toList()..sort((a, b) => counts[b]!.compareTo(counts[a]!));
     final q = _q.toLowerCase();
     final list = _all.where((p) => (_type.isEmpty || p['type'] == _type)
+        && (_cond.isEmpty || (_cond == 'used') == _used(p))
         && (q.isEmpty || _s(p['title']).toLowerCase().contains(q) || _s(p['type']).toLowerCase().contains(q))).toList();
+    if (_sort == 'low') list.sort((a, b) => _num(a['price']).compareTo(_num(b['price'])));
+    if (_sort == 'high') list.sort((a, b) => _num(b['price']).compareTo(_num(a['price'])));
+    final hasUsed = _all.any(_used);
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
@@ -667,6 +706,24 @@ class _ShopAllScreenState extends State<ShopAllScreen> {
                   ),
                 ),
               ),
+            ],
+          ),
+        )),
+        // sort by price, and new / used
+        if (_all.isNotEmpty) SliverToBoxAdapter(child: SizedBox(
+          height: 48,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            children: [
+              _chip('↕ ${_l('Newest', 'ሓደሽቲ', 'አዳዲስ')}', _sort.isEmpty, () => setState(() => _sort = '')),
+              _chip('${_l('Price', 'ዋጋ', 'ዋጋ')} ↑', _sort == 'low', () => setState(() => _sort = 'low')),
+              _chip('${_l('Price', 'ዋጋ', 'ዋጋ')} ↓', _sort == 'high', () => setState(() => _sort = 'high')),
+              if (hasUsed) ...[
+                const SizedBox(width: 8),
+                _chip(_l('New', 'ሓድሽ', 'አዲስ'), _cond == 'new', () => setState(() => _cond = _cond == 'new' ? '' : 'new')),
+                _chip(_l('Used', 'ዝተጠቐመ', 'ያገለገለ'), _cond == 'used', () => setState(() => _cond = _cond == 'used' ? '' : 'used')),
+              ],
             ],
           ),
         )),
