@@ -348,287 +348,319 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             ),
             Expanded(child: _tab == 'shops' ? const HomeShopsScreen(embedded: true)
                 : _tab == 'housing' ? const HousingScreen(embedded: true)
-                : Column(children: [
-            // ── Name search ─────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Container(
-                height: 42,
-                decoration: BoxDecoration(
-                  color: kCard,
-                  borderRadius: BorderRadius.circular(12),
-                  ),
-                child: TextField(
-                  controller: _nameCtrl,
-                  style: tsBodyLg(color: kText),
-                  onChanged: (v) { _nameFilter = v.trim().toLowerCase(); _applyFilters(); },
-                  decoration: InputDecoration(
-                    hintText: t('marketplace_search_name'),
-                    filled: false, border: InputBorder.none,
-                    prefixIcon: Icon(Icons.search_rounded, color: kSecondary, size: 18),
-                    suffixIcon: _nameFilter.isNotEmpty
-                        ? GestureDetector(
-                            onTap: () { _nameCtrl.clear(); _nameFilter = ''; _applyFilters(); },
-                            child: Icon(Icons.clear_rounded, color: kTextSub, size: 16))
-                        : null,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-            ),
-            // ── City + GPS ──────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Row(children: [
-                Expanded(
-                  child: Container(
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: kCard,
-                      borderRadius: BorderRadius.circular(12),
-                      ),
-                    child: TextField(
-                      controller: _cityCtrl,
-                      style: tsBodyLg(color: kText),
-                      onChanged: (v) { _cityFilter = v.trim().toLowerCase(); _applyFilters(); },
-                      decoration: InputDecoration(
-                        hintText: t('marketplace_search_city'),
-                        filled: false, border: InputBorder.none,
-                        prefixIcon: Icon(Icons.location_on_rounded, color: kSecondary, size: 18),
-                        suffixIcon: _cityFilter.isNotEmpty
-                            ? GestureDetector(
-                                onTap: () { _cityCtrl.clear(); _cityFilter = ''; _applyFilters(); },
-                                child: Icon(Icons.clear_rounded, color: kTextSub, size: 16))
-                            : null,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: _locating ? null : () async {
-                    setState(() => _locating = true);
-                    try {
-                      bool enabled = await Geolocator.isLocationServiceEnabled();
-                      if (!enabled) { setState(() => _locating = false); return; }
-                      LocationPermission perm = await Geolocator.checkPermission();
-                      if (perm == LocationPermission.denied) perm = await Geolocator.requestPermission();
-                      if (perm == LocationPermission.denied) { setState(() => _locating = false); return; }
-                      final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
-                      final placemarks = await placemarkFromCoordinates(pos.latitude, pos.longitude);
-                      if (placemarks.isNotEmpty) {
-                        final city = placemarks.first.locality ?? '';
-                        _cityCtrl.text = city;
-                        _cityFilter = city.toLowerCase();
-                        _applyFilters();
-                      }
-                    } catch (_) {}
-                    if (mounted) setState(() => _locating = false);
-                  },
-                  child: Container(
-                    width: 42, height: 42,
-                    decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(12)),
-                    child: _locating
-                        ? Padding(
-                            padding: EdgeInsets.all(10),
-                            child: CircularProgressIndicator(color: kOnAccent, strokeWidth: 2))
-                        : Icon(Icons.my_location_rounded, color: kOnAccent, size: 20),
-                  ),
-                ),
-              ]),
-            ),
-            // ── Category chips ──────────────────────────
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 40,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _chipCats.length,
-                itemBuilder: (_, i) {
-                  final cat = _chipCats[i];
-                  final sel = _selectedCategory == cat['key'];
-                  return GestureDetector(
-                    onTap: () {
-                      if (mounted) setState(() {
-                        _selectedCategory = cat['key']!;
-                        if (_selectedCategory != _kHabesha) { _sizeFilter = ''; _occFilter = ''; }
-                      });
-                      _applyFilters();
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: sel ? kSecondary : kCardHigh,
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Text(cat['emoji']!, style: const TextStyle(fontSize: 13)),
-                        const SizedBox(width: 5),
-                        Text(
-                          t('market_${cat['key']!.toLowerCase()}'),
-                          style: tsLabel(color: sel ? kOnAccent : kTextSub)
-                              .copyWith(fontSize: 11),
-                        ),
-                      ]),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 10),
-            // ── Sell / swap / rent / free ───────────────
-            _filterRow([
-              for (final k in _deals)
-                _pick(_dealLabel(k), _dealFilter == k, () {
-                  if (mounted) setState(() => _dealFilter = _dealFilter == k ? '' : k);
-                  _applyFilters();
-                }, icon: _dealIcon(k)),
-            ]),
-            // ── Size and occasion (Habesha clothes) ─────
-            if (_selectedCategory == _kHabesha) ...[
-              _filterRow([
-                for (final z in _sizes)
-                  _pick(z, _sizeFilter == z, () {
-                    if (mounted) setState(() => _sizeFilter = _sizeFilter == z ? '' : z);
-                    _applyFilters();
-                  }),
-              ]),
-              _filterRow([
-                for (final o in _occasions)
-                  _pick(_occasionLabel(o), _occFilter == o, () {
-                    if (mounted) setState(() => _occFilter = _occFilter == o ? '' : o);
-                    _applyFilters();
-                  }),
-              ]),
-            ],
-            if (_selectedCategory == _kHabesha) Padding(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-              child: crossLinkCard(context, emoji: '💍', text: tr('Dress shops, tailors and rental for weddings: see Services'),
-                  onTap: () => openServiceGroup(context, 'weddings', sub: 'dresses')),
-            ),
-            const SizedBox(height: 2),
-            // ── Search: matching home shops first (a different type than items) ──
-            if (_nameFilter.isNotEmpty) HomeShopSearchResults(query: _nameFilter),
-            if (_nameFilter.isNotEmpty) Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Align(alignment: Alignment.centerLeft, child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: kTintBlue, borderRadius: BorderRadius.circular(100)),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.sell_outlined, size: 15, color: kInkBlue),
-                  const SizedBox(width: 5),
-                  Text(_mt('Items', 'ኣቑሑ', 'ዕቃዎች'), style: tsBodySm(color: kText).copyWith(fontWeight: FontWeight.w600, fontSize: 13)),
-                ]),
-              )),
-            ),
-            // ── Listings ────────────────────────────────
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: _db.collection('marketplace')
-                    .orderBy('createdAt', descending: true)
-                    .snapshots(),
-                builder: (_, snap) {
-                  if (!snap.hasData) return Center(
-                    child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5));
-                  final me = user?.uid;
-                  final admin = _isAdminUser;
-                  final raw = snap.data!.docs;
-                  final pendingCount = raw.where((d) => _isPending(d.data() as Map)).length;
-                  // Public: approved only. Seller also sees own pending; admin sees all.
-                  _allDocs = raw.where((d) {
-                    final m = d.data() as Map;
-                    if (admin && _pendingOnly) return _isPending(m);
-                    return !_isPending(m) || admin || (me != null && _s(m['userId']) == me);
-                  }).toList();
-                  final docs = _displayDocs;
-                  final adminBanner = (admin && (pendingCount > 0 || _pendingOnly))
-                      ? GestureDetector(
-                          onTap: () => setState(() => _pendingOnly = !_pendingOnly),
-                          child: Container(
-                            margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF59E0B).withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.6))),
-                            child: Row(children: [
-                              const Icon(Icons.hourglass_top_rounded, color: Color(0xFFF59E0B), size: 20),
-                              const SizedBox(width: 10),
-                              Expanded(child: Text(_pendingOnly
-                                  ? _mt('Showing only pending listings ($pendingCount) — tap to show all',
-                                        'ፍቓድ ዝጽበዩ ጥራይ ($pendingCount) — ኩሉ ንምርኣይ ጠውቑ',
-                                        'ማረጋገጫ የሚጠብቁ ብቻ ($pendingCount) — ሁሉንም ለማየት ይንኩ')
-                                  : _mt('$pendingCount listing(s) waiting for approval — tap to review',
-                                        '$pendingCount መወዓውዒ ፍቓድ ይጽበዩ — ንምርኣይ ጠውቑ',
-                                        '$pendingCount ማስታወቂያ ማረጋገጫ ይጠብቃሉ — ለማየት ይንኩ'),
-                                  style: tsBodySm(color: kText))),
-                            ]),
-                          ))
-                      : null;
-                  if (docs.isEmpty) {
-                    if (adminBanner != null) {
-                      return Column(children: [adminBanner,
-                        Expanded(child: Center(child: Text(t('marketplace_empty'), style: tsTitleLg())))]);
-                    }
-                    return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      const Text('🛒', style: TextStyle(fontSize: 56)),
-                      const SizedBox(height: 16),
-                      Text(t('marketplace_empty'), style: tsTitleLg()),
-                      const SizedBox(height: 8),
-                      Text(t('marketplace_be_first'), style: tsBodySm()),
-                    ]));
-                  }
-                  // ── Group listings per seller ─────────────
-                  final groups = <String, List<QueryDocumentSnapshot>>{};
-                  for (final doc in docs) {
-                    final m = doc.data() as Map<String, dynamic>;
-                    final key = _s(m['userId']).isNotEmpty ? _s(m['userId'])
-                        : _s(m['sellerName']).isNotEmpty ? 'name:${_s(m['sellerName'])}'
-                        : doc.id;
-                    groups.putIfAbsent(key, () => []).add(doc);
-                  }
-                  final keys = groups.keys.toList();
-                  final listView = ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                    itemCount: keys.length,
-                    itemBuilder: (_, i) {
-                      final list = groups[keys[i]]!;
-                      return _SellerCard(
-                        key: ValueKey(keys[i]),
-                        listings: list,
-                        t: t,
-                        onOpenListing: (docId) => Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => _ListingDetailScreen(
-                            docId: docId,
-                            t: t,
-                            onEdit: (docId, data) => _showAddListing(context, user!, t,
-                                existing: data, docId: docId),
-                            onDelete: (ctx, docId) => _confirmDelete(ctx, docId, t),
-                          ))),
-                        onOpen: () => Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => SellerProfileScreen(
-                            sellerKey: keys[i],
-                            initial: list,
-                            t: t,
-                            onEdit: (docId, data) => _showAddListing(context, user!, t,
-                                existing: data, docId: docId),
-                            onDelete: (ctx, docId) => _confirmDelete(ctx, docId, t),
-                          ))),
-                      );
-                    },
-                  );
-                  return adminBanner == null ? listView
-                      : Column(children: [adminBanner, Expanded(child: listView)]);
-                },
-              ),
-            ),
-          ])),
+                : _listingsView(context, t, user)),
           ]),
         );
+      },
+    );
+  }
+
+  /// City from GPS (filter sheet button)
+  Future<void> _useMyCity(void Function(void Function()) setSheet) async {
+    setSheet(() => _locating = true);
+    try {
+      if (await Geolocator.isLocationServiceEnabled()) {
+        var perm = await Geolocator.checkPermission();
+        if (perm == LocationPermission.denied) perm = await Geolocator.requestPermission();
+        if (perm == LocationPermission.whileInUse || perm == LocationPermission.always) {
+          final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+          final placemarks = await placemarkFromCoordinates(pos.latitude, pos.longitude);
+          if (placemarks.isNotEmpty) {
+            final city = placemarks.first.locality ?? '';
+            _cityCtrl.text = city;
+            _cityFilter = city.toLowerCase();
+            _applyFilters();
+          }
+        }
+      }
+    } catch (_) {}
+    if (mounted) setSheet(() => _locating = false);
+  }
+
+  int get _activeFilters => (_cityFilter.isNotEmpty ? 1 : 0) + (_dealFilter.isNotEmpty ? 1 : 0);
+
+  /// Filters that are not on the screen: city (with GPS) and sell / swap / rent / free
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: kCard,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setSheet) {
+        void both(void Function() f) { setSheet(f); if (mounted) setState(() {}); }
+        return Padding(
+          padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(ctx).viewInsets.bottom + MediaQuery.paddingOf(ctx).bottom + 20),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(child: Container(width: 40, height: 4,
+                decoration: BoxDecoration(color: kOutlineVariant, borderRadius: BorderRadius.circular(2)))),
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(child: Text(_mt('Filters', 'መጻረዪታት', 'ማጣሪያዎች'), style: tsHeadlineSm(color: kText))),
+              if (_activeFilters > 0) TextButton(
+                onPressed: () => both(() { _cityCtrl.clear(); _cityFilter = ''; _dealFilter = ''; _applyFilters(); }),
+                child: Text(_mt('Clear', 'ኣጽሪ', 'አጽዳ'), style: tsTitleMd(color: kSecondary)),
+              ),
+            ]),
+            const SizedBox(height: 12),
+            Text(_mt('City', 'ከተማ', 'ከተማ'), style: tsLabel(color: kTextSub)),
+            const SizedBox(height: 6),
+            Row(children: [
+              Expanded(child: Container(
+                height: 46,
+                decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(12)),
+                child: TextField(
+                  controller: _cityCtrl,
+                  style: tsBodyLg(color: kText),
+                  onChanged: (v) { _cityFilter = v.trim().toLowerCase(); _applyFilters(); setSheet(() {}); },
+                  decoration: InputDecoration(
+                    hintText: languageNotifier.t('marketplace_search_city'),
+                    filled: false, border: InputBorder.none,
+                    prefixIcon: Icon(Icons.location_on_rounded, color: kSecondary, size: 18),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 13),
+                  ),
+                ),
+              )),
+              const SizedBox(width: 8),
+              Material(
+                color: kSecondary,
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: _locating ? null : () => _useMyCity(both),
+                  child: SizedBox(width: 46, height: 46, child: _locating
+                      ? Padding(padding: const EdgeInsets.all(12), child: CircularProgressIndicator(color: kOnAccent, strokeWidth: 2))
+                      : Icon(Icons.my_location_rounded, color: kOnAccent, size: 20)),
+                ),
+              ),
+            ]),
+            const SizedBox(height: 18),
+            Text(_mt('Type', 'ዓይነት', 'ዓይነት'), style: tsLabel(color: kTextSub)),
+            const SizedBox(height: 8),
+            Wrap(children: [
+              for (final k in _deals)
+                _pick(_dealLabel(k), _dealFilter == k, () => both(() { _dealFilter = _dealFilter == k ? '' : k; _applyFilters(); }),
+                    icon: _dealIcon(k)),
+            ]),
+            const SizedBox(height: 10),
+            SizedBox(width: double.infinity, child: primaryButton(_mt('Show results', 'ውጽኢት ኣርኢ', 'ውጤቱን አሳይ'), () => Navigator.pop(ctx))),
+          ]),
+        );
+      }),
+    );
+  }
+
+  /// Small chip under the search for an active filter, ✕ removes it
+  Widget _activeChip(String label, VoidCallback onClear) => Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: Material(
+          color: kSecondary.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(100),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(100),
+            onTap: onClear,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 6, 8, 6),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Text(label, style: tsBodySm(color: kText).copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(width: 4),
+                Icon(Icons.close_rounded, size: 15, color: kTextSub),
+              ]),
+            ),
+          ),
+        ),
+      );
+
+  /// Listings: one search with a filter button, one row of categories,
+  /// then a two-column grid of photos (like Vinted / FINN). The top scrolls away.
+  Widget _listingsView(BuildContext context, String Function(String) t, User? user) {
+    final searchRow = Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      child: Row(children: [
+        Expanded(child: Container(
+          height: 46,
+          decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(100)),
+          child: TextField(
+            controller: _nameCtrl,
+            style: tsBodyLg(color: kText),
+            onChanged: (v) { _nameFilter = v.trim().toLowerCase(); _applyFilters(); },
+            decoration: InputDecoration(
+              hintText: t('marketplace_search_name'),
+              filled: false, border: InputBorder.none,
+              prefixIcon: Icon(Icons.search_rounded, color: kSecondary, size: 20),
+              suffixIcon: _nameFilter.isNotEmpty
+                  ? IconButton(icon: Icon(Icons.clear_rounded, color: kTextSub, size: 18),
+                      onPressed: () { _nameCtrl.clear(); _nameFilter = ''; _applyFilters(); })
+                  : null,
+              contentPadding: const EdgeInsets.symmetric(vertical: 13),
+            ),
+          ),
+        )),
+        const SizedBox(width: 8),
+        // filter button with the number of active filters
+        Stack(clipBehavior: Clip.none, children: [
+          Material(
+            color: _activeFilters > 0 ? kSecondary : kCard,
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: _showFilterSheet,
+              child: SizedBox(width: 46, height: 46,
+                  child: Icon(Icons.tune_rounded, size: 21, color: _activeFilters > 0 ? kOnAccent : kText)),
+            ),
+          ),
+          if (_activeFilters > 0) Positioned(right: -2, top: -2, child: Container(
+            width: 18, height: 18, alignment: Alignment.center,
+            decoration: BoxDecoration(color: kRed, shape: BoxShape.circle, border: Border.all(color: kBg, width: 2)),
+            child: Text('$_activeFilters', style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)),
+          )),
+        ]),
+      ]),
+    );
+
+    final activeRow = _activeFilters == 0 ? null : SizedBox(
+      height: 40,
+      child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.fromLTRB(16, 8, 16, 0), children: [
+        if (_cityFilter.isNotEmpty) _activeChip('📍 ${_cityCtrl.text.trim()}', () { _cityCtrl.clear(); _cityFilter = ''; _applyFilters(); }),
+        if (_dealFilter.isNotEmpty) _activeChip(_dealLabel(_dealFilter), () { setState(() => _dealFilter = ''); _applyFilters(); }),
+      ]),
+    );
+
+    final catRow = SizedBox(
+      height: 50,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+        itemCount: _chipCats.length,
+        itemBuilder: (_, i) {
+          final cat = _chipCats[i];
+          final sel = _selectedCategory == cat['key'];
+          return GestureDetector(
+            onTap: () {
+              if (mounted) setState(() {
+                _selectedCategory = cat['key']!;
+                if (_selectedCategory != _kHabesha) { _sizeFilter = ''; _occFilter = ''; }
+              });
+              _applyFilters();
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 13),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: sel ? kSecondary : kCard, borderRadius: BorderRadius.circular(100)),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Text(cat['emoji']!, style: const TextStyle(fontSize: 13)),
+                const SizedBox(width: 5),
+                Text(t('market_${cat['key']!.toLowerCase()}'),
+                    style: tsLabel(color: sel ? kOnAccent : kText).copyWith(fontSize: 12)),
+              ]),
+            ),
+          );
+        },
+      ),
+    );
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: _db.collection('marketplace').orderBy('createdAt', descending: true).snapshots(),
+      builder: (_, snap) {
+        final me = user?.uid;
+        final admin = _isAdminUser;
+        final raw = snap.data?.docs ?? const <QueryDocumentSnapshot>[];
+        final pendingCount = raw.where((d) => _isPending(d.data() as Map)).length;
+        // Public: approved only. Seller also sees own pending; admin sees all.
+        _allDocs = raw.where((d) {
+          final m = d.data() as Map;
+          if (admin && _pendingOnly) return _isPending(m);
+          return !_isPending(m) || admin || (me != null && _s(m['userId']) == me);
+        }).toList();
+        final docs = _displayDocs;
+
+        void openListing(String docId) => Navigator.push(context, MaterialPageRoute(
+            builder: (_) => _ListingDetailScreen(
+              docId: docId,
+              t: t,
+              onEdit: (docId, data) => _showAddListing(context, user!, t, existing: data, docId: docId),
+              onDelete: (ctx, docId) => _confirmDelete(ctx, docId, t),
+            )));
+
+        return CustomScrollView(slivers: [
+          SliverToBoxAdapter(child: searchRow),
+          if (activeRow != null) SliverToBoxAdapter(child: activeRow),
+          SliverToBoxAdapter(child: catRow),
+          // ── Size and occasion (Habesha clothes) ─────
+          if (_selectedCategory == _kHabesha) ...[
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            SliverToBoxAdapter(child: _filterRow([
+              for (final z in _sizes)
+                _pick(z, _sizeFilter == z, () { if (mounted) setState(() => _sizeFilter = _sizeFilter == z ? '' : z); _applyFilters(); }),
+            ])),
+            SliverToBoxAdapter(child: _filterRow([
+              for (final o in _occasions)
+                _pick(_occasionLabel(o), _occFilter == o, () { if (mounted) setState(() => _occFilter = _occFilter == o ? '' : o); _applyFilters(); }),
+            ])),
+            SliverToBoxAdapter(child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+              child: crossLinkCard(context, emoji: '💍', text: tr('Dress shops, tailors and rental for weddings: see Services'),
+                  onTap: () => openServiceGroup(context, 'weddings', sub: 'dresses')),
+            )),
+          ],
+          // ── Search: matching home shops first (a different type than items) ──
+          if (_nameFilter.isNotEmpty) SliverToBoxAdapter(child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: HomeShopSearchResults(query: _nameFilter),
+          )),
+          // ── Admin: listings waiting for approval ──
+          if (admin && (pendingCount > 0 || _pendingOnly)) SliverToBoxAdapter(child: GestureDetector(
+            onTap: () => setState(() => _pendingOnly = !_pendingOnly),
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.6))),
+              child: Row(children: [
+                const Icon(Icons.hourglass_top_rounded, color: Color(0xFFF59E0B), size: 20),
+                const SizedBox(width: 10),
+                Expanded(child: Text(_pendingOnly
+                    ? _mt('Showing only pending listings ($pendingCount) — tap to show all',
+                          'ፍቓድ ዝጽበዩ ጥራይ ($pendingCount) — ኩሉ ንምርኣይ ጠውቑ',
+                          'ማረጋገጫ የሚጠብቁ ብቻ ($pendingCount) — ሁሉንም ለማየት ይንኩ')
+                    : _mt('$pendingCount listing(s) waiting for approval — tap to review',
+                          '$pendingCount መወዓውዒ ፍቓድ ይጽበዩ — ንምርኣይ ጠውቑ',
+                          '$pendingCount ማስታወቂያ ማረጋገጫ ይጠብቃሉ — ለማየት ይንኩ'),
+                    style: tsBodySm(color: kText))),
+              ]),
+            ),
+          )),
+          if (!snap.hasData)
+            SliverFillRemaining(hasScrollBody: false, child: Center(
+                child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5)))
+          else if (docs.isEmpty)
+            SliverFillRemaining(hasScrollBody: false, child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Text('🛒', style: TextStyle(fontSize: 56)),
+              const SizedBox(height: 16),
+              Text(t('marketplace_empty'), style: tsTitleLg()),
+              const SizedBox(height: 8),
+              Text(t('marketplace_be_first'), style: tsBodySm()),
+            ])))
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 18, childAspectRatio: 0.68),
+                delegate: SliverChildBuilderDelegate(
+                  (_, i) {
+                    final doc = docs[i];
+                    return _GridListing(key: ValueKey(doc.id), docId: doc.id,
+                        data: doc.data() as Map<String, dynamic>, onTap: () => openListing(doc.id));
+                  },
+                  childCount: docs.length,
+                ),
+              ),
+            ),
+        ]);
       },
     );
   }
@@ -1425,70 +1457,62 @@ class _ListingCardState extends State<_ListingCard> {
 List<String> _listingImages(Map<String, dynamic> d) =>
     [..._sList(d['imageUrl']), ..._sList(d['extraImages'])];
 
-class _SellerCard extends StatelessWidget {
-  final List<QueryDocumentSnapshot> listings;
-  final String Function(String) t;
-  final VoidCallback onOpen;
-  final void Function(String docId) onOpenListing;
-  const _SellerCard({super.key, required this.listings, required this.t, required this.onOpen,
-      required this.onOpenListing});
+/// Price for the grid: only a real price (a number, maybe with a currency, e.g. "500 kr");
+/// "Free" only when the seller chose give away; "0" or text in the price field shows nothing.
+/// Digits get a thin space (2 600).
+String _gridPrice(Map d) {
+  final deal = _dealOf(d);
+  var p = _s(d['price']).trim();
+  if (deal == 'free') return _dealLabel('free');
+  final real = RegExp(r'^[$€£]?\s?\d[\d\s.,]*\s?([A-Za-z$€£]{1,4}|ብር)?$').hasMatch(p) && !RegExp(r'^0+([.,]0+)?$').hasMatch(p);
+  if (!real) return deal == 'swap' ? _dealLabel('swap') : '';
+  p = p.replaceAllMapped(RegExp(r'\d{4,}'), (m) {
+    final n = m[0]!; final b = StringBuffer();
+    for (var i = 0; i < n.length; i++) { if (i > 0 && (n.length - i) % 3 == 0) b.write(' '); b.write(n[i]); }
+    return b.toString();
+  });
+  return deal == 'rent' ? '$p ${_mt('/ day', '/ መዓልቲ', '/ ቀን')}' : p;
+}
+
+/// "2 d", "5 h", "now"
+String _ago(dynamic ts) {
+  if (ts is! Timestamp) return '';
+  final d = DateTime.now().difference(ts.toDate());
+  if (d.inDays >= 30) return '${(d.inDays / 30).floor()} ${_mt('mo', 'ወ', 'ወር')}';
+  if (d.inDays >= 1) return '${d.inDays} ${_mt('d', 'መ', 'ቀ')}';
+  if (d.inHours >= 1) return '${d.inHours} ${_mt('h', 'ሰ', 'ሰ')}';
+  return _mt('now', 'ሕጂ', 'አሁን');
+}
+
+/// One item in the Market grid: big photo, price, title, city · age
+class _GridListing extends StatelessWidget {
+  final String docId;
+  final Map<String, dynamic> data;
+  final VoidCallback onTap;
+  const _GridListing({super.key, required this.docId, required this.data, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final first = listings.first.data() as Map<String, dynamic>;
-    final name  = _s(first['sellerName']).isEmpty ? '?' : _s(first['sellerName']);
-    final city  = _s(first['city']);
-    final count = listings.length;
-
+    final price = _gridPrice(data);
+    final city = _s(data['city']);
+    final ago = _ago(data['createdAt']);
+    final where = [if (city.isNotEmpty) city, if (ago.isNotEmpty) ago].join(' · ');
     return GestureDetector(
-      onTap: onOpen,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: kCard,
-          borderRadius: BorderRadius.circular(18),
-          ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // ── seller header ────────────────────────────
-          Row(children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: kSecondary.withOpacity(0.15),
-              child: Text(name[0].toUpperCase(), style: tsTitleMd(color: kSecondary)),
-            ),
-            const SizedBox(width: 10),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(name, style: tsTitleMd(), maxLines: 1, overflow: TextOverflow.ellipsis),
-              Text(
-                '${city.isNotEmpty ? '$city · ' : ''}$count ${t('market_items')}',
-                style: tsBodySm(color: kTextSub)),
-            ])),
-            Row(mainAxisSize: MainAxisSize.min, children: [
-              Text(t('market_see_all'), style: tsBodySm(color: kSecondary)),
-              Icon(Icons.chevron_right_rounded, color: kSecondary, size: 20),
-            ]),
-          ]),
-          const SizedBox(height: 12),
-          // ── thumbnails strip ─────────────────────────
-          SizedBox(
-            height: 150,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: listings.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              itemBuilder: (_, i) {
-                final doc = listings[i];
-                return GestureDetector(
-                  onTap: () => onOpenListing(doc.id),
-                  child: SizedBox(width: 120,
-                      child: _ListingThumb(data: doc.data() as Map<String, dynamic>, docId: doc.id)),
-                );
-              },
-            ),
-          ),
-        ]),
-      ),
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // the photo with its badges (pending, swap / rent, sold, approve) from the old tile
+        Expanded(child: _ListingThumb(data: data, docId: docId, plain: true)),
+        const SizedBox(height: 8),
+        if (price.isNotEmpty)
+          Text(price, maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: tsTitleMd(color: kText).copyWith(fontSize: 15, fontWeight: FontWeight.w800)),
+        Text(_s(data['title']), maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: tsBodySm(color: kText).copyWith(fontSize: 13)),
+        if (where.isNotEmpty)
+          Text(where, maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: tsBodySm(color: kTextSub).copyWith(fontSize: 11.5)),
+      ]),
     );
   }
 }
@@ -1497,7 +1521,8 @@ class _SellerCard extends StatelessWidget {
 class _ListingThumb extends StatelessWidget {
   final Map<String, dynamic> data;
   final String? docId;   // set → admin gets a quick approve button on pending items
-  const _ListingThumb({required this.data, this.docId});
+  final bool plain;      // grid: only the photo (price and title are written under it)
+  const _ListingThumb({required this.data, this.docId, this.plain = false});
 
   @override
   Widget build(BuildContext context) {
@@ -1507,7 +1532,7 @@ class _ListingThumb extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Expanded(
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(plain ? 16 : 12),
           child: Stack(fit: StackFit.expand, children: [
             imgs.isEmpty
                 ? Container(color: kCardHigh,
@@ -1515,7 +1540,7 @@ class _ListingThumb extends StatelessWidget {
                 : CachedNetworkImage(imageUrl: imgs.first, fit: BoxFit.cover, memCacheWidth: 400,
                     errorWidget: (_, __, ___) => Container(color: kCardHigh,
                       child: Icon(Icons.broken_image_rounded, color: kTextSub, size: 28))),
-            if (price.isNotEmpty)
+            if (price.isNotEmpty && !plain)
               Positioned(left: 6, bottom: 6,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -1571,8 +1596,10 @@ class _ListingThumb extends StatelessWidget {
           ]),
         ),
       ),
-      const SizedBox(height: 4),
-      Text(_s(data['title']), style: tsBodySm(color: kText), maxLines: 1, overflow: TextOverflow.ellipsis),
+      if (!plain) ...[
+        const SizedBox(height: 4),
+        Text(_s(data['title']), style: tsBodySm(color: kText), maxLines: 1, overflow: TextOverflow.ellipsis),
+      ],
     ]);
   }
 }
@@ -1586,6 +1613,7 @@ class SellerProfileScreen extends StatelessWidget {
   final String Function(String) t;
   final void Function(String docId, Map<String, dynamic> data) onEdit;
   final Future<void> Function(BuildContext ctx, String docId) onDelete;
+  final String? sellerName;   // when opened from a listing
 
   const SellerProfileScreen({
     super.key,
@@ -1594,13 +1622,15 @@ class SellerProfileScreen extends StatelessWidget {
     required this.t,
     required this.onEdit,
     required this.onDelete,
+    this.sellerName,
   });
 
   @override
   Widget build(BuildContext context) {
-    final first = initial.first.data() as Map<String, dynamic>;
-    final name  = _s(first['sellerName']).isEmpty ? '?' : _s(first['sellerName']);
-    final byUser = !sellerKey.startsWith('name:') && _s(first['userId']) == sellerKey;
+    final first = initial.isEmpty ? const <String, dynamic>{} : initial.first.data() as Map<String, dynamic>;
+    final given = sellerName ?? _s(first['sellerName']);
+    final name  = given.isEmpty ? '?' : given;
+    final byUser = !sellerKey.startsWith('name:') && (initial.isEmpty || _s(first['userId']) == sellerKey);
 
     Widget body(List<QueryDocumentSnapshot> docs) {
       final city = docs.map((d) => _s((d.data() as Map)['city'])).firstWhere(
@@ -1729,6 +1759,33 @@ class _ListingDetailScreen extends StatelessWidget {
                 t: t,
                 onEdit: isMe ? () => onEdit(docId, d) : null,
                 onDelete: (isMe || admin) ? () => onDelete(ctx, docId) : null,
+              ),
+              // ── More from the same seller ─────────────
+              if (_s(d['userId']).isNotEmpty) Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Material(
+                  color: kCard,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => Navigator.push(ctx, MaterialPageRoute(builder: (_) => SellerProfileScreen(
+                      sellerKey: _s(d['userId']), initial: const [], t: t,
+                      sellerName: _s(d['sellerName']), onEdit: onEdit, onDelete: onDelete))),
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Row(children: [
+                        CircleAvatar(radius: 18, backgroundColor: kSecondary.withValues(alpha: 0.15),
+                          child: Text((_s(d['sellerName']).isEmpty ? '?' : _s(d['sellerName'])[0]).toUpperCase(),
+                              style: tsTitleMd(color: kSecondary))),
+                        const SizedBox(width: 12),
+                        Expanded(child: Text(
+                            '${_mt('More from', 'ተወሳኺ ካብ', 'ተጨማሪ ከ')} ${_s(d['sellerName']).isEmpty ? _mt('the seller', 'ሻያጢ', 'ሻጩ') : _s(d['sellerName'])}',
+                            maxLines: 1, overflow: TextOverflow.ellipsis, style: tsTitleMd(color: kText))),
+                        Icon(Icons.chevron_right_rounded, color: kSecondary),
+                      ]),
+                    ),
+                  ),
+                ),
               ),
               // ── Admin moderation ─────────────────────
               if (admin) Row(children: [
