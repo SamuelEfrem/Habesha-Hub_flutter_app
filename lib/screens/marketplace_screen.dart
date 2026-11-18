@@ -9,6 +9,8 @@ import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/share_helper.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../theme/app_theme.dart';
 import 'member_screens.dart';
 import '../utils/language_notifier.dart';
@@ -672,7 +674,70 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       if (mounted) setState(() {});
       if (!_canSell(u) || !context.mounted) return;
     }
-    _showAddListing(context, u!, t);
+    final how = await showModalBottomSheet<String>(context: context, backgroundColor: kCard,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => SafeArea(child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 18, 16, 12),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          _howTile(ctx, 'quick', '📸', _mt('Take a photo – Habesha AI writes it', 'ስእሊ ኣልዕል – Habesha AI ይጽሕፎ', 'ፎቶ ያንሱ – Habesha AI ይጽፈዋል'),
+              _mt('You only add your phone number and post', 'ቁጽሪ ስልክኻ ጥራይ ወሲኽካ ለጥፍ', 'ስልክ ቁጥርዎን ብቻ ጨምረው ይለጥፉ'), highlight: true),
+          const SizedBox(height: 10),
+          _howTile(ctx, 'self', '✍️', _mt('Write it myself', 'ባዕለይ ክጽሕፎ', 'ራሴ እጽፈዋለሁ'), ''),
+        ]),
+      )));
+    if (how == null || !context.mounted) return;
+    if (how == 'self') { _showAddListing(context, u!, t); return; }
+    await _quickPost(context, u!, t);
+  }
+
+  Widget _howTile(BuildContext ctx, String key, String emoji, String title, String sub, {bool highlight = false}) => Material(
+        color: highlight ? kSecondary.withValues(alpha: 0.14) : kCardHigh,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => Navigator.pop(ctx, key),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(children: [
+              Text(emoji, style: const TextStyle(fontSize: 26)),
+              const SizedBox(width: 14),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(title, style: tsTitleMd(color: highlight ? kSecondary : kText)),
+                if (sub.isNotEmpty) ...[const SizedBox(height: 2), Text(sub, style: tsBodySm(color: kTextSub))],
+              ])),
+              Icon(Icons.chevron_right_rounded, color: kTextSub),
+            ]),
+          ),
+        ),
+      );
+
+  /// Quick post: take a photo, Habesha AI fills in the listing, the normal form opens ready.
+  Future<void> _quickPost(BuildContext context, User u, String Function(String) t) async {
+    final x = await ImagePicker().pickImage(source: ImageSource.camera, maxWidth: 1024, maxHeight: 1024, imageQuality: 75);
+    if (x == null || !context.mounted) return;
+    final file = File(x.path);
+    showDialog(context: context, barrierDismissible: false, builder: (_) => AlertDialog(
+      backgroundColor: kCardHigh,
+      content: Row(children: [
+        SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: kSecondary)),
+        const SizedBox(width: 16),
+        Expanded(child: Text(_mt('Habesha AI is writing your listing…', 'Habesha AI ምልክታኻ ይጽሕፍ ኣሎ…', 'Habesha AI ማስታወቂያዎን እየጻፈ ነው…'),
+            style: tsBodyLg(color: kText))),
+      ]),
+    ));
+    Map<String, dynamic>? draft;
+    try {
+      final token = await u.getIdToken();
+      final r = await http.post(Uri.parse('https://europe-west1-habesha-hub-7bd1d.cloudfunctions.net/aiDraftListing'),
+          headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+          body: jsonEncode({'photo': base64Encode(await file.readAsBytes()), 'lang': languageNotifier.language}))
+          .timeout(const Duration(seconds: 45));
+      if (r.statusCode == 200) draft = jsonDecode(r.body) as Map<String, dynamic>;
+    } catch (_) {}
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();   // the "writing…" box
+    // if the AI did not answer, the form still opens with the photo
+    _showAddListing(context, u, t, draft: draft ?? const {}, draftPhoto: file);
   }
 
   static const _maxPhotos = 8;
@@ -683,12 +748,22 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     String Function(String) t, {
     Map<String, dynamic>? existing,
     String? docId,
+    Map<String, dynamic>? draft,   // quick post: filled in by Habesha AI from the photo
+    File? draftPhoto,
   }) {
-    final titleCtrl = TextEditingController(text: _s(existing?['title']));
-    final descCtrl  = TextEditingController(text: _s(existing?['description']));
-    final priceCtrl = TextEditingController(text: _s(existing?['price']));
+    final src = existing ?? draft;
+    final titleCtrl = TextEditingController(text: _s(src?['title']));
+    final descCtrl  = TextEditingController(text: _s(src?['description']));
+    final priceCtrl = TextEditingController(text: _s(src?['price']));
     final cityCtrl  = TextEditingController(text: _s(existing?['city']));
     final phoneCtrl = TextEditingController(text: _s(existing?['sellerPhone']));
+    // new listing: phone and city from the last time
+    if (existing == null) {
+      SharedPreferences.getInstance().then((p) {
+        if (phoneCtrl.text.isEmpty) phoneCtrl.text = p.getString('market_phone') ?? '';
+        if (cityCtrl.text.isEmpty) cityCtrl.text = p.getString('market_city') ?? '';
+      });
+    }
     final nameCtrl  = TextEditingController(
         text: _s(existing?['sellerName']).isNotEmpty ? _s(existing?['sellerName']) : _s(user.displayName));
     if (nameCtrl.text.isEmpty) {
@@ -696,13 +771,13 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         if (nameCtrl.text.isEmpty) nameCtrl.text = p.getString('nickname') ?? '';
       });
     }
-    String selCat = _s(existing?['category']).isEmpty ? 'Other' : _s(existing?['category']);
+    String selCat = _s(src?['category']).isEmpty ? 'Other' : _s(src?['category']);
     String deal = existing == null ? 'sell' : _dealOf(existing);
-    String garment = _s(existing?['garment']), size = _s(existing?['size']);
-    String occasion = _s(existing?['occasion']), condition = _s(existing?['condition']);
+    String garment = _s(src?['garment']), size = _s(existing?['size']);
+    String occasion = _s(existing?['occasion']), condition = _s(src?['condition']);
     // Photos already online (kept when editing) + new ones from the gallery
     final keptPhotos = <String>[..._sList(existing?['imageUrl']), ..._sList(existing?['extraImages'])];
-    final newPhotos = <File>[];
+    final newPhotos = <File>[if (draftPhoto != null) draftPhoto];
     bool uploading = false;
     String error = '';
 
@@ -728,6 +803,13 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               const SizedBox(height: 20),
               Text(existing != null ? t('marketplace_edit') : t('marketplace_add'),
                 style: tsHeadlineSm(color: kSecondary)),
+              if (draft != null) ...[
+                const SizedBox(height: 6),
+                Text(draft.isEmpty
+                    ? _mt('Habesha AI could not read the photo. Please write the title yourself.', 'Habesha AI ነቲ ስእሊ ከንብቦ ኣይከኣለን። ኣርእስቲ ባዕልኻ ጽሓፍ።', 'Habesha AI ፎቶውን ማንበብ አልቻለም። ርዕሱን ራስዎ ይጻፉ።')
+                    : _mt('✨ Habesha AI filled this in. Check it, add your phone number and post.', '✨ Habesha AI መሊኡዎ። ርአዮ፡ ቁጽሪ ስልክኻ ወስኽ እሞ ለጥፍ።', '✨ Habesha AI ሞልቶታል። ያረጋግጡ፣ ስልክ ቁጥርዎን ይጨምሩና ይለጥፉ።'),
+                    style: tsBodySm(color: kTextSub)),
+              ],
               const SizedBox(height: 20),
               // Photos: up to 8, the first one is the cover
               SizedBox(
@@ -856,6 +938,11 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         'በጃኻ ኣርእስትን ስምካን ጽሓፍ።', 'እባክዎ ርዕስና ስምዎን ይጻፉ።'));
                     return;
                   }
+                  // quick post: the phone number is the one thing the user adds
+                  if (draft != null && phoneCtrl.text.trim().length < 6) {
+                    setModal(() => error = _mt('Please add your phone number.', 'በጃኻ ቁጽሪ ስልክኻ ወስኽ።', 'እባክዎ ስልክ ቁጥርዎን ይጨምሩ።'));
+                    return;
+                  }
                   // at least one photo is required
                   if (keptPhotos.isEmpty && newPhotos.isEmpty) {
                     setModal(() => error = _mt('Please add at least one photo.',
@@ -901,6 +988,10 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       payload['status'] = 'available';
                       await _db.collection('marketplace').add(payload);
                     }
+                    // remember phone and city for the next listing
+                    final prefs = await SharedPreferences.getInstance();
+                    if (phoneCtrl.text.trim().isNotEmpty) await prefs.setString('market_phone', phoneCtrl.text.trim());
+                    if (cityCtrl.text.trim().isNotEmpty) await prefs.setString('market_city', cityCtrl.text.trim());
                   } catch (e) {
                     setModal(() {
                       uploading = false;

@@ -1163,3 +1163,52 @@ exports.trimEventSample = onDocumentWritten({ document: 'events/{id}', memory: '
     for (const f of [tmpIn, tmpOut]) fs.rm(f, { force: true }, () => {});
   }
 });
+
+// Market quick post: one photo → Habesha AI suggests title, description, category, deal and price.
+// The app then opens the normal form already filled in; the user adds the phone number and posts.
+exports.aiDraftListing = onRequest(
+  { secrets: [GEMINI_KEY], cors: true, invoker: 'public', maxInstances: 5, timeoutSeconds: 60, memory: '512MiB' },
+  async (req, res) => {
+    if (req.method !== 'POST') { res.status(405).send('POST only'); return; }
+    try {
+      const m = /^Bearer (.+)$/.exec(req.get('Authorization') || '');
+      const user = m ? await getAuth().verifyIdToken(m[1]).catch(() => null) : null;
+      if (!user) { res.status(401).json({ error: 'login' }); return; }
+      const body = req.body || {};
+      const photo = typeof body.photo === 'string' && body.photo.length < 1_500_000 ? body.photo : '';
+      if (!photo) { res.status(400).json({ error: 'photo' }); return; }
+      const lang = ['Tigrinya', 'Amharic'].includes(body.lang) ? body.lang : 'English';
+      const quota = await aiQuota('u_' + user.uid, '', user.uid === SAMUEL_UID);
+      if (quota !== 'ok') { res.status(429).json({ error: 'limit' }); return; }
+      const prompt = `You help a member of the Habesha (Eritrean / Ethiopian) community sell something in the Habesha Hub Market. ` +
+        `Look at the photo and write a short listing in ${lang}. Do not invent brand names or details you cannot see. ` +
+        `Answer ONLY with JSON: {"title":"short, max 60 characters","description":"1-3 short sentences","category":"one of Habesha, Clothes, Electronics, Furniture, Food, Books, Other",` +
+        `"deal":"sell","price":"a fair second-hand price as a number only, or empty","garment":"zuria|kemis|netela|gabi|suit|kids or empty","condition":"new|once|used or empty"}`;
+      let out = null;
+      for (const model of [GEMINI_MODEL, GEMINI_FALLBACK]) {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(cleanKey())}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ role: 'user', parts: [{ inline_data: { mime_type: 'image/jpeg', data: photo } }, { text: prompt }] }],
+            generationConfig: { temperature: 0.3, maxOutputTokens: 800, responseMimeType: 'application/json' } }),
+        });
+        if (!r.ok) continue;
+        const data = await r.json();
+        const txt = data?.candidates?.[0]?.content?.parts?.map(x => x.text || '').join('') || '';
+        try { out = JSON.parse(txt); break; } catch (e) { /* try the other model */ }
+      }
+      if (!out) { res.status(502).json({ error: 'ai' }); return; }
+      const pick = (v, list) => list.includes(v) ? v : '';
+      res.json({
+        title: String(out.title || '').slice(0, 80),
+        description: String(out.description || '').slice(0, 600),
+        category: pick(out.category, ['Habesha', 'Clothes', 'Electronics', 'Furniture', 'Food', 'Books', 'Other']) || 'Other',
+        deal: 'sell',
+        price: String(out.price || '').replace(/[^0-9.,]/g, '').slice(0, 12),
+        garment: pick(out.garment, ['zuria', 'kemis', 'netela', 'gabi', 'suit', 'kids']),
+        condition: pick(out.condition, ['new', 'once', 'used']),
+      });
+    } catch (e) {
+      console.error('aiDraftListing', e.message);
+      res.status(500).json({ error: 'server' });
+    }
+  });
