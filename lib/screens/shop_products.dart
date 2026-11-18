@@ -63,14 +63,55 @@ class ShopProductsRow extends StatelessWidget {
                 ),
               ]),
             ),
-            if (docs.isEmpty)
+            if (docs.isEmpty) ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-                child: Text(_l('Only you see this. Add your first product; users see the row when there is one.',
-                    'ንስኻ ጥራይ ኢኻ ትርእዮ። ቀዳማይ ፍርያትካ ወስኽ፡ ተጠቀምቲ ሓደ ምስ ሃለወ ይርእይዎ።',
-                    'እርስዎ ብቻ ያዩታል። የመጀመሪያ ምርትዎን ይጨምሩ፣ ተጠቃሚዎች አንድ ሲኖር ያዩታል።'),
+                child: Text(_l('Only you see this. Examples below show how it will look; add your first product.',
+                    'ንስኻ ጥራይ ኢኻ ትርእዮ። ኣብነታት ከመይ ከም ዝመስል የርእዩ፡ ቀዳማይ ፍርያትካ ወስኽ።',
+                    'እርስዎ ብቻ ያዩታል። ምሳሌዎቹ እንዴት እንደሚታይ ያሳያሉ፣ የመጀመሪያ ምርትዎን ይጨምሩ።'),
                     style: tsBodySm(color: kTextSub)),
-              )
+              ),
+              // admin preview while empty: not saved, nobody else sees it
+              SizedBox(
+                height: 228,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  children: [
+                    for (final (emoji, title, price) in const [
+                      ('☕', 'Jebena coffee set', '449 kr'),
+                      ('💍', 'Wedding hair jewellery', '199 kr'),
+                      ('🧵', 'Netela tilet ribbon, 5 m', '149 kr'),
+                    ]) Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: SizedBox(width: 150, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Container(
+                          width: 150, height: 150, alignment: Alignment.center,
+                          decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(16)),
+                          child: Stack(children: [
+                            Center(child: Text(emoji, style: const TextStyle(fontSize: 54))),
+                            Positioned(left: 6, top: 6, child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                              decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(100)),
+                              child: Text('Shop ✓', style: TextStyle(color: kOnAccent, fontSize: 10, fontWeight: FontWeight.w800)),
+                            )),
+                            Positioned(right: 6, top: 6, child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                              decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(100)),
+                              child: Text(_l('Example', 'ኣብነት', 'ምሳሌ'), style: const TextStyle(color: Colors.white, fontSize: 10)),
+                            )),
+                          ]),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(price, style: tsTitleMd(color: kText).copyWith(fontSize: 15, fontWeight: FontWeight.w800)),
+                        Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tsBodySm(color: kText).copyWith(fontSize: 13)),
+                        Text('🚚 7–15 days', style: tsBodySm(color: kTextSub).copyWith(fontSize: 11.5)),
+                      ])),
+                    ),
+                  ],
+                ),
+              ),
+            ]
             else
               SizedBox(
                 height: 228,
