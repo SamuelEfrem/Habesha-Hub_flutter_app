@@ -1130,3 +1130,36 @@ exports.notifyWebsiteRequest = onDocumentCreated('websiteRequests/{id}', async (
 exports.cleanWebsiteRequest = onDocumentDeleted('websiteRequests/{id}', async (event) => {
   await getFirestore().collection('websiteRequestNotes').doc(event.params.id).delete().catch(() => {});
 });
+
+// Events: a music sample can be a whole song or video. Keep only the first 30 seconds,
+// sound only (small .m4a), then delete the big original.
+exports.trimEventSample = onDocumentWritten({ document: 'events/{id}', memory: '1GiB', timeoutSeconds: 300 }, async (event) => {
+  const a = event.data?.after?.data(), b = event.data?.before?.data();
+  const url = a?.sampleUrl || '';
+  if (!url || url === b?.sampleUrl || url.includes('_30s.m4a')) return;
+  const m = url.match(/\/o\/([^?]+)/);
+  if (!m) return;
+  const srcPath = decodeURIComponent(m[1]);
+  if (!srcPath.startsWith('events/')) return;
+  const os = require('os'), path = require('path'), fs = require('fs');
+  const { execFile } = require('child_process');
+  const ffmpeg = require('ffmpeg-static');
+  const bucket = getStorage().bucket();
+  const tmpIn = path.join(os.tmpdir(), 'in_' + event.params.id);
+  const tmpOut = path.join(os.tmpdir(), 'out_' + event.params.id + '.m4a');
+  try {
+    await bucket.file(srcPath).download({ destination: tmpIn });
+    await new Promise((ok, fail) => execFile(ffmpeg,
+      ['-y', '-i', tmpIn, '-t', '30', '-vn', '-ac', '2', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', tmpOut],
+      { timeout: 240000 }, (err) => err ? fail(err) : ok()));
+    const outPath = srcPath.replace(/\.[^./]+$/, '') + '_30s.m4a';
+    await bucket.upload(tmpOut, { destination: outPath, metadata: { contentType: 'audio/mp4' } });
+    const newUrl = await getDownloadURL(bucket.file(outPath));
+    await event.data.after.ref.update({ sampleUrl: newUrl });
+    await bucket.file(srcPath).delete().catch(() => {});
+  } catch (e) {
+    console.error('trimEventSample', event.params.id, e.message);
+  } finally {
+    for (const f of [tmpIn, tmpOut]) fs.rm(f, { force: true }, () => {});
+  }
+});

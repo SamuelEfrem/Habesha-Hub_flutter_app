@@ -20,7 +20,7 @@ service firebase.storage {
     }
     function isMedia(mb) {
       return request.resource.size < mb * 1024 * 1024
-          && request.resource.contentType.matches('image/.*|video/.*|application/pdf|application/octet-stream');
+          && request.resource.contentType.matches('image/.*|video/.*|audio/.*|application/pdf|application/octet-stream');
     }
     function bizOwner(bizId) {
       return signedIn() &&
@@ -111,7 +111,7 @@ service firebase.storage {
     }
     match /events/{userId}/{file} {
       allow write: if signedIn() && (request.auth.uid == userId || isAdmin())
-                   && (request.resource == null || isImage(10) || isMedia(100));   // music sample: a 30 s phone video can be 60 MB+
+                   && (request.resource == null || isImage(10) || isMedia(300));   // music sample: a whole song or video; the server keeps 30 s of sound
     }
     match /housing/{userId}/{file} {
       allow write: if signedIn() && (request.auth.uid == userId || isAdmin())

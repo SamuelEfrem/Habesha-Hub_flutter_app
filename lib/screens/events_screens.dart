@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
+import 'package:file_picker/file_picker.dart';
 import '../theme/app_theme.dart';
 import '../utils/share_helper.dart';
 import '../utils/translations.dart';
@@ -688,9 +689,9 @@ class _EventFormScreenState extends State<EventFormScreen> {
     else if (_day == null || _time == null) miss = tr('Please choose the date and start time');
     else if (_flyerFile == null && _flyerUrl.isEmpty) miss = tr('Please add the flyer');
     else if (ticket.isNotEmpty && !isHttpsLink(ticket)) miss = tr('The ticket link must start with https://');
-    // the music sample may be at most 100 MB (a 30 s phone video is often 20–70 MB)
-    if (miss.isEmpty && _sampleFile != null && _sampleFile!.lengthSync() > 95 * 1024 * 1024) {
-      miss = tr('The music sample is too big. Choose a shorter or smaller video (max 100 MB).');
+    // a whole song or video is fine (the server keeps 30 s of sound); max 300 MB to upload
+    if (miss.isEmpty && _sampleFile != null && _sampleFile!.lengthSync() > 295 * 1024 * 1024) {
+      miss = tr('The file is too big (max 300 MB). Choose a shorter video or a music file.');
     }
     if (miss.isNotEmpty) { setState(() => _error = miss); return; }
     final u = FirebaseAuth.instance.currentUser!;
@@ -704,8 +705,12 @@ class _EventFormScreenState extends State<EventFormScreen> {
       }
       var sample = _sampleUrl;
       if (_sampleFile != null) {
-        final ref = FirebaseStorage.instance.ref('events/${u.uid}/sample_${DateTime.now().millisecondsSinceEpoch}.mp4');
-        await ref.putFile(_sampleFile!, SettableMetadata(contentType: 'video/mp4'));
+        // keep the file type; the server then cuts it to 30 seconds of sound
+        final ext = _sampleFile!.path.contains('.') ? _sampleFile!.path.split('.').last.toLowerCase() : 'mp4';
+        const audio = {'mp3': 'audio/mpeg', 'm4a': 'audio/mp4', 'aac': 'audio/aac', 'wav': 'audio/wav', 'ogg': 'audio/ogg', 'flac': 'audio/flac', 'opus': 'audio/ogg', 'amr': 'audio/amr'};
+        final type = audio[ext] ?? (ext == 'mov' ? 'video/quicktime' : ext == '3gp' ? 'video/3gpp' : ext == 'webm' ? 'video/webm' : 'video/mp4');
+        final ref = FirebaseStorage.instance.ref('events/${u.uid}/sample_${DateTime.now().millisecondsSinceEpoch}.$ext');
+        await ref.putFile(_sampleFile!, SettableMetadata(contentType: type));
         sample = await ref.getDownloadURL();
       }
       final admin = _isAdmin();
@@ -788,13 +793,28 @@ class _EventFormScreenState extends State<EventFormScreen> {
           child: ListTile(
             leading: Icon(Icons.music_note_rounded, color: kSecondary),
             title: Text(_sampleFile != null || _sampleUrl.isNotEmpty ? '✓ ${tr('Music sample added')}' : tr('Add a music sample (optional)'), style: tsBodyLg(color: kText)),
-            subtitle: Text(tr('A short video or recording, max 30 seconds. Only music you may share.'), style: tsBodySm(color: kTextSub)),
+            subtitle: Text(tr('A song or a video, any length. We keep the first 30 seconds, sound only. Only music you may share.'), style: tsBodySm(color: kTextSub)),
             trailing: _sampleFile != null || _sampleUrl.isNotEmpty
                 ? IconButton(icon: Icon(Icons.close_rounded, color: kRed), onPressed: () => setState(() { _sampleFile = null; _sampleUrl = ''; }))
                 : null,
             onTap: () async {
-              final x = await ImagePicker().pickVideo(source: ImageSource.gallery, maxDuration: const Duration(seconds: 30));
-              if (x != null && mounted) setState(() => _sampleFile = File(x.path));
+              // a music file or a video, any length
+              final kind = await showModalBottomSheet<String>(context: context, backgroundColor: kCard,
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  ListTile(leading: const Text('🎵', style: TextStyle(fontSize: 22)), title: Text(tr('Music file'), style: tsBodyLg(color: kText)),
+                      onTap: () => Navigator.pop(ctx, 'audio')),
+                  ListTile(leading: const Text('🎬', style: TextStyle(fontSize: 22)), title: Text(tr('Video'), style: tsBodyLg(color: kText)),
+                      onTap: () => Navigator.pop(ctx, 'video')),
+                ])));
+              String? path;
+              if (kind == 'audio') {
+                final r = await FilePicker.platform.pickFiles(type: FileType.audio);
+                path = r?.files.single.path;
+              } else if (kind == 'video') {
+                path = (await ImagePicker().pickVideo(source: ImageSource.gallery))?.path;
+              }
+              if (path != null && mounted) setState(() => _sampleFile = File(path!));
             },
           ),
         ),
