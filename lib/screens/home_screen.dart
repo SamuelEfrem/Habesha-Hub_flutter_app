@@ -430,7 +430,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     return tooltip == null ? btn : Tooltip(message: tooltip, child: btn);
   }
 
-  // ── Search field + "Near me" button ──
+  // ── Search field (full width) ──
   Widget _buildSearchRow(String Function(String) t) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
@@ -459,25 +459,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Tooltip(
-          message: tr('Nearby'),
-          child: Material(
-            color: kSecondary,
-            shape: const CircleBorder(),
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: _searchNearby,
-              child: SizedBox(
-                width: 44, height: 44,
-                child: _isSearching
-                    ? Padding(padding: const EdgeInsets.all(13),
-                        child: CircularProgressIndicator(color: kOnAccent, strokeWidth: 2.2))
-                    : Icon(Icons.my_location_rounded, color: kOnAccent, size: 20),
               ),
             ),
           ),

@@ -25,6 +25,7 @@ import 'hair_beauty.dart';
 import 'map_screen.dart';
 import 'booking_screen.dart';
 import 'wekil_screens.dart';
+import '../data/city_regions.dart';
 
 class ExploreScreen extends StatefulWidget {
   /// e.g. 'Barber' + 'wedding' when opened from Weddings & celebrations (with a back button)
@@ -63,6 +64,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   bool _loading = true;
   String _country = '';
   String _city = '';
+  String _area = '';   // region / county / state ('' = all)
   bool _smallOnly = false; // only small, new and home-based businesses
   late String _category = widget.initialCategory;
   String _query = '';
@@ -101,7 +103,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   Future<void> _pickCountry(String c) async {
-    setState(() { _country = c; _city = ''; _category = widget.initialCategory; });
+    setState(() { _country = c; _city = ''; _area = ''; _category = widget.initialCategory; });
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('explore_country', c);
   }
@@ -126,6 +128,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
     return '';
   }
 
+  /// Region (county / state) of a business, from its city; '' when unknown
+  String _areaOf(Business b) => kCityRegion[b.country]?[_cityOf(b)] ?? '';
+
+  /// Chosen city, or else chosen region
+  bool _inPlace(Business b) => _city.isNotEmpty ? _cityOf(b) == _city : (_area.isEmpty || _areaOf(b) == _area);
+
+  String get _placeLabel => _city.isNotEmpty ? _city : _area.isNotEmpty ? _area : languageNotifier.t('all_cities');
+
   List<Business> get _inCountry => _all.where((b) => b.country == _country).toList();
 
   List<MapEntry<String, int>> get _cities {
@@ -141,7 +151,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     final q = _query.toLowerCase();
     // Typing searches the whole world; otherwise show the chosen country
     var list = q.isNotEmpty && _country.isEmpty ? _all : _inCountry;
-    if (_city.isNotEmpty) list = list.where((b) => _cityOf(b) == _city).toList();
+    if (_city.isNotEmpty || _area.isNotEmpty) list = list.where(_inPlace).toList();
     if (_category.isNotEmpty) list = list.where((b) => b.category == _category).toList();
     if (_category == kHairCategory) list = list.where((b) => hairMatches(b, _hairSub, _hairFor)).toList();
     if (_smallOnly) list = list.where((b) => b.smallBiz || b.worksFromHome).toList();
@@ -217,7 +227,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       Flexible(flex: 3, child: _pickerButton('${countryFlag(_country)} ${tr(_country)}', _showCountrySheet)),
                       if (_cities.isNotEmpty) ...[
                         const SizedBox(width: 8),
-                        Flexible(flex: 3, child: _pickerButton(_city.isEmpty ? t('all_cities') : _city, _showCitySheet)),
+                        Flexible(flex: 3, child: _pickerButton(_placeLabel, _showCitySheet)),
                       ],
                     ]),
                   ),
@@ -226,7 +236,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     mapButton(() => Navigator.push(context, MaterialPageRoute(
                         builder: (_) => BusinessesMapScreen(
                               businesses: _results,
-                              title: _city.isNotEmpty ? _city : tr(_country),
+                              title: _city.isNotEmpty || _area.isNotEmpty ? _placeLabel : tr(_country),
                             ))), compact: box.maxWidth < 360),
                 ])),
               ),
@@ -268,7 +278,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   Widget _buildCategoryChips() {
     final counts = <String, int>{};
-    for (final b in _inCountry.where((b) => _city.isEmpty || _cityOf(b) == _city)) {
+    for (final b in _inCountry.where(_inPlace)) {
       counts[b.category] = (counts[b.category] ?? 0) + 1;
     }
     final cats = _categoryOrder.where(counts.containsKey).toList();
@@ -436,13 +446,33 @@ class _ExploreScreenState extends State<ExploreScreen> {
   void _showCitySheet() {
     final t = languageNotifier.t;
     final cities = _cities;
+    // cities grouped by region; countries without regions show the plain city list
+    final regionOfCity = kCityRegion[_country] ?? const <String, String>{};
+    final groups = <String, List<MapEntry<String, int>>>{};
+    for (final c in cities) {
+      groups.putIfAbsent(regionOfCity[c.key] ?? '', () => []).add(c);
+    }
+    final named = groups.keys.where((k) => k.isNotEmpty).toList()
+      ..sort((x, y) => groups[y]!.fold<int>(0, (n, e) => n + e.value).compareTo(groups[x]!.fold<int>(0, (n, e) => n + e.value)));
+    final useRegions = named.length >= 2;
+
+    Widget cityTile(BuildContext ctx, MapEntry<String, int> c, {double indent = 0}) => ListTile(
+          contentPadding: EdgeInsets.only(left: 16 + indent, right: 16),
+          title: Text(c.key, style: tsTitleMd(color: kText)),
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text('${c.value}', style: tsBodySm(color: kTextSub)),
+            if (_city == c.key) ...[const SizedBox(width: 8), Icon(Icons.check_rounded, color: kSecondary)],
+          ]),
+          onTap: () { setState(() { _city = c.key; _area = regionOfCity[c.key] ?? ''; _category = ''; }); Navigator.pop(ctx); },
+        );
+
     showModalBottomSheet(
       context: context,
       backgroundColor: kBg,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => SizedBox(
-        height: MediaQuery.of(ctx).size.height * 0.6,
+        height: MediaQuery.of(ctx).size.height * 0.7,
         child: Column(children: [
           _sheetHandle(),
           Expanded(child: ListView(
@@ -450,16 +480,42 @@ class _ExploreScreenState extends State<ExploreScreen> {
             children: [
               ListTile(
                 title: Text(t('all_cities'), style: tsTitleLg(color: kText)),
-                trailing: _city.isEmpty ? Icon(Icons.check_rounded, color: kSecondary) : null,
-                onTap: () { setState(() => _city = ''); Navigator.pop(ctx); },
+                trailing: _city.isEmpty && _area.isEmpty ? Icon(Icons.check_rounded, color: kSecondary) : null,
+                onTap: () { setState(() { _city = ''; _area = ''; }); Navigator.pop(ctx); },
               ),
-              for (final c in cities)
-                ListTile(
-                  title: Text(c.key, style: tsTitleLg(color: kText)),
-                  subtitle: Text('${c.value}', style: tsBodySm(color: kTextSub)),
-                  trailing: _city == c.key ? Icon(Icons.check_rounded, color: kSecondary) : null,
-                  onTap: () { setState(() { _city = c.key; _category = ''; }); Navigator.pop(ctx); },
+              if (!useRegions)
+                for (final c in cities) cityTile(ctx, c)
+              else ...[
+                for (final r in named) Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Material(
+                    color: kCard,
+                    borderRadius: BorderRadius.circular(14),
+                    clipBehavior: Clip.antiAlias,
+                    child: Theme(
+                      data: Theme.of(ctx).copyWith(dividerColor: Colors.transparent),
+                      child: ExpansionTile(
+                        initiallyExpanded: _area == r,
+                        iconColor: kSecondary, collapsedIconColor: kTextSub,
+                        title: Text(r, style: tsTitleLg(color: kText)),
+                        subtitle: Text('${groups[r]!.length} ${tr('cities')} · ${groups[r]!.fold<int>(0, (n, e) => n + e.value)} ${tr('places')}',
+                            style: tsBodySm(color: kTextSub)),
+                        children: [
+                          ListTile(
+                            contentPadding: const EdgeInsets.only(left: 24, right: 16),
+                            title: Text('${tr('All of')} $r', style: tsTitleMd(color: kSecondary)),
+                            trailing: _area == r && _city.isEmpty ? Icon(Icons.check_rounded, color: kSecondary) : null,
+                            onTap: () { setState(() { _area = r; _city = ''; _category = ''; }); Navigator.pop(ctx); },
+                          ),
+                          for (final c in groups[r]!) cityTile(ctx, c, indent: 8),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
+                // cities we could not place in a region
+                for (final c in groups[''] ?? const <MapEntry<String, int>>[]) cityTile(ctx, c),
+              ],
             ],
           )),
         ]),
