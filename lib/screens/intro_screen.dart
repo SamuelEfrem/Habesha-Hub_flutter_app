@@ -8,7 +8,7 @@ import 'home_screen.dart';
 import 'onboarding_screen.dart' show kOnboardingKey;
 import '../services/notification_service.dart';
 
-/// Short animated intro (about 6 seconds), shown once (and again after big updates:
+/// Short animated intro (about 7 seconds), shown once (and again after big updates:
 /// change the key). Five quick scenes, then the logo and "Start". Tap = next, "Skip" = home.
 const kIntroKey = 'intro_v3_done';
 
@@ -27,6 +27,7 @@ class _IntroScreenState extends State<IntroScreen> with TickerProviderStateMixin
 
   // emoji, title, line, colour (strong colours: the intro looks the same in light and dark mode)
   static const _scenes = [
+    ('📍', 'Habesha places near you', 'Restaurants, shops, churches and barbers near you', Color(0xFFC2410C)),
     ('🤝', 'Habesha Hub Services', 'Book trusted Habesha services', Color(0xFF1F7A55)),
     ('🛍️', 'Market', 'Buy, sell & swap', Color(0xFF2F62A8)),
     ('💸', 'Send money', 'Send money home', Color(0xFFB8452E)),
@@ -149,6 +150,7 @@ class _IntroScreenState extends State<IntroScreen> with TickerProviderStateMixin
   Widget _scene((String, String, String, Color) s) {
     final car = s.$1 == '🏎️';
     final music = s.$1 == '🎵';
+    final pin = s.$1 == '📍';   // the pin drops in and bounces
     final pop = _part(0, 0.6, Curves.elasticOut);
     final title = _part(0.2, 0.65);
     final line = _part(0.4, 0.9);
@@ -177,9 +179,10 @@ class _IntroScreenState extends State<IntroScreen> with TickerProviderStateMixin
             ])),
             // the big icon: pops in (the car drives in from the left)
             Transform.translate(
-              offset: Offset(car ? -220 * (1 - _part(0, 0.55, Curves.easeOutBack).value) : 0, 0),
+              offset: Offset(car ? -220 * (1 - _part(0, 0.55, Curves.easeOutBack).value) : 0,
+                  pin ? -180 * (1 - _part(0, 0.6, Curves.bounceOut).value) : 0),
               child: Transform.scale(
-                scale: car ? 1 : pop.value.clamp(0.0, 1.4),
+                scale: car || pin ? 1 : pop.value.clamp(0.0, 1.4),
                 child: Container(
                   width: 124, height: 124,
                   alignment: Alignment.center,
