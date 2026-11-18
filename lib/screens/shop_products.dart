@@ -68,6 +68,7 @@ Map<String, dynamic> _fromShopify(Map<String, dynamic> m, String url, String cur
         : _l('Delivered in $country (1–3 days)', 'ኣብ $country ይበጽሕ (1–3 መዓልቲ)', 'በ$country ይደርሳል (1–3 ቀን)'),
     'type': _s(m['product_type']).trim(),
     'country': country,   // '' = ships worldwide (e.g. from China); else a local partner in that country
+    'handle': _s(m['handle']),
     'buyUrl': '$url/products/${_s(m['handle'])}',
     'fromShopify': true,
   };
@@ -103,7 +104,36 @@ Future<void> fetchShopifyAll(String rawUrl, String currency, String delivery, vo
       break;
     }
   }
+  // local shops: price in that market's currency (e.g. € for Uganda) and the buy link opens that market
+  for (final e in kShopMarkets.entries) {
+    if (!all.any((p) => p['country'] == e.key)) continue;
+    final (path, symbol) = e.value;
+    final prices = <String, String>{};
+    for (var page = 1; page <= 40; page++) {
+      try {
+        final r = await http.get(Uri.parse('$url/$path/products.json?limit=250&page=$page')).timeout(const Duration(seconds: 25));
+        if (r.statusCode != 200) break;
+        final list = (jsonDecode(r.body)['products'] as List?) ?? [];
+        for (final m in list) {
+          final vars = ((m as Map)['variants'] as List?) ?? [];
+          if (vars.isNotEmpty) prices[_s(m['handle'])] = _s((vars.first as Map)['price']);
+        }
+        if (list.length < 250) break;
+      } catch (_) {
+        break;
+      }
+    }
+    for (final p in all.where((p) => p['country'] == e.key)) {
+      final v = prices[p['handle']];
+      if (v != null && v.isNotEmpty) p['price'] = '$symbol${v.endsWith('.00') ? v.substring(0, v.length - 3) : v}';
+      p['buyUrl'] = '$url/$path/products/${p['handle']}';
+    }
+    onPage(List.of(all));
+  }
 }
+
+/// Local partner countries: Shopify market folder and currency symbol shown in the app
+const kShopMarkets = {'Uganda': ('en-ug', '€')};
 
 bool get _admin {
   final u = FirebaseAuth.instance.currentUser;
