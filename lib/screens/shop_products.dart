@@ -67,6 +67,7 @@ Map<String, dynamic> _fromShopify(Map<String, dynamic> m, String url, String cur
     'delivery': country.isEmpty ? delivery
         : _l('Delivered in $country (1–3 days)', 'ኣብ $country ይበጽሕ (1–3 መዓልቲ)', 'በ$country ይደርሳል (1–3 ቀን)'),
     'type': _s(m['product_type']).trim(),
+    'country': country,   // '' = ships worldwide (e.g. from China); else a local partner in that country
     'buyUrl': '$url/products/${_s(m['handle'])}',
     'fromShopify': true,
   };
@@ -77,16 +78,12 @@ Future<List<Map<String, dynamic>>> fetchShopify(String rawUrl, String currency, 
   final url = _cleanUrl(rawUrl);
   if (url.isEmpty) return [];
   if (!fresh && url == _shopifyCacheUrl && DateTime.now().difference(_shopifyCacheAt).inMinutes < 10) return _shopifyCache;
-  try {
-    final r = await http.get(Uri.parse('$url/products.json?limit=30')).timeout(const Duration(seconds: 15));
-    if (r.statusCode != 200) return [];
-    final list = (jsonDecode(r.body)['products'] as List?) ?? [];
-    final out = [for (final m in list) _fromShopify(m as Map<String, dynamic>, url, currency, delivery)];
-    _shopifyCache = out; _shopifyCacheUrl = url; _shopifyCacheAt = DateTime.now();
-    return out;
-  } catch (_) {
-    return [];
-  }
+  // all pages, so worldwide and local products are both found (kept 10 minutes)
+  final out = <Map<String, dynamic>>[];
+  await fetchShopifyAll(url, currency, delivery, (list) { out..clear()..addAll(list); });
+  if (out.isEmpty) return [];
+  _shopifyCache = out; _shopifyCacheUrl = url; _shopifyCacheAt = DateTime.now();
+  return out;
 }
 
 /// All products, page by page (250 each); [onPage] gets the list so far
@@ -138,11 +135,18 @@ class ShopProductsRow extends StatelessWidget {
         final admin = _admin;
         final docs = (snap.data?.docs ?? []).where((d) => admin || d.data()['active'] != false).toList()
           ..sort((a, b) => ((a.data()['order'] ?? 999) as num).compareTo((b.data()['order'] ?? 999) as num));
+        final fromShop = shopify.data ?? const <Map<String, dynamic>>[];
         final items = <(String, Map<String, dynamic>)>[
           for (final d in docs) (d.id, d.data()),
-          for (final p in shopify.data ?? const <Map<String, dynamic>>[]) ('', p),
+          for (final p in fromShop.where((p) => _s(p['country']).isEmpty).take(20)) ('', p),
         ];
-        if (items.isEmpty && !admin) return const SizedBox.shrink();
+        // local partners: one row per country (delivered in that country only)
+        final local = <String, List<Map<String, dynamic>>>{};
+        for (final p in fromShop) {
+          final ct = _s(p['country']);
+          if (ct.isNotEmpty) local.putIfAbsent(ct, () => []).add(p);
+        }
+        if (items.isEmpty && local.isEmpty && !admin) return const SizedBox.shrink();
         return Padding(
           padding: const EdgeInsets.only(top: 14),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -153,7 +157,7 @@ class ShopProductsRow extends StatelessWidget {
                 const SizedBox(width: 6),
                 Icon(Icons.verified_rounded, color: kSecondary, size: 18),
                 const Spacer(),
-                if ((shopify.data ?? const []).isNotEmpty) TextButton(
+                if (items.any((e) => e.$2['fromShopify'] == true)) TextButton(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ShopAllScreen(cfg: cfg))),
                   child: Text(_l('See all', 'ኩሉ ርአ', 'ሁሉንም ይዩ'), style: tsTitleMd(color: kSecondary)),
                 ),
@@ -229,6 +233,37 @@ class ShopProductsRow extends StatelessWidget {
                   itemBuilder: (_, i) => _ShopCard(id: items[i].$1, d: items[i].$2),
                 ),
               ),
+            // ── local partner shops: delivered in that country only ──
+            for (final ct in local.keys) ...[
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(children: [
+                  Text('${_flagOf(ct)} ', style: const TextStyle(fontSize: 18)),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('${_l('Shop in', 'ድኳን ኣብ', 'ሱቅ በ')} $ct', style: tsTitleMd(color: kText).copyWith(fontSize: 16)),
+                    Text(_l('Buy here, delivered to your family in $ct only', 'ኣብዚ ግዛእ፡ ኣብ $ct ጥራይ ናብ ስድራኻ ይበጽሕ', 'እዚህ ይግዙ፣ በ$ct ብቻ ለቤተሰብዎ ይደርሳል'),
+                        style: tsBodySm(color: kTextSub)),
+                  ])),
+                  TextButton(
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ShopAllScreen(cfg: cfg, country: ct))),
+                    child: Text(_l('See all', 'ኩሉ ርአ', 'ሁሉንም ይዩ'), style: tsTitleMd(color: kSecondary)),
+                  ),
+                ]),
+              ),
+              _CategoryTiles(products: local[ct]!, onOpen: (type) => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => ShopAllScreen(cfg: cfg, country: ct, initialType: type)))),
+              SizedBox(
+                height: 228,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  itemCount: local[ct]!.length.clamp(0, 20),
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (_, i) => _ShopCard(id: '', d: local[ct]![i]),
+                ),
+              ),
+            ],
           ]),
         );
       },
@@ -518,7 +553,9 @@ void _shopifySettings(BuildContext context, Map<String, dynamic> cfg) {
 /// All shop products: search, categories (product type) and a two-column grid
 class ShopAllScreen extends StatefulWidget {
   final Map<String, dynamic> cfg;
-  const ShopAllScreen({super.key, required this.cfg});
+  final String country;   // '' = worldwide products; else the local shop of that country
+  final String initialType;   // open on one category, e.g. "Mobile Phones"
+  const ShopAllScreen({super.key, required this.cfg, this.country = '', this.initialType = ''});
   @override
   State<ShopAllScreen> createState() => _ShopAllScreenState();
 }
@@ -526,14 +563,15 @@ class ShopAllScreen extends StatefulWidget {
 class _ShopAllScreenState extends State<ShopAllScreen> {
   List<Map<String, dynamic>> _all = [];
   bool _loading = true;
-  String _q = '', _type = '';
+  String _q = '';
+  late String _type = widget.initialType;
 
   @override
   void initState() {
     super.initState();
     final c = widget.cfg;
     fetchShopifyAll(_s(c['url']), _s(c['currency']), _s(c['delivery']).isEmpty ? '7–15 days' : _s(c['delivery']),
-        (list) { if (mounted) setState(() => _all = list); }).whenComplete(() { if (mounted) setState(() => _loading = false); });
+        (list) { if (mounted) setState(() => _all = list.where((p) => _s(p['country']) == widget.country).toList()); }).whenComplete(() { if (mounted) setState(() => _loading = false); });
   }
 
   @override
@@ -553,7 +591,8 @@ class _ShopAllScreenState extends State<ShopAllScreen> {
         backgroundColor: kCard,
         iconTheme: IconThemeData(color: kSecondary),
         title: Row(children: [
-          Text('Habesha Hub Shop', style: tsTitleMd(color: kText).copyWith(fontSize: 17)),
+          Flexible(child: Text(widget.country.isEmpty ? 'Habesha Hub Shop' : '${_flagOf(widget.country)} ${_l('Shop in', 'ድኳን ኣብ', 'ሱቅ በ')} ${widget.country}',
+              overflow: TextOverflow.ellipsis, style: tsTitleMd(color: kText).copyWith(fontSize: 17))),
           const SizedBox(width: 6),
           Icon(Icons.verified_rounded, color: kSecondary, size: 18),
         ]),
@@ -592,7 +631,7 @@ class _ShopAllScreenState extends State<ShopAllScreen> {
                     onTap: () => setState(() => _type = t),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
-                      child: Text(t.isEmpty ? '${_l('All', 'ኩሉ', 'ሁሉም')}  ${_all.length}' : '$t  ${counts[t]}',
+                      child: Text(t.isEmpty ? '${_l('All', 'ኩሉ', 'ሁሉም')}  ${_all.length}' : '${_catIcon(t)} $t  ${counts[t]}',
                           style: tsLabel(color: _type == t ? kOnAccent : kText).copyWith(fontSize: 12)),
                     ),
                   ),
@@ -645,6 +684,83 @@ class _ShopAllScreenState extends State<ShopAllScreen> {
           child: Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5)),
         )),
       ]),
+    );
+  }
+}
+
+
+String _flagOf(String country) {
+  const codes = {'Uganda': 'UG', 'Ethiopia': 'ET', 'Eritrea': 'ER', 'Kenya': 'KE', 'Sudan': 'SD', 'South Sudan': 'SS',
+    'Rwanda': 'RW', 'Tanzania': 'TZ', 'Egypt': 'EG', 'Somalia': 'SO', 'Djibouti': 'DJ', 'Norway': 'NO', 'Sweden': 'SE',
+    'Germany': 'DE', 'Usa': 'US', 'Uk': 'GB'};
+  final code = codes[country];
+  if (code == null) return '🌍';
+  return String.fromCharCodes(code.codeUnits.map((u) => 0x1F1E6 + u - 65));
+}
+
+
+String _catIcon(String type) {
+  final t = type.toLowerCase();
+  if (t.contains('phone')) return '📱';
+  if (t.contains('laptop') || t.contains('desktop')) return '💻';
+  if (t.contains('tablet')) return '📲';
+  if (t.contains('television') || t.contains('tv')) return '📺';
+  if (t.contains('sound') || t.contains('music') || t.contains('dj')) return '🔊';
+  if (t.contains('home')) return '🏠';
+  if (t.contains('gaming')) return '🎮';
+  if (t.contains('camera')) return '📷';
+  if (t.contains('office') || t.contains('printing')) return '🖨️';
+  if (t.contains('network') || t.contains('internet')) return '📶';
+  if (t.contains('repair') || t.contains('spare')) return '🔧';
+  if (t.contains('accessor')) return '🎧';
+  return '🛍️';
+}
+
+/// Category tiles of a local shop (Phones, Laptops, TVs…), biggest first; a tap opens that category
+class _CategoryTiles extends StatelessWidget {
+  final List<Map<String, dynamic>> products;
+  final void Function(String type) onOpen;
+  const _CategoryTiles({required this.products, required this.onOpen});
+
+  @override
+  Widget build(BuildContext context) {
+    final counts = <String, int>{};
+    for (final p in products) {
+      final t = _s(p['type']);
+      if (t.isNotEmpty) counts[t] = (counts[t] ?? 0) + 1;
+    }
+    final types = counts.keys.toList()..sort((a, b) => counts[b]!.compareTo(counts[a]!));
+    if (types.length < 2) return const SizedBox.shrink();
+    return SizedBox(
+      height: 96,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+        children: [
+          for (final t in types) Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: Material(
+              color: kCard,
+              borderRadius: BorderRadius.circular(16),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => onOpen(t),
+                child: SizedBox(width: 86, child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Text(_catIcon(t), style: const TextStyle(fontSize: 26)),
+                  const SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(t.replaceAll(' & Desktops', '').replaceAll('Television Sets', 'TVs').replaceAll('Mobile ', ''),
+                        maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
+                        style: tsBodySm(color: kText).copyWith(fontSize: 11.5, fontWeight: FontWeight.w600)),
+                  ),
+                  Text('${counts[t]}', style: tsBodySm(color: kTextSub).copyWith(fontSize: 10.5)),
+                ])),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
