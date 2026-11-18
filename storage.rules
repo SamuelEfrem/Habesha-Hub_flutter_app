@@ -92,6 +92,10 @@ service firebase.storage {
     }
 
     // Marketplace pictures — each user only in their own folder
+    match /shop/{file} {
+      allow read: if true;
+      allow write: if isAdmin() && (request.resource == null || isImage(10));
+    }
     match /marketplace/{userId}/{file} {
       allow write: if signedIn() && (request.auth.uid == userId || isAdmin())
                    && (request.resource == null || isImage(10));

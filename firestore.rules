@@ -207,6 +207,11 @@ service cloud.firestore {
     }
 
     // ── Marketplace (buy & sell) ───────────────────────────
+    // Habesha Hub Shop: our own products, everyone reads, only the admin writes
+    match /shop_products/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
     match /marketplace/{id} {
       allow read: if true;
       // New and edited listings must wait for admin approval (approved == false).
