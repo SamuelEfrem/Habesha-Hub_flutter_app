@@ -52,8 +52,15 @@ String _money(String price, String currency) {
 Map<String, dynamic> _fromShopify(Map<String, dynamic> m, String url, String currency, String delivery) {
   final imgs = (m['images'] as List?) ?? [];
   final vars = (m['variants'] as List?) ?? [];
-  final tags = ((m['tags'] is List) ? (m['tags'] as List).map((e) => '$e') : _s(m['tags']).split(','))
-      .map((e) => e.trim().toLowerCase()).toList();
+  final rawTags = ((m['tags'] is List) ? (m['tags'] as List).map((e) => '$e') : _s(m['tags']).split(','))
+      .map((e) => e.trim()).toList();
+  final tags = rawTags.map((e) => e.toLowerCase()).toList();
+  String tagValue(String key) => rawTags.firstWhere((t) => t.toLowerCase().startsWith('$key:'), orElse: () => '')
+      .replaceFirst(RegExp('^$key:', caseSensitive: false), '').trim();
+  final options = [
+    for (final v in vars)
+      if (_s((v as Map)['title']) != 'Default Title') {'name': _s(v['title']), 'price': _s(v['price']), 'available': v['available'] != false},
+  ];
   // "<country>-delivery" (e.g. uganda-delivery, ethiopia-delivery): a local partner delivers in that country only
   final local = tags.firstWhere((t) => t.endsWith('-delivery') && t.length > 9, orElse: () => '');
   final country = local.isEmpty ? '' : local.substring(0, local.length - 9).split('-')
@@ -68,6 +75,10 @@ Map<String, dynamic> _fromShopify(Map<String, dynamic> m, String url, String cur
         : _l('Delivered in $country (1–3 days)', 'ኣብ $country ይበጽሕ (1–3 መዓልቲ)', 'በ$country ይደርሳል (1–3 ቀን)'),
     'type': _s(m['product_type']).trim(),
     'country': country,   // '' = ships worldwide (e.g. from China); else a local partner in that country
+    'brand': tagValue('brand'),
+    'condition': tagValue('condition'),   // e.g. Brand New, UK Used, Premium Repack
+    'options': options,                   // e.g. storage 128GB / 256GB with their own price
+    'currency': currency,
     'handle': _s(m['handle']),
     'buyUrl': '$url/products/${_s(m['handle'])}',
     'fromShopify': true,
@@ -117,6 +128,7 @@ Future<void> fetchShopifyAll(String rawUrl, String currency, String delivery, vo
         for (final m in list) {
           final vars = ((m as Map)['variants'] as List?) ?? [];
           if (vars.isNotEmpty) prices[_s(m['handle'])] = _s((vars.first as Map)['price']);
+          for (final v in vars) { prices['${_s(m['handle'])}|${_s((v as Map)['title'])}'] = _s(v['price']); }
         }
         if (list.length < 250) break;
       } catch (_) {
@@ -125,7 +137,12 @@ Future<void> fetchShopifyAll(String rawUrl, String currency, String delivery, vo
     }
     for (final p in all.where((p) => p['country'] == e.key)) {
       final v = prices[p['handle']];
-      if (v != null && v.isNotEmpty) p['price'] = '$symbol${v.endsWith('.00') ? v.substring(0, v.length - 3) : v}';
+      String fmt(String x) => '$symbol${x.endsWith('.00') ? x.substring(0, x.length - 3) : x}';
+      if (v != null && v.isNotEmpty) p['price'] = fmt(v);
+      for (final o in (p['options'] as List)) {
+        final ov = prices['${p['handle']}|${o['name']}'];
+        if (ov != null && ov.isNotEmpty) o['shown'] = fmt(ov);
+      }
       p['buyUrl'] = '$url/$path/products/${p['handle']}';
     }
     onPage(List.of(all));
@@ -343,6 +360,7 @@ class _ShopCard extends StatelessWidget {
                 decoration: BoxDecoration(color: kSecondary, borderRadius: BorderRadius.circular(100)),
                 child: Text('Shop ✓', style: TextStyle(color: kOnAccent, fontSize: 10, fontWeight: FontWeight.w800)),
               )),
+              if (!off && conditionBadge(d) != null) conditionBadge(d)!,
               if (off) Positioned(right: 6, top: 6, child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(100)),
@@ -390,6 +408,25 @@ void _showProduct(BuildContext context, String id, Map<String, dynamic> d) {
         if (_s(d['delivery']).isNotEmpty) ...[
           const SizedBox(height: 6),
           Text('🚚 ${_l('Delivery', 'ምብጻሕ', 'ማድረሻ')}: ${_s(d['delivery'])}', style: tsBodySm(color: kTextSub)),
+        ],
+        if (_s(d['condition']).isNotEmpty || (_s(d['brand']).isNotEmpty && _s(d['brand']).toLowerCase() != 'generic')) ...[
+          const SizedBox(height: 10),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            if (_s(d['condition']).isNotEmpty) _pill('${_condIcon(_s(d['condition']))} ${_s(d['condition'])}'),
+            if (_s(d['brand']).isNotEmpty && _s(d['brand']).toLowerCase() != 'generic') _pill(_s(d['brand'])),
+          ]),
+        ],
+        if ((d['options'] as List? ?? const []).isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(_l('Options', 'ኣማራጺታት', 'አማራጮች'), style: tsLabel(color: kTextSub)),
+          const SizedBox(height: 6),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            for (final o in (d['options'] as List))
+              _pill('${o['name']} · ${_s(o['shown']).isNotEmpty ? o['shown'] : _money(_s(o['price']), _s(d['currency']))}'
+                  '${o['available'] == false ? ' · ${_l('sold out', 'ተሸይጡ', 'ተሽጧል')}' : ''}'),
+          ]),
+          const SizedBox(height: 4),
+          Text(_l('Choose the option when you buy.', 'ክትገዝእ ከለኻ ምረጽ።', 'ሲገዙ አማራጩን ይምረጡ።'), style: tsBodySm(color: kTextSub)),
         ],
         if (_s(d['description']).isNotEmpty) ...[
           const SizedBox(height: 12),
@@ -610,10 +647,15 @@ class _ShopAllScreenState extends State<ShopAllScreen> {
   String _q = '';
   late String _type = widget.initialType;
   String _sort = '';   // '' newest · 'low' · 'high'
-  String _cond = '';   // '' all · 'new' · 'used'
+  String _cond = '';   // '' all · e.g. 'Brand New', 'UK Used', 'Premium Repack'
+  String _brand = '';
+  int _range = -1;     // index in the price ranges, -1 = all
 
   static double _num(dynamic price) => double.tryParse(_s(price).replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
-  static bool _used(Map p) => RegExp(r'\((Used|Refurbished)\)').hasMatch(_s(p['title']));
+  // price ranges like the partner's website, in the currency shown
+  static List<(String, double, double)> _ranges(bool euro) => euro
+      ? [('< €25', 0, 25), ('€25–100', 25, 100), ('€100–250', 100, 250), ('€250–500', 250, 500), ('> €500', 500, 1e12)]
+      : [('< 250 kr', 0, 250), ('250–1 000 kr', 250, 1000), ('1 000–2 500 kr', 1000, 2500), ('2 500–5 000 kr', 2500, 5000), ('> 5 000 kr', 5000, 1e12)];
 
   Widget _chip(String label, bool on, VoidCallback tap) => Padding(
         padding: const EdgeInsets.only(right: 8),
@@ -648,12 +690,25 @@ class _ShopAllScreenState extends State<ShopAllScreen> {
     }
     final types = counts.keys.toList()..sort((a, b) => counts[b]!.compareTo(counts[a]!));
     final q = _q.toLowerCase();
-    final list = _all.where((p) => (_type.isEmpty || p['type'] == _type)
-        && (_cond.isEmpty || (_cond == 'used') == _used(p))
-        && (q.isEmpty || _s(p['title']).toLowerCase().contains(q) || _s(p['type']).toLowerCase().contains(q))).toList();
+    final euro = _all.any((p) => _s(p['price']).startsWith('€'));
+    final ranges = _ranges(euro);
+    final inType = _all.where((p) => _type.isEmpty || p['type'] == _type).toList();
+    final brandCount = <String, int>{}, condCount = <String, int>{};
+    for (final p in inType) {
+      final b = _s(p['brand']), cd = _s(p['condition']);
+      if (b.isNotEmpty && b.toLowerCase() != 'generic') brandCount[b] = (brandCount[b] ?? 0) + 1;
+      if (cd.isNotEmpty) condCount[cd] = (condCount[cd] ?? 0) + 1;
+    }
+    final brands = brandCount.keys.toList()..sort((a, b) => brandCount[b]!.compareTo(brandCount[a]!));
+    final conds = condCount.keys.toList()..sort((a, b) => condCount[b]!.compareTo(condCount[a]!));
+    final list = inType.where((p) => (_brand.isEmpty || p['brand'] == _brand)
+        && (_cond.isEmpty || p['condition'] == _cond)
+        && (_range < 0 || (_num(p['price']) >= ranges[_range].$2 && _num(p['price']) < ranges[_range].$3))
+        && (q.isEmpty || '${p['title']} ${p['type']} ${p['brand']}'.toLowerCase().contains(q))).toList();
     if (_sort == 'low') list.sort((a, b) => _num(a['price']).compareTo(_num(b['price'])));
     if (_sort == 'high') list.sort((a, b) => _num(b['price']).compareTo(_num(a['price'])));
-    final hasUsed = _all.any(_used);
+    Widget row(List<Widget> chips) => SizedBox(height: 46, child: ListView(
+        scrollDirection: Axis.horizontal, padding: const EdgeInsets.fromLTRB(16, 8, 16, 0), children: chips));
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
@@ -697,7 +752,7 @@ class _ShopAllScreenState extends State<ShopAllScreen> {
                   borderRadius: BorderRadius.circular(100),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(100),
-                    onTap: () => setState(() => _type = t),
+                    onTap: () => setState(() { _type = t; _brand = ''; }),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
                       child: Text(t.isEmpty ? '${_l('All', 'ኩሉ', 'ሁሉም')}  ${_all.length}' : '${_catIcon(t)} $t  ${counts[t]}',
@@ -709,24 +764,24 @@ class _ShopAllScreenState extends State<ShopAllScreen> {
             ],
           ),
         )),
-        // sort by price, and new / used
-        if (_all.isNotEmpty) SliverToBoxAdapter(child: SizedBox(
-          height: 48,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            children: [
-              _chip('↕ ${_l('Newest', 'ሓደሽቲ', 'አዳዲስ')}', _sort.isEmpty, () => setState(() => _sort = '')),
-              _chip('${_l('Price', 'ዋጋ', 'ዋጋ')} ↑', _sort == 'low', () => setState(() => _sort = 'low')),
-              _chip('${_l('Price', 'ዋጋ', 'ዋጋ')} ↓', _sort == 'high', () => setState(() => _sort = 'high')),
-              if (hasUsed) ...[
-                const SizedBox(width: 8),
-                _chip(_l('New', 'ሓድሽ', 'አዲስ'), _cond == 'new', () => setState(() => _cond = _cond == 'new' ? '' : 'new')),
-                _chip(_l('Used', 'ዝተጠቐመ', 'ያገለገለ'), _cond == 'used', () => setState(() => _cond = _cond == 'used' ? '' : 'used')),
-              ],
-            ],
-          ),
-        )),
+        // filters like the partner's website: condition, brands, price range, and sort
+        if (conds.length > 1) SliverToBoxAdapter(child: row([
+          for (final cd in conds)
+            _chip('${_condIcon(cd)} $cd  ${condCount[cd]}', _cond == cd, () => setState(() => _cond = _cond == cd ? '' : cd)),
+        ])),
+        if (brands.length > 1) SliverToBoxAdapter(child: row([
+          _chip(_l('All brands', 'ኩሎም ዓይነታት', 'ሁሉም ብራንዶች'), _brand.isEmpty, () => setState(() => _brand = '')),
+          for (final b in brands.take(25)) _chip('$b  ${brandCount[b]}', _brand == b, () => setState(() => _brand = _brand == b ? '' : b)),
+        ])),
+        if (_all.isNotEmpty) SliverToBoxAdapter(child: row([
+          for (var i = 0; i < ranges.length; i++)
+            _chip(ranges[i].$1, _range == i, () => setState(() => _range = _range == i ? -1 : i)),
+        ])),
+        if (_all.isNotEmpty) SliverToBoxAdapter(child: row([
+          _chip('↕ ${_l('Newest', 'ሓደሽቲ', 'አዳዲስ')}', _sort.isEmpty, () => setState(() => _sort = '')),
+          _chip('${_l('Price', 'ዋጋ', 'ዋጋ')} ↑', _sort == 'low', () => setState(() => _sort = 'low')),
+          _chip('${_l('Price', 'ዋጋ', 'ዋጋ')} ↓', _sort == 'high', () => setState(() => _sort = 'high')),
+        ])),
         if (_all.isEmpty && _loading)
           SliverFillRemaining(hasScrollBody: false, child: Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5)))
         else if (list.isEmpty)
@@ -746,13 +801,16 @@ class _ShopAllScreenState extends State<ShopAllScreen> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Expanded(child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        width: double.infinity, color: Colors.white,
-                        child: _s(d['imageUrl']).isEmpty
-                            ? Icon(Icons.image_rounded, color: kTextSub)
-                            : CachedNetworkImage(imageUrl: _s(d['imageUrl']), fit: BoxFit.contain, memCacheWidth: 400,
-                                errorWidget: (_, __, ___) => Container(color: kCardHigh)),
-                      ),
+                      child: Stack(fit: StackFit.expand, children: [
+                        Container(
+                          width: double.infinity, color: Colors.white,
+                          child: _s(d['imageUrl']).isEmpty
+                              ? Icon(Icons.image_rounded, color: kTextSub)
+                              : CachedNetworkImage(imageUrl: _s(d['imageUrl']), fit: BoxFit.contain, memCacheWidth: 400,
+                                  errorWidget: (_, __, ___) => Container(color: kCardHigh)),
+                        ),
+                        if (conditionBadge(d) != null) conditionBadge(d)!,
+                      ]),
                     )),
                     const SizedBox(height: 8),
                     if (_s(d['price']).isNotEmpty)
@@ -850,4 +908,30 @@ class _CategoryTiles extends StatelessWidget {
       ),
     );
   }
+}
+
+
+String _condIcon(String c) {
+  final x = c.toLowerCase();
+  if (x.contains('new')) return '✨';
+  if (x.contains('repack') || x.contains('refurb')) return '♻️';
+  if (x.contains('used')) return '🔁';
+  return '•';
+}
+
+Widget _pill(String text) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+      decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(100)),
+      child: Text(text, style: tsBodySm(color: kText).copyWith(fontWeight: FontWeight.w600)),
+    );
+
+/// Small "UK Used" / "Premium Repack" badge on the photo (nothing for brand new)
+Widget? conditionBadge(Map d) {
+  final c = _s(d['condition']);
+  if (c.isEmpty || c.toLowerCase().contains('new')) return null;
+  return Positioned(right: 6, top: 6, child: Container(
+    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+    decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.65), borderRadius: BorderRadius.circular(100)),
+    child: Text(c, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+  ));
 }
