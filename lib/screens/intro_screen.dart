@@ -6,6 +6,7 @@ import '../utils/language_notifier.dart';
 import '../utils/translations.dart';
 import 'home_screen.dart';
 import 'onboarding_screen.dart' show kOnboardingKey;
+import '../services/notification_service.dart';
 
 /// Short animated intro (about 6 seconds), shown once (and again after big updates:
 /// change the key). Five quick scenes, then the logo and "Start". Tap = next, "Skip" = home.
@@ -68,6 +69,8 @@ class _IntroScreenState extends State<IntroScreen> with TickerProviderStateMixin
       pageBuilder: (_, __, ___) => const HomeScreen(),
       transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
     ));
+    // after the location question: ask for notifications
+    Future.delayed(const Duration(seconds: 6), () => NotificationService.askPermission().catchError((_) {}));
   }
 
   @override

@@ -12,13 +12,16 @@ class NotificationService {
   static const _channelName = 'Habesha Hub';
   static const _channelDesc = 'Habesha Hub varsler';
 
-  static Future<void> initialize() async {
-    // Request permission
-    await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+  /// The phone's own question "Allow notifications?"
+  static Future<void> askPermission() async {
+    await _messaging.requestPermission(alert: true, badge: true, sound: true);
+    _saveToken().catchError((_) {});
+  }
+
+  /// [ask] false on the very first start: the intro is shown first, and the question
+  /// "Allow notifications?" comes a little after it (see [askPermission]).
+  static Future<void> initialize({bool ask = true}) async {
+    if (ask) await askPermission();
 
     // Setup local notifications
     const androidSettings =

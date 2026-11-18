@@ -54,7 +54,9 @@ void main() async {
     print('Firebase init error: $e');
   }
   try {
-    await NotificationService.initialize();
+    // first start: no question over the splash screen; it comes after the intro
+    final introDone = (await SharedPreferences.getInstance()).getBool(kIntroKey) ?? false;
+    await NotificationService.initialize(ask: introDone);
   } catch (e) {
     print('Notification init error: $e');
   }
