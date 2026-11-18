@@ -13,7 +13,7 @@ import 'utils/theme_notifier.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'screens/onboarding_screen.dart';
+import 'screens/intro_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -150,9 +150,9 @@ class AppEntry extends StatelessWidget {
       future: SharedPreferences.getInstance(),
       builder: (_, snap) {
         if (!snap.hasData) return Scaffold(backgroundColor: kBg);
-        // the new intro is shown once to everyone, also after updating
-        final done = snap.data!.getBool(kOnboardingKey) ?? false;
-        return done ? const HomeScreen() : const OnboardingScreen();
+        // the short animated intro is shown once to everyone, also after updating
+        final done = snap.data!.getBool(kIntroKey) ?? false;
+        return done ? const HomeScreen() : const IntroScreen();
       },
     );
   }

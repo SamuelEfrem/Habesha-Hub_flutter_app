@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     }
   }
 
-  /// Simple: one short info ("Nearby uses GPS"), then the phone's own question.
+  /// Simple: straight to the phone's own question (no extra info box).
   /// Never sends people to the settings at start.
   /// Android with GPS off: the phone shows its own "Turn on location?" box inside the app (OK = on).
   /// [fromButton]: the user tapped "Allow location" themselves; only then, if location is
@@ -129,12 +129,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     var perm = await Geolocator.checkPermission();
     if (perm == LocationPermission.denied) {
       if (_askedThisStart && !fromButton) return false;
-      final go = await _locationDialog(
-          tr('Find Habesha places near you'),
-          tr('Nearby uses your location (GPS) only to show Habesha places near you.'),
-          yes: tr('Allow'));
       _askedThisStart = true;
-      if (!go) return false;
       perm = await Geolocator.requestPermission();
     }
     if (perm != LocationPermission.whileInUse && perm != LocationPermission.always) {
@@ -212,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
         return;
       }
       final pos = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
+          desiredAccuracy: LocationAccuracy.medium);   // enough for "near you"; keeps the phone's "Turn on location?" box short
       if (mounted) setState(() => _position = pos);
       hubShortcutCountry().then((c) { if (mounted && c != _hubCountry) setState(() => _hubCountry = c); });
       final snapshot = await _service.getBusinessesNear(pos.latitude, pos.longitude);
