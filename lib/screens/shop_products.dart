@@ -47,35 +47,60 @@ String _money(String price, String currency) {
   return (cur == 'kr' || cur == 'NOK' || cur == 'SEK' || cur == 'DKK') ? '$p ${cur == 'NOK' ? 'kr' : cur}' : '$cur $p';
 }
 
-/// Published products from the Shopify shop (empty when there is no shop yet or it fails)
+/// One Shopify product → the map the cards use. Products tagged "uganda-delivery"
+/// (e.g. from our partner in Kampala) are delivered in Uganda only.
+Map<String, dynamic> _fromShopify(Map<String, dynamic> m, String url, String currency, String delivery) {
+  final imgs = (m['images'] as List?) ?? [];
+  final vars = (m['variants'] as List?) ?? [];
+  final tags = ((m['tags'] is List) ? (m['tags'] as List).map((e) => '$e') : _s(m['tags']).split(','))
+      .map((e) => e.trim().toLowerCase()).toList();
+  final uganda = tags.contains('uganda-delivery');
+  return {
+    'title': _s(m['title']),
+    'description': _s(m['body_html']).replaceAll(RegExp(r'<[^>]*>'), ' ').replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&').replaceAll(RegExp(r'\s+'), ' ').trim(),
+    'imageUrl': imgs.isEmpty ? '' : _s((imgs.first as Map)['src']),
+    'price': vars.isEmpty ? '' : _money(_s((vars.first as Map)['price']), currency),
+    'delivery': uganda ? _l('Delivered in Uganda (1–3 days)', 'ኣብ ኡጋንዳ ይበጽሕ (1–3 መዓልቲ)', 'በኡጋንዳ ይደርሳል (1–3 ቀን)') : delivery,
+    'type': _s(m['product_type']).trim(),
+    'buyUrl': '$url/products/${_s(m['handle'])}',
+    'fromShopify': true,
+  };
+}
+
+/// First products from the Shopify shop, for the row (empty when there is no shop yet or it fails)
 Future<List<Map<String, dynamic>>> fetchShopify(String rawUrl, String currency, String delivery, {bool fresh = false}) async {
   final url = _cleanUrl(rawUrl);
   if (url.isEmpty) return [];
   if (!fresh && url == _shopifyCacheUrl && DateTime.now().difference(_shopifyCacheAt).inMinutes < 10) return _shopifyCache;
   try {
-    final r = await http.get(Uri.parse('$url/products.json?limit=60')).timeout(const Duration(seconds: 15));
+    final r = await http.get(Uri.parse('$url/products.json?limit=30')).timeout(const Duration(seconds: 15));
     if (r.statusCode != 200) return [];
     final list = (jsonDecode(r.body)['products'] as List?) ?? [];
-    final out = <Map<String, dynamic>>[];
-    for (final p in list) {
-      final m = p as Map<String, dynamic>;
-      final imgs = (m['images'] as List?) ?? [];
-      final vars = (m['variants'] as List?) ?? [];
-      out.add({
-        'title': _s(m['title']),
-        'description': _s(m['body_html']).replaceAll(RegExp(r'<[^>]*>'), ' ').replaceAll('&nbsp;', ' ')
-            .replaceAll('&amp;', '&').replaceAll(RegExp(r'\s+'), ' ').trim(),
-        'imageUrl': imgs.isEmpty ? '' : _s((imgs.first as Map)['src']),
-        'price': vars.isEmpty ? '' : _money(_s((vars.first as Map)['price']), currency),
-        'delivery': delivery,
-        'buyUrl': '$url/products/${_s(m['handle'])}',
-        'fromShopify': true,
-      });
-    }
+    final out = [for (final m in list) _fromShopify(m as Map<String, dynamic>, url, currency, delivery)];
     _shopifyCache = out; _shopifyCacheUrl = url; _shopifyCacheAt = DateTime.now();
     return out;
   } catch (_) {
     return [];
+  }
+}
+
+/// All products, page by page (250 each); [onPage] gets the list so far
+Future<void> fetchShopifyAll(String rawUrl, String currency, String delivery, void Function(List<Map<String, dynamic>>) onPage) async {
+  final url = _cleanUrl(rawUrl);
+  if (url.isEmpty) return;
+  final all = <Map<String, dynamic>>[];
+  for (var page = 1; page <= 40; page++) {
+    try {
+      final r = await http.get(Uri.parse('$url/products.json?limit=250&page=$page')).timeout(const Duration(seconds: 25));
+      if (r.statusCode != 200) break;
+      final list = (jsonDecode(r.body)['products'] as List?) ?? [];
+      all.addAll([for (final m in list) _fromShopify(m as Map<String, dynamic>, url, currency, delivery)]);
+      onPage(List.of(all));
+      if (list.length < 250) break;
+    } catch (_) {
+      break;
+    }
   }
 }
 
@@ -124,6 +149,10 @@ class ShopProductsRow extends StatelessWidget {
                 const SizedBox(width: 6),
                 Icon(Icons.verified_rounded, color: kSecondary, size: 18),
                 const Spacer(),
+                if ((shopify.data ?? const []).isNotEmpty) TextButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ShopAllScreen(cfg: cfg))),
+                  child: Text(_l('See all', 'ኩሉ ርአ', 'ሁሉንም ይዩ'), style: tsTitleMd(color: kSecondary)),
+                ),
                 if (admin) IconButton(
                   tooltip: 'Shopify',
                   onPressed: () => _shopifySettings(context, cfg),
@@ -479,4 +508,139 @@ void _shopifySettings(BuildContext context, Map<String, dynamic> cfg) {
       ),
     ],
   )));
+}
+
+
+/// All shop products: search, categories (product type) and a two-column grid
+class ShopAllScreen extends StatefulWidget {
+  final Map<String, dynamic> cfg;
+  const ShopAllScreen({super.key, required this.cfg});
+  @override
+  State<ShopAllScreen> createState() => _ShopAllScreenState();
+}
+
+class _ShopAllScreenState extends State<ShopAllScreen> {
+  List<Map<String, dynamic>> _all = [];
+  bool _loading = true;
+  String _q = '', _type = '';
+
+  @override
+  void initState() {
+    super.initState();
+    final c = widget.cfg;
+    fetchShopifyAll(_s(c['url']), _s(c['currency']), _s(c['delivery']).isEmpty ? '7–15 days' : _s(c['delivery']),
+        (list) { if (mounted) setState(() => _all = list); }).whenComplete(() { if (mounted) setState(() => _loading = false); });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final counts = <String, int>{};
+    for (final p in _all) {
+      final t = _s(p['type']);
+      if (t.isNotEmpty) counts[t] = (counts[t] ?? 0) + 1;
+    }
+    final types = counts.keys.toList()..sort((a, b) => counts[b]!.compareTo(counts[a]!));
+    final q = _q.toLowerCase();
+    final list = _all.where((p) => (_type.isEmpty || p['type'] == _type)
+        && (q.isEmpty || _s(p['title']).toLowerCase().contains(q) || _s(p['type']).toLowerCase().contains(q))).toList();
+    return Scaffold(
+      backgroundColor: kBg,
+      appBar: AppBar(
+        backgroundColor: kCard,
+        iconTheme: IconThemeData(color: kSecondary),
+        title: Row(children: [
+          Text('Habesha Hub Shop', style: tsTitleMd(color: kText).copyWith(fontSize: 17)),
+          const SizedBox(width: 6),
+          Icon(Icons.verified_rounded, color: kSecondary, size: 18),
+        ]),
+      ),
+      body: CustomScrollView(slivers: [
+        SliverToBoxAdapter(child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Container(
+            height: 46,
+            decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(100)),
+            child: TextField(
+              style: tsBodyLg(color: kText),
+              onChanged: (v) => setState(() => _q = v.trim()),
+              decoration: InputDecoration(
+                hintText: _l('Search the shop…', 'ኣብ ድኳን ድለ…', 'በሱቁ ይፈልጉ…'),
+                filled: false, border: InputBorder.none,
+                prefixIcon: Icon(Icons.search_rounded, color: kSecondary, size: 20),
+                contentPadding: const EdgeInsets.symmetric(vertical: 13),
+              ),
+            ),
+          ),
+        )),
+        if (types.length > 1) SliverToBoxAdapter(child: SizedBox(
+          height: 50,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+            children: [
+              for (final t in ['', ...types]) Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Material(
+                  color: _type == t ? kSecondary : kCard,
+                  borderRadius: BorderRadius.circular(100),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(100),
+                    onTap: () => setState(() => _type = t),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+                      child: Text(t.isEmpty ? '${_l('All', 'ኩሉ', 'ሁሉም')}  ${_all.length}' : '$t  ${counts[t]}',
+                          style: tsLabel(color: _type == t ? kOnAccent : kText).copyWith(fontSize: 12)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        )),
+        if (_all.isEmpty && _loading)
+          SliverFillRemaining(hasScrollBody: false, child: Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5)))
+        else if (list.isEmpty)
+          SliverFillRemaining(hasScrollBody: false, child: Center(
+              child: Text(_l('Nothing found', 'ዋላ ሓንቲ ኣይተረኽበን', 'ምንም አልተገኘም'), style: tsTitleMd(color: kTextSub))))
+        else
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 18, childAspectRatio: 0.66),
+              delegate: SliverChildBuilderDelegate((_, i) {
+                final d = list[i];
+                return GestureDetector(
+                  onTap: () => _showProduct(context, '', d),
+                  behavior: HitTestBehavior.opaque,
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Expanded(child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        width: double.infinity, color: Colors.white,
+                        child: _s(d['imageUrl']).isEmpty
+                            ? Icon(Icons.image_rounded, color: kTextSub)
+                            : CachedNetworkImage(imageUrl: _s(d['imageUrl']), fit: BoxFit.contain, memCacheWidth: 400,
+                                errorWidget: (_, __, ___) => Container(color: kCardHigh)),
+                      ),
+                    )),
+                    const SizedBox(height: 8),
+                    if (_s(d['price']).isNotEmpty)
+                      Text(_s(d['price']), maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: tsTitleMd(color: kText).copyWith(fontSize: 15, fontWeight: FontWeight.w800)),
+                    Text(_s(d['title']), maxLines: 1, overflow: TextOverflow.ellipsis, style: tsBodySm(color: kText).copyWith(fontSize: 13)),
+                    Text('🚚 ${_s(d['delivery'])}', maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: tsBodySm(color: kTextSub).copyWith(fontSize: 11.5)),
+                  ]),
+                );
+              }, childCount: list.length),
+            ),
+          ),
+        if (_loading && _all.isNotEmpty) SliverToBoxAdapter(child: Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 1.5)),
+        )),
+      ]),
+    );
+  }
 }
