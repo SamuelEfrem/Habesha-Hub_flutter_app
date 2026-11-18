@@ -146,8 +146,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
       return false;
     }
     if (!await Geolocator.isLocationServiceEnabled()) {
-      // Android: getCurrentPosition shows the phone's own "Turn on location?" box in the app
-      if (Platform.isAndroid) return true;
+      // GPS off: no box at start, the home shows the "Allow location" button.
+      // Android, after a tap on it: getCurrentPosition shows the phone's own "Turn on location?" box
+      if (Platform.isAndroid && fromButton) return true;
       // iPhone: an app cannot turn Location Services on; Explore still works
       _askedThisStart = true;
       return false;
