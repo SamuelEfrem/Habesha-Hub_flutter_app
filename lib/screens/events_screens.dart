@@ -688,6 +688,10 @@ class _EventFormScreenState extends State<EventFormScreen> {
     else if (_day == null || _time == null) miss = tr('Please choose the date and start time');
     else if (_flyerFile == null && _flyerUrl.isEmpty) miss = tr('Please add the flyer');
     else if (ticket.isNotEmpty && !isHttpsLink(ticket)) miss = tr('The ticket link must start with https://');
+    // the music sample may be at most 100 MB (a 30 s phone video is often 20–70 MB)
+    if (miss.isEmpty && _sampleFile != null && _sampleFile!.lengthSync() > 95 * 1024 * 1024) {
+      miss = tr('The music sample is too big. Choose a shorter or smaller video (max 100 MB).');
+    }
     if (miss.isNotEmpty) { setState(() => _error = miss); return; }
     final u = FirebaseAuth.instance.currentUser!;
     setState(() { _saving = true; _error = ''; });
@@ -726,8 +730,13 @@ class _EventFormScreenState extends State<EventFormScreen> {
           ? tr('The event is published')
           : tr('Thank you! Habesha Hub checks the event and publishes it soon'))));
       Navigator.pop(context);
-    } catch (_) {
-      if (mounted) setState(() { _saving = false; _error = tr('Could not save. Check your internet and try again.'); });
+    } catch (e) {
+      // say why: blocked by the rules (not allowed / file too big) or the internet
+      final s = e.toString();
+      final blocked = s.contains('unauthorized') || s.contains('permission-denied') || s.contains('PERMISSION_DENIED');
+      if (mounted) setState(() { _saving = false; _error = blocked
+          ? tr('Could not save: the upload was not allowed. Try a smaller video, or ask Habesha Hub for help.')
+          : tr('Could not save. Check your internet and try again.'); });
     }
   }
 

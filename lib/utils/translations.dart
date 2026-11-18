@@ -1075,6 +1075,8 @@ class AppTranslations {
     'cities': {'Tigrinya': 'ከተማታት', 'Amharic': 'ከተሞች'},
     'All of': {'Tigrinya': 'ኩሉ', 'Amharic': 'ሁሉም'},
     'Please add at least one photo.': {'Tigrinya': 'በጃኻ እንተወሓደ ሓንቲ ስእሊ ወስኽ።', 'Amharic': 'እባክዎ ቢያንስ አንድ ፎቶ ይጨምሩ።'},
+    'The music sample is too big. Choose a shorter or smaller video (max 100 MB).': {'Tigrinya': 'ናሙና ሙዚቃ ዓቢ እዩ። ዝሓጸረ ወይ ዝነኣሰ ቪድዮ ምረጽ (እንተበዝሐ 100 MB)።', 'Amharic': 'የሙዚቃ ናሙናው ትልቅ ነው። አጭር ወይም ትንሽ ቪዲዮ ይምረጡ (ቢበዛ 100 MB)።'},
+    'Could not save: the upload was not allowed. Try a smaller video, or ask Habesha Hub for help.': {'Tigrinya': 'ክዕቀብ ኣይከኣለን፦ ምጽዓን ኣይተፈቕደን። ዝነኣሰ ቪድዮ ፈትን ወይ ንHabesha Hub ሓገዝ ሕተት።', 'Amharic': 'ማስቀመጥ አልተቻለም፦ መጫኑ አልተፈቀደም። ትንሽ ቪዲዮ ይሞክሩ ወይም Habesha Hubን እርዳታ ይጠይቁ።'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},
