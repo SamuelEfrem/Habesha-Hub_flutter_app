@@ -1074,6 +1074,7 @@ class AppTranslations {
     'A short video or recording, max 30 seconds. Only music you may share.': {'Tigrinya': 'ሓጺር ቪድዮ ወይ ቅዳሕ፡ እንተበዝሐ 30 ካልኢት። ክተካፍሎ ዝፍቀደልካ ሙዚቃ ጥራይ።', 'Amharic': 'አጭር ቪዲዮ ወይም ቅጂ፣ ቢበዛ 30 ሰከንድ። ማጋራት የተፈቀደልዎትን ሙዚቃ ብቻ።'},
     'cities': {'Tigrinya': 'ከተማታት', 'Amharic': 'ከተሞች'},
     'All of': {'Tigrinya': 'ኩሉ', 'Amharic': 'ሁሉም'},
+    'Please add at least one photo.': {'Tigrinya': 'በጃኻ እንተወሓደ ሓንቲ ስእሊ ወስኽ።', 'Amharic': 'እባክዎ ቢያንስ አንድ ፎቶ ይጨምሩ።'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},

@@ -737,6 +737,11 @@ class _HousingFormScreenState extends State<HousingFormScreen> {
           : tr('Please write a title, city, price per month and a WhatsApp or phone number.'));
       return;
     }
+    // a home for rent needs at least one photo (someone looking for a home does not)
+    if (!looking && _kept.isEmpty && _new.isEmpty) {
+      if (mounted) setState(() => _error = tr('Please add at least one photo.'));
+      return;
+    }
     if (mounted) setState(() { _saving = true; _error = ''; });
     try {
       final urls = [..._kept];

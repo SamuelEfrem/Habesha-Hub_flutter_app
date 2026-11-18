@@ -766,9 +766,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 ]),
               ),
               const SizedBox(height: 4),
-              Text(_mt('Add up to 8 photos. The first one is the cover.',
-                       'ክሳብ 8 ስእልታት ወስኽ። እታ ቀዳመይቲ ናይ ቅድሚት እያ።',
-                       'እስከ 8 ፎቶዎች ይጨምሩ። የመጀመሪያው የፊት ገጽ ነው።'),
+              Text(_mt('At least 1 photo is required, up to 8. The first one is the cover.',
+                       'እንተወሓደ 1 ስእሊ የድሊ፡ ክሳብ 8። እታ ቀዳመይቲ ናይ ቅድሚት እያ።',
+                       'ቢያንስ 1 ፎቶ ያስፈልጋል፣ እስከ 8። የመጀመሪያው የፊት ገጽ ነው።'),
                   style: tsBodySm(color: kTextSub)),
               const SizedBox(height: 16),
               // Category chips
@@ -854,6 +854,12 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   if (titleCtrl.text.trim().isEmpty || nameCtrl.text.trim().isEmpty) {
                     setModal(() => error = _mt('Please write a title and your name.',
                         'በጃኻ ኣርእስትን ስምካን ጽሓፍ።', 'እባክዎ ርዕስና ስምዎን ይጻፉ።'));
+                    return;
+                  }
+                  // at least one photo is required
+                  if (keptPhotos.isEmpty && newPhotos.isEmpty) {
+                    setModal(() => error = _mt('Please add at least one photo.',
+                        'በጃኻ እንተወሓደ ሓንቲ ስእሊ ወስኽ።', 'እባክዎ ቢያንስ አንድ ፎቶ ይጨምሩ።'));
                     return;
                   }
                   setModal(() { uploading = true; error = ''; });
