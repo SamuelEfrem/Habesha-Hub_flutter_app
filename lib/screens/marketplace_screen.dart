@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/share_helper.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import '../theme/app_theme.dart';
 import 'member_screens.dart';
@@ -991,7 +992,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       urls.add(await ref.getDownloadURL());
                     }
                     final sellerName = nameCtrl.text.trim();
-                    if (_s(user.displayName).isEmpty) await user.updateDisplayName(sellerName);
+                    if (_s(user.displayName).isEmpty && existing == null) await user.updateDisplayName(sellerName);
                     final payload = {
                       'title': titleCtrl.text.trim(),
                       'description': descCtrl.text.trim(),
@@ -1020,10 +1021,10 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       payload['status'] = 'available';
                       await _db.collection('marketplace').add(payload);
                     }
-                    // remember phone and city for the next listing
+                    // remember phone and city for the next listing (own new listings only)
                     final prefs = await SharedPreferences.getInstance();
-                    if (phoneCtrl.text.trim().isNotEmpty) await prefs.setString('market_phone', phoneCtrl.text.trim());
-                    if (cityCtrl.text.trim().isNotEmpty) await prefs.setString('market_city', cityCtrl.text.trim());
+                    if (existing == null && phoneCtrl.text.trim().isNotEmpty) await prefs.setString('market_phone', phoneCtrl.text.trim());
+                    if (existing == null && cityCtrl.text.trim().isNotEmpty) await prefs.setString('market_city', cityCtrl.text.trim());
                   } catch (e) {
                     setModal(() {
                       uploading = false;
@@ -1318,26 +1319,55 @@ class _ListingCardState extends State<_ListingCard> {
                   decoration: BoxDecoration(color: kCardHigh, shape: BoxShape.circle),
                   child: Icon(Icons.share_rounded, color: kSecondary, size: 16)),
               ),
-              if (_s(d['sellerPhone']).isNotEmpty)
-                GestureDetector(
-                  onTap: () async {
-                    if (await ensureMember(context) && context.mounted) _showSellerContact(context, d, widget.t);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: kSecondary, borderRadius: BorderRadius.circular(100)),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(Icons.phone_rounded, color: kOnAccent, size: 14),
-                      const SizedBox(width: 6),
-                      Text(widget.t('contact_seller'),
-                        style: tsTitleMd(color: kOnAccent).copyWith(fontSize: 12)),
-                    ]),
-                  ),
-                ),
             ]),
+            // ── Phone: shown right away, call or WhatsApp in one tap ──
+            if (_s(d['sellerPhone']).isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _phoneBlock(_s(d['sellerPhone'])),
+            ],
           ]),
         ),
+      ]),
+    );
+  }
+
+  /// The seller's phone with Call and WhatsApp buttons
+  Widget _phoneBlock(String phone) {
+    final digits = phone.replaceAll(RegExp(r'[^0-9+]'), '');
+    final wa = digits.replaceAll('+', '');
+    Widget btn(IconData icon, String label, Color bg, Color fg, String url) => Expanded(child: Material(
+          color: bg,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(icon, color: fg, size: 18),
+                const SizedBox(width: 6),
+                Text(label, style: tsTitleMd(color: fg).copyWith(fontSize: 14)),
+              ]),
+            ),
+          ),
+        ));
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: kCardHigh, borderRadius: BorderRadius.circular(14)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(Icons.phone_rounded, color: kSecondary, size: 18),
+          const SizedBox(width: 10),
+          Expanded(child: SelectableText(phone, style: tsTitleMd(color: kText).copyWith(fontSize: 16))),
+        ]),
+        const SizedBox(height: 10),
+        Row(children: [
+          btn(Icons.call_rounded, _mt('Call', 'ደውል', 'ደውል'), kSecondary, kOnAccent, 'tel:$digits'),
+          if (wa.length >= 8) ...[
+            const SizedBox(width: 8),
+            btn(Icons.chat_rounded, 'WhatsApp', const Color(0xFF25D366), Colors.white, 'https://wa.me/$wa'),
+          ],
+        ]),
       ]),
     );
   }
@@ -1356,52 +1386,6 @@ class _ListingCardState extends State<_ListingCard> {
       'https://habesha-hub.no/m/$id',
     ];
     shareText(lines.join('\n'));
-  }
-
-  void _showSellerContact(
-    BuildContext context,
-    Map<String, dynamic> d,
-    String Function(String) t,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: kCard,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Container(width: 40, height: 4,
-            decoration: BoxDecoration(
-              color: kOutlineVariant, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(height: 20),
-          Container(
-            width: 64, height: 64,
-            decoration: BoxDecoration(color: kCardHigh, shape: BoxShape.circle),
-            child: Icon(Icons.person_rounded, color: kSecondary, size: 32),
-          ),
-          const SizedBox(height: 12),
-          Text(_s(d['sellerName']), style: tsHeadlineSm()),
-          const SizedBox(height: 4),
-          Text(_s(d['title']), style: tsBodySm(color: kTextSub)),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: kCardHigh, borderRadius: BorderRadius.circular(14)),
-            child: Row(children: [
-              Icon(Icons.phone_rounded, color: kSecondary, size: 20),
-              const SizedBox(width: 12),
-              Text(_s(d['sellerPhone']), style: tsTitleMd()),
-            ]),
-          ),
-          const SizedBox(height: 12),
-          Text(t('contact_seller_note'),
-            style: tsBodySm(color: kTextSub), textAlign: TextAlign.center),
-          const SizedBox(height: 24),
-        ]),
-      ),
-    );
   }
 
   void _openGallery(BuildContext context, List<String> images) {
@@ -1757,7 +1741,7 @@ class _ListingDetailScreen extends StatelessWidget {
                 data: d,
                 isMe: isMe,
                 t: t,
-                onEdit: isMe ? () => onEdit(docId, d) : null,
+                onEdit: (isMe || admin) ? () => onEdit(docId, d) : null,   // admin can fix mistakes
                 onDelete: (isMe || admin) ? () => onDelete(ctx, docId) : null,
               ),
               // ── More from the same seller ─────────────
