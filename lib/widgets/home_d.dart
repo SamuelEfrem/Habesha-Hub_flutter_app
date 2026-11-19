@@ -78,10 +78,11 @@ class HomeGreetingBar extends StatelessWidget {
   }
 }
 
-/// Big brown card: "Find your habesha spot" with a jebena, opens Explore
+/// Big brown card with a jebena (the Shop on the home)
 class HomeHero extends StatelessWidget {
   final VoidCallback onExplore;
-  const HomeHero({super.key, required this.onExplore});
+  final String title, sub, button;
+  const HomeHero({super.key, required this.onExplore, required this.title, required this.sub, required this.button});
 
   @override
   Widget build(BuildContext context) {
@@ -95,18 +96,15 @@ class HomeHero extends StatelessWidget {
           onTap: onExplore,
           child: SizedBox(height: 196, child: Stack(children: [
             Positioned.fill(child: CustomPaint(painter: _JebenaPainter())),
-            Positioned(left: 18, top: 18, width: 200, child: Text(
-                _l('Find your habesha spot', 'ናይ ሓበሻ ቦታኻ ርኸብ', 'የሐበሻ ቦታዎን ያግኙ'),
+            Positioned(left: 18, top: 18, width: 200, child: Text(title,
                 style: const TextStyle(fontSize: 24, height: 1.15, fontWeight: FontWeight.w800, color: Colors.white))),
-            Positioned(left: 18, top: 94, width: 180, child: Text(
-                _l('Restaurants, cafés, shops and churches near you', 'ቤት መግቢ፡ ካፈታት፡ ድኳናትን ኣብያተ ክርስትያንን ኣብ ጥቓኻ',
-                    'ምግብ ቤቶች፣ ካፌዎች፣ ሱቆች እና ቤተ ክርስቲያኖች በአቅራቢያዎ'),
+            Positioned(left: 18, top: 94, width: 180, child: Text(sub, maxLines: 3, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 13, height: 1.4, color: Color(0xFFEADFCB)))),
             Positioned(left: 18, bottom: 18, child: Container(
               height: 44, padding: const EdgeInsets.symmetric(horizontal: 18),
               decoration: BoxDecoration(color: _cGold, borderRadius: BorderRadius.circular(22)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(_l('Explore', 'ድለ', 'ያስሱ'), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: _cInk)),
+                Text(button, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: _cInk)),
                 const SizedBox(width: 8),
                 const Icon(Icons.arrow_forward_rounded, size: 18, color: _cInk),
               ]),
@@ -283,10 +281,12 @@ class _BubblePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-/// "Shop · New products, delivered to you"
+/// The small card under the tiles (now: Explore · places near you)
 class HomeShopCard extends StatelessWidget {
   final VoidCallback onTap;
-  const HomeShopCard({super.key, required this.onTap});
+  final String title, sub;
+  final IconData icon;
+  const HomeShopCard({super.key, required this.onTap, required this.title, required this.sub, this.icon = Icons.shopping_bag_outlined});
 
   @override
   Widget build(BuildContext context) {
@@ -301,12 +301,11 @@ class HomeShopCard extends StatelessWidget {
           child: SizedBox(height: 72, child: Row(children: [
             const SizedBox(width: 14),
             Container(width: 46, height: 46, decoration: BoxDecoration(color: _cBlue, borderRadius: BorderRadius.circular(14)),
-                child: const Icon(Icons.shopping_bag_outlined, color: Colors.white)),
+                child: Icon(icon, color: Colors.white)),
             const SizedBox(width: 12),
             Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(_l('Shop', 'ድኳን', 'ሱቅ'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: kText)),
-              Text(_l('New products · delivered to you', 'ሓደስቲ ፍርያት · ክሳብ ገዛኻ ይበጽሑ', 'አዳዲስ ምርቶች · እቤትዎ ድረስ'),
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: kTextSub)),
+              Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: kText)),
+              Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: kTextSub)),
             ])),
             for (final c in const [_cGold, _cRed, _cGreen]) Container(
                 width: 34, height: 34, margin: const EdgeInsets.only(left: 4),

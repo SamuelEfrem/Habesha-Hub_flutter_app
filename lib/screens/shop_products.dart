@@ -98,6 +98,21 @@ Future<List<Map<String, dynamic>>> fetchShopify(String rawUrl, String currency, 
   return out;
 }
 
+/// Products for the row, shared by every row: the first page shows at once, the rest fills in
+final shopItems = ValueNotifier<List<Map<String, dynamic>>?>(null);   // null = still loading
+String _shopLoading = '';
+void ensureShopLoaded(String rawUrl, String currency, String delivery) {
+  final url = _cleanUrl(rawUrl);
+  if (url.isEmpty) { shopItems.value = const []; return; }
+  final key = '$url|$currency|$delivery';
+  if (_shopLoading == key && (shopItems.value != null || DateTime.now().difference(_shopifyCacheAt).inMinutes < 10)) return;
+  _shopLoading = key;
+  fetchShopifyAll(url, currency, delivery, (list) => shopItems.value = list).whenComplete(() {
+    _shopifyCache = shopItems.value ?? const []; _shopifyCacheUrl = url; _shopifyCacheAt = DateTime.now();
+    shopItems.value ??= const [];
+  });
+}
+
 /// All products, page by page (250 each); [onPage] gets the list so far
 Future<void> fetchShopifyAll(String rawUrl, String currency, String delivery, void Function(List<Map<String, dynamic>>) onPage) async {
   final url = _cleanUrl(rawUrl);
@@ -164,6 +179,40 @@ String _l(String en, String ti, String am) {
 
 String _s(dynamic v) => (v ?? '').toString();
 
+/// Habesha Hub Shop as its own page (opened from the home): our products, not people's Market
+class ShopScreen extends StatelessWidget {
+  const ShopScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: languageNotifier,
+      builder: (_, __) => Scaffold(
+        backgroundColor: kBg,
+        appBar: AppBar(
+          backgroundColor: kCard,
+          iconTheme: IconThemeData(color: kSecondary),
+          title: Row(children: [
+            Text('Habesha Hub Shop', style: tsTitleMd(color: kText).copyWith(fontSize: 18)),
+            const SizedBox(width: 6),
+            Icon(Icons.verified_rounded, color: kSecondary, size: 18),
+          ]),
+        ),
+        body: ListView(padding: const EdgeInsets.only(bottom: 32), children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+            child: Text(_l('Sold and delivered by Habesha Hub. Pay safely by card, Apple Pay or Google Pay.',
+                'ብሓበሻ ሃብ ይሽየጥን ይበጽሕን። ብካርድ፡ Apple Pay ወይ Google Pay ብውሑስ ክፈል።',
+                'በሐበሻ ሀብ የሚሸጥና የሚደርስ። በካርድ፣ Apple Pay ወይም Google Pay በደህና ይክፈሉ።'),
+                style: tsBodySm(color: kTextSub)),
+          ),
+          const ShopProductsRow(),
+        ]),
+      ),
+    );
+  }
+}
+
 /// The row in Market. Hidden for users until there is at least one active product.
 class ShopProductsRow extends StatelessWidget {
   const ShopProductsRow({super.key});
@@ -174,15 +223,21 @@ class ShopProductsRow extends StatelessWidget {
       stream: _cfg.snapshots(),
       builder: (_, cfgSnap) {
         final cfg = cfgSnap.data?.data() ?? const <String, dynamic>{};
-        return FutureBuilder<List<Map<String, dynamic>>>(
-          future: fetchShopify(_s(cfg['url']), _s(cfg['currency']), _s(cfg['delivery']).isEmpty ? '7–15 days' : _s(cfg['delivery'])),
-          builder: (_, shopify) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        if (cfgSnap.hasData) ensureShopLoaded(_s(cfg['url']), _s(cfg['currency']), _s(cfg['delivery']).isEmpty ? '7–15 days' : _s(cfg['delivery']));
+        return ValueListenableBuilder<List<Map<String, dynamic>>?>(
+          valueListenable: shopItems,
+          builder: (_, shopList, __) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: _col.snapshots(),
       builder: (_, snap) {
         final admin = _admin;
         final docs = (snap.data?.docs ?? []).where((d) => admin || d.data()['active'] != false).toList()
           ..sort((a, b) => ((a.data()['order'] ?? 999) as num).compareTo((b.data()['order'] ?? 999) as num));
-        final fromShop = shopify.data ?? const <Map<String, dynamic>>[];
+        final fromShop = shopList ?? const <Map<String, dynamic>>[];
+        // still loading the first products: a small spinner instead of an empty page
+        if (shopList == null && (snap.data?.docs ?? const []).isEmpty) {
+          return Padding(padding: const EdgeInsets.all(40),
+              child: Center(child: CircularProgressIndicator(color: kSecondary, strokeWidth: 2)));
+        }
         final items = <(String, Map<String, dynamic>)>[
           for (final d in docs) (d.id, d.data()),
           for (final p in fromShop.where((p) => _s(p['country']).isEmpty).take(20)) ('', p),

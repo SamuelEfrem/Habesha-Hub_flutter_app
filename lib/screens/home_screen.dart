@@ -10,6 +10,7 @@ import '../widgets/business_card.dart';
 import '../widgets/radial_menu.dart';
 import '../widgets/home_d.dart';
 import 'notices_screen.dart';
+import 'shop_products.dart';
 import '../utils/language_notifier.dart';
 import '../utils/theme_notifier.dart';
 import '../theme/app_theme.dart';
@@ -307,10 +308,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
             SliverToBoxAdapter(child: HomeGreetingBar(
                 name: (FirebaseAuth.instance.currentUser?.displayName ?? '').trim().split(' ').first,
                 onBell: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NoticesScreen())))),
-            SliverToBoxAdapter(child: HomeHero(onExplore: () => setState(() => _currentTab = 1))),
+            // the Shop is the big card; Explore (places near you) is the card under the tiles
+            SliverToBoxAdapter(child: HomeHero(
+                title: tr('Habesha Hub Shop'),
+                sub: tr('Gifts for home and family – phones, TVs, coffee sets and more, delivered to you'),
+                button: tr('Shop now'),
+                onExplore: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ShopScreen())))),
             SliverToBoxAdapter(child: _buildNeedTiles()),
-            SliverToBoxAdapter(child: HomeShopCard(onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const MarketplaceScreen(initialTab: 'listings'))))),
+            SliverToBoxAdapter(child: HomeShopCard(
+                title: tr('Find your habesha spot'),
+                sub: tr('Restaurants, cafés, shops and churches near you'),
+                icon: Icons.explore_outlined,
+                onTap: () => setState(() => _currentTab = 1))),
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
             const SliverToBoxAdapter(child: WeekendEventsCard()),
             SliverToBoxAdapter(child: _buildSearchRow(t)),
@@ -464,12 +473,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     return HomeNeedGrid(tiles: [
       NeedTile(tr('Food'), kNeedFood, () => push(const ExploreScreen(initialCategory: 'Restaurant')),
           video: 'assets/home/food.mp4', image: 'assets/home/food.jpg'),
-      NeedTile(tr('Events'), kNeedEvents, () => push(const EventsScreen()), image: 'assets/home/events.jpg'),
-      NeedTile(tr('Services'), kNeedServices, () => push(const ServiceHubScreen()), art: serviceTileArt(), textColor: kNeedInk),
+      NeedTile(tr('Events'), kNeedEvents, () => push(const EventsScreen()),
+          video: 'assets/home/events.mp4', image: 'assets/home/events.jpg'),
+      NeedTile(tr('Services'), kNeedServices, () => push(const ServiceHubScreen()),
+          video: 'assets/home/services.mp4', image: 'assets/home/services.jpg'),
       NeedTile(tr('Beauty'), kNeedBeauty, () => push(const ExploreScreen(initialCategory: kHairCategory)),
           video: 'assets/home/beauty.mp4', image: 'assets/home/beauty.jpg'),
-      NeedTile('Habesha AI', kNeedAi, () => push(const AiChatScreen()), art: aiTileArt()),
-      NeedTile(tr('Learn & play'), kNeedLearn, () => push(const GamesScreen()), image: 'assets/home/learn.jpg'),
+      NeedTile('Habesha AI', kNeedAi, () => push(const AiChatScreen()),
+          video: 'assets/home/ai.mp4', image: 'assets/home/ai.jpg'),
+      NeedTile(tr('Learn & play'), kNeedLearn, () => push(const GamesScreen()),
+          video: 'assets/home/learn.mp4', image: 'assets/home/learn.jpg'),
     ]);
   }
 
