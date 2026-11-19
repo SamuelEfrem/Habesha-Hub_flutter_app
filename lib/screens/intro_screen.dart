@@ -10,7 +10,7 @@ import '../services/notification_service.dart';
 
 /// Short animated intro (about 7 seconds), shown once (and again after big updates:
 /// change the key). Five quick scenes, then the logo and "Start". Tap = next, "Skip" = home.
-const kIntroKey = 'intro_v3_done';
+const kIntroKey = 'intro_v4_done';   // v4: Habesha Hub Shop scene
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
@@ -27,6 +27,7 @@ class _IntroScreenState extends State<IntroScreen> with TickerProviderStateMixin
 
   // emoji, title, line, colour (strong colours: the intro looks the same in light and dark mode)
   static const _scenes = [
+    ('🎁', 'Habesha Hub Shop', 'Send a gift home – phones, TVs and more delivered to your family', Color(0xFF1E7B4F)),
     ('📍', 'Habesha places near you', 'Restaurants, shops, churches and barbers near you', Color(0xFFC2410C)),
     ('🤝', 'Habesha Hub Services', 'Book trusted Habesha services', Color(0xFF1F7A55)),
     ('🛍️', 'Market', 'Buy, sell & swap', Color(0xFF2F62A8)),

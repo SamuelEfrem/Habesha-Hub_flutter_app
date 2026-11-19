@@ -1097,6 +1097,7 @@ class AppTranslations {
     'Shop now': {'Tigrinya': 'ሕጂ ግዛእ', 'Amharic': 'አሁን ይግዙ'},
     'Find your habesha spot': {'Tigrinya': 'ናይ ሓበሻ ቦታኻ ርኸብ', 'Amharic': 'የሐበሻ ቦታዎን ያግኙ'},
     'Restaurants, cafés, shops and churches near you': {'Tigrinya': 'ቤት መግቢ፡ ካፈታት፡ ድኳናትን ኣብያተ ክርስትያንን ኣብ ጥቓኻ', 'Amharic': 'ምግብ ቤቶች፣ ካፌዎች፣ ሱቆች እና ቤተ ክርስቲያኖች በአቅራቢያዎ'},
+    'Send a gift home – phones, TVs and more delivered to your family': {'Tigrinya': 'ናብ ዓዲ ህያብ ስደድ – ስልኪ፡ ቲቪን ካልእን ናብ ስድራኻ ይበጽሕ', 'Amharic': 'ወደ አገር ቤት ስጦታ ይላኩ – ስልክ፣ ቲቪና ሌሎችም ለቤተሰብዎ ይደርሳሉ'},
     'Works from home': {'Tigrinya': 'ካብ ገዛ ይሰርሕ', 'Amharic': 'ከቤት ይሰራል'},
     'Then only the area is shown, never your address': {'Tigrinya': 'ሽዑ ከባቢ ጥራይ እዩ ዝርአ፡ ኣድራሻኻ ፈጺሙ ኣይርአን', 'Amharic': 'ያኔ አካባቢው ብቻ ይታያል፣ አድራሻዎ በጭራሽ አይታይም'},
     'Comes to you': {'Tigrinya': 'ናባኻ ይመጽእ', 'Amharic': 'ወደ እርስዎ ይመጣል'},
