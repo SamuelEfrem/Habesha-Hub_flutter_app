@@ -102,9 +102,9 @@ class HomeHero extends StatelessWidget {
           child: SizedBox(height: 140, child: Stack(children: [
             if (photos.isEmpty) Positioned.fill(child: CustomPaint(painter: _JebenaPainter()))
             else Positioned(right: 0, top: 0, bottom: 0, width: 140, child: _HeroPhotos(photos: photos)),
-            Positioned(left: 16, top: 14, right: 150, child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 20, height: 1.15, fontWeight: FontWeight.w800, color: Colors.white))),
-            Positioned(left: 16, top: 42, right: 150, child: Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis,
+            Positioned(left: 16, top: 14, right: 128, child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(title, maxLines: 1,
+                style: const TextStyle(fontSize: 20, height: 1.15, fontWeight: FontWeight.w800, color: Colors.white)))),
+            Positioned(left: 16, top: 42, right: 128, child: Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 12.5, height: 1.35, color: Color(0xFFEADFCB)))),
             Positioned(left: 16, bottom: 14, child: Container(
               height: 38, padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -358,12 +358,10 @@ class HomeShopCard extends StatelessWidget {
                 child: Icon(icon, color: Colors.white)),
             const SizedBox(width: 12),
             Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: kText)),
+              Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: kText)),
               Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: kTextSub)),
             ])),
-            for (final c in const [_cGold, _cRed, _cGreen]) Container(
-                width: 34, height: 34, margin: const EdgeInsets.only(left: 4),
-                decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(10))),
+            Icon(Icons.chevron_right_rounded, color: kTextSub),
             const SizedBox(width: 14),
           ])),
         ),

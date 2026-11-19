@@ -259,7 +259,7 @@ class ShopScreen extends StatelessWidget {
                 'በሐበሻ ሀብ የሚሸጥና የሚደርስ። በካርድ፣ Apple Pay ወይም Google Pay በደህና ይክፈሉ።'),
                 style: tsBodySm(color: kTextSub)),
           ),
-          const ShopProductsRow(),
+          const ShopProductsRow(inShopPage: true),
         ]),
       ),
     );
@@ -268,7 +268,8 @@ class ShopScreen extends StatelessWidget {
 
 /// The row in Market. Hidden for users until there is at least one active product.
 class ShopProductsRow extends StatelessWidget {
-  const ShopProductsRow({super.key});
+  final bool inShopPage;   // on the Shop page the page title says it already
+  const ShopProductsRow({super.key, this.inShopPage = false});
 
   @override
   Widget build(BuildContext context) {
@@ -308,9 +309,11 @@ class ShopProductsRow extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(children: [
-                Text('Habesha Hub Shop', style: tsTitleMd(color: kText).copyWith(fontSize: 16)),
-                const SizedBox(width: 6),
-                Icon(Icons.verified_rounded, color: kSecondary, size: 18),
+                if (!inShopPage) ...[
+                  Text('Habesha Hub Shop', style: tsTitleMd(color: kText).copyWith(fontSize: 16)),
+                  const SizedBox(width: 6),
+                  Icon(Icons.verified_rounded, color: kSecondary, size: 18),
+                ],
                 const Spacer(),
                 if (items.any((e) => e.$2['fromShopify'] == true)) TextButton(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ShopAllScreen(cfg: cfg))),
