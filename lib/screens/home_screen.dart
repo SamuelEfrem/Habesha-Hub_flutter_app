@@ -8,6 +8,8 @@ import '../models/business.dart';
 import '../services/business_service.dart';
 import '../widgets/business_card.dart';
 import '../widgets/radial_menu.dart';
+import '../widgets/home_d.dart';
+import 'notices_screen.dart';
 import '../utils/language_notifier.dart';
 import '../utils/theme_notifier.dart';
 import '../theme/app_theme.dart';
@@ -301,9 +303,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
           child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            SliverToBoxAdapter(child: _buildTopBar()),
-            // the shortcuts first, then the weekend ticker, then search right above the list it searches
-            SliverToBoxAdapter(child: _buildShortcuts(t)),
+            // design "Forside D": greeting, hero, tiles (some with a video), Shop
+            SliverToBoxAdapter(child: HomeGreetingBar(
+                name: (FirebaseAuth.instance.currentUser?.displayName ?? '').trim().split(' ').first,
+                onBell: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NoticesScreen())))),
+            SliverToBoxAdapter(child: HomeHero(onExplore: () => setState(() => _currentTab = 1))),
+            SliverToBoxAdapter(child: _buildNeedTiles()),
+            SliverToBoxAdapter(child: HomeShopCard(onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const MarketplaceScreen(initialTab: 'listings'))))),
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
             const SliverToBoxAdapter(child: WeekendEventsCard()),
             SliverToBoxAdapter(child: _buildSearchRow(t)),
             if (_searchQuery.trim().length >= 2) SliverToBoxAdapter(child: CrossSearchResults(query: _searchQuery)),
@@ -450,7 +458,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     );
   }
 
-  // ── Round shortcuts to every part of the app ──
+  // ── "What do you need today?" ──
+  Widget _buildNeedTiles() {
+    void push(Widget w) => Navigator.push(context, MaterialPageRoute(builder: (_) => w));
+    return HomeNeedGrid(tiles: [
+      NeedTile(tr('Food'), kNeedFood, () => push(const ExploreScreen(initialCategory: 'Restaurant')),
+          video: 'assets/home/food.mp4', image: 'assets/home/food.jpg'),
+      NeedTile(tr('Events'), kNeedEvents, () => push(const EventsScreen()), image: 'assets/home/events.jpg'),
+      NeedTile(tr('Services'), kNeedServices, () => push(const ServiceHubScreen()), art: serviceTileArt(), textColor: kNeedInk),
+      NeedTile(tr('Beauty'), kNeedBeauty, () => push(const ExploreScreen(initialCategory: kHairCategory)),
+          video: 'assets/home/beauty.mp4', image: 'assets/home/beauty.jpg'),
+      NeedTile('Habesha AI', kNeedAi, () => push(const AiChatScreen()), art: aiTileArt()),
+      NeedTile(tr('Learn & play'), kNeedLearn, () => push(const GamesScreen()), image: 'assets/home/learn.jpg'),
+    ]);
+  }
+
+  // ── Round shortcuts to every part of the app (old home, kept for now) ──
+  // ignore: unused_element
   Widget _buildShortcuts(String Function(String) t) {
     void push(Widget w) => Navigator.push(context, MaterialPageRoute(builder: (_) => w));
     // all shortcuts in one round button that opens with a spring
@@ -727,9 +751,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
     // key = translation key; label = fallback if key not found
     final items = [
       {'icon': Icons.home_outlined, 'on': Icons.home_rounded, 'key': 'home', 'label': 'Home'},
-      {'icon': Icons.explore_outlined, 'on': Icons.explore_rounded, 'key': 'explore', 'label': 'Explore'},
-      {'icon': Icons.chat_bubble_outline_rounded, 'on': Icons.chat_bubble_rounded, 'key': 'Habesha AI', 'label': 'Habesha AI'},
       {'icon': Icons.smart_display_outlined, 'on': Icons.smart_display_rounded, 'key': 'tok', 'label': 'Hab Tok'},
+      {'icon': Icons.send_rounded, 'on': Icons.send_rounded, 'key': 'Send money', 'label': 'Send money'},
+      {'icon': Icons.shopping_bag_outlined, 'on': Icons.shopping_bag_rounded, 'key': 'Market', 'label': 'Market'},
       loggedIn
           ? {'icon': Icons.person_outline_rounded, 'on': Icons.person_rounded, 'key': 'profile', 'label': 'Profile'}
           : {'icon': Icons.login_rounded, 'on': Icons.login_rounded, 'key': 'Log in', 'label': 'Log in'},
@@ -748,19 +772,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
           height: 66,
           child: Row(
             children: List.generate(items.length, (i) {
-              // 2 = Habesha AI: opens the chat; the others are tabs (Hab Tok = 2, Profile = 3)
-              final tab = i < 2 ? i : i - 1;
-              final selected = i != 2 && _currentTab == tab;
-              final color = selected ? kSecondary : kTextSub;
-              final raw = i == 2 ? tr('Habesha AI') : (i == 4 && !loggedIn) ? tr('Business login') : t(items[i]['key'] as String);
+              // tabs: Home = 0, Hab Tok = 2, Profile = 3 (Explore = 1 opens from the home hero);
+              // 2 = Send money and 3 = Market open as pages
+              final tab = const [0, 2, -1, -1, 3][i];
+              final selected = tab >= 0 && _currentTab == tab;
+              final color = selected || i == 2 ? kSecondary : kTextSub;
+              final raw = i == 2 ? tr('Send money') : i == 3 ? tr('Market') : (i == 4 && !loggedIn) ? tr('Business login') : t(items[i]['key'] as String);
               final label = (raw == items[i]['key']) ? (items[i]['label'] as String) : raw;
               return Expanded(
                 child: InkWell(
                   onTap: () => i == 2
-                      ? Navigator.push(context, MaterialPageRoute(builder: (_) => const AiChatScreen()))
-                      : setState(() => _currentTab = tab),
+                      ? Navigator.push(context, MaterialPageRoute(builder: (_) => const SendMoneyScreen()))
+                      : i == 3
+                          ? Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketplaceScreen()))
+                          : setState(() => _currentTab = tab),
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon((selected ? items[i]['on'] : items[i]['icon']) as IconData, color: color, size: 25),
+                    // Send money: a round green button lifted above the bar
+                    if (i == 2) Transform.translate(offset: const Offset(0, -12), child: Container(
+                      width: 52, height: 52,
+                      decoration: BoxDecoration(color: const Color(0xFF1E7B4F), shape: BoxShape.circle,
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 14, offset: const Offset(0, 5))]),
+                      child: const Icon(Icons.send_rounded, color: Colors.white, size: 23),
+                    ))
+                    else Icon((selected ? items[i]['on'] : items[i]['icon']) as IconData, color: color, size: 25),
                     const SizedBox(height: 4),
                     // long labels ("Business login") shrink a little instead of being cut
                     FittedBox(fit: BoxFit.scaleDown, child: Text(label,

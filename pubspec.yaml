@@ -75,6 +75,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/home/
 
   # Design fonts (were in assets/fonts but never registered, so the app used the system font)
   fonts:
