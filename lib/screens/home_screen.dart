@@ -788,11 +788,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
                           : setState(() => _currentTab = tab),
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                     // Send money: a round green button lifted above the bar
-                    if (i == 2) Transform.translate(offset: const Offset(0, -12), child: Container(
-                      width: 52, height: 52,
-                      decoration: BoxDecoration(color: const Color(0xFF1E7B4F), shape: BoxShape.circle,
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 14, offset: const Offset(0, 5))]),
-                      child: const Icon(Icons.send_rounded, color: Colors.white, size: 23),
+                    // takes the same height as the other icons, so the label lines up with theirs
+                    if (i == 2) SizedBox(height: 25, child: OverflowBox(
+                      maxHeight: 52, alignment: Alignment.bottomCenter,
+                      child: Container(
+                        width: 50, height: 50,
+                        decoration: BoxDecoration(color: const Color(0xFF1E7B4F), shape: BoxShape.circle,
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 14, offset: const Offset(0, 5))]),
+                        child: const Icon(Icons.send_rounded, color: Colors.white, size: 23),
+                      ),
                     ))
                     else Icon((selected ? items[i]['on'] : items[i]['icon']) as IconData, color: color, size: 25),
                     const SizedBox(height: 4),
