@@ -4,7 +4,6 @@ import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
 import '../utils/translations.dart';
 import 'game_webview_screen.dart';
-import 'purchase_service.dart';
 
 /// Games & Life Tools. The games are web pages on Firebase Hosting
 /// (public/games/…), so they can be updated without a new app release.
@@ -22,12 +21,12 @@ class GamesScreen extends StatefulWidget {
         ? 'ti'
         : languageNotifier.language == 'Amharic' ? 'am' : 'en';
     final name = FirebaseAuth.instance.currentUser?.displayName ?? '';
-    final owned = PurchaseService.instance.owned;
+    // everything in Learn & play is free: tell the page all extras are unlocked
     final url = Uri.parse('$baseUrl/$page/').replace(queryParameters: {
       'app': '1',
       'lang': lang,
       if (name.isNotEmpty) 'name': name,
-      if (owned.isNotEmpty) 'pro': owned.join(','),
+      'pro': 'theory_pro,lang_pro',
     });
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => GameWebViewScreen(title: title, url: url),
@@ -39,24 +38,17 @@ class GamesScreen extends StatefulWidget {
 }
 
 class _GamesScreenState extends State<GamesScreen> {
-  @override
-  void initState() {
-    super.initState();
-    PurchaseService.instance.init();
-  }
-
   String get _lang => languageNotifier.language == 'Tigrinya'
       ? 'ti'
       : languageNotifier.language == 'Amharic' ? 'am' : 'en';
 
   Uri _url(String page) {
     final name = FirebaseAuth.instance.currentUser?.displayName ?? '';
-    final owned = PurchaseService.instance.owned;
     return Uri.parse('${GamesScreen.baseUrl}/$page/').replace(queryParameters: {
       'app': '1',
       'lang': _lang,
       if (name.isNotEmpty) 'name': name,
-      if (owned.isNotEmpty) 'pro': owned.join(','),
+      'pro': 'theory_pro,lang_pro',
     });
   }
 
@@ -95,14 +87,6 @@ class _GamesScreenState extends State<GamesScreen> {
             tags: const ['Theory B', 'Driving test', '10+ languages', "Ge'ez calendar"],
             tint: kTintYellow, ink: kInkYellow,
             onTap: () => _open('Life Tools', 'life-tools'),
-          ),
-          const SizedBox(height: 22),
-          Center(
-            child: TextButton.icon(
-              onPressed: () => PurchaseService.instance.restore(),
-              icon: Icon(Icons.restore_rounded, color: kTextSub, size: 18),
-              label: Text(tr('Restore purchases'), style: tsBodySm(color: kTextSub)),
-            ),
           ),
         ],
       ),

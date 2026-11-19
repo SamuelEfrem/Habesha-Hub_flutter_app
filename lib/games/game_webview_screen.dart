@@ -8,10 +8,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../screens/auth_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/translations.dart';
-import 'purchase_service.dart';
 import 'unlock_service.dart';
 
 /// Opens a web game or tool (hosted on Firebase Hosting) full screen inside the app.
@@ -29,7 +27,6 @@ class GameWebViewScreen extends StatefulWidget {
 class _GameWebViewScreenState extends State<GameWebViewScreen> with WidgetsBindingObserver {
   late final WebViewController _controller;
   int _progress = 0;
-  final _purchases = PurchaseService.instance;
   final _tts = FlutterTts();
 
   // Game music must stop when the app goes to the background (audio-guard.js in the pages)
@@ -73,11 +70,6 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> with WidgetsBindi
       platform.setMediaPlaybackRequiresUserGesture(false);
     }
 
-    // After a confirmed purchase: send the paid questions + unlock to the page
-    _purchases.onUnlocked = (id) => _sendUnlocked();
-    _purchases.onError = (msg) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-    };
   }
 
   void _onPageMessage(JavaScriptMessage m) {
@@ -85,8 +77,8 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> with WidgetsBindi
       final data = jsonDecode(m.message) as Map<String, dynamic>;
       final product = data['product'];
       final type = data['type'];
-      if (type == 'buy' && product is String && PurchaseService.productIds.contains(product)) {
-        _buy(product);
+      if (type == 'buy' && product is String) {
+        _sendUnlocked();   // everything is free: unlock instead of buying
       } else if (type == 'open' && data['url'] is String) {
         _openExternal(data['url'] as String);
       } else if (type == 'speak' && data['text'] is String) {
@@ -117,18 +109,6 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> with WidgetsBindi
       final p = d.data()?['drivingProgress'];
       if (p != null) await _controller.runJavaScript('window.habeshaProgress && window.habeshaProgress(${jsonEncode(p)})');
     } catch (_) {}
-  }
-
-  // A purchase is tied to an account, so log in first
-  Future<void> _buy(String product) async {
-    var user = FirebaseAuth.instance.currentUser;
-    if (user == null || user.isAnonymous) {
-      await Navigator.push(context,
-          MaterialPageRoute(builder: (_) => const AuthScreen(returnOnLogin: true)));
-      user = FirebaseAuth.instance.currentUser;
-      if (user == null || user.isAnonymous) return;
-    }
-    await _purchases.buy(product);
   }
 
   // Language lessons: the phone's text-to-speech (the WebView has none).
@@ -195,8 +175,6 @@ class _GameWebViewScreenState extends State<GameWebViewScreen> with WidgetsBindi
     _controller.runJavaScript('window.habeshaPause && window.habeshaPause()').catchError((_) {});
     _controller.loadRequest(Uri.parse('about:blank')).catchError((_) {});
     _tts.stop();
-    _purchases.onUnlocked = null;
-    _purchases.onError = null;
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     super.dispose();
