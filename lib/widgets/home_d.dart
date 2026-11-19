@@ -98,20 +98,21 @@ class HomeHero extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onExplore,
-          child: SizedBox(height: 196, child: Stack(children: [
+          // smaller card (about 140 px), so the tiles below are seen without scrolling
+          child: SizedBox(height: 140, child: Stack(children: [
             if (photos.isEmpty) Positioned.fill(child: CustomPaint(painter: _JebenaPainter()))
-            else Positioned(right: 0, top: 0, bottom: 0, width: 170, child: _HeroPhotos(photos: photos)),
-            Positioned(left: 18, top: 18, width: 200, child: Text(title,
-                style: const TextStyle(fontSize: 24, height: 1.15, fontWeight: FontWeight.w800, color: Colors.white))),
-            Positioned(left: 18, top: 94, width: 180, child: Text(sub, maxLines: 3, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13, height: 1.4, color: Color(0xFFEADFCB)))),
-            Positioned(left: 18, bottom: 18, child: Container(
-              height: 44, padding: const EdgeInsets.symmetric(horizontal: 18),
-              decoration: BoxDecoration(color: _cGold, borderRadius: BorderRadius.circular(22)),
+            else Positioned(right: 0, top: 0, bottom: 0, width: 140, child: _HeroPhotos(photos: photos)),
+            Positioned(left: 16, top: 14, right: 150, child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 20, height: 1.15, fontWeight: FontWeight.w800, color: Colors.white))),
+            Positioned(left: 16, top: 42, right: 150, child: Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12.5, height: 1.35, color: Color(0xFFEADFCB)))),
+            Positioned(left: 16, bottom: 14, child: Container(
+              height: 38, padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(color: _cGold, borderRadius: BorderRadius.circular(19)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(button, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: _cInk)),
-                const SizedBox(width: 8),
-                const Icon(Icons.arrow_forward_rounded, size: 18, color: _cInk),
+                Text(button, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: _cInk)),
+                const SizedBox(width: 6),
+                const Icon(Icons.arrow_forward_rounded, size: 17, color: _cInk),
               ]),
             )),
           ])),
