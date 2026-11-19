@@ -113,6 +113,29 @@ void ensureShopLoaded(String rawUrl, String currency, String delivery) {
   });
 }
 
+/// The home's Shop card: start loading the shop (reads the shop address once)
+Future<void> loadShopForHome() async {
+  try {
+    final cfg = (await _cfg.get()).data() ?? const <String, dynamic>{};
+    ensureShopLoaded(_s(cfg['url']), _s(cfg['currency']), _s(cfg['delivery']).isEmpty ? '7–15 days' : _s(cfg['delivery']));
+  } catch (_) {}
+}
+
+/// A few product photos for the home's Shop card: mixed from every shop, at most [n]
+List<String> shopPhotos(List<Map<String, dynamic>>? items, {int n = 8}) {
+  if (items == null || items.isEmpty) return const [];
+  final byShop = <String, List<String>>{};
+  for (final p in items) {
+    final u = _s(p['imageUrl']);
+    if (u.startsWith('https://')) byShop.putIfAbsent(_s(p['country']), () => []).add(u);
+  }
+  final out = <String>[];
+  for (var k = 0; out.length < n && k < 50; k++) {
+    for (final l in byShop.values) { if (k < l.length && out.length < n) out.add(l[k * 7 % l.length]); }
+  }
+  return out.toSet().toList();
+}
+
 /// All products, page by page (250 each); [onPage] gets the list so far
 Future<void> fetchShopifyAll(String rawUrl, String currency, String delivery, void Function(List<Map<String, dynamic>>) onPage) async {
   final url = _cleanUrl(rawUrl);

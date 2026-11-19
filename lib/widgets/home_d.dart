@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:video_player/video_player.dart';
 import '../theme/app_theme.dart';
 import '../utils/language_notifier.dart';
@@ -82,7 +84,9 @@ class HomeGreetingBar extends StatelessWidget {
 class HomeHero extends StatelessWidget {
   final VoidCallback onExplore;
   final String title, sub, button;
-  const HomeHero({super.key, required this.onExplore, required this.title, required this.sub, required this.button});
+  final List<String> photos;   // product photos: shown on the right, fading calmly every 4 s; none = the jebena
+  const HomeHero({super.key, required this.onExplore, required this.title, required this.sub, required this.button,
+      this.photos = const []});
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +99,8 @@ class HomeHero extends StatelessWidget {
         child: InkWell(
           onTap: onExplore,
           child: SizedBox(height: 196, child: Stack(children: [
-            Positioned.fill(child: CustomPaint(painter: _JebenaPainter())),
+            if (photos.isEmpty) Positioned.fill(child: CustomPaint(painter: _JebenaPainter()))
+            else Positioned(right: 0, top: 0, bottom: 0, width: 170, child: _HeroPhotos(photos: photos)),
             Positioned(left: 18, top: 18, width: 200, child: Text(title,
                 style: const TextStyle(fontSize: 24, height: 1.15, fontWeight: FontWeight.w800, color: Colors.white))),
             Positioned(left: 18, top: 94, width: 180, child: Text(sub, maxLines: 3, overflow: TextOverflow.ellipsis,
@@ -113,6 +118,54 @@ class HomeHero extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Product photos that fade into each other every 4 seconds (calm, no movement)
+class _HeroPhotos extends StatefulWidget {
+  final List<String> photos;
+  const _HeroPhotos({required this.photos});
+  @override
+  State<_HeroPhotos> createState() => _HeroPhotosState();
+}
+
+class _HeroPhotosState extends State<_HeroPhotos> {
+  int _i = 0;
+  Timer? _t;
+
+  @override
+  void initState() {
+    super.initState();
+    _t = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (mounted && widget.photos.length > 1) setState(() => _i = (_i + 1) % widget.photos.length);
+    });
+  }
+
+  @override
+  void dispose() {
+    _t?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final url = widget.photos[_i % widget.photos.length];
+    return Stack(fit: StackFit.expand, children: [
+      AnimatedSwitcher(
+        duration: const Duration(milliseconds: 900),
+        child: Container(
+          key: ValueKey(url),
+          color: Colors.white,
+          padding: const EdgeInsets.all(14),
+          child: CachedNetworkImage(imageUrl: url, fit: BoxFit.contain, memCacheWidth: 500,
+              errorWidget: (_, __, ___) => const SizedBox()),
+        ),
+      ),
+      // soft edge into the brown card, so the text side stays calm
+      const IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(
+          begin: Alignment.centerLeft, end: Alignment.centerRight, stops: [0, 0.35],
+          colors: [Color(0xFF3A2418), Color(0x003A2418)])))),
+    ]);
   }
 }
 

@@ -97,6 +97,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
   @override
   void initState() {
     super.initState();
+    loadShopForHome();   // product photos for the Shop card
     _listAnim = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 500));
     _pulseAnim = AnimationController(
@@ -309,11 +310,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
                 name: (FirebaseAuth.instance.currentUser?.displayName ?? '').trim().split(' ').first,
                 onBell: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NoticesScreen())))),
             // the Shop is the big card; Explore (places near you) is the card under the tiles
-            SliverToBoxAdapter(child: HomeHero(
+            SliverToBoxAdapter(child: ValueListenableBuilder<List<Map<String, dynamic>>?>(
+              valueListenable: shopItems,
+              builder: (_, items, __) => HomeHero(
+                photos: shopPhotos(items),
                 title: tr('Habesha Hub Shop'),
                 sub: tr('Gifts for home and family – phones, TVs, coffee sets and more, delivered to you'),
                 button: tr('Shop now'),
-                onExplore: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ShopScreen())))),
+                onExplore: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ShopScreen()))),
+            )),
             SliverToBoxAdapter(child: _buildNeedTiles()),
             SliverToBoxAdapter(child: HomeShopCard(
                 title: tr('Find your habesha spot'),
@@ -479,8 +484,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin, 
           video: 'assets/home/services.mp4', image: 'assets/home/services.jpg'),
       NeedTile(tr('Beauty'), kNeedBeauty, () => push(const ExploreScreen(initialCategory: kHairCategory)),
           video: 'assets/home/beauty.mp4', image: 'assets/home/beauty.jpg'),
-      NeedTile('Habesha AI', kNeedAi, () => push(const AiChatScreen()),
-          video: 'assets/home/ai.mp4', image: 'assets/home/ai.jpg'),
+      // calm drawn art: the AI video is screen text, too small to read in a tile
+      NeedTile('Habesha AI', kNeedAi, () => push(const AiChatScreen()), art: aiTileArt()),
       NeedTile(tr('Learn & play'), kNeedLearn, () => push(const GamesScreen()),
           video: 'assets/home/learn.mp4', image: 'assets/home/learn.jpg'),
     ]);

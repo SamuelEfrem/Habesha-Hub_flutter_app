@@ -20,7 +20,6 @@ import 'housing_screen.dart';
 import 'home_shops_screen.dart';
 import '../utils/translations.dart';
 import 'cross_links.dart';
-import 'shop_products.dart';
 
 // ═══════════════════════════════════════════════════════════
 // MARKETPLACE SCREEN  (ListView + image gallery, no chat)
@@ -589,9 +588,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           SliverToBoxAdapter(child: searchRow),
           if (activeRow != null) SliverToBoxAdapter(child: activeRow),
           SliverToBoxAdapter(child: catRow),
-          // our own products (Habesha Hub Shop), on the main view only
-          if (_selectedCategory == 'All' && _nameFilter.isEmpty && _activeFilters == 0)
-            const SliverToBoxAdapter(child: ShopProductsRow()),
+          // Habesha Hub Shop (our products, Shopify) has its own page from the home; Market is people's listings only
           // ── Size and occasion (Habesha clothes) ─────
           if (_selectedCategory == _kHabesha) ...[
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
