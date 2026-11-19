@@ -1213,3 +1213,75 @@ exports.aiDraftListing = onRequest(
       res.status(500).json({ error: 'server' });
     }
   });
+
+// Habesha Hub Shop: read the Shopify shop every 20 minutes and keep ONE small list for the app
+// (shop/products.json in Storage, public read). The app never calls Shopify itself, so it is fast
+// and Shopify never rate-limits it. Local partner countries (tag "<country>-delivery") also get
+// their market's prices (e.g. € for Uganda through the en-ug market).
+const SHOP_MARKETS = { Uganda: { path: 'en-ug', symbol: '€' } };
+async function buildShopList() {
+  const db = getFirestore();
+  const cfg = (await db.collection('app_config').doc('shop').get()).data() || {};
+  let url = String(cfg.url || '').trim().replace(/\/+$/, '');
+  if (!url) return 0;
+  if (!url.startsWith('http')) url = 'https://' + url;
+  const currency = String(cfg.currency || 'kr').trim() || 'kr';
+  const delivery = String(cfg.delivery || '7–15 days').trim();
+  const pause = ms => new Promise(r => setTimeout(r, ms));
+  const pages = async (base) => {
+    const all = [];
+    for (let page = 1; page <= 40; page++) {
+      let r;
+      for (let i = 0; i < 4; i++) { r = await fetch(`${base}/products.json?limit=250&page=${page}`); if (r.status !== 429) break; await pause(4000); }
+      if (!r.ok) break;
+      const list = (await r.json()).products || [];
+      all.push(...list);
+      if (list.length < 250) break;
+      await pause(800);
+    }
+    return all;
+  };
+  const money = (p, cur) => { p = String(p || '').replace(/\.00$/, ''); return ['kr', 'NOK', 'SEK', 'DKK'].includes(cur) ? `${p} ${cur === 'NOK' ? 'kr' : cur}` : `${cur} ${p}`; };
+  const raw = await pages(url);
+  const items = raw.map(m => {
+    const tags = (Array.isArray(m.tags) ? m.tags : String(m.tags || '').split(',')).map(t => String(t).trim());
+    const tv = k => (tags.find(t => t.toLowerCase().startsWith(k + ':')) || '').slice(k.length + 1).trim();
+    const local = tags.map(t => t.toLowerCase()).find(t => t.endsWith('-delivery') && t.length > 9) || '';
+    const country = local ? local.slice(0, -9).split('-').map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(' ') : '';
+    const vars = m.variants || [];
+    return {
+      title: m.title || '', handle: m.handle || '', type: (m.product_type || '').trim(), country,
+      brand: tv('brand'), condition: tv('condition'),
+      imageUrl: (m.images || [])[0]?.src || '',
+      description: String(m.body_html || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim().slice(0, 900),
+      price: vars.length ? money(vars[0].price, currency) : '',
+      options: vars.filter(v => v.title !== 'Default Title').map(v => ({ name: v.title, price: String(v.price), available: v.available !== false })),
+      delivery: country ? '' : delivery,
+      buyUrl: `${url}/products/${m.handle}`,
+    };
+  });
+  for (const [country, mk] of Object.entries(SHOP_MARKETS)) {
+    if (!items.some(p => p.country === country)) continue;
+    const prices = {};
+    for (const m of await pages(`${url}/${mk.path}`)) for (const v of m.variants || []) prices[`${m.handle}|${v.title}`] = String(v.price);
+    const fmt = x => `${mk.symbol}${x.replace(/\.00$/, '')}`;
+    for (const p of items.filter(p => p.country === country)) {
+      const first = prices[`${p.handle}|${(raw.find(r => r.handle === p.handle)?.variants || [])[0]?.title}`];
+      if (first) p.price = fmt(first);
+      for (const o of p.options) if (prices[`${p.handle}|${o.name}`]) o.shown = fmt(prices[`${p.handle}|${o.name}`]);
+      p.buyUrl = `${url}/${mk.path}/products/${p.handle}`;
+    }
+  }
+  if (!items.length) return 0;   // keep the last good list when Shopify is down
+  await getStorage().bucket().file('shop/products.json').save(JSON.stringify({ at: Date.now(), items }), {
+    contentType: 'application/json', metadata: { cacheControl: 'public, max-age=300' } });
+  return items.length;
+}
+exports.syncShop = onSchedule({ schedule: 'every 20 minutes', timeoutSeconds: 300, memory: '512MiB' }, async () => {
+  console.log('syncShop', await buildShopList());
+});
+// the admin can refresh at once from the app (after adding products in Shopify)
+exports.syncShopNow = onCall({ timeoutSeconds: 300, memory: '512MiB' }, async (req) => {
+  if (req.auth?.uid !== SAMUEL_UID) throw new HttpsError('permission-denied', 'admin only');
+  return { count: await buildShopList() };
+});

@@ -107,10 +107,40 @@ void ensureShopLoaded(String rawUrl, String currency, String delivery) {
   final key = '$url|$currency|$delivery';
   if (_shopLoading == key && (shopItems.value != null || DateTime.now().difference(_shopifyCacheAt).inMinutes < 10)) return;
   _shopLoading = key;
-  fetchShopifyAll(url, currency, delivery, (list) => shopItems.value = list).whenComplete(() {
+  _loadShopCache(currency, delivery).then((cached) async {
+    if (cached != null && cached.isNotEmpty) {
+      shopItems.value = cached;
+    } else {
+      // no cached list yet (before the server job ran): read Shopify directly
+      await fetchShopifyAll(url, currency, delivery, (list) => shopItems.value = list);
+    }
     _shopifyCache = shopItems.value ?? const []; _shopifyCacheUrl = url; _shopifyCacheAt = DateTime.now();
     shopItems.value ??= const [];
   });
+}
+
+/// The list the server makes from Shopify every 20 minutes (functions: syncShop)
+const _shopCacheUrl = 'https://firebasestorage.googleapis.com/v0/b/habesha-hub-7bd1d.firebasestorage.app/o/shop%2Fproducts.json?alt=media';
+Future<List<Map<String, dynamic>>?> _loadShopCache(String currency, String delivery) async {
+  try {
+    final r = await http.get(Uri.parse(_shopCacheUrl)).timeout(const Duration(seconds: 20));
+    if (r.statusCode != 200) return null;
+    final items = (jsonDecode(r.body)['items'] as List?) ?? [];
+    return [
+      for (final m in items) () {
+        final p = Map<String, dynamic>.from(m as Map);
+        final country = _s(p['country']);
+        p['delivery'] = country.isEmpty ? (_s(p['delivery']).isEmpty ? delivery : _s(p['delivery']))
+            : _l('Delivered in $country (1–3 days)', 'ኣብ $country ይበጽሕ (1–3 መዓልቲ)', 'በ$country ይደርሳል (1–3 ቀን)');
+        p['options'] = [for (final o in (p['options'] as List? ?? const [])) Map<String, dynamic>.from(o as Map)];
+        p['currency'] = currency;
+        p['fromShopify'] = true;
+        return p;
+      }(),
+    ];
+  } catch (_) {
+    return null;
+  }
 }
 
 /// The home's Shop card: start loading the shop (reads the shop address once)
@@ -755,8 +785,24 @@ class _ShopAllScreenState extends State<ShopAllScreen> {
   void initState() {
     super.initState();
     final c = widget.cfg;
-    fetchShopifyAll(_s(c['url']), _s(c['currency']), _s(c['delivery']).isEmpty ? '7–15 days' : _s(c['delivery']),
-        (list) { if (mounted) setState(() => _all = list.where((p) => _s(p['country']) == widget.country).toList()); }).whenComplete(() { if (mounted) setState(() => _loading = false); });
+    ensureShopLoaded(_s(c['url']), _s(c['currency']), _s(c['delivery']).isEmpty ? '7–15 days' : _s(c['delivery']));
+    shopItems.addListener(_take);
+    _take();
+  }
+
+  void _take() {
+    final list = shopItems.value;
+    if (!mounted) return;
+    setState(() {
+      _all = (list ?? const []).where((p) => _s(p['country']) == widget.country).toList();
+      _loading = list == null;
+    });
+  }
+
+  @override
+  void dispose() {
+    shopItems.removeListener(_take);
+    super.dispose();
   }
 
   @override
