@@ -476,7 +476,15 @@ const NEWS = {
 const nameFor = (v, topic) => topic === 'news_ti' ? (v.translations?.Tigrinya?.publicName || v.publicName)
   : topic === 'news_am' ? (v.translations?.Amharic?.publicName || v.publicName) : v.publicName;
 
+// Off by default (too many pushes annoy users). Turn on in Firestore:
+// app_config/notifications { newProviders: true, newVideos: true }
+async function newsAllowed(kind) {
+  const d = (await getFirestore().collection('app_config').doc('notifications').get()).data() || {};
+  return kind === 'prov' ? d.newProviders === true : d.newVideos === true;
+}
+
 async function sendNews(kind, v) {
+  if (!(await newsAllowed(kind))) return;
   for (const topic of Object.keys(NEWS)) {
     await getMessaging().send({
       topic,
